@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 16 16">
+    <path fill="#40B6E0" fill-opacity=".7"
+          d="M1,13 L8,13 L8,8 L15,8 L15,4 L8,4 L7,3 C6,2 6,2 5,2 L1,2 C1,2 1,2 1,2 L1,13 Z"/>
+    <path fill="#00B6E0" fill-opacity=".7" d="M15,13 L15,8 L6,8 L6,13 Z"/>
+    <text color="#9AA7B0" x="6.3" y="13" font-size="6.8px">KX</text>
+</svg>

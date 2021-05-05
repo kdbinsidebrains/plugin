@@ -1,0 +1,6 @@
+out/
+build/
+.idea/
+.gradle/
+.sandbox/
+src/main/gen/

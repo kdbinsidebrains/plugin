@@ -1,0 +1,328 @@
+<idea-plugin require-restart="true">
+    <id>org.kdb.inside.brains.KdbInsideBrains</id>
+    <name>KdbInsideBrains</name>
+    <vendor email="support@kdbinsidebrains.dev" url="https://www.kdbinsidebrains.dev">KdbInsideBrains</vendor>
+
+    <description>
+        IntelliJ IDEA plugin for working with KDB+ database and source code
+    </description>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.java</depends>
+
+    <actions>
+        <action id="Kdb.Instances.Connect"
+                text="Connect Instances"
+                icon="KdbIcons.Instance.Connected"
+                class="org.kdb.inside.brains.view.treeview.actions.ConnectAction"/>
+
+        <action id="Kdb.Instances.Disconnect"
+                text="Disconnect Instances"
+                icon="KdbIcons.Instance.Disconnected"
+                class="org.kdb.inside.brains.view.treeview.actions.DisconnectAction"/>
+
+        <action id="Kdb.NewConnection" class="org.kdb.inside.brains.action.CreateConnectionAction"
+                text="Create Kdb Connection"
+                description="Create connection to new KDB instance"
+                icon="AllIcons.General.Add"/>
+
+        <action id="Kdb.Execute"
+                text="Execute Line/Selection"
+                description="Execute current line or selection in active KDB process"
+                icon="KdbIcons.Instance.Execute"
+                class="org.kdb.inside.brains.action.ExecuteAction">
+
+            <keyboard-shortcut first-keystroke="ctrl ENTER" keymap="$default"/>
+            <keyboard-shortcut first-keystroke="ctrl shift G" keymap="$default"/>
+        </action>
+
+        <action id="Kdb.QuickExecute"
+                text="Quick Execute Line/Selection"
+                description="Execute current line or selection in active KDB process"
+                icon="KdbIcons.Instance.QuickExecute"
+                class="org.kdb.inside.brains.action.ExecuteInlineAction">
+
+            <keyboard-shortcut first-keystroke="shift ENTER" keymap="$default"/>
+            <keyboard-shortcut first-keystroke="ctrl shift D" keymap="$default"/>
+        </action>
+
+        <action id="Kdb.CancelQueriesAction" class="org.kdb.inside.brains.action.CancelQueriesAction"
+                icon="AllIcons.Actions.Suspend"/>
+
+        <group id="Kdb.ExecuteOn" popup="true"
+               text="Execute Line/Selection on ..."
+               description="Execute current line or selection in specified KDB process"
+               icon="KdbIcons.Instance.ExecuteOn"
+               class="org.kdb.inside.brains.action.ExecuteOnAction">
+        </group>
+
+        <!--
+
+                <group id="org.intellij.sdk.pycharm.NewGroupedActions" text="_Kdb In Brains" popup="true">
+                    <reference ref="Kdb.Execute"/>
+
+                    <separator/>
+
+                    <reference ref="Kdb.Instances.Connect"/>
+                    <reference ref="Kdb.Instances.Disconnect"/>
+
+                    <add-to-group group-id="MainMenu" relative-to-action="HelpMenu" anchor="before"/>
+                </group>
+        -->
+
+        <group id="Kdb.MainToolbarActionGroup" class="org.kdb.inside.brains.action.MainToolbarActionGroup"
+               compact="true" searchable="false">
+            <separator/>
+            <!--
+
+                        <action id="Kdb.Instances.QuickSelectionOld"
+                                class="org.kdb.inside.brains.execute.ButtonInstancesToolbarAction"/>
+            -->
+
+            <action id="Kdb.Instances.QuickSelection"
+                    class="org.kdb.inside.brains.action.InstancesComboAction"/>
+
+            <action class="org.kdb.inside.brains.action.ToggleConnectAction"/>
+
+            <action class="org.kdb.inside.brains.action.ModifyConnectionAction"
+                    text="Quick Modify"
+                    description="Quick modify active connection"
+                    icon="AllIcons.Actions.Edit"/>
+
+            <action id="Kdb.Instances.BindConnection" class="org.kdb.inside.brains.lang.binding.BindConnectionAction"
+                    text="Bind the Connection"
+                    description="Binds the connection into active editor. Works in Manual mode only"
+                    icon="KdbIcons.Instance.Bind"/>
+
+            <reference ref="Kdb.Execute"/>
+            <reference ref="Kdb.QuickExecute"/>
+            <reference ref="Kdb.CancelQueriesAction"/>
+
+            <separator/>
+
+            <add-to-group group-id="MainToolBar" anchor="after" relative-to-action="ToolbarRunGroup"/>
+            <add-to-group group-id="NavBarToolBarOthers" anchor="first"/>
+        </group>
+
+        <group id="Kdb.EditorContextActionGroup" searchable="false">
+            <separator/>
+            <reference ref="Kdb.Execute"/>
+            <reference ref="Kdb.QuickExecute"/>
+            <separator/>
+            <reference ref="Kdb.ExecuteOn"/>
+            <separator/>
+
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="EditorPopupMenu3"/>
+        </group>
+
+        <group id="Kdb.InstancesScopeView" text="Instances Tree Popup Menu" popup="true" searchable="false">
+            <action id="Kdb.Instances.NewPackage"
+                    text="New Package"
+                    icon="KdbIcons.Node.NewPackage"
+                    class="org.kdb.inside.brains.view.treeview.actions.NewPackageAction"/>
+
+            <action id="Kdb.Instances.NewInstance"
+                    text="New Instance"
+                    icon="KdbIcons.Node.NewInstance"
+                    class="org.kdb.inside.brains.view.treeview.actions.NewInstanceAction"/>
+
+            <reference ref="Kdb.Instances.Connect"/>
+            <reference ref="Kdb.Instances.Disconnect"/>
+
+            <separator/>
+
+            <action id="Kdb.Instances.ModifyItem"
+                    text="Modify"
+                    icon="AllIcons.Actions.Edit"
+                    class="org.kdb.inside.brains.view.treeview.actions.ModifyItemAction"/>
+
+            <separator/>
+
+            <action id="Kdb.Instances.ChangeColor"
+                    text="Change Item Color"
+                    icon="KdbIcons.Node.ChangeColor"
+                    class="org.kdb.inside.brains.view.treeview.actions.ChangeColorAction"/>
+
+            <separator/>
+
+            <action id="Kdb.Instances.MoveItemUp"
+                    text="Move Up"
+                    icon="AllIcons.Actions.MoveUp"
+                    class="org.kdb.inside.brains.view.treeview.actions.MoveItemUp">
+                <keyboard-shortcut first-keystroke="alt UP" keymap="$default"/>
+            </action>
+
+            <action id="Kdb.Instances.MoveItemDown"
+                    text="Move Down"
+                    icon="AllIcons.Actions.MoveDown"
+                    class="org.kdb.inside.brains.view.treeview.actions.MoveItemDown">
+                <keyboard-shortcut first-keystroke="alt DOWN" keymap="$default"/>
+            </action>
+
+            <separator/>
+
+            <reference ref="$Cut"/>
+            <reference ref="$Copy"/>
+            <reference ref="$Paste"/>
+
+            <separator/>
+
+            <action id="Kdb.Instances.Clone"
+                    text="Clo_ne"
+                    class="org.kdb.inside.brains.view.treeview.actions.CloneItemAction"/>
+
+            <separator/>
+
+            <reference ref="$Delete"/>
+
+            <separator/>
+
+            <group text="Import..." popup="true">
+                <action id="Kdb.Instances.Import.QPad"
+                        class="org.kdb.inside.brains.view.treeview.actions.ImportQPadAction"
+                        text="Import from QPad"
+                        description="Importing QPad Servers.cfg file into current selection"/>
+            </group>
+        </group>
+    </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!--  Project configuration -->
+        <sdkType implementation="org.kdb.inside.brains.ide.sdk.KdbSdkType"/>
+
+        <moduleType id="KDB_MODULE_TYPE" implementationClass="org.kdb.inside.brains.ide.module.KdbModuleType"/>
+        <moduleBuilder builderClass="org.kdb.inside.brains.ide.module.KdbModuleBuilder"
+                       id="KDB_INSIDE_BRAINS_MODULE"
+                       order="first"/>
+
+        <framework.detector implementation="org.kdb.inside.brains.ide.module.facet.KdbFrameworkDetector"/>
+        <projectStructureDetector implementation="org.kdb.inside.brains.ide.module.KdbProjectStructureDetector"/>
+
+        <moduleConfigurationEditorProvider implementation="org.kdb.inside.brains.ide.module.KdbModuleEditorsProvider"/>
+
+        <facetType id="KDB_FACET_TYPE" implementation="org.kdb.inside.brains.ide.module.facet.KdbFacetType"/>
+
+        <projectFacetListener facet-type="KDB_FACET_TYPE"
+                              implementation="org.kdb.inside.brains.ide.module.facet.KdbFacetStateManager"/>
+
+        <fileType name="q file" implementationClass="org.kdb.inside.brains.QFileType"
+                  fieldName="INSTANCE" language="q" extensions="q;k"/>
+
+        <internalFileTemplate name="KDB+Q Blank File"/>
+
+        <configurationType implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationType"/>
+
+        <!-- General configuration -->
+        <actionPromoter implementation="org.kdb.inside.brains.action.ExecutionActionPromoter"/>
+        <projectService serviceImplementation="org.kdb.inside.brains.core.KdbConnectionManager"/>
+
+        <projectService serviceImplementation="org.kdb.inside.brains.lang.binding.EditorsBindingService"/>
+
+        <notificationGroup id="Kdb Connection State" displayType="BALLOON" icon="KdbIcons.Main.Notification"
+                           notificationIds="Kdb Connections"/>
+
+        <applicationService
+                serviceImplementation="org.kdb.inside.brains.core.credentials.CredentialProviderService"/>
+
+        <!-- Configuration / Settings -->
+        <applicationService serviceImplementation="org.kdb.inside.brains.settings.KdbSettingsService"/>
+        <colorSettingsPage implementation="org.kdb.inside.brains.settings.KdbColorSettingsPage"/>
+
+        <applicationConfigurable groupId="language" displayName="KDB+ Q" id="Kdb.Settings"
+                                 instance="org.kdb.inside.brains.settings.KdbSettingsConfigurable">
+            <configurable instance="org.kdb.inside.brains.settings.KdbConnectionsConfigurable"/>
+        </applicationConfigurable>
+        <!--
+                <applicationConfigurable groupId="language" displayName="KDB+ Q" id="Kdb.Settings"
+                                         instance="org.kdb.inside.brains.settings.KdbSettingsConfigurable"/>
+        -->
+
+        <!-- KDB Instances -->
+        <projectService serviceImplementation="org.kdb.inside.brains.core.KdbScopeHolder"/>
+        <applicationService serviceImplementation="org.kdb.inside.brains.core.KdbScopeHolder"/>
+
+        <projectService serviceImplementation="org.kdb.inside.brains.core.KdbScopesManager"/>
+
+        <projectService serviceImplementation="org.kdb.inside.brains.view.treeview.InstancesToolWindow"/>
+
+        <facet.toolWindow id="KDB Instances"
+                          facetIdList="KDB_FACET_TYPE"
+                          icon="KdbIcons.Main.ToolWindow"
+                          anchor="right"
+                          factoryClass="org.kdb.inside.brains.view.treeview.InstancesToolWindowFactory"/>
+
+        <!-- KDB Console -->
+        <facet.toolWindow id="KDB Console" icon="KdbIcons.Main.ToolWindow"
+                          facetIdList="KDB_FACET_TYPE"
+                          anchor="bottom" canCloseContents="true"
+                          factoryClass="org.kdb.inside.brains.view.console.KdbConsoleToolWindowFactory"/>
+
+        <projectService serviceImplementation="org.kdb.inside.brains.view.console.KdbConsoleToolWindow"/>
+
+        <!-- Editing features -->
+        <annotator language="q" implementationClass="org.kdb.inside.brains.lang.annotation.QLanguageAnnotator"/>
+
+        <lang.commenter language="q" implementationClass="org.kdb.inside.brains.lang.QCommenter"/>
+        <lang.braceMatcher language="q" implementationClass="org.kdb.inside.brains.lang.QBracesMatcher"/>
+        <lang.parserDefinition language="q" implementationClass="org.kdb.inside.brains.QParserDefinition"/>
+        <lang.namesValidator language="q"
+                             implementationClass="org.kdb.inside.brains.lang.refactoring.QNamesValidator"/>
+        <lang.refactoringSupport language="q"
+                                 implementationClass="org.kdb.inside.brains.lang.refactoring.QRefactoringSupportProvider"/>
+        <lang.syntaxHighlighterFactory language="q"
+                                       implementationClass="org.kdb.inside.brains.lang.QSyntaxHighlighterFactory"/>
+
+        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QVariable"
+                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QVariableElementManipulator"/>
+
+        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QImportFile"
+                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QImportFileElementManipulator"/>
+
+        <spellchecker.support language="q" implementationClass="org.kdb.inside.brains.lang.QSpellcheckingStrategy"/>
+
+
+        <lang.foldingBuilder language="q" implementationClass="org.kdb.inside.brains.lang.QFoldingBuilder"/>
+
+        <enterBetweenBracesDelegate language="q"
+                                    implementationClass="org.kdb.inside.brains.lang.QEnterBetweenBracesHandler"/>
+
+        <codeInsight.lineMarkerProvider language="q"
+                                        implementationClass="org.kdb.inside.brains.lang.marker.SystemFunctionsMarkerProvider"/>
+
+        <!-- Indexes -->
+        <fileBasedIndex implementation="org.kdb.inside.brains.psi.index.QIdentifiersIndex"/>
+        <projectService serviceImplementation="org.kdb.inside.brains.psi.index.QIndexService"/>
+
+        <!--  Refactoring -->
+        <usageTypeProvider implementation="org.kdb.inside.brains.lang.usage.QUsageTypeProvider"/>
+        <lang.findUsagesProvider language="q"
+                                 implementationClass="org.kdb.inside.brains.lang.usage.QFindUsagesProvider"/>
+
+        <psi.referenceContributor language="q" implementation="org.kdb.inside.brains.psi.refs.QReferenceContributor"/>
+
+        <!--  Not refactored YET-->
+        <typedHandler id="QTypedHandler" implementation="org.kdb.inside.brains.lang.completion.QTypedHandler"/>
+
+
+        <lang.psiStructureViewFactory language="q"
+                                      implementationClass="org.kdb.inside.brains.view.struct.QStructureViewFactory"/>
+
+
+        <completion.contributor language="q"
+                                order="first"
+                                implementationClass="org.kdb.inside.brains.lang.completion.QCompletionContributor"/>
+
+        <renameHandler implementation="org.kdb.inside.brains.lang.refactoring.QInplaceRenameHandler"/>
+        <renamePsiElementProcessor
+                implementation="org.kdb.inside.brains.lang.refactoring.QRenamePsiElementProcessor"/>
+        <gotoSymbolContributor implementation="org.kdb.inside.brains.lang.QChooseByNameContributor"/>
+
+        <!--
+        <codeInsight.parameterInfo language="q" implementationClass="org.kdb.inside.brains.lang.QParameterInfoHandler"/>
+                <lang.documentationProvider language="q" implementationClass="org.kdb.inside.brains.lang.QDocumentationProvider"/>
+        -->
+    </extensions>
+</idea-plugin>

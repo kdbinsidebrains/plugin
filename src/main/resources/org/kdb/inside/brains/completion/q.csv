@@ -1,0 +1,73 @@
+.Q.bt   ,backtrace
+.Q.dd   ,join symbols
+.Q.f    ,format
+.Q.ff   ,append columns
+.Q.fmt  ,format
+.Q.ft   ,apply simple
+.Q.fu   ,apply unique
+.Q.gc   ,garbage collect
+.Q.gz   ,GZip
+.Q.id   ,sanitize
+.Q.qt   ,is table                     ,
+.Q.res  ,keywords
+.Q.s    ,plain text
+.Q.s1   ,string representation
+.Q.sbt  ,string backtrace
+.Q.trp  ,extend trap
+.Q.ts   ,time and space
+.Q.u    ,date based
+.Q.V    ,table to dict
+.Q.v    ,value
+.Q.view ,subview
+.Q.A    ,uppercase alphabet
+.Q.a    ,lowercase alphabet
+.Q.b6   ,bicameral alphanums
+.Q.nA   ,alphanums
+.Q.k    ,version
+.Q.opt  ,command parameters
+.Q.w    ,memory stats
+.Q.x    ,non-command parameters
+.Q.addr ,IP address
+.Q.fps  ,fpn streaming algorithm
+.Q.fs   ,fsn streaming algorithm
+.Q.hg   ,HTTP get
+.Q.host ,hostname
+.Q.hp   ,HTTP post
+.Q.l    ,load
+.Q.Cf   ,create empty nested char file
+.Q.Xf   ,create file
+.Q.btoa ,b64 encode
+.Q.j10  ,encode binhex
+.Q.j12  ,encode base 36
+.Q.M    ,long infinity
+.Q.ty   ,type
+.Q.x10  ,decode binhex
+.Q.x12  ,decode base 36
+.Q.chk  ,fill HDB
+.Q.dpft ,save table
+.Q.dpfts,save table with sym
+.Q.dsftg,load process save
+.Q.en   ,enumerate varchar cols
+.Q.ens  ,enumerate against domain
+.Q.fk   ,foreign key
+.Q.hdpf ,save tables
+.Q.qt   ,is table
+.Q.qp   ,is partitioned
+.Q.bv   ,build vp
+.Q.ind  ,partitioned index
+.Q.cn   ,count partitioned table
+.Q.MAP  ,maps partitions
+.Q.D    ,partitions
+.Q.par  ,locate partition
+.Q.PD   ,partition locations
+.Q.pd   ,modified partition locns
+.Q.pf   ,partition field
+.Q.pn   ,partition counts
+.Q.qp   ,is partitioned
+.Q.pt   ,partitioned tables
+.Q.PV   ,partition values
+.Q.pv   ,modified partition values
+.Q.vp   ,missing partitions
+.Q.D    ,partitions
+.Q.P    ,segments
+.Q.u    ,date based

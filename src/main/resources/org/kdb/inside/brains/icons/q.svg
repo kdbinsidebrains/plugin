@@ -1,0 +1,9 @@
+<?xml version="1.0" standalone="no"?><!-- Generator: Gravit.io -->
+<svg xmlns="http://www.w3.org/2000/svg" style="isolation:isolate" viewBox="0 0 16 16" width="16" height="16">
+    <style>
+        .text { font: 8px sans-serif; }
+    </style>
+
+    <circle cx="8" cy="8" r="7" fill="#40B6E0" fill-opacity=".6"/>
+    <text x="3" y="10" class="text" fill-opacity=".7">{q}</text>
+</svg>

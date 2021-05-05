@@ -1,0 +1,50 @@
+.z.a   ,IP address
+.z.b   ,dependencies
+.z.c   ,cores
+.z.d   ,UTC date
+.z.D   ,local date
+.z.e   ,TLS connection status
+.z.ex  ,failed primitive
+.z.ey  ,arg to failed primitive
+.z.f   ,file
+.z.h   ,host
+.z.i   ,PID
+.z.K   ,version
+.z.k   ,release date
+.z.l   ,license
+.z.N   ,local timespan
+.z.n   ,UTC timespan
+.z.o   ,OS version
+.z.P   ,local timestamp
+.z.p   ,UTC timestamp
+.z.pm  ,HTTP options
+.z.q   ,quiet mode
+.z.s   ,self
+.z.T   ,local time
+.z.t   ,UTC time
+.z.u   ,user ID
+.z.w   ,handle
+.z.W   ,handles
+.z.x   ,raw command line
+.z.X   ,parsed command line
+.z.z   ,UTC datetime
+.z.Z   ,local datetime
+.z.zd  ,zip defaults
+.z.ac  ,HTTP auth from cookie
+.z.bm  ,msg validator
+.z.exit,action on exit
+.z.pc  ,close
+.z.pd  ,peach handles
+.z.pg  ,get
+.z.ph  ,HTTP get
+.z.pi  ,input
+.z.po  ,open
+.z.pp  ,HTTP post
+.z.pq  ,qcon
+.z.ps  ,set
+.z.pw  ,validate user
+.z.ts  ,timer
+.z.vs  ,value set
+.z.wc  ,WebSocket close
+.z.wo  ,WebSocket open
+.z.ws  ,WebSockets

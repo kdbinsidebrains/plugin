@@ -1,0 +1,30 @@
+\a, tables
+\b, views
+\B, pending views
+\c, console size
+\c, change directory
+\C, HTTP size
+\d, directory
+\e, error trap clients
+\E, TLS server mode
+\f, functions
+\g, garbage collection mode
+\l, load file or directory
+\o, offset from UTC
+\p, listening port
+\P, precision
+\r, rename / replication master
+\s      , number of secondary threadss
+\S      , random seed
+\t      , timer
+\T      , timeout
+\ts     , time and space
+\u      , reload user password file
+\v      , variables
+\w      , workspace
+\W      , week offset
+\x      , expunge
+\z      , date parsing
+\1 & \2 , redirect
+\_      , hide q code
+\\      , quit

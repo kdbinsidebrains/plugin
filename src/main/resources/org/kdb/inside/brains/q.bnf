@@ -1,0 +1,191 @@
+{
+  parserClass="org.kdb.inside.brains.parser.QParser"
+
+  extends="org.kdb.inside.brains.psi.impl.QPsiElementImpl"
+  implements="org.kdb.inside.brains.psi.QPsiElement"
+
+  psiClassPrefix="Q"
+  psiImplClassSuffix="Impl"
+  psiPackage="org.kdb.inside.brains.psi"
+  psiImplPackage="org.kdb.inside.brains.psi.impl"
+
+  tokenTypeClass="org.kdb.inside.brains.psi.QTokenType"
+  elementTypeClass="org.kdb.inside.brains.psi.QElementType"
+  elementTypeHolderClass="org.kdb.inside.brains.psi.QTypes"
+
+  tokens=[
+    nill="(::)"
+    colon=':'
+    comma=',' // Double meaning here - splitting arguments in a table or an operator
+    semicolon=';'
+    bracket_open='['
+    bracket_close=']'
+    brace_open='{'
+    brace_close='}'
+    paren_open='('
+    paren_close=')'
+
+    trace='\'
+
+    line_break="New line"
+    line_space="Line space"
+
+    command_import="import file command"
+    command_context="changing context command"
+    command_system="internal or external system command"
+    command_arguments="internal or external command arguments"
+
+    type_cast_pattern="type cast pattern"
+
+    operator="operator"
+    iterator="iterator"
+
+    // TODO: Not refactored yet
+
+    mode_pattern="mode name"
+    symbol_pattern="symbol pattern"
+    variable_pattern="Variable is"
+    file_path_pattern="File path is"
+
+    function="system function"
+
+    query_by="query by"
+    query_type="query type"
+    query_from="query from"
+
+    atom="atom"
+    atoms="atoms"
+
+    char="char"
+    string="string"
+
+    signal_pattern="signal"
+
+    control_pattern="control"
+    condition_pattern="conditional"
+
+    comment='comment'
+  ]
+}
+
+root ::= top*
+
+private separator ::= semicolon | line_break
+private end_of_line ::= !(line_break)
+private end_of_statement ::= !(separator)
+
+private top ::= import | context | command | mode | expressions | line_break
+
+symbol ::= symbol_pattern {
+  implements="org.kdb.inside.brains.psi.QSymbolElement"
+  mixin="org.kdb.inside.brains.psi.impl.QSymbolElementImpl"
+}
+private symbols ::= symbol symbol+
+
+variable ::= variable_pattern {
+  implements="org.kdb.inside.brains.psi.QVariableElement"
+  mixin="org.kdb.inside.brains.psi.impl.QVariableElementImpl"
+}
+
+// Import supporting
+import_file ::= file_path_pattern { recoverWhile = end_of_line }
+import ::= command_import line_space import_file {
+    pin = 1
+    implements="org.kdb.inside.brains.psi.QImportElement"
+    mixin="org.kdb.inside.brains.psi.impl.QImportElementImpl"
+    }
+
+fake assignment ::= variable? arguments? expression?
+
+column_assignment ::= (variable colon expression) | expression | variable  {
+ pin(".*") = 2
+ extends = assignment
+}
+
+variable_assignment ::= variable [arguments] (operator colon | colon colon | colon) expression {
+ pin = 3
+ extends = assignment
+}
+
+private table_column ::= column_assignment
+private table_cols ::= table_column (semicolon table_column)*
+fake table_columns ::= table_cols {
+ methods = [assignments="column_assignment"]
+}
+inner key_columns ::= table_cols {
+ implements="table_columns"
+ methods = [assignments="column_assignment"]
+}
+inner value_columns ::= table_cols {
+ implements="table_columns"
+ methods = [assignments="column_assignment"]
+}
+table ::= paren_open bracket_open [key_columns] bracket_close [value_columns] paren_close {
+ pin = 2
+ recoverWhile = end_of_statement
+}
+
+query_column ::= column_assignment | expression | variable
+private query_cols ::= query_column (comma query_column)*
+fake query_columns ::= query_cols
+query_groups ::= query_cols {
+ implements="query_columns"
+}
+query_selects ::= query_cols {
+ implements="query_columns"
+}
+// - not mistake. WHERE goes into the final expression here and belong to it by Q grammar
+// - we do where fist and then select from the result what we need.
+query ::= query_type [query_selects] (query_by query_groups)? (query_from expression) {
+ pin(".*")=1
+ methods = [columns="query_selects" groups="query_groups"]
+ }
+
+// Context: \d ...
+private context_name ::= variable {recoverWhile = end_of_line }
+context ::= command_context (line_space+ context_name expressions)? {
+ pin = 1
+ mixin = "org.kdb.inside.brains.psi.impl.QContextElementImpl"
+ }
+
+// Command - anything with \...
+private command_params ::= command_arguments {recoverWhile = end_of_line}
+command ::= command_system (line_space+ command_params)? { pin = 1}
+
+// In mode we can't use line_break as a separator
+private mode_content ::= semicolon* expression (semicolon+ expression)* semicolon* {
+ recoverWhile = end_of_line
+}
+mode ::= mode_pattern [mode_content] { pin = 1 } // Mode: [a-Z]) .....
+
+parameters ::= bracket_open [variable (semicolon variable)*] bracket_close { pin = 1 } // it's not private for fast search
+lambda ::= brace_open [parameters] [expressions] brace_close {
+ pin = 1
+}
+
+list ::= (paren_open [expression] (semicolon+ [expression])+ semicolon* paren_close)
+parentheses ::= (paren_open expression paren_close)
+// | (bracket_open expressions bracket_close)
+
+arguments ::= bracket_open [expressions] bracket_close { pin = 1 } // [...]
+control ::= control_pattern arguments { pin = 1 } // if/else/while and so on
+condition ::= condition_pattern arguments { pin = 1 } // $[...]
+
+return ::= colon expression { pin = 1 }
+invoke ::= statement? arguments expression? { pin = 2 }
+
+//  `$ or `...$ - it's a type cast, not a symbol
+type_cast ::= type_cast_pattern expression { pin = 1 }
+
+dict ::= vector "!" vector
+vector ::= atoms | symbols | string | list
+primitive ::=  atom | symbol | char | table
+
+signal ::= signal_pattern expression
+
+operation ::= statement? (operator | iterator) expression? { pin = 2 }
+
+private statement ::= condition | lambda | dict | vector | signal | primitive | parentheses | variable | function | trace
+
+expression ::= nill | query | control | type_cast | variable_assignment | return | invoke | operation | statement expression? statement?
+private expressions ::= separator* expression (separator+ expression)* separator*

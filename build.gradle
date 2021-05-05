@@ -1,0 +1,96 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.intellij' version '0.7.2'
+    id "org.jetbrains.grammarkit" version "2020.3.2"
+}
+
+group 'org.kdb.inside.brains'
+version = "${version}.$buildNumber"
+
+sourceCompatibility = javaVersion
+targetCompatibility = javaVersion
+
+apply plugin: 'idea'
+idea {
+    project {
+        jdkName = javaVersion
+        languageLevel = javaVersion
+    }
+    module {
+        generatedSourceDirs += file('src/main/gen')
+    }
+}
+
+apply plugin: 'org.jetbrains.intellij'
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+intellij {
+    version ideaVersion
+    plugins = ['java']
+    downloadSources Boolean.valueOf(ideaSources)
+    updateSinceUntilBuild false
+}
+
+apply plugin: 'org.jetbrains.grammarkit'
+grammarKit {
+    jflexRelease = '1.7.0-1'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.apache.poi:poi:5.0.0'
+
+    testCompile 'org.mockito:mockito-core:3.7.7'
+
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+}
+
+sourceSets {
+    main {
+        java.srcDirs 'src/main/gen', 'src/main/java'
+        resources.srcDir 'src/main/resources'
+    }
+    test {
+        java.srcDir 'src/test/java'
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task generateLexer(type: org.jetbrains.grammarkit.tasks.GenerateLexer) {
+    source = "src/main/resources/org/kdb/inside/brains/q.flex"
+    targetDir = "src/main/gen/org/kdb/inside/brains"
+    targetClass = "QLexer"
+    purgeOldFiles = true
+}
+
+task generateParser(type: org.jetbrains.grammarkit.tasks.GenerateParser) {
+    source = "src/main/resources/org/kdb/inside/brains/q.bnf"
+    targetRoot = 'src/main/gen'
+    pathToParser = 'org/kdb/inside/brains/parser/QParser.java'
+    pathToPsiRoot = 'org/kdb/inside/brains/psi'
+    purgeOldFiles = true
+}
+
+task generateCode() {
+    dependsOn generateLexer
+    dependsOn generateParser
+}
+
+compileJava {
+    dependsOn generateCode
+}
+
+patchPluginXml {
+    sinceBuild '203'
+    untilBuild ''
+}
+
+runPluginVerifier {
+    ideVersions = ["2020.3", "2021.1"]
+}

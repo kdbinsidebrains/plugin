@@ -1,0 +1,44 @@
+.h.br     ,linebreak
+.h.code   ,code after Tab
+.h.fram   ,frame
+.h.ha     ,anchor
+.h.hb     ,anchor target
+.h.ht     ,Marqdown to HTML
+.h.hta    ,start tag
+.h.htac   ,element
+.h.htc    ,element
+.h.html   ,document
+.h.http   ,hyperlinks
+.h.nbr    ,no break
+.h.pre    ,pre
+.h.text   ,paragraphs
+.h.xmp    ,XMP
+.h.he     ,HTTP 400
+.h.hn     ,HTTP response
+.h.hp     ,HTTP response pre
+.h.hy     ,HTTP response content
+.h.hu     ,URI escape
+.h.hug    ,URI map
+.h.sc     ,URI-safe
+.h.uh     ,URI unescape
+.h.cd     ,CSV from data
+.h.d      ,delimiter
+.h.ed     ,Excel from data
+.h.edsn   ,Excel from tables
+.h.hc     ,escape lt
+.h.hr     ,horizontal rule
+.h.iso8601,ISO timestamp
+.h.jx     ,table
+.h.td     ,TSV from data
+.h.tx     ,filetypes
+.h.xd     ,XML
+.h.xs     ,XML escape
+.h.xt     ,JSON
+.h.c0     ,web color
+.h.c1     ,web color
+.h.HOME   ,webserver root
+.h.logo   ,KX logo
+.h.sa     ,anchor style
+.h.sb     ,body style
+.h.ty     ,MIME types
+.h.val    ,value
