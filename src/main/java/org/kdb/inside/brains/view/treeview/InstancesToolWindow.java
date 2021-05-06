@@ -69,7 +69,7 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
                 }
             }
         };
-        toolWindow.setTitleActions(manageScopes);
+        toolWindow.setTitleActions(List.of(manageScopes));
         toolWindow.setAdditionalGearActions(new DefaultActionGroup(manageScopes));
 
         final List<KdbScope> scopes = scopesManager.getScopes();

@@ -18,7 +18,7 @@ import java.util.Map;
 public final class KdbColorSettingsPage implements RainbowColorSettingsPage, ColorSettingsPage {
     private static final AttributesDescriptor[] DESCRIPTORS = new AttributesDescriptor[]{
             new AttributesDescriptor("Primitive", QSyntaxHighlighter.ATOM),
-            new AttributesDescriptor("List", QSyntaxHighlighter.ATOMS),
+            new AttributesDescriptor("List", QSyntaxHighlighter.VECTOR),
             new AttributesDescriptor("Char", QSyntaxHighlighter.CHAR),
             new AttributesDescriptor("String", QSyntaxHighlighter.STRING),
             new AttributesDescriptor("Operator", QSyntaxHighlighter.OPERATOR),

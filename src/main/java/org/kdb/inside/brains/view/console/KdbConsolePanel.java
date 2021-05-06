@@ -245,7 +245,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         consoleActions.addSeparator();
 
-        consoleActions.add(new AnAction("Load KDB Table", "Loads previouly saved KDB table in binary format", AllIcons.Actions.Menu_open) {
+        consoleActions.add(new AnAction("Load KDB Table", "Loads previouly saved KDB table in binary format", KdbIcons.Console.ImportBinary) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 loadBinaryFile();

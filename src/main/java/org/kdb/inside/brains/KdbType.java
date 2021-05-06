@@ -20,18 +20,21 @@ public enum KdbType {
     TIMESPAN("timespan", 'n', 16),
     MINUTE("minute", 'u', 17),
     SECOND("second", 'v', 18),
-    TIME("time", 't', 19);
+    TIME("time", 't', 19),
+    YEAR("year", ' ', 0);
 
     private final char code;
     private final String name;
     private final int type;
 
-    private static final Map<String, KdbType> byNames = new HashMap<>();
+    private static final Map<String, KdbType> byName = new HashMap<>();
+    private static final Map<Character, KdbType> byCode = new HashMap<>();
 
     static {
         final KdbType[] values = KdbType.values();
         for (KdbType value : values) {
-            byNames.put(value.name, value);
+            byName.put(value.name, value);
+            byCode.put(value.code, value);
         }
     }
 
@@ -54,6 +57,10 @@ public enum KdbType {
     }
 
     public static KdbType byName(String name) {
-        return byNames.get(name);
+        return byName.get(name);
+    }
+
+    public static KdbType byCode(char code) {
+        return byCode.get(code);
     }
 }

@@ -1,14 +1,9 @@
 package org.kdb.inside.brains.lang.annotation.impl;
 
-import com.intellij.lang.annotation.AnnotationHolder;
-import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.lang.annotation.QElementAnnotator;
-import org.kdb.inside.brains.psi.QLambda;
-import org.kdb.inside.brains.psi.QReturn;
+//import org.kdb.inside.brains.psi.QReturn;
 
-public class QReturnAnnotator extends QElementAnnotator<QReturn> {
+public class QReturnAnnotator { // extends QElementAnnotator<QReturn> {
+/*
     public QReturnAnnotator() {
         super(QReturn.class);
     }
@@ -19,4 +14,5 @@ public class QReturnAnnotator extends QElementAnnotator<QReturn> {
             holder.newAnnotation(HighlightSeverity.ERROR, "Return statement outside of a lambda").range(element).create();
         }
     }
+*/
 }

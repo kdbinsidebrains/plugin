@@ -34,8 +34,9 @@ public final class KdbIcons {
 
         public static final Icon ShowOnlyLast = AllIcons.Debugger.AddToWatch;
 
-        public static final Icon SaveCSV = IconLoader.getIcon("/org/kdb/inside/brains/icons/exportCSV.svg", KdbIcons.class);
-        public static final Icon SaveBinary = IconLoader.getIcon("/org/kdb/inside/brains/icons/exportBinary.svg", KdbIcons.class);
+        public static final Icon ExportCsv = IconLoader.getIcon("/org/kdb/inside/brains/icons/exportCSV.svg", KdbIcons.class);
+        public static final Icon ImportBinary = IconLoader.getIcon("/org/kdb/inside/brains/icons/importBinary.svg", KdbIcons.class);
+        public static final Icon ExportBinary = IconLoader.getIcon("/org/kdb/inside/brains/icons/exportBinary.svg", KdbIcons.class);
 
         public static final Icon ExportExcel = IconLoader.getIcon("/org/kdb/inside/brains/icons/exportExcel.svg", KdbIcons.class);
     }

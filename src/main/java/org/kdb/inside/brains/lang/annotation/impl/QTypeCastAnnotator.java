@@ -34,9 +34,16 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
         final PsiElement castType = cast.getFirstChild();
 
         final String text = castType.getText();
-        final String name = text.substring(1, text.length() - 1);
+        final String name = getTypeName(text);
         if (name.isEmpty()) {
             return;
+        }
+
+        if (name.length() == 1) {
+            final char ch = name.charAt(0);
+            if (Character.isUpperCase(ch) && KdbType.byCode(Character.toLowerCase(ch)) != null) {
+                return;
+            }
         }
 
         final KdbType type = KdbType.byName(name);
@@ -82,5 +89,9 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
                         return false;
                     }
                 }).create();
+    }
+
+    private String getTypeName(String text) {
+        return text.charAt(0) == '`' ? text.substring(1, text.length() - 1) : text.substring(1, text.length() - 2);
     }
 }

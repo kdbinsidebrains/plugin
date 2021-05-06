@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.action;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -27,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CancelQueriesAction extends DumbAwareAction implements AnAction.TransparentUpdate {
+public class CancelQueriesAction extends DumbAwareAction {
     private WeakReference<JBPopup> myActivePopupRef = null;
 
     @Override

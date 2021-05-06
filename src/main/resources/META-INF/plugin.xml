@@ -4,7 +4,7 @@
     <vendor email="support@kdbinsidebrains.dev" url="https://www.kdbinsidebrains.dev">KdbInsideBrains</vendor>
 
     <description>
-        IntelliJ IDEA plugin for working with KDB+ database and source code
+        IntelliJ-based IDEA plugin for working with KDB+ database and source code
     </description>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
@@ -180,7 +180,7 @@
 
             <separator/>
 
-            <group text="Import..." popup="true">
+            <group id="Kdb.InstancesScopeView.Import" text="Import..." popup="true">
                 <action id="Kdb.Instances.Import.QPad"
                         class="org.kdb.inside.brains.view.treeview.actions.ImportQPadAction"
                         text="Import from QPad"
@@ -221,8 +221,11 @@
 
         <projectService serviceImplementation="org.kdb.inside.brains.lang.binding.EditorsBindingService"/>
 
-        <notificationGroup id="Kdb Connection State" displayType="BALLOON" icon="KdbIcons.Main.Notification"
+        <notificationGroup id="Kdb.ConnectionState" displayType="BALLOON" icon="KdbIcons.Main.Notification"
                            notificationIds="Kdb Connections"/>
+
+        <notificationGroup id="Kdb.CredentialsService" displayType="STICKY_BALLOON" icon="KdbIcons.Main.Notification"
+                           notificationIds="Kdb Credentials Service" isLogByDefault="true"/>
 
         <applicationService
                 serviceImplementation="org.kdb.inside.brains.core.credentials.CredentialProviderService"/>

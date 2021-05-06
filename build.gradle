@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'org.kdb.inside.brains'
-version = "${version}.$buildNumber"
+version = "${version}"
 
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion

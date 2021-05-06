@@ -1,8 +1,8 @@
 package org.kdb.inside.brains.core.credentials;
 
 import com.google.common.collect.Lists;
-import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -32,7 +32,7 @@ public class CredentialProviderService implements PersistentStateComponent<Eleme
 
     private static CredentialProviderService instance = null;
 
-    private static final NotificationGroup NOTIFICATION_GROUP = new NotificationGroup("Kdb Credentials Service", NotificationDisplayType.STICKY_BALLOON, true);
+    private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Kdb.CredentialsService");
 
     private CredentialProviderService() {
         providers.add(UsernameCredentialProvider.INSTANCE);

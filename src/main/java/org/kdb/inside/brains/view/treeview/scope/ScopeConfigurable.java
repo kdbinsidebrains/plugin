@@ -19,6 +19,7 @@ import org.kdb.inside.brains.view.treeview.options.OptionsEditorPanel;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.util.Objects;
 
 public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
     private KdbScope originalScope;
@@ -111,10 +112,10 @@ public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
         if (originalScope.getType() != getCurrentType()) {
             return true;
         }
-        if (!Comparing.equal(originalScope.getName(), editableScope.getName())) {
+        if (!Objects.equals(originalScope.getName(), editableScope.getName())) {
             return true;
         }
-        if (!Comparing.equal(originalScope.getCredentials(), getCurrentCredentials())) {
+        if (!Objects.equals(originalScope.getCredentials(), getCurrentCredentials())) {
             return true;
         }
         if (!Comparing.equal(originalScope.getOptions(), getInstanceOptions())) {

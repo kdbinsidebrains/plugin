@@ -50,7 +50,7 @@ public class KdbConnectionManager implements Disposable {
 
     private static final int PROGRESS_TICK_MILLIS = 100;
 
-    private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Kdb Connection State");
+    private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Kdb.ConnectionState");
     private final ScheduledExecutorService connectionProgressExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "KdbConnectionManager-ProgressUpdater"));
 
     public KdbConnectionManager(Project project) {

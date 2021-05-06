@@ -42,9 +42,4 @@ public class InstancesToolWindowFactory implements ToolWindowFactory, DumbAware 
         // TODO: Any way to check that it's KDB project here?
         return true;
     }
-
-    @Override
-    public boolean isDoNotActivateOnStart() {
-        return false;
-    }
 }

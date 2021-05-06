@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 1;
+    protected static final int VERSION = 3;
 
     public static final @NotNull TokenSet COLUMNS_TOKEN = TokenSet.create(KEY_COLUMNS, VALUE_COLUMNS);
 
@@ -60,53 +60,54 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
                 return;
             }
 
+            final String qualifiedName = getQualifiedName(tree, var, text);
             // Ignore not global
-            final boolean global = isGlobal(tree, assign, text, offset);
-            if (!global) {
+            if (qualifiedName.charAt(0) != '.' && !isGlobal(tree, var, assign, text)) {
                 return;
             }
 
-            final Variable type = getType(tree, children);
-            final String qualifiedName = getQualifiedName(tree, var, text);
-            final List<String> params = type.parameters.stream().map(n -> getVariableName(text, n)).collect(Collectors.toList());
+            final Token token = extractToken(tree, children);
+            final List<String> params = token.parameters.stream().map(n -> getVariableName(text, n)).collect(Collectors.toList());
 
             final TextRange r = new TextRange(var.getStartOffset(), var.getEndOffset());
-            res.computeIfAbsent(qualifiedName, n -> new ArrayList<>()).add(new IdentifierDescriptor(type.type, params, r));
+            res.computeIfAbsent(qualifiedName, n -> new ArrayList<>()).add(new IdentifierDescriptor(token.type, params, r));
         });
         return res;
     }
 
     @NotNull
-    private Variable getType(LighterAST tree, List<LighterASTNode> children) {
-        final LighterASTNode exp = children.get(children.size() - 1);
-        final List<LighterASTNode> vals = tree.getChildren(exp);
-        if (!vals.isEmpty()) {
-            final LighterASTNode node = vals.get(0);
-            final IElementType tt = node.getTokenType();
-            if (tt == PRIMITIVE) {
-                final LighterASTNode table = tree.getChildren(node).get(0);
-                if (table.getTokenType() == TABLE) {
-                    final List<LighterASTNode> columns = LightTreeUtil.getChildrenOfType(tree, table, COLUMNS_TOKEN).stream()
+    private QDataIndexer.Token extractToken(LighterAST tree, List<LighterASTNode> children) {
+        final LighterASTNode expression = children.get(children.size() - 1);
+        final List<LighterASTNode> statements = tree.getChildren(expression);
+        if (!statements.isEmpty()) {
+            final LighterASTNode statement = statements.get(0);
+            final IElementType tt = statement.getTokenType();
+            if (tt == STATEMENT) {
+                final LighterASTNode obj = tree.getChildren(statement).get(0);
+                final IElementType tokenType = obj.getTokenType();
+                if (tokenType == TABLE) {
+                    final List<LighterASTNode> columns = LightTreeUtil.getChildrenOfType(tree, obj, COLUMNS_TOKEN).stream()
                             .flatMap(c -> LightTreeUtil.getChildrenOfType(tree, c, COLUMN_ASSIGNMENT).stream())
                             .flatMap(a -> LightTreeUtil.getChildrenOfType(tree, a, VARIABLE).stream())
                             .collect(Collectors.toList());
-                    return new Variable(IdentifierType.TABLE, columns);
+                    return new Token(IdentifierType.TABLE, columns);
+                } else if (tokenType == LAMBDA) {
+                    List<LighterASTNode> params = LightTreeUtil.getChildrenOfType(tree, obj, PARAMETERS);
+                    if (params.size() == 1) {
+                        params = LightTreeUtil.getChildrenOfType(tree, params.get(0), VARIABLE);
+                    }
+                    return new Token(IdentifierType.LAMBDA, params);
                 }
-            } else if (tt == LAMBDA) {
-                List<LighterASTNode> params = LightTreeUtil.getChildrenOfType(tree, node, PARAMETERS);
-                if (params.size() == 1) {
-                    params = LightTreeUtil.getChildrenOfType(tree, params.get(0), VARIABLE);
-                }
-                return new Variable(IdentifierType.LAMBDA, params);
-            } else {
-                return new Variable(IdentifierType.VARIABLE);
             }
         }
-        return new Variable(IdentifierType.VARIABLE);
+        return new Token(IdentifierType.VARIABLE);
     }
 
     private String getQualifiedName(LighterAST tree, LighterASTNode var, CharSequence text) {
         final String name = getVariableName(text, var);
+        if (name.charAt(0) == '.') {
+            return name;
+        }
 
         final LighterASTNode context = findParent(tree, var, CONTEXT);
         if (context == null) {
@@ -129,11 +130,17 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         return String.valueOf(text.subSequence(var.getStartOffset(), var.getEndOffset()));
     }
 
-    private boolean isGlobal(LighterAST tree, LighterASTNode item, CharSequence text, int offset) {
+    private boolean isGlobal(LighterAST tree, LighterASTNode var, LighterASTNode assign, CharSequence text) {
+        // dot - always global
+        if (text.charAt(var.getStartOffset()) == '.') {
+            return true;
+        }
+
+        final int offset = assign.getStartOffset();
         if (offset < text.length() - 1 && text.charAt(offset) == ':' && text.charAt(offset + 1) == ':') {
             return true;
         }
-        return findParent(tree, item, LAMBDA) == null;
+        return findParent(tree, assign, LAMBDA) == null;
     }
 
     private LighterASTNode findParent(LighterAST tree, LighterASTNode item, IElementType type) {
@@ -147,15 +154,15 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         return null;
     }
 
-    static class Variable {
+    static class Token {
         private final IdentifierType type;
         private final List<LighterASTNode> parameters;
 
-        public Variable(IdentifierType type) {
+        public Token(IdentifierType type) {
             this(type, List.of());
         }
 
-        public Variable(IdentifierType type, List<LighterASTNode> parameters) {
+        public Token(IdentifierType type, List<LighterASTNode> parameters) {
             this.type = type;
             this.parameters = parameters;
         }

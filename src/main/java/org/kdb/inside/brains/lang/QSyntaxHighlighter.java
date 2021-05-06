@@ -1,6 +1,5 @@
 package org.kdb.inside.brains.lang;
 
-import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
@@ -34,7 +33,7 @@ public final class QSyntaxHighlighter extends SyntaxHighlighterBase {
             DefaultLanguageHighlighterColors.CONSTANT);
     public static final TextAttributesKey ATOM = createTextAttributesKey("Q_ATOM",
             DefaultLanguageHighlighterColors.NUMBER);
-    public static final TextAttributesKey ATOMS = createTextAttributesKey("Q_ATOMS",
+    public static final TextAttributesKey VECTOR = createTextAttributesKey("Q_VECTOR",
             DefaultLanguageHighlighterColors.NUMBER);
     public static final TextAttributesKey IMPORT = createTextAttributesKey("Q_IMPORT",
             DefaultLanguageHighlighterColors.KEYWORD);
@@ -84,7 +83,9 @@ public final class QSyntaxHighlighter extends SyntaxHighlighterBase {
             entry(QTypes.QUERY_FROM, QUERY),
 
             entry(QTypes.COLON, KEYWORD),
-            entry(QTypes.FUNCTION, KEYWORD),
+            entry(QTypes.UNARY_FUNCTION, KEYWORD),
+            entry(QTypes.BINARY_FUNCTION, KEYWORD),
+            entry(QTypes.COMPLEX_FUNCTION, KEYWORD),
             entry(QTypes.CONTROL_PATTERN, KEYWORD),
             entry(QTypes.CONDITION_PATTERN, KEYWORD),
 
@@ -97,11 +98,12 @@ public final class QSyntaxHighlighter extends SyntaxHighlighterBase {
             entry(QTypes.PAREN_OPEN, PARENTHESES),
             entry(QTypes.PAREN_CLOSE, PARENTHESES),
 
-            entry(QTypes.COMMENT, COMMENT),
+            entry(QTypes.LINE_COMMENT, COMMENT),
+            entry(QTypes.BLOCK_COMMENT, COMMENT),
 
             entry(QTypes.NILL, NILL),
             entry(QTypes.ATOM, ATOM),
-            entry(QTypes.ATOMS, ATOMS),
+            entry(QTypes.VECTOR, VECTOR),
             entry(QTypes.CHAR, CHAR),
             entry(QTypes.STRING, STRING),
 
@@ -110,7 +112,7 @@ public final class QSyntaxHighlighter extends SyntaxHighlighterBase {
 
     @Override
     public @NotNull Lexer getHighlightingLexer() {
-        return new FlexAdapter(new QLexer(null));
+        return QLexer.newLexer();
     }
 
     @Override

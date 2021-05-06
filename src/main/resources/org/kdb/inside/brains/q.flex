@@ -1,15 +1,16 @@
 package org.kdb.inside.brains;
 
-import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 
 import java.util.Stack;
 
+import static com.intellij.psi.TokenType.BAD_CHARACTER;
+import static com.intellij.psi.TokenType.WHITE_SPACE;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 %%
 
-%public %class QLexer
+%public %class _QLexer
 %implements com.intellij.lexer.FlexLexer
 %unicode
 %function advance
@@ -24,35 +25,32 @@ import static org.kdb.inside.brains.psi.QTypes.*;
         stateStack.clear();
     }
 
-    protected void yybeginstate(int... states) {
-        assert states.length > 0;
-        for (int state : states) {
-            assert state != YYINITIAL;
-            stateStack.push(state);
-            yybegin(state);
-        }
+    protected void yybeginstate(int state) {
+        assert state != YYINITIAL;
+        stateStack.push(state);
+        yybegin(state);
     }
 
-    protected void yyendstate(int... states) {
-        for (int state : states) {
-            assert state != YYINITIAL;
-            assert !stateStack.isEmpty() : stateStack;
-            int previous = stateStack.pop();
-            assert previous == state : "States does not match: previous=" + previous + ", expected=" + state;
-        }
+    protected void yyendstate(int state) {
+        assert state != YYINITIAL;
+        assert !stateStack.isEmpty() : stateStack;
+        int previous = stateStack.pop();
+        assert previous == state : "States does not match: previous=" + previous + ", expected=" + state;
         yybegin(stateStack.isEmpty() ? YYINITIAL : stateStack.peek());
     }
 %}
 
 // Patterns
 LINE_SPACE=[\ \t\f]
-LINE_BREAK=\r|\n|\r\n|<<eof>>
+LINE_BREAK=\r\n|\r|\n|<<eof>>
 WHITE_SPACE=({LINE_SPACE}|{LINE_BREAK})*{LINE_SPACE}+
 
 // Changing anything - don't forget update QLanguage
 OPERATOR=[!%&#,-<=>@_~\?\.\*\^\|\$\+]
-ITERATOR=("/" | \\ | ' | "/": | \\: | ':)+
+ITERATOR=("/": | \\: | ': | "/" | \\ | ' )+
+
 MODE_PATTERN=[a-zA-Z]")"
+ITERATOR_PATTERN={ITERATOR}
 FILE_PATH_PATTERN=[^|?*<\">+\[\]'\n\r\ \t\f]+
 VARIABLE_PATTERN=[\.a-zA-Z][\._a-zA-Z0-9]*
 COMMAND_ARGS_PATTERN=[^\ \t\f\r\n<<eof>>][^\r\n<<eof>>]*
@@ -66,21 +64,28 @@ QUERY_TYPE=(select|exec|update|delete)
 QUERY_BY=(by)
 QUERY_FROM=(from)
 
-FUNCTION=(set|get|abs|acos|aj|aj0|all|and|any|asc|asin|asof|atan|attr|avg|avgs|bin|binr|by|ceiling|cols|cor|cos|count
-       |cov|cross|csv|cut|deltas|desc|dev|differ|distinct|div|dsave|each|ej|ema|enlist|eval|except
-       |exit|exp|fby|fills|first|fkeys|flip|floor|getenv|group|gtime|hclose|hcount|hdel|hopen
-       |hsym|iasc|idesc|ij|in|insert|inter|inv|key|keys|last|like|lj|ljf|load|log|lower|lsq|ltime|ltrim|mavg
-       |max|maxs|mcount|md5|mdev|med|meta|min|mins|mmax|mmin|mmu|mod|msum|neg|next|not|null|or|over|parse
-       |peach|pj|prd|prds|prev|prior|rand|rank|ratios|raze|read0|read1|reciprocal|reverse|rload|rotate|rsave
-       |rtrim|save|scan|scov|sdev|setenv|show|signum|sin|sqrt|ss|ssr|string|sublist|sum|sums|sv
-       |svar|system|tables|tan|til|trim|type|uj|ungroup|union|upper|upsert|value|var|view|views|vs
-       |wavg|within|where|wj|wj1|wsum|ww|xasc|xbar|xcol|xcols|xdesc|xexp|xgroup|xkey|xlog|xprev|xrank|ujf|reval)
+// (abs x) or abs[x]
+UNARY_FUNCTION=(abs|all|any|asc|iasc|attr|avg|avgs|ceiling|count|
+    cols|cos|acos|deltas|desc|idesc|dev|sdev|differ|distinct|
+    enlist|eval|reval|exit|exp|first|last|fkeys|flip|floor|
+    get|getenv|group|gtime|ltime|hcount|hdel|hopen|hclose|hsym|
+    inv|key|keys|load|log|lower|upper|max|maxs|md5|med|meta|min|
+    mins|neg|next|prev|not|null|parse|prd|prds|rand|rank|ratios|
+    raze|read0|read1|reciprocal|reverse|save|rsave|show|signum|sin|
+    asin|sqrt|string|sum|sums|system|tables|tan|atan|til|trim|ltrim|rtrim|
+    type|value|var|svar|view|views|where)
+
+// and[x;y] or (x and y)
+BINARY_FUNCTION=(and|xasc|asof|mavg|wavg|bin|binr|mcount|xcol|
+    xcols|cor|cov|scov|cross|csv|xdesc|mdev|div|dsave|each|peach|ema|except|xexp|fby|set|setenv|
+    ij|ijf|in|insert|inter|xkey|like|lj|ljf|xlog|lsq|mmax|mmin|mmu|mod|xprev|or|over|scan|pj|prior|
+    rotate|ss|sublist|msum|wsum|sv|uj|ujf|union|ungroup|upsert|vs|within|xbar|xgroup|xrank)
+
+// ej[c;t1;t2]
+COMPLEX_FUNCTION=(aj|aj0|ajf|ajf0|ej|ssr|wj|wj1)
 
 COMMAND_PATTERN="\\"(\w+|[12\\])
 //COMMAND_PATTERN="\\"([abBcCdeEfglopPrsStTuvwWxz12_\\]|ts|cd|\w+)
-
-COMMENT_LINE="/" [^\r\n]+ {LINE_BREAK}?
-COMMENT_REST={WHITE_SPACE}+ "/" [^\r\n]* {LINE_BREAK}?
 
 TYPE_CAST_PATTERN=(("`"\w*)|("\""\w*"\""))"$"
 
@@ -155,7 +160,7 @@ ATOM={BOOLEAN}|{BYTE}|
     {DATETIME}"z"?|
     {MONTH}"m"?
 
-ATOMS={BOOLEAN_LIST}|{BYTE_LIST}|{INTEGER_LIST}|{FLOAT_LIST}|
+VECTOR={BOOLEAN_LIST}|{BYTE_LIST}|{INTEGER_LIST}|{FLOAT_LIST}|
     {TIMESTAMP_LIST}|{TIME_LIST}|{MONTH_LIST}|{DATE_LIST}|{DATETIME_LIST}|{MINUTE_LIST}|{SECOND_LIST}
 
 %state MODE_STATE
@@ -163,103 +168,101 @@ ATOMS={BOOLEAN_LIST}|{BYTE_LIST}|{INTEGER_LIST}|{FLOAT_LIST}|
 %state COMMAND_IMPORT_STATE
 %state COMMAND_CONTEXT_STATE
 %state COMMAND_SYSTEM_STATE
-%state COMMENT_ALL
-%state COMMENT_BLOCK
-%state COMMENT_INLINE
+%state COMMENT_ALL_STATE
+%state COMMENT_BLOCK_STATE
 %state DROP_CUT_STATE
-%state QUERY_STATE
 %state LAMBDA_STATE
+%state QUERY_STATE
 
 %%
 
 <COMMAND_IMPORT_STATE> {
   {LINE_SPACE}                                { return LINE_SPACE; }
   {FILE_PATH_PATTERN}                         { return FILE_PATH_PATTERN; }
-  {LINE_BREAK}                                { yybegin(YYINITIAL); return LINE_BREAK; }
+  {LINE_BREAK}                                { yyendstate(COMMAND_IMPORT_STATE); return LINE_BREAK; }
 }
 
 <COMMAND_CONTEXT_STATE> {
   {LINE_SPACE}                                { return LINE_SPACE; }
   {VARIABLE_PATTERN}                          { return VARIABLE_PATTERN;}
-  {LINE_BREAK}                                { yybegin(YYINITIAL); return LINE_BREAK; }
+  {LINE_BREAK}                                { yyendstate(COMMAND_CONTEXT_STATE); return LINE_BREAK; }
 }
 
 <COMMAND_SYSTEM_STATE> {
   {LINE_SPACE}                                { return LINE_SPACE; }
   {COMMAND_ARGS_PATTERN}                      { return COMMAND_ARGUMENTS;}
-  {LINE_BREAK}                                { yybegin(YYINITIAL); return LINE_BREAK; }
+  {LINE_BREAK}                                { yyendstate(COMMAND_SYSTEM_STATE); return LINE_BREAK; }
 }
 
 <ITERATOR_STATE> {
-  {ITERATOR}                                  { yybegin(YYINITIAL); return ITERATOR;}
+  {ITERATOR}                                  { yyendstate(ITERATOR_STATE); return ITERATOR;}
 }
 
 <DROP_CUT_STATE> {
-  "_"/{ITERATOR}                              { yybegin(ITERATOR_STATE); return OPERATOR;}
-  "_"                                         { yybegin(YYINITIAL); return OPERATOR;}
+  "_"/{ITERATOR_PATTERN}                      { yyendstate(DROP_CUT_STATE); yybeginstate(ITERATOR_STATE); return OPERATOR;}
+  "_"                                         { yyendstate(DROP_CUT_STATE); return OPERATOR;}
 }
 
-<COMMENT_INLINE> {
-  {COMMENT_LINE}                              { yybegin(YYINITIAL); return COMMENT;}
-}
-
-<COMMENT_BLOCK> {
-  ^"\\"{LINE_BREAK}                           { yybegin(YYINITIAL); return COMMENT; }
-  {LINE_BREAK}+                               { return COMMENT; }
-  .*                                          { return COMMENT; }
-}
-
-<COMMENT_ALL> {
-  {LINE_BREAK}+                               { return COMMENT; }
-  .*                                          { return COMMENT; }
-}
+<LAMBDA_STATE> {
+  "}"/{ITERATOR_PATTERN}                      { yyendstate(LAMBDA_STATE); yybeginstate(ITERATOR_STATE); return BRACE_CLOSE; }
+  "}"                                         { yyendstate(LAMBDA_STATE); return BRACE_CLOSE; }
+ }
 
 <QUERY_STATE> {
-  ","                                         {return COMMA; }
+ ","                                          { return COMMA; }
+ {QUERY_BY}                                   { return QUERY_BY; }
+ {QUERY_FROM}                                 { yyendstate(QUERY_STATE); return QUERY_FROM; }
+}
+
+<COMMENT_ALL_STATE> {
+  .*{LINE_BREAK}?                             { return BLOCK_COMMENT; }
+}
+
+<COMMENT_BLOCK_STATE> {
+  ^"\\"/{LINE_BREAK}+                        { yyendstate(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
+  .*{LINE_BREAK}?                            { return BLOCK_COMMENT; }
 }
 
 // NOT MIGRATED
-<YYINITIAL, QUERY_STATE, LAMBDA_STATE> {
-  "("{LINE_SPACE}*")"                         { return ATOMS; }
+<YYINITIAL, LAMBDA_STATE, QUERY_STATE> {
+  "("{LINE_SPACE}*")"                         { return VECTOR; }
   "("{LINE_SPACE}*"::"{LINE_SPACE}*")"        { return NILL; }
 
   "("                                         { return PAREN_OPEN; }
-  ")"/{ITERATOR}                              { yybegin(ITERATOR_STATE); return PAREN_CLOSE; }
-  ")"/"_"                                     { yybegin(DROP_CUT_STATE); return PAREN_CLOSE; }
+  ")"/{ITERATOR_PATTERN}                      { yybeginstate(ITERATOR_STATE); return PAREN_CLOSE; }
+  ")"/"_"                                     { yybeginstate(DROP_CUT_STATE); return PAREN_CLOSE; }
   ")"                                         { return PAREN_CLOSE; }
-  ";"/{COMMENT_LINE}                          { yybegin(COMMENT_INLINE); return SEMICOLON; }
   ";"                                         { return SEMICOLON; }
   "["                                         { return BRACKET_OPEN; }
-  "]"/{ITERATOR}                              { yybegin(ITERATOR_STATE); return BRACKET_CLOSE; }
-  "]"/"_"                                     { yybegin(DROP_CUT_STATE); return BRACKET_CLOSE; }
+  "]"/{ITERATOR_PATTERN}                      { yybeginstate(ITERATOR_STATE); return BRACKET_CLOSE; }
+  "]"/"_"                                     { yybeginstate(DROP_CUT_STATE); return BRACKET_CLOSE; }
   "]"                                         { return BRACKET_CLOSE; }
-  "{"                                         { yybeginstate(LAMBDA_STATE); return BRACE_OPEN; }
-  "}"/{ITERATOR}                              { yyendstate(LAMBDA_STATE); yybegin(ITERATOR_STATE); return BRACE_CLOSE; }
-  "}"                                         { yyendstate(LAMBDA_STATE); return BRACE_CLOSE; }
 
-  ":"/{ITERATOR}                              { yybegin(ITERATOR_STATE); return COLON; }
-  ":"                                         { return COLON; }
-  "'"                                         { return SIGNAL_PATTERN; }
+  "{"                                         { yybeginstate(LAMBDA_STATE); return BRACE_OPEN; }
+
+  ^"/".*                                      { return LINE_COMMENT; }
+  {LINE_SPACE}+"/".*                          { return LINE_COMMENT; }
+  {LINE_BREAK}+/{LINE_SPACE}*"/"              { return WHITE_SPACE; }
+  ^"\\"/{LINE_BREAK}                          { yybeginstate(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
+  ^"/"/{LINE_BREAK}                           { yybeginstate(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
 
   {LINE_BREAK}+                               { return LINE_BREAK; }
 
-  ^"/"{LINE_BREAK}                            { yybegin(COMMENT_BLOCK); return COMMENT; }
-  ^"\\"{LINE_BREAK}                           { yybegin(COMMENT_ALL);   return COMMENT; }
-  ^{COMMENT_LINE}                             { return COMMENT; }
-  {COMMENT_REST}/{LINE_BREAK}                 { return COMMENT; }
-  {COMMENT_REST}                              { return COMMENT; }
-
   "\\"                                        { return TRACE; }
+
+  ":"/{ITERATOR_PATTERN}                      { yybeginstate(ITERATOR_STATE); return COLON; }
+  ":"                                         { return COLON; }
+   {ITERATOR_PATTERN}                         { return ITERATOR; }
 
   "-"/-[0-9]                                  { return OPERATOR;} // --6 -> 6
 
-  ^"\\l"/{LINE_SPACE}+!{LINE_BREAK}           { yybegin(COMMAND_IMPORT_STATE);  return COMMAND_IMPORT; }
+  ^"\\l"/{LINE_SPACE}+!{LINE_BREAK}           { yybeginstate(COMMAND_IMPORT_STATE);  return COMMAND_IMPORT; }
 
-  ^"\\d"/{LINE_SPACE}+!{LINE_BREAK}           { yybegin(COMMAND_CONTEXT_STATE); return COMMAND_CONTEXT; }
+  ^"\\d"/{LINE_SPACE}+!{LINE_BREAK}           { yybeginstate(COMMAND_CONTEXT_STATE); return COMMAND_CONTEXT; }
   ^"\\d"/{LINE_BREAK}                         { return COMMAND_CONTEXT; }
   ^"\\d"/{WHITE_SPACE}                        { return COMMAND_CONTEXT; }
 
-  ^{COMMAND_PATTERN}/{LINE_SPACE}+!{LINE_BREAK} { yybegin(COMMAND_SYSTEM_STATE); return COMMAND_SYSTEM; }
+  ^{COMMAND_PATTERN}/{LINE_SPACE}+!{LINE_BREAK} { yybeginstate(COMMAND_SYSTEM_STATE); return COMMAND_SYSTEM; }
   ^{COMMAND_PATTERN}/{LINE_BREAK}               { return COMMAND_SYSTEM; }
   ^{COMMAND_PATTERN}/{WHITE_SPACE}              { return COMMAND_SYSTEM; }
 
@@ -267,40 +270,45 @@ ATOMS={BOOLEAN_LIST}|{BYTE_LIST}|{INTEGER_LIST}|{FLOAT_LIST}|
 
   {TYPE_CAST_PATTERN}                         { return TYPE_CAST_PATTERN; }
 
-  [0-6]":"/{ITERATOR}                         { yybegin(ITERATOR_STATE); return OPERATOR; }
+  [0-6]":"/{ITERATOR_PATTERN}                 { yybeginstate(ITERATOR_STATE); return OPERATOR; }
   [0-6]":"/[^\[]                              { return OPERATOR; }
 
   {CONTROL_PATTERN}/{WHITE_SPACE}*"["         { return CONTROL_PATTERN; }
   {CONDITION_PATTERN}/{WHITE_SPACE}*"["       { return CONDITION_PATTERN; }
 
-  {SYMBOL_PATTERN}/{SYMBOL_ITERATOR}          { yybegin(ITERATOR_STATE); return SYMBOL_PATTERN; }
+  {SYMBOL_PATTERN}/{SYMBOL_ITERATOR}          { yybeginstate(ITERATOR_STATE); return SYMBOL_PATTERN; }
   {SYMBOL_PATTERN}                            { return SYMBOL_PATTERN; }
-  {WHITE_SPACE}                               { return TokenType.WHITE_SPACE; }
+  {WHITE_SPACE}                               { return WHITE_SPACE; }
 
   {QUERY_TYPE}                                { yybeginstate(QUERY_STATE); return QUERY_TYPE; }
-  {QUERY_BY}                                  { return QUERY_BY; }
-  {QUERY_FROM}                                { yyendstate(QUERY_STATE); return QUERY_FROM; }
 
-  {FUNCTION}/{ITERATOR}                       { yybegin(ITERATOR_STATE); return FUNCTION; }
-  {FUNCTION}                                  { return FUNCTION; }
+  {UNARY_FUNCTION}/{ITERATOR_PATTERN}         { yybeginstate(ITERATOR_STATE); return UNARY_FUNCTION; }
+  {UNARY_FUNCTION}                            { return UNARY_FUNCTION; }
 
-  {ATOM}/{ITERATOR}                           { yybegin(ITERATOR_STATE); return ATOM; }
-  {ATOM}/"_"                                  { yybegin(DROP_CUT_STATE); return ATOM; }
+  {BINARY_FUNCTION}/{ITERATOR_PATTERN}        { yybeginstate(ITERATOR_STATE); return BINARY_FUNCTION; }
+  {BINARY_FUNCTION}                           { return BINARY_FUNCTION; }
+
+  {COMPLEX_FUNCTION}/{ITERATOR_PATTERN}       { yybeginstate(ITERATOR_STATE); return COMPLEX_FUNCTION; }
+  {COMPLEX_FUNCTION}                          { return COMPLEX_FUNCTION; }
+
+  {ATOM}/{ITERATOR_PATTERN}                   { yybeginstate(ITERATOR_STATE); return ATOM; }
+  {ATOM}/"_"                                  { yybeginstate(DROP_CUT_STATE); return ATOM; }
   {ATOM}                                      { return ATOM; }
-  {ATOMS}/{ITERATOR}                          { yybegin(ITERATOR_STATE); return ATOMS; }
-  {ATOMS}/"_"                                 { yybegin(DROP_CUT_STATE); return ATOMS; }
-  {ATOMS}                                     { return ATOMS; }
-  {CHAR}/{ITERATOR}                           { yybegin(ITERATOR_STATE); return CHAR; }
+  {VECTOR}/{ITERATOR_PATTERN}                 { yybeginstate(ITERATOR_STATE); return VECTOR; }
+  {VECTOR}/"_"                                { yybeginstate(DROP_CUT_STATE); return VECTOR; }
+  {VECTOR}                                    { return VECTOR; }
+
+  {CHAR}/{ITERATOR_PATTERN}                   { yybeginstate(ITERATOR_STATE); return CHAR; }
   {CHAR}                                      { return CHAR; }
-  {STRING}/{ITERATOR}                         { yybegin(ITERATOR_STATE); return STRING; }
-  {STRING}/"_"                                { yybegin(DROP_CUT_STATE); return STRING; }
+  {STRING}/{ITERATOR_PATTERN}                 { yybeginstate(ITERATOR_STATE); return STRING; }
+  {STRING}/"_"                                { yybeginstate(DROP_CUT_STATE); return STRING; }
   {STRING}                                    { return STRING; }
 
-  {VARIABLE_PATTERN}/{ITERATOR}               { yybegin(ITERATOR_STATE); return VARIABLE_PATTERN; }
+  {VARIABLE_PATTERN}/{ITERATOR_PATTERN}       { yybeginstate(ITERATOR_STATE); return VARIABLE_PATTERN; }
   {VARIABLE_PATTERN}                          { return VARIABLE_PATTERN; }
 
-  {OPERATOR}/{ITERATOR}                       { yybegin(ITERATOR_STATE); return OPERATOR;}
+  {OPERATOR}/{ITERATOR_PATTERN}               { yybeginstate(ITERATOR_STATE); return OPERATOR;}
   {OPERATOR}                                  { return OPERATOR;}
 }
 
-[^] { return TokenType.BAD_CHARACTER; }
+[^] { return BAD_CHARACTER; }

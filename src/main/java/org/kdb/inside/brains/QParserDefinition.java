@@ -4,7 +4,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.lang.ParserDefinition;
 import com.intellij.lang.PsiParser;
-import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.FileViewProvider;
@@ -19,7 +18,7 @@ import org.kdb.inside.brains.psi.QFile;
 import org.kdb.inside.brains.psi.QTypes;
 
 public final class QParserDefinition implements ParserDefinition {
-    public static final TokenSet COMMENTS = TokenSet.create(QTypes.COMMENT);
+    public static final TokenSet COMMENTS = TokenSet.create(QTypes.LINE_COMMENT, QTypes.BLOCK_COMMENT);
     public static final TokenSet WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE);
     public static final TokenSet STRING_LITERALS = TokenSet.create(QTypes.SYMBOL, QTypes.STRING);
 
@@ -27,7 +26,7 @@ public final class QParserDefinition implements ParserDefinition {
 
     @Override
     public @NotNull Lexer createLexer(Project project) {
-        return new FlexAdapter(new QLexer(null));
+        return QLexer.newLexer();
     }
 
     @NotNull

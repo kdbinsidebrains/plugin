@@ -61,7 +61,7 @@ public class KdbQuery {
             }
 
             final char c = next.charAt(0);
-            if (c != ' ' && c != '\t' && !strip.equals("}")) {
+            if (c != ' ' && c != '\t' && c != '/' && !strip.equals("}")) {
                 lines[row] += ';';
             }
             row = i + 1;

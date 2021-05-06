@@ -25,7 +25,7 @@ public class QVariableAnnotator extends QElementAnnotator<QVariable> {
         if (variable.isDeclaration()) {
             validateUnused(variable, holder);
         } else {
-            validateDeclaration(variable, holder);
+//            validateDeclaration(variable, holder);
         }
     }
 
@@ -64,7 +64,6 @@ public class QVariableAnnotator extends QElementAnnotator<QVariable> {
         }
 
         final String qualifiedName = variable.getQualifiedName();
-
         final QLambda lambda = variable.getContext(QLambda.class);
         if (lambda == null) { // global variable
 /*
@@ -84,6 +83,15 @@ public class QVariableAnnotator extends QElementAnnotator<QVariable> {
             }
 */
         } else {
+            if (variable.getContext() instanceof QParameters) {
+                // Ignore lambda parameters
+                return;
+            }
+
+            if (QVariableElement.hasNamespace(qualifiedName)) {
+                return;
+            }
+
             // TODO: What about QSymbol?
             final Collection<QVariable> children = PsiTreeUtil.findChildrenOfType(lambda, QVariable.class);
             if (children.isEmpty()) {
