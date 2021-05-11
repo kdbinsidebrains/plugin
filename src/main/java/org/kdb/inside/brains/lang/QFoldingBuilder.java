@@ -41,9 +41,9 @@ public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
         } else if (psi instanceof QTable) {
             final QTable tbl = (QTable) psi;
             return "([" +
-                    (tbl.getKeyColumns() != null ? " " + tbl.getKeyColumns().getAssignments().size() + " " : "") +
+                    (tbl.getKeyColumns() != null ? " " + tbl.getKeyColumns().getColumns().size() + " " : "") +
                     "]" +
-                    (tbl.getValueColumns() != null ? " " + tbl.getValueColumns().getAssignments().size() + " " : "") +
+                    (tbl.getValueColumns() != null ? " " + tbl.getValueColumns().getColumns().size() + " " : "") +
                     ")";
         }
         return "...";

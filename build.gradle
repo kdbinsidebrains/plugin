@@ -1,42 +1,60 @@
 plugins {
     id 'java'
     id 'org.jetbrains.intellij' version '0.7.2'
+    id 'org.jetbrains.changelog' version '1.1.2'
     id "org.jetbrains.grammarkit" version "2020.3.2"
 }
 
-group 'org.kdb.inside.brains'
-version = "${version}"
+group = pluginGroup
+version = pluginVersion
 
-sourceCompatibility = javaVersion
-targetCompatibility = javaVersion
+sourceCompatibility = pluginJavaVersion
+targetCompatibility = pluginJavaVersion
+
+// Configure project's dependencies
+repositories {
+    mavenCentral()
+}
 
 apply plugin: 'idea'
 idea {
-    project {
-        jdkName = javaVersion
-        languageLevel = javaVersion
-    }
     module {
         generatedSourceDirs += file('src/main/gen')
     }
 }
 
+// Configure gradle-intellij-plugin plugin.
+// Read more: https://github.com/JetBrains/gradle-intellij-plugin
 apply plugin: 'org.jetbrains.intellij'
-// See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version ideaVersion
-    plugins = ['java']
-    downloadSources Boolean.valueOf(ideaSources)
-    updateSinceUntilBuild false
+    pluginName = pluginId
+
+    type = platformType
+    version = platformVersion
+    downloadSources = platformDownloadSources.toBoolean()
+    updateSinceUntilBuild = true
+
+    // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
+    plugins = platformPlugins.split(',').collect{it.trim() as String}
+}
+
+apply plugin: 'org.jetbrains.changelog'
+changelog {
+    version = pluginVersion
+/*
+    path = "${project.projectDir}/CHANGELOG.md"
+    header = { "[$version]" }
+    headerParserRegex = ~/\d+\.\d+/
+    itemPrefix = "-"
+    keepUnreleasedSection = true
+    unreleasedTerm = "[Unreleased]"
+    groups = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
+*/
 }
 
 apply plugin: 'org.jetbrains.grammarkit'
 grammarKit {
     jflexRelease = '1.7.0-1'
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
@@ -87,10 +105,11 @@ compileJava {
 }
 
 patchPluginXml {
-    sinceBuild '203'
-    untilBuild ''
+    sinceBuild = pluginSinceBuild
+    untilBuild = pluginUntilBuild
+    changeNotes = ({ changelog.getUnreleased().toHTML() })
 }
 
 runPluginVerifier {
-    ideVersions = ["2020.3", "2021.1"]
+    ideVersions = pluginVerifierVersions.split(',').collect{it.trim() as String}
 }

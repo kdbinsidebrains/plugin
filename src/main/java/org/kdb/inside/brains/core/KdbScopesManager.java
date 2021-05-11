@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.core;
 
 import com.intellij.openapi.components.*;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.annotations.XCollection;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @State(name = "KdbScopesManager", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
-public class KdbScopesManager implements PersistentStateComponent<KdbScopesManager.State> {
+public class KdbScopesManager implements PersistentStateComponent<KdbScopesManager.State>, DumbAware {
     private final KdbScopeHolder localScopeHolder;
     private final KdbScopeHolder sharedScopeHolder;
 

@@ -82,12 +82,12 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         if (!statements.isEmpty()) {
             final LighterASTNode statement = statements.get(0);
             final IElementType tt = statement.getTokenType();
-            if (tt == STATEMENT) {
+            if (tt == EXPRESSION_COMMON || tt == EXPRESSION_QUERY) {
                 final LighterASTNode obj = tree.getChildren(statement).get(0);
                 final IElementType tokenType = obj.getTokenType();
                 if (tokenType == TABLE) {
                     final List<LighterASTNode> columns = LightTreeUtil.getChildrenOfType(tree, obj, COLUMNS_TOKEN).stream()
-                            .flatMap(c -> LightTreeUtil.getChildrenOfType(tree, c, COLUMN_ASSIGNMENT).stream())
+                            .flatMap(c -> LightTreeUtil.getChildrenOfType(tree, c, TABLE_COLUMN).stream())
                             .flatMap(a -> LightTreeUtil.getChildrenOfType(tree, a, VARIABLE).stream())
                             .collect(Collectors.toList());
                     return new Token(IdentifierType.TABLE, columns);

@@ -12,6 +12,8 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.ListCellRendererWithRightAlignedComponent;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.KdbType;
@@ -23,10 +25,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
-    private static final List<String> TYPES = Stream.of(KdbType.values()).map(KdbType::getName).collect(Collectors.toList());
+    final List<KdbType> types;
 
     public QTypeCastAnnotator() {
         super(QTypeCast.class);
+        types = Stream.of(KdbType.values()).collect(Collectors.toList());
     }
 
     @Override
@@ -39,23 +42,28 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
             return;
         }
 
+        final TextRange r = castType.getTextRange();
+
+        final boolean code;
+        final TextRange range;
         if (name.length() == 1) {
             final char ch = name.charAt(0);
             if (Character.isUpperCase(ch) && KdbType.byCode(Character.toLowerCase(ch)) != null) {
                 return;
             }
+            code = true;
+            range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 2);
+        } else {
+            final KdbType type = KdbType.byName(name);
+            if (type != null) {
+                return;
+            }
+            code = false;
+            range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 1);
         }
 
-        final KdbType type = KdbType.byName(name);
-        if (type != null) {
-            return;
-        }
 
-        final String message = "Unknown cast type: " + name;
-        final TextRange r = castType.getTextRange();
-        final TextRange range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 1);
-
-        holder.newAnnotation(HighlightSeverity.ERROR, message)
+        holder.newAnnotation(HighlightSeverity.ERROR, "Unknown cast type: " + name)
                 .range(range)
                 .withFix(new IntentionAction() {
                     @Override
@@ -65,7 +73,7 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
 
                     @Override
                     public @NotNull @IntentionFamilyName String getFamilyName() {
-                        return "Cast: wrong type";
+                        return "Type cast";
                     }
 
                     @Override
@@ -76,9 +84,19 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
                     @Override
                     public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
                         JBPopupFactory.getInstance()
-                                .createPopupChooserBuilder(TYPES)
+                                .createPopupChooserBuilder(types)
+                                .setRenderer(new ListCellRendererWithRightAlignedComponent<>() {
+                                    @Override
+                                    protected void customize(KdbType value) {
+                                        this.setLeftText(value.getName());
+                                        this.setRightForeground(JBColor.GRAY);
+                                        this.setRightText(String.valueOf(value.getUpperCode()));
+                                    }
+
+                                })
                                 .setItemChosenCallback(t -> {
-                                    WriteCommandAction.runWriteCommandAction(project, () -> editor.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), t));
+                                    final String name = code ? String.valueOf(Character.toUpperCase(t.getCode())) : t.getName();
+                                    WriteCommandAction.runWriteCommandAction(project, () -> editor.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), name));
                                 })
                                 .createPopup()
                                 .showInBestPositionFor(editor);

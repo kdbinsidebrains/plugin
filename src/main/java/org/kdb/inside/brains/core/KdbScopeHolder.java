@@ -4,6 +4,7 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 @State(name = "KdbScopeHolder", storages = {@Storage("kdb-instances.xml")})
-public class KdbScopeHolder implements PersistentStateComponent<Element> {
+public class KdbScopeHolder implements PersistentStateComponent<Element>, DumbAware {
     private final ScopeType type;
 
     private final List<KdbScope> scopes = new ArrayList<>();

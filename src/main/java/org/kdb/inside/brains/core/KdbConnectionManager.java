@@ -12,6 +12,7 @@ import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Progressive;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -39,7 +40,7 @@ import java.util.function.Consumer;
 import static org.kdb.inside.brains.core.InstanceState.CONNECTED;
 import static org.kdb.inside.brains.core.InstanceState.DISCONNECTED;
 
-public class KdbConnectionManager implements Disposable {
+public class KdbConnectionManager implements Disposable, DumbAware {
     private InstanceConnection activeConnection;
 
     private final Project project;

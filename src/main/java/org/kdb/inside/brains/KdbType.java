@@ -5,6 +5,7 @@ import java.util.Map;
 
 public enum KdbType {
     BOOLEAN("boolean", 'b', 1),
+    GUID("guid", 'g', 2),
     BYTE("byte", 'x', 4),
     SHORT("short", 'h', 5),
     INT("int", 'i', 6),
@@ -24,6 +25,7 @@ public enum KdbType {
     YEAR("year", ' ', 0);
 
     private final char code;
+    private final char uppserCode;
     private final String name;
     private final int type;
 
@@ -40,12 +42,17 @@ public enum KdbType {
 
     KdbType(String name, char code, int type) {
         this.code = code;
+        this.uppserCode = Character.toUpperCase(code);
         this.name = name;
         this.type = type;
     }
 
     public char getCode() {
         return code;
+    }
+
+    public char getUpperCode() {
+        return uppserCode;
     }
 
     public int getType() {

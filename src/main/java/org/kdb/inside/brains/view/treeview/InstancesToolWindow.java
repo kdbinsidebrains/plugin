@@ -4,6 +4,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.components.*;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @State(name = "KdbInstancesView", storages = {@Storage(StoragePathMacros.WORKSPACE_FILE)})
-public class InstancesToolWindow implements Disposable, PersistentStateComponent<Element> {
+public class InstancesToolWindow implements Disposable, PersistentStateComponent<Element>, DumbAware {
     private final Project project;
 
     private String uninitializedActiveScope;
