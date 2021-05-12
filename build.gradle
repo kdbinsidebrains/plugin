@@ -41,15 +41,6 @@ intellij {
 apply plugin: 'org.jetbrains.changelog'
 changelog {
     version = pluginVersion
-/*
-    path = "${project.projectDir}/CHANGELOG.md"
-    header = { "[$version]" }
-    headerParserRegex = ~/\d+\.\d+/
-    itemPrefix = "-"
-    keepUnreleasedSection = true
-    unreleasedTerm = "[Unreleased]"
-    groups = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
-*/
 }
 
 apply plugin: 'org.jetbrains.grammarkit'
@@ -112,4 +103,8 @@ patchPluginXml {
 
 runPluginVerifier {
     ideVersions = pluginVerifierVersions.split(',').collect{it.trim() as String}
+}
+
+publishPlugin {
+    token = System.getenv("KDBINSIDEBRAINS_RELEASE_PLUGIN_TOKEN")
 }
