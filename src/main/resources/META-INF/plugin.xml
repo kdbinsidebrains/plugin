@@ -4,7 +4,30 @@
     <vendor email="support@kdbinsidebrains.dev" url="https://www.kdbinsidebrains.dev">KdbInsideBrains</vendor>
 
     <description>
-        IntelliJ-based IDEA plugin for working with KDB+ database and source code
+        <![CDATA[
+        <p>
+        Open-Source IntelliJ-based IDEA plugin for <a href="https://kx.com/">kdb+</a> time-series realtime database
+        with full supporting <a href="https://code.kx.com/q/">KDB+ Q</a> programming language.
+        </p>
+        <p>
+        Contains tool windows for managing KDB instances, interactive KDB consoles with a table result view,
+        interactive connection toolbar as well as ability to run and manager local KDB processes.
+        </p>
+        <p>
+        Full <a href="https://code.kx.com/q/">KDB+ Q/K</a> languages supporting, including code highlighting,
+        code inspection, like unused or undefined variables, search usages and refactoring.
+        </p>
+        <p>
+        To enable the plugin create new <a href="https://www.jetbrains.com/help/idea/creating-and-managing-modules.html">KDB+ Q</a> module or
+        add new <a href="https://www.jetbrains.com/help/idea/adding-support-for-frameworks-and-technologies.html">KDB+ Q Framework</a> into exist one.
+        Alternatively you can just <a href="https://www.jetbrains.com/help/idea/import-project-or-module-wizard.html">import your project</a> from exist
+        source and new module with the framework will be added automatically.
+        </p>
+        <p>
+        P.S. The plugin is still in development and some features are not ready or not fully implemented.
+        Feel free to report <a href="https://github.com/kdbinsidebrains/plugin/issues">any issue</a> or <a href="https://github.com/kdbinsidebrains/plugin/discussions">start new discussion</a> if you need help.
+        </p>
+    ]]>
     </description>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
@@ -327,5 +350,23 @@
         <codeInsight.parameterInfo language="q" implementationClass="org.kdb.inside.brains.lang.QParameterInfoHandler"/>
                 <lang.documentationProvider language="q" implementationClass="org.kdb.inside.brains.lang.QDocumentationProvider"/>
         -->
+
+
+        <!-- Inspections -->
+        <localInspection language="q" id="UndefinedVariable" shortName="UndefinedVariable"
+                         displayName="Undefined variable"
+                         groupName="KDB+Q" enabledByDefault="true" level="ERROR" order="first"
+                         implementationClass="org.kdb.inside.brains.lang.inspection.UndefinedVariableInspection"/>
+
+        <localInspection language="q" id="UnusedLocalVariable" shortName="UnusedLocalVariable"
+                         displayName="Unused local variable"
+                         groupName="KDB+Q" enabledByDefault="true" level="WARNING" order="after UndefinedVariable"
+                         implementationClass="org.kdb.inside.brains.lang.inspection.UnusedLocalVariableInspection"/>
+
+        <localInspection language="q" id="UnresolvedImport" shortName="UnresolvedImport"
+                         displayName="Unresolved loaded file"
+                         groupName="KDB+Q" enabledByDefault="true" level="ERROR" order="after UnusedLocalVariable"
+                         implementationClass="org.kdb.inside.brains.lang.inspection.UnresolvedImportInspection"/>
+
     </extensions>
 </idea-plugin>

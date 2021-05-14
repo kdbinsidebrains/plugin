@@ -1,11 +1,11 @@
 package org.kdb.inside.brains;
 
-public final class QEntity {
+public final class QKeyword {
     final String name;
     final String description;
     final Type type;
 
-    QEntity(String name, Type type, String description) {
+    QKeyword(String name, Type type, String description) {
         this.name = name;
         this.type = type;
         this.description = description;

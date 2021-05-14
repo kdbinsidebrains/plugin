@@ -83,6 +83,7 @@ public final class QSyntaxHighlighter extends SyntaxHighlighterBase {
             entry(QTypes.QUERY_FROM, QUERY),
 
             entry(QTypes.COLON, KEYWORD),
+            entry(QTypes.FUNCTION_IMPORT, KEYWORD),
             entry(QTypes.UNARY_FUNCTION, KEYWORD),
             entry(QTypes.BINARY_FUNCTION, KEYWORD),
             entry(QTypes.COMPLEX_FUNCTION, KEYWORD),

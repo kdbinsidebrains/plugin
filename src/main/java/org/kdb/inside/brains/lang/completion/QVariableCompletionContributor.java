@@ -10,7 +10,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ProcessingContext;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.QEntity;
+import org.kdb.inside.brains.QKeyword;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.QVariable;
 import org.kdb.inside.brains.psi.index.IdentifierType;
@@ -46,8 +46,8 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
                 .forEach(s -> addEntities(QLanguage.getSystemFunctions(s), qualifiedName, KdbIcons.Node.functionPrivate, result));
     }
 
-    private void addEntities(List<QEntity> entities, String qualifiedName, Icon icon, CompletionResultSet result) {
-        for (QEntity function : entities) {
+    private void addEntities(List<QKeyword> entities, String qualifiedName, Icon icon, CompletionResultSet result) {
+        for (QKeyword function : entities) {
             final String name = function.getName();
             if (name.startsWith(qualifiedName)) {
                 final LookupElementBuilder b = LookupElementBuilder

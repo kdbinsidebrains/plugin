@@ -98,7 +98,7 @@ compileJava {
 patchPluginXml {
     sinceBuild = pluginSinceBuild
     untilBuild = pluginUntilBuild
-    changeNotes = ({ changelog.getUnreleased().toHTML() })
+    changeNotes = ({ changelog.getLatest().toHTML() })
 }
 
 runPluginVerifier {

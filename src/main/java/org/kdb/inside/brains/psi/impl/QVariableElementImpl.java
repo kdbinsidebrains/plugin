@@ -9,7 +9,6 @@ import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.QPsiUtil;
 import org.kdb.inside.brains.psi.*;
 
 import javax.swing.*;
@@ -87,18 +86,7 @@ public abstract class QVariableElementImpl extends QIdentifierImpl implements QV
                 }
             }
         }
-        return QVariableElement.generateQualifiedName(namespaceName, name);
-    }
-
-    public boolean isDeclaration() {
-        final PsiElement parent = getParent();
-        if (parent instanceof QParameters) {
-            return true;
-        }
-        if (parent instanceof QVariableAssignment) {
-            return ((QVariableAssignment) parent).getArguments() == null;
-        }
-        return false;
+        return QVariableElement.createQualifiedName(namespaceName, name);
     }
 
     @Override
@@ -159,6 +147,19 @@ public abstract class QVariableElementImpl extends QIdentifierImpl implements QV
             @NotNull
             @Override
             public Icon getIcon(boolean unused) {
+/*
+                final AssignmentType type = QPsiUtil.getAssignmentType(QVariableElementImpl.this);
+                if (type == null){
+                    return
+                }
+
+                switch (type) {
+
+                }
+*/
+
+
+/*
                 if (isDeclaration()) {
                     if (QPsiUtil.getFunctionDefinition(QVariableElementImpl.this).isPresent()) {
                         return KdbIcons.Node.functionPublic;
@@ -166,6 +167,8 @@ public abstract class QVariableElementImpl extends QIdentifierImpl implements QV
                         return KdbIcons.Node.variablePublic;
                     }
                 }
+*/
+//                TODO: Commented
                 return KdbIcons.Main.File;
             }
         };

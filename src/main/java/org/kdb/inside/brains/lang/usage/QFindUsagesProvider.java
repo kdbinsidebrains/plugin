@@ -4,9 +4,9 @@ import com.intellij.lang.findUsages.FindUsagesProvider;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.QPsiUtil;
 import org.kdb.inside.brains.psi.QAssignment;
 import org.kdb.inside.brains.psi.QParameters;
+import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QVariable;
 
 /**

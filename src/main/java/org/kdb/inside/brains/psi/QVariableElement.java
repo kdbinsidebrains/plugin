@@ -22,16 +22,8 @@ public interface QVariableElement extends QIdentifier {
     @NotNull
     String getQualifiedName();
 
-    /**
-     * Indicates is this is new variable declaration or not.
-     *
-     * @return <code>true</code> if the variable is new declaration.
-     */
-    boolean isDeclaration();
-
 
     void invalidate();
-
 
     /**
      * Checks is the specified variable implicit or not.
@@ -43,18 +35,18 @@ public interface QVariableElement extends QIdentifier {
         return IMPLICIT_VARS.contains(name);
     }
 
-    static QVariable createVariable(Project project, String name) {
-        return PsiTreeUtil.findChildOfType(QFileType.createFactoryFile(project, name), QVariable.class);
-    }
-
     static boolean hasNamespace(String identifier) {
         return !identifier.isEmpty() && identifier.charAt(0) == '.';
     }
 
-    static String generateQualifiedName(String namespace, String identifier) {
+    static String createQualifiedName(String namespace, String identifier) {
         if (namespace == null || namespace.isEmpty()) {
             return identifier;
         }
         return namespace + "." + identifier;
+    }
+
+    static QVariable createVariable(Project project, String name) {
+        return PsiTreeUtil.findChildOfType(QFileType.createFactoryFile(project, name), QVariable.class);
     }
 }

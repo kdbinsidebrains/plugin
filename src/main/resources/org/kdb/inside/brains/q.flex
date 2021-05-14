@@ -38,7 +38,7 @@ ITERATOR=("/": | \\: | ': | "/" | \\ | ' )
 MODE_PATTERN=[a-zA-Z]")"
 FILE_PATH_PATTERN=[^|?*<\">+\[\]'\n\r\ \t\f]+
 VARIABLE_PATTERN=[\.a-zA-Z][\._a-zA-Z0-9]*
-COMMAND_ARGS_PATTERN=[^\ \t\f\r\n<<eof>>][^\r\n<<eof>>]*
+COMMAND_ARGS_PATTERN=[^\ \t\f\r\n][^\r\n]*
 
 // Keywords and system commands
 // Changing anything - don't forget update QLanguage
@@ -214,6 +214,7 @@ VECTOR={BOOLEAN_LIST}|{BYTE_LIST}|{INTEGER_LIST}|{FLOAT_LIST}|
   "-"/-[0-9]                                  { return OPERATOR;} // --6 -> 6
 
   ^"\\l"/{LINE_SPACE}+!{LINE_BREAK}           { yybegin(COMMAND_IMPORT_STATE);  return COMMAND_IMPORT; }
+  "system"/{WHITE_SPACE}*"\"l "               { return FUNCTION_IMPORT; }
 
   ^"\\d"/{LINE_SPACE}+!{LINE_BREAK}           { yybegin(COMMAND_CONTEXT_STATE); return COMMAND_CONTEXT; }
   ^"\\d"/{LINE_BREAK}                         { return COMMAND_CONTEXT; }

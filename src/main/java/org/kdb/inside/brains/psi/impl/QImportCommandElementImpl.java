@@ -1,18 +1,15 @@
 package org.kdb.inside.brains.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.navigation.ItemPresentation;
-import com.intellij.psi.PsiFile;
-import icons.KdbIcons;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.util.TextRange;
 import org.kdb.inside.brains.psi.QImportElement;
+import org.kdb.inside.brains.psi.QImportFile;
 
-import javax.swing.*;
-
-public class QImportElementImpl extends QPsiElementImpl implements QImportElement {
-    public QImportElementImpl(ASTNode node) {
+public class QImportCommandElementImpl extends QPsiElementImpl implements QImportElement {
+    public QImportCommandElementImpl(ASTNode node) {
         super(node);
     }
+/*
 
     public ItemPresentation getPresentation() {
         return new ItemPresentation() {
@@ -36,5 +33,15 @@ public class QImportElementImpl extends QPsiElementImpl implements QImportElemen
                 return KdbIcons.Main.Import;
             }
         };
+    }
+*/
+
+    @Override
+    public TextRange getFilepathRange() {
+        final QImportFile childByClass = findChildByClass(QImportFile.class);
+        if (childByClass != null) {
+            return childByClass.getTextRangeInParent();
+        }
+        return null;
     }
 }

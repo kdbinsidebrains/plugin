@@ -2,7 +2,19 @@
 
 # KdbInsideBrains Changelog
 
-## [Unreleased]
+## [0.7.12]
+
+### Added
+
+- system "l " added to import pattern
+
+### Changed
+
+- UnresolvedImport moved from an Annotation to an Inspection
+- UnusedLocalVariable moved from an Annotation to an Inspection
+- QImportReferenceProvider optimized
+- QVariableReferenceProvider - much better but shows global variables in local scope
+- The plugin description has been updated
 
 ## [0.7.10]
 

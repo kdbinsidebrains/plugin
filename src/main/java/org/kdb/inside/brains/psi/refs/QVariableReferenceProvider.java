@@ -7,8 +7,8 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.QPsiUtil;
 import org.kdb.inside.brains.psi.QLambda;
+import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QVariable;
 import org.kdb.inside.brains.psi.index.QIndexService;
 
@@ -22,7 +22,25 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
         if (!(element instanceof QVariable)) {
             return PsiReference.EMPTY_ARRAY;
         }
-        return new PsiReference[]{new QVariableReference((QVariable) element)};
+        final QVariable var = (QVariable) element;
+/*
+        final QVariable localDef = findFirstLocalDefinition(var);
+        if (var == localDef) {
+            return PsiReference.EMPTY_ARRAY;
+        }
+*/
+        return new PsiReference[]{new QVariableReference(var)};
+    }
+
+    private static QVariable findFirstLocalDefinition(final QVariable variable) {
+        final QLambda lambda = variable.getContext(QLambda.class);
+        if (lambda == null) {
+            return null;
+        }
+
+        final String qualifiedName = variable.getQualifiedName();
+        final Collection<QVariable> lambdaVars = PsiTreeUtil.findChildrenOfType(lambda, QVariable.class);
+        return lambdaVars.stream().filter(var -> var.getQualifiedName().equals(qualifiedName) && QPsiUtil.getAssignmentType(var) != null).findFirst().orElse(null);
     }
 
     public static class QVariableReference extends PsiPolyVariantReferenceBase<QVariable> {
@@ -37,8 +55,19 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
 
         @Override
         public ResolveResult @NotNull [] multiResolve(boolean incompleteCode) {
-            final int stopOffset = myElement.getTextOffset();
             final String qualifiedName = myElement.getQualifiedName();
+
+            final QVariable localDef = findFirstLocalDefinition(myElement);
+            if (localDef != null) {
+/*
+                if (localDef == myElement) {
+                    return ResolveResult.EMPTY_ARRAY;
+                }
+*/
+                return new ResolveResult[]{new PsiElementResolveResult(localDef)};
+            }
+
+/*
 
             final QLambda lambda = myElement.getContext(QLambda.class);
             if (lambda != null) {
@@ -47,21 +76,24 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
                 }
 
                 final Collection<QVariable> lambdaVars = PsiTreeUtil.findChildrenOfType(lambda, QVariable.class);
-                for (QVariable var : lambdaVars) {
-                    if (var == myElement) {
-                        continue;
-                    }
-                    if (var.getTextOffset() >= stopOffset) {
-                        break;
-                    }
-                    if (var.getQualifiedName().equals(qualifiedName) && var.isDeclaration()) {
-                        return new ResolveResult[]{new PsiElementResolveResult(var)};
-                    }
+
+                final Optional<QVariable> first = lambdaVars.stream().filter(var -> var.getQualifiedName().equals(qualifiedName) && QPsiUtil.getAssignmentType(var) != null).findFirst();
+                if (first.isPresent()) {
+                    final QVariable variable = first.get();
+*/
+/*
+                    if (variable == myElement) {
+                        return ResolveResult.EMPTY_ARRAY;
+                    } else {
+*//*
+
+                    return new ResolveResult[]{new PsiElementResolveResult(variable)};
+//                    }
                 }
             }
+*/
 
             final Project project = myElement.getProject();
-
             final QIndexService index = QIndexService.getInstance(project);
             final List<PsiElementResolveResult> elements = new ArrayList<>();
             index.processVariables(s -> s.equals(qualifiedName), GlobalSearchScope.allScope(project), (key, file, descriptor, variable) -> {

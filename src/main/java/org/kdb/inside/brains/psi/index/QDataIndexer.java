@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 3;
+    protected static final int VERSION = 4;
 
     public static final @NotNull TokenSet COLUMNS_TOKEN = TokenSet.create(KEY_COLUMNS, VALUE_COLUMNS);
 
@@ -60,9 +60,8 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
                 return;
             }
 
-            final String qualifiedName = getQualifiedName(tree, var, text);
             // Ignore not global
-            if (qualifiedName.charAt(0) != '.' && !isGlobal(tree, var, assign, text)) {
+            if (isLocal(tree, var, offset, text)) {
                 return;
             }
 
@@ -70,6 +69,8 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
             final List<String> params = token.parameters.stream().map(n -> getVariableName(text, n)).collect(Collectors.toList());
 
             final TextRange r = new TextRange(var.getStartOffset(), var.getEndOffset());
+
+            final String qualifiedName = getQualifiedName(tree, var, text);
             res.computeIfAbsent(qualifiedName, n -> new ArrayList<>()).add(new IdentifierDescriptor(token.type, params, r));
         });
         return res;
@@ -130,17 +131,14 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         return String.valueOf(text.subSequence(var.getStartOffset(), var.getEndOffset()));
     }
 
-    private boolean isGlobal(LighterAST tree, LighterASTNode var, LighterASTNode assign, CharSequence text) {
-        // dot - always global
+    private boolean isLocal(LighterAST tree, LighterASTNode var, int offset, CharSequence text) {
         if (text.charAt(var.getStartOffset()) == '.') {
-            return true;
+            return false;
         }
-
-        final int offset = assign.getStartOffset();
         if (offset < text.length() - 1 && text.charAt(offset) == ':' && text.charAt(offset + 1) == ':') {
-            return true;
+            return false;
         }
-        return findParent(tree, assign, LAMBDA) == null;
+        return findParent(tree, var, LAMBDA) != null;
     }
 
     private LighterASTNode findParent(LighterAST tree, LighterASTNode item, IElementType type) {

@@ -33,6 +33,8 @@
     command_system="internal or external system command"
     command_arguments="internal or external command arguments"
 
+    function_import="import function"
+
     type_cast_pattern="type cast pattern"
 
     operator="operator"
@@ -70,7 +72,7 @@ root ::= top*
 private separator ::= semicolon | line_break
 private end_of_line ::= !(line_break)
 
-private top ::= import | context | command | mode | expression_common | separator
+private top ::= import_command | context | command | mode | expression_common | separator
 
 symbol ::= symbol_pattern {
   implements="org.kdb.inside.brains.psi.QSymbolElement"
@@ -85,11 +87,18 @@ variable ::= variable_pattern {
 
 // Import supporting
 import_file ::= file_path_pattern { recoverWhile = end_of_line }
-import ::= command_import line_space import_file {
-    pin = 1
-    implements="org.kdb.inside.brains.psi.QImportElement"
-    mixin="org.kdb.inside.brains.psi.impl.QImportElementImpl"
-    }
+import_command ::= command_import line_space import_file {
+ pin = 1
+ implements="org.kdb.inside.brains.psi.QImportElement"
+ mixin="org.kdb.inside.brains.psi.impl.QImportCommandElementImpl"
+ }
+
+import_system ::= function_import string {
+ implements="org.kdb.inside.brains.psi.QImportElement"
+ mixin="org.kdb.inside.brains.psi.impl.QImportFunctionElementImpl"
+ }
+
+
 
 fake assignment ::= variable? arguments? expression_common?
 fake column_assignment ::= variable? expression_common? {
@@ -179,7 +188,7 @@ private binary_invokable ::= binary_function | complex_function | ((operator | i
 invoke ::= (unary_invokable | binary_invokable) iterator? arguments+
 
 private function ::= unary_function | binary_function | complex_function | lambda
-private statement ::= control | condition | type_cast | variable_assignment | invoke | variable | table | list | parentheses | nill | atom | symbol | char | arguments | function | operator | iterator | colon colon?
+private statement ::= control | condition | type_cast | variable_assignment | invoke | import_system | variable | table | list | parentheses | nill | atom | symbol | char | arguments | function | operator | iterator | colon colon?
 
 fake expression ::= query | (statement | comma)+ query?
 expression_query ::= statement+ {
