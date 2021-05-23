@@ -8,6 +8,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
@@ -117,5 +118,18 @@ public class KxConnection extends c implements Closeable {
 
     public boolean isConnected() {
         return s != null;
+    }
+
+    public static boolean isNull(Object o) {
+        if (o == null) {
+            return true;
+        }
+
+        for (Object o1 : NULL) {
+            if (Objects.equals(o, o1)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

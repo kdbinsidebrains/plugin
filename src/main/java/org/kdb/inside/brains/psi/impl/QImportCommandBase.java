@@ -2,11 +2,11 @@ package org.kdb.inside.brains.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
-import org.kdb.inside.brains.psi.QImportElement;
+import org.kdb.inside.brains.psi.QImport;
 import org.kdb.inside.brains.psi.QImportFile;
 
-public class QImportCommandElementImpl extends QPsiElementImpl implements QImportElement {
-    public QImportCommandElementImpl(ASTNode node) {
+public class QImportCommandBase extends QPsiElementImpl implements QImport {
+    public QImportCommandBase(ASTNode node) {
         super(node);
     }
 /*

@@ -10,21 +10,15 @@ import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QQuery;
 import org.kdb.inside.brains.psi.QTable;
-import org.kdb.inside.brains.psi.QVariable;
+import org.kdb.inside.brains.psi.QVarReference;
 
-public class UndefinedVariableInspection extends ElementInspection<QVariable> {
+public class UndefinedVariableInspection extends ElementInspection<QVarReference> {
     public UndefinedVariableInspection() {
-        super(QVariable.class);
+        super(QVarReference.class);
     }
 
     @Override
-    protected void validate(@NotNull QVariable variable, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
-        if (QPsiUtil.getAssignmentType(variable) == null) {
-            validateDeclaration(variable, holder);
-        }
-    }
-
-    private void validateDeclaration(QVariable variable, ProblemsHolder holder) {
+    protected void validate(@NotNull QVarReference variable, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
         final String variableName = variable.getQualifiedName();
         if (QLanguage.isKeyword(variableName) || QLanguage.isSystemFunction(variableName)) {
             return;

@@ -47,22 +47,33 @@ public enum ExportingType {
     }
 
     public IndexIterator rowsIterator(JTable table) {
-        return newIterator(table.getSelectionModel(), table.getRowCount() - 1);
+        return newIterator(table.getSelectionModel(), table.getRowCount() - 1, true);
     }
 
     public IndexIterator columnsIterator(JTable table) {
-        return newIterator(table.getColumnModel().getSelectionModel(), table.getColumnCount() - 1);
+        return newIterator(table.getColumnModel().getSelectionModel(), table.getColumnCount() - 1, false);
     }
 
-    private IndexIterator newIterator(ListSelectionModel selectionModel, int totalMax) {
+    private boolean iterateAllIndexes(ListSelectionModel selectionModel, boolean rowsIterator) {
+        if (isExportAll(selectionModel)) {
+            return true;
+        }
+        if (rowsIterator) {
+            return this == COLUMNS || this == COLUMNS_WITH_HEADER;
+        } else {
+            return this == ROWS || this == ROWS_WITH_HEADER;
+        }
+    }
+
+    private IndexIterator newIterator(ListSelectionModel selectionModel, int totalMax, boolean rowsIterator) {
         return new IndexIterator() {
             private int i;
             private int maxIndex;
-            private final boolean exportAll = isExportAll(selectionModel);
+            private final boolean iterateAllIndexes = iterateAllIndexes(selectionModel, rowsIterator);
 
             @Override
             public int next() {
-                if (!exportAll) {
+                if (!iterateAllIndexes) {
                     while (i < maxIndex && !selectionModel.isSelectedIndex(i)) {
                         i++;
                     }
@@ -72,8 +83,8 @@ public enum ExportingType {
 
             @Override
             public int reset() {
-                i = exportAll ? 0 : selectionModel.getMinSelectionIndex();
-                maxIndex = exportAll ? totalMax : selectionModel.getMaxSelectionIndex();
+                i = iterateAllIndexes ? 0 : selectionModel.getMinSelectionIndex();
+                maxIndex = iterateAllIndexes ? totalMax : selectionModel.getMaxSelectionIndex();
                 return next();
             }
         };

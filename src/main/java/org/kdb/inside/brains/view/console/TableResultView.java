@@ -362,6 +362,17 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         return null;
     }
 
+    public String convertValue(Object value) {
+        if (value instanceof String && !options.isPrefixSymbols()) {
+            return String.valueOf(value);
+        } else if (value instanceof char[] && !options.isWrapStrings()) {
+            return new String((char[]) value);
+        } else if (value instanceof Character && !options.isWrapStrings()) {
+            return String.valueOf(value);
+        }
+        return formatter.convertObject(value);
+    }
+
     private void updateHeaderWidth() {
         final TableCellRenderer renderer = myTable.getTableHeader().getDefaultRenderer();
         final TableColumnModel columnModel = myTable.getColumnModel();
@@ -373,17 +384,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
     private class QTableCellRenderer extends DefaultTableCellRenderer {
         @Override
         protected void setValue(Object value) {
-            final String text;
-            if (value instanceof String && !options.isPrefixSymbols()) {
-                text = String.valueOf(value);
-            } else if (value instanceof char[] && !options.isWrapStrings()) {
-                text = new String((char[]) value);
-            } else if (value instanceof Character && !options.isWrapStrings()) {
-                text = String.valueOf(value);
-            } else {
-                text = formatter.convertObject(value);
-            }
-            setText(text);
+            setText(convertValue(value));
         }
     }
 }

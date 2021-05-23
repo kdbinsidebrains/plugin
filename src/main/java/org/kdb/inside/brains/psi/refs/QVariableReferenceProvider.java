@@ -1,46 +1,79 @@
 package org.kdb.inside.brains.psi.refs;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.QLambda;
-import org.kdb.inside.brains.psi.QPsiUtil;
-import org.kdb.inside.brains.psi.QVariable;
+import org.kdb.inside.brains.psi.*;
 import org.kdb.inside.brains.psi.index.QIndexService;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class QVariableReferenceProvider extends PsiReferenceProvider {
+/*
+    private static final EnumSet<VariableScope> GLOBAL_ALLOWED = EnumSet.of(VariableScope.FILE);
+    private static final EnumSet<VariableScope> LOCAL_ALLOWED = EnumSet.of(VariableScope.LAMBDA, VariableScope.FILE, VariableScope.PARAMETERS);
+*/
+
     @Override
-    public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context) {
+    public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext pc) {
         if (!(element instanceof QVariable)) {
             return PsiReference.EMPTY_ARRAY;
         }
+
         final QVariable var = (QVariable) element;
+        if (var instanceof QVarReference) {
+            return createReference(var);
+        }
+
+        final ElementScope scope = var.getVariableContext().getScope();
+        if (scope == ElementScope.PARAMETERS || scope == ElementScope.TABLE || scope == ElementScope.QUERY) {
+            return PsiReference.EMPTY_ARRAY;
+        }
+        return createReference(var);
 /*
-        final QVariable localDef = findFirstLocalDefinition(var);
-        if (var == localDef) {
+
+        final QVariable def = scope == VariableScope.LAMBDA ? findFirstLocalDefinition(var) : findFirstGlobalDefinition(var);
+        if (def == var) {
             return PsiReference.EMPTY_ARRAY;
         }
 */
-        return new PsiReference[]{new QVariableReference(var)};
+//        return createReference(var);
     }
 
-    private static QVariable findFirstLocalDefinition(final QVariable variable) {
-        final QLambda lambda = variable.getContext(QLambda.class);
-        if (lambda == null) {
-            return null;
+
+    /*
+
+
+        private static QVariable findFirstLocalDefinition(final QVariable variable) {
+            final QLambda lambda = variable.getContext(QLambda.class);
+            if (lambda == null) {
+                return null;
+            }
+            return findFirstDefinition(lambda, variable, LOCAL_ALLOWED);
         }
 
-        final String qualifiedName = variable.getQualifiedName();
-        final Collection<QVariable> lambdaVars = PsiTreeUtil.findChildrenOfType(lambda, QVariable.class);
-        return lambdaVars.stream().filter(var -> var.getQualifiedName().equals(qualifiedName) && QPsiUtil.getAssignmentType(var) != null).findFirst().orElse(null);
+        private static QVariable findFirstGlobalDefinition(final QVariable variable) {
+            final PsiFile file = variable.getContainingFile();
+            return findFirstDefinition(file, variable, GLOBAL_ALLOWED);
+        }
+
+        private static QVariable findFirstDefinition(final PsiElement fromElement, final QVariable variable, EnumSet<VariableScope> variableScopes) {
+            final String qualifiedName = variable.getQualifiedName();
+            final Collection<QVariable> lambdaVars = PsiTreeUtil.findChildrenOfType(fromElement, QVariable.class);
+            return lambdaVars.stream().filter(var -> var.getQualifiedName().equals(qualifiedName) && variableScopes.contains(QPsiUtil.getAssignmentType(var))).findFirst().orElse(null);
+        }
+    */
+    @NotNull
+    private PsiReference[] createReference(QVariable var) {
+        return new PsiReference[]{new QVariableReference(var)};
     }
 
     public static class QVariableReference extends PsiPolyVariantReferenceBase<QVariable> {
@@ -49,59 +82,167 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
         }
 
         @Override
-        public PsiElement handleElementRename(@NotNull String newElementName) throws IncorrectOperationException {
-            return myElement.setName(newElementName);
+        public boolean isReferenceTo(@NotNull PsiElement element) {
+            if (!element.isValid() || !(element instanceof QVariable)) {
+                return false;
+            }
+
+            final ResolveResult[] resolveResults = multiResolve(false);
+            for (ResolveResult resolveResult : resolveResults) {
+                if (!resolveResult.isValidResult()) {
+                    continue;
+                }
+                final PsiElement el = resolveResult.getElement();
+                if (el == null) {
+                    continue;
+                }
+
+                if (element.equals(el)) {
+                    return true;
+                }
+            }
+
+            final PsiReference myRef = myElement.getReference();
+            final PsiReference otherRef = element.getReference();
+            if (myRef != null && otherRef != null) {
+                final PsiElement myR = myRef.resolve();
+                final PsiElement otR = otherRef.resolve();
+                if (myElement == otR) {
+                    return true;
+                }
+                if (otR != null && myR != null && Objects.equals(otR, myR)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
         public ResolveResult @NotNull [] multiResolve(boolean incompleteCode) {
-            final String qualifiedName = myElement.getQualifiedName();
+            return resolveVariable(myElement, QPsiUtil.getElementContext(myElement));
+        }
 
-            final QVariable localDef = findFirstLocalDefinition(myElement);
-            if (localDef != null) {
-/*
-                if (localDef == myElement) {
-                    return ResolveResult.EMPTY_ARRAY;
-                }
-*/
-                return new ResolveResult[]{new PsiElementResolveResult(localDef)};
+        private ResolveResult[] resolveVariable(QVariable variable, ElementContext context) {
+            switch (context.getScope()) {
+                case QUERY:
+                    return resolveQuery(variable, context.query());
+                case LAMBDA:
+                    return resolveLambda(variable, context.lambda());
+                default:
+                    return resolveGlobal(variable, context.file());
+            }
+        }
+
+        private ResolveResult[] resolveQuery(QVariable var, QQuery query) {
+            final QExpression expression = query.getExpression();
+            if (expression == null) {
+                return ResolveResult.EMPTY_ARRAY;
+//                final PsiElement  =
             }
 
-/*
-
-            final QLambda lambda = myElement.getContext(QLambda.class);
-            if (lambda != null) {
-                if (QPsiUtil.isImplicitVariable(myElement)) {
-                    return ResolveResult.EMPTY_ARRAY;
+            final List<QVarReference> refs = new ArrayList<>();
+            PsiElement child = expression.getFirstChild();
+            while (child != null) {
+                if (child instanceof QVarReference) {
+                    refs.add((QVarReference) child);
                 }
+                if (child instanceof LeafPsiElement && "where".equals(child.getText())) {
+                    break;
+                }
+                child = child.getNextSibling();
+            }
 
-                final Collection<QVariable> lambdaVars = PsiTreeUtil.findChildrenOfType(lambda, QVariable.class);
+            final ElementContext queryContext = QPsiUtil.getElementContext(query);
 
-                final Optional<QVariable> first = lambdaVars.stream().filter(var -> var.getQualifiedName().equals(qualifiedName) && QPsiUtil.getAssignmentType(var) != null).findFirst();
-                if (first.isPresent()) {
-                    final QVariable variable = first.get();
-*/
-/*
-                    if (variable == myElement) {
-                        return ResolveResult.EMPTY_ARRAY;
-                    } else {
-*//*
+            // It's the table definition
+            if (refs.contains(var)) {
+                return resolveVariable(var, queryContext);
+            }
 
-                    return new ResolveResult[]{new PsiElementResolveResult(variable)};
-//                    }
+            final List<QTable> tables = refs.stream()
+                    .map(r -> resolveVariable(r, queryContext))
+                    .flatMap(Stream::of)
+                    .map(ResolveResult::getElement)
+                    .filter(Objects::nonNull)
+                    .map(PsiElement::getParent)
+                    .filter(e -> e instanceof QAssignment)
+                    .map(e -> ((QAssignment) e).getExpression())
+                    .filter(Objects::nonNull)
+                    .flatMap(e -> e.getTableList().stream())
+                    .collect(Collectors.toList());
+
+            final String qualifiedName = var.getQualifiedName();
+            List<QVarDeclaration> res = new ArrayList<>();
+            for (QTable table : tables) {
+                Stream.of(table.getKeyColumns(), table.getValueColumns())
+                        .filter(Objects::nonNull)
+                        .flatMap(v -> v.getColumns().stream())
+                        .map(QAssignment::getVariable)
+                        .filter(Objects::nonNull)
+                        .filter(v -> v.getQualifiedName().equals(qualifiedName))
+                        .forEach(res::add);
+            }
+
+            if (res.isEmpty()) {
+                return resolveVariable(var, queryContext);
+            }
+            return multi(res);
+        }
+
+        private ResolveResult[] resolveLambda(QVariable var, QLambda lambda) {
+            if (QPsiUtil.isImplicitVariable(var) && lambda.getParameters() == null) {
+                return single(lambda);
+            }
+
+            final String qualifiedName = var.getQualifiedName();
+            final Optional<QVarDeclaration> first = firstFirstInLambda(qualifiedName, lambda);
+            if (first.isPresent()) {
+                final QVarDeclaration el = first.get();
+                if (QPsiUtil.isGlobalDeclaration(el)) {
+                    return resolveGlobal(var, var.getContainingFile());
+                } else {
+                    return single(el);
                 }
             }
-*/
+            return resolveGlobal(var, var.getContainingFile());
+        }
 
-            final Project project = myElement.getProject();
-            final QIndexService index = QIndexService.getInstance(project);
-            final List<PsiElementResolveResult> elements = new ArrayList<>();
-            index.processVariables(s -> s.equals(qualifiedName), GlobalSearchScope.allScope(project), (key, file, descriptor, variable) -> {
-                if (variable != myElement) {
-                    elements.add(new PsiElementResolveResult(variable, true));
+        private ResolveResult[] resolveGlobal(QVariable var, PsiFile file) {
+            final String qualifiedName = var.getQualifiedName();
+            final QIndexService index = QIndexService.getInstance(myElement);
+            final QVarDeclaration initial = index.findFirstInFile(qualifiedName, file);
+            if (initial == null) {
+                return multi(findGlobalVariables(qualifiedName, GlobalSearchScope.allScope(var.getProject())));
+            }
+            return single(initial);
+        }
+
+        private List<QVarDeclaration> findGlobalVariables(String qualifiedName, @NotNull GlobalSearchScope scope) {
+            final List<QVarDeclaration> elements = new ArrayList<>();
+            final QIndexService index = QIndexService.getInstance(myElement);
+            index.processVariables(s -> s.equals(qualifiedName), scope, (key, file, descriptor, variable) -> {
+                if (QPsiUtil.isGlobalDeclaration(variable)) {
+                    elements.add(variable);
                 }
             });
-            return elements.toArray(ResolveResult[]::new);
+            return elements;
+        }
+
+        @NotNull
+        private ResolveResult[] single(QPsiElement el) {
+            return new ResolveResult[]{new PsiElementResolveResult(el)};
+        }
+
+        private ResolveResult[] multi(List<QVarDeclaration> allGlobal) {
+            return allGlobal.stream().map(PsiElementResolveResult::new).toArray(ResolveResult[]::new);
+        }
+
+        @NotNull
+        private Optional<QVarDeclaration> firstFirstInLambda(String qualifiedName, QLambda lambda) {
+            return PsiTreeUtil.findChildrenOfType(lambda, QVarDeclaration.class).stream().
+                    filter(v -> v.getQualifiedName().equals(qualifiedName)).
+                    filter(v -> ElementContext.of(v).any(ElementScope.LAMBDA, ElementScope.PARAMETERS)).
+                    findFirst();
         }
     }
 }

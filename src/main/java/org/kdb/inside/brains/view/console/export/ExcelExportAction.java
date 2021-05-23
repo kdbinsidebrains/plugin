@@ -7,8 +7,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.table.JBTable;
+import kx.KxConnection;
 import org.apache.poi.ss.usermodel.*;
-import org.kdb.inside.brains.view.console.KdbOutputFormatter;
 import org.kdb.inside.brains.view.console.TableResultView;
 
 import javax.swing.*;
@@ -58,7 +58,6 @@ public class ExcelExportAction extends AnExportAction {
         final JBTable table = view.getTable();
         final ExportingType.IndexIterator ri = type.rowsIterator(table);
         final ExportingType.IndexIterator ci = type.columnsIterator(table);
-        final KdbOutputFormatter formatter = KdbOutputFormatter.getInstance();
 
         int index = 0;
         if (type.withHeader()) {
@@ -79,9 +78,13 @@ public class ExcelExportAction extends AnExportAction {
                 if (value instanceof Boolean) {
                     row.createCell(i++, CellType.BOOLEAN).setCellValue((Boolean) value);
                 } else if (value instanceof Number) {
-                    row.createCell(i++, CellType.NUMERIC).setCellValue(((Number) value).doubleValue());
+                    if (KxConnection.isNull(value)) {
+                        row.createCell(i++, CellType.NUMERIC).setCellValue(view.convertValue(value));
+                    } else {
+                        row.createCell(i++, CellType.NUMERIC).setCellValue(((Number) value).doubleValue());
+                    }
                 } else {
-                    row.createCell(i++).setCellValue(formatter.convertObject(value));
+                    row.createCell(i++).setCellValue(view.convertValue(value));
                 }
             }
         }

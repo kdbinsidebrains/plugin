@@ -9,7 +9,7 @@ import com.intellij.psi.NavigatablePsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.QImportElement;
+import org.kdb.inside.brains.psi.QImport;
 import org.kdb.inside.brains.psi.QVariable;
 
 import java.util.ArrayList;
@@ -64,7 +64,7 @@ public class QStructureViewElement implements StructureViewTreeElement, Sortable
     @NotNull
     @Override
     public TreeElement[] getChildren() {
-        final Collection<PsiElement> childrenOfType = PsiTreeUtil.findChildrenOfAnyType(element, QVariable.class, QImportElement.class);
+        final Collection<PsiElement> childrenOfType = PsiTreeUtil.findChildrenOfAnyType(element, QVariable.class, QImport.class);
 
         final List<TreeElement> treeElements = new ArrayList<>(childrenOfType.size());
         for (PsiElement el : childrenOfType) {

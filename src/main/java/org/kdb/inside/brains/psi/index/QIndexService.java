@@ -11,8 +11,9 @@ import com.intellij.util.indexing.FileBasedIndex;
 import com.intellij.util.indexing.IdFilter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.psi.QVariable;
+import org.kdb.inside.brains.psi.QVarDeclaration;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 public class QIndexService {
@@ -22,6 +23,19 @@ public class QIndexService {
     public QIndexService(Project project) {
         this.project = project;
         index = FileBasedIndex.getInstance();
+    }
+
+    public QVarDeclaration findFirstInFile(@NotNull String qualifiedName, @NotNull PsiFile file) {
+        final List<List<IdentifierDescriptor>> values = index.getValues(QIdentifiersIndex.INDEX_ID, qualifiedName, GlobalSearchScope.fileScope(file));
+        for (List<IdentifierDescriptor> value : values) {
+            for (IdentifierDescriptor descriptor : value) {
+                final QVarDeclaration declaration = resolveDeclaration(descriptor, file.getVirtualFile());
+                if (declaration != null) {
+                    return declaration;
+                }
+            }
+        }
+        return null;
     }
 
     public void processValues(@NotNull Predicate<String> keyPredicate, @NotNull GlobalSearchScope scope, @NotNull QIndexService.ValuesProcessor processor) {
@@ -39,23 +53,32 @@ public class QIndexService {
     }
 
     public void processVariables(@NotNull Predicate<String> keyPredicate, @NotNull GlobalSearchScope scope, @NotNull QIndexService.VariablesProcessor processor) {
-        final PsiManager psiManager = PsiManager.getInstance(project);
         processValues(keyPredicate, scope, (key, file, descriptor) -> {
-            final PsiFile pf = psiManager.findFile(file);
-            if (pf == null) {
-                return;
-            }
-
-            final PsiElement el = pf.findElementAt(descriptor.getRange().getStartOffset());
-            if (el == null) {
-                return;
-            }
-
-            final PsiElement parent = el.getParent();
-            if (parent instanceof QVariable) {
-                processor.processVariables(key, file, descriptor, (QVariable) parent);
+            final QVarDeclaration var = resolveDeclaration(descriptor, file);
+            if (var != null) {
+                processor.processVariables(key, file, descriptor, var);
             }
         });
+    }
+
+    @Nullable
+    private QVarDeclaration resolveDeclaration(IdentifierDescriptor descriptor, VirtualFile file) {
+        final PsiManager psiManager = PsiManager.getInstance(project);
+        final PsiFile pf = psiManager.findFile(file);
+        if (pf == null) {
+            return null;
+        }
+
+        final PsiElement el = pf.findElementAt(descriptor.getRange().getStartOffset());
+        if (el == null) {
+            return null;
+        }
+
+        final PsiElement parent = el.getParent();
+        if (parent instanceof QVarDeclaration) {
+            return (QVarDeclaration) parent;
+        }
+        return null;
     }
 
     public void processAllKeys(@NotNull Processor<? super String> processor, @NotNull GlobalSearchScope scope) {
@@ -70,6 +93,11 @@ public class QIndexService {
         return project.getService(QIndexService.class);
     }
 
+    public static QIndexService getInstance(PsiElement element) {
+        return getInstance(element.getProject());
+    }
+
+
     @FunctionalInterface
     public interface ValuesProcessor {
         void processValues(String key, VirtualFile file, IdentifierDescriptor descriptor);
@@ -77,6 +105,6 @@ public class QIndexService {
 
     @FunctionalInterface
     public interface VariablesProcessor {
-        void processVariables(String key, VirtualFile file, IdentifierDescriptor descriptor, QVariable variable);
+        void processVariables(String key, VirtualFile file, IdentifierDescriptor descriptor, QVarDeclaration variable);
     }
 }

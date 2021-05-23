@@ -4,15 +4,15 @@ import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.PsiPolyVariantReference;
 import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.QImportElement;
+import org.kdb.inside.brains.psi.QImport;
 
-public class UnresolvedImportInspection extends ElementInspection<QImportElement> {
+public class UnresolvedImportInspection extends ElementInspection<QImport> {
     public UnresolvedImportInspection() {
-        super(QImportElement.class);
+        super(QImport.class);
     }
 
     @Override
-    protected void validate(@NotNull QImportElement element, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
+    protected void validate(@NotNull QImport element, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
         checkReferences(element.getReferences(), holder);
     }
 

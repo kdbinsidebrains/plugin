@@ -5,9 +5,11 @@ plugins {
     id "org.jetbrains.grammarkit" version "2020.3.2"
 }
 
-group = pluginGroup
-version = pluginVersion
+Properties versionProps = new Properties()
+versionProps.load(new FileInputStream(file('version.properties')))
 
+group = pluginGroup
+version = versionProps['pluginVersion']
 sourceCompatibility = pluginJavaVersion
 targetCompatibility = pluginJavaVersion
 
@@ -35,13 +37,10 @@ intellij {
     updateSinceUntilBuild = true
 
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
-    plugins = platformPlugins.split(',').collect{it.trim() as String}
+    plugins = platformPlugins.split(',').collect { it.trim() as String }
 }
 
 apply plugin: 'org.jetbrains.changelog'
-changelog {
-    version = pluginVersion
-}
 
 apply plugin: 'org.jetbrains.grammarkit'
 grammarKit {
@@ -102,7 +101,7 @@ patchPluginXml {
 }
 
 runPluginVerifier {
-    ideVersions = pluginVerifierVersions.split(',').collect{it.trim() as String}
+    ideVersions = pluginVerifierVersions.split(',').collect { it.trim() as String }
 }
 
 publishPlugin {
