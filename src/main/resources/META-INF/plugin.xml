@@ -323,6 +323,10 @@
         <projectService serviceImplementation="org.kdb.inside.brains.psi.index.QIndexService"/>
 
         <!--  Refactoring -->
+        <lang.psiStructureViewFactory language="q"
+                                      implementationClass="org.kdb.inside.brains.view.struct.QStructureViewFactory"/>
+
+
         <usageTypeProvider implementation="org.kdb.inside.brains.lang.usage.QUsageTypeProvider"/>
         <lang.findUsagesProvider language="q"
                                  implementationClass="org.kdb.inside.brains.lang.usage.QFindUsagesProvider"/>
@@ -333,15 +337,10 @@
         <typedHandler id="QTypedHandler" implementation="org.kdb.inside.brains.lang.completion.QTypedHandler"/>
 
 
-        <lang.psiStructureViewFactory language="q"
-                                      implementationClass="org.kdb.inside.brains.view.struct.QStructureViewFactory"/>
-
-
         <completion.contributor language="q"
                                 order="first"
                                 implementationClass="org.kdb.inside.brains.lang.completion.QCompletionContributor"/>
 
-        <renameHandler implementation="org.kdb.inside.brains.lang.refactoring.QInplaceRenameHandler"/>
         <renamePsiElementProcessor
                 implementation="org.kdb.inside.brains.lang.refactoring.QRenamePsiElementProcessor"/>
         <gotoSymbolContributor implementation="org.kdb.inside.brains.lang.QChooseByNameContributor"/>
@@ -367,6 +366,11 @@
                          displayName="Unresolved loaded file"
                          groupName="KDB+Q" enabledByDefault="true" level="ERROR" order="after UnusedLocalVariable"
                          implementationClass="org.kdb.inside.brains.lang.inspection.UnresolvedImportInspection"/>
+
+        <localInspection language="q" id="MixinLambdaVarDeclaration" shortName="MixinLambdaVarDeclaration"
+                         displayName="Mixin lambda variables declaration"
+                         groupName="KDB+Q" enabledByDefault="true" level="ERROR" order="after UnresolvedImport"
+                         implementationClass="org.kdb.inside.brains.lang.inspection.MixinLambdaVarDeclaration"/>
 
     </extensions>
 </idea-plugin>

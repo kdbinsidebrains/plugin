@@ -8,7 +8,6 @@ import org.jdesktop.swingx.plaf.basic.core.BasicTransferable;
 import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
-import org.kdb.inside.brains.view.console.KdbOutputFormatter;
 import org.kdb.inside.brains.view.console.TableResult;
 import org.kdb.inside.brains.view.console.TableResultView;
 
@@ -18,16 +17,16 @@ import java.awt.*;
 import java.awt.datatransfer.Transferable;
 
 public final class ClipboardExportAction extends AnExportAction {
-    public ClipboardExportAction(String text, ExportingType type) {
-        super(text, type);
+    public ClipboardExportAction(String text, ExportingType type, TableResultView resultView) {
+        super(text, type, resultView);
     }
 
-    public ClipboardExportAction(String text, String description, ExportingType type) {
-        super(text, description, type);
+    public ClipboardExportAction(String text, ExportingType type, TableResultView resultView, String description) {
+        super(text, type, resultView, description);
     }
 
-    public ClipboardExportAction(String text, String description, Icon icon, ExportingType type) {
-        super(text, description, icon, type);
+    public ClipboardExportAction(String text, ExportingType type, TableResultView resultView, String description, Icon icon) {
+        super(text, type, resultView, description, icon);
     }
 
     @Override
@@ -44,7 +43,6 @@ public final class ClipboardExportAction extends AnExportAction {
         final Colors[] tableO = getTable(table, true);
         final Colors[] tableE = getTable(table, false);
 
-        final KdbOutputFormatter formatter = KdbOutputFormatter.getInstance();
         final ConsoleOptions options = KdbSettingsService.getInstance().getConsoleOptions();
 
         htmlStr.append("<html>\n");
@@ -87,7 +85,7 @@ public final class ClipboardExportAction extends AnExportAction {
             ci.reset();
             for (int c = ci.reset(); c != -1; c = ci.next()) {
                 Object obj = table.getValueAt(r, c);
-                String val = formatter.convertObject(obj);
+                String val = view.convertValue(obj);
                 plainStr.append(val).append('\t');
 
                 htmlStr.append("  <td class=\"").append(t).append(c).append("\">").append(val).append("</td>\n");

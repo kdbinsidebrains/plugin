@@ -1,0 +1,16 @@
+<html>
+<body>
+<p>Q works incorrect with mixin variable declaration inside a lambda.</p>
+
+<h1>Case #1: Global after local</h1>
+<p>If you try to assign a global variable with the same name after local declaration, like:</p>
+<pre>{ myVar:10; myVar::20 }</pre>
+<p>In this case global double colons are treated as local assignment that could case an error.</p>
+
+<h1>Case #2: Local after global</h1>
+<p>In opposite way, when first declare a variable as global one and try to assign local value, like:</p>
+<pre>{myVar::10; myVar:20} </pre>
+<p>an error will be thrown.</p>
+
+</body>
+</html>

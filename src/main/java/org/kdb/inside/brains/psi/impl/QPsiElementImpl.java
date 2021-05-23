@@ -14,7 +14,7 @@ public class QPsiElementImpl extends ASTWrapperPsiElement {
     @Override
     public PsiReference getReference() {
         final PsiReference[] references = getReferences();
-        if (references.length > 0) {
+        if (references.length == 1) {
             return references[0];
         }
         return null;

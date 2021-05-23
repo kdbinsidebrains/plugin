@@ -5,9 +5,9 @@ import icons.KdbIcons;
 import javax.swing.*;
 
 public enum IdentifierType {
-    TABLE(KdbIcons.Node.tablePublic),
-    LAMBDA(KdbIcons.Node.functionPublic),
-    VARIABLE(KdbIcons.Node.variablePublic);
+    TABLE(KdbIcons.Node.Table),
+    LAMBDA(KdbIcons.Node.Lambda),
+    VARIABLE(KdbIcons.Node.Variable);
 
     private final Icon icon;
 

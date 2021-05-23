@@ -72,47 +72,53 @@ root ::= top*
 private separator ::= semicolon | line_break
 private end_of_line ::= !(line_break)
 
-private top ::= import_command | context | command | mode | expression_common | separator
+private top ::= import_command | context | command | mode | expression | separator
 
-symbol ::= symbol_pattern {
-  implements="org.kdb.inside.brains.psi.QSymbolElement"
-  mixin="org.kdb.inside.brains.psi.impl.QSymbolElementImpl"
-}
+symbol ::= symbol_pattern
 private symbols ::= symbol symbol+
 
-variable ::= variable_pattern {
-  implements="org.kdb.inside.brains.psi.QVariableElement"
-  mixin="org.kdb.inside.brains.psi.impl.QVariableElementImpl"
+var_reference ::= variable_pattern {
+ implements="org.kdb.inside.brains.psi.QVariable"
+ mixin="org.kdb.inside.brains.psi.impl.QVariableReferenceImpl"
+}
+
+var_declaration ::= variable_pattern {
+ implements=["org.kdb.inside.brains.psi.QVariable" "com.intellij.psi.PsiNameIdentifierOwner" "com.intellij.psi.NavigatablePsiElement"]
+ mixin="org.kdb.inside.brains.psi.impl.QVariableDeclarationImpl"
 }
 
 // Import supporting
 import_file ::= file_path_pattern { recoverWhile = end_of_line }
 import_command ::= command_import line_space import_file {
  pin = 1
- implements="org.kdb.inside.brains.psi.QImportElement"
- mixin="org.kdb.inside.brains.psi.impl.QImportCommandElementImpl"
+ implements="org.kdb.inside.brains.psi.QImport"
+ mixin="org.kdb.inside.brains.psi.impl.QImportCommandBase"
  }
 
 import_system ::= function_import string {
- implements="org.kdb.inside.brains.psi.QImportElement"
- mixin="org.kdb.inside.brains.psi.impl.QImportFunctionElementImpl"
+ implements="org.kdb.inside.brains.psi.QImport"
+ mixin="org.kdb.inside.brains.psi.impl.QImportFunctionBase"
  }
 
 
-
-fake assignment ::= variable? arguments? expression_common?
-fake column_assignment ::= variable? expression_common? {
+fake assignment ::= var_declaration? arguments? expression? {
+ methods = [variable="var_declaration"]
+}
+fake column_assignment ::= var_declaration? expression? {
  extends = assignment
+ methods = [variable="var_declaration"]
 }
 
-variable_assignment ::= variable [arguments] (operator colon | colon colon | colon) expression_common {
+variable_assignment ::= var_declaration [arguments] (operator colon | colon colon | colon) expression {
  pin = 3
  extends = assignment
+ methods = [variable="var_declaration"]
 }
 
-inner table_column ::= (variable colon expression_common) | expression_common  {
+inner table_column ::= (var_declaration colon expression) | expression  {
  pin(".*") = 2
  extends = column_assignment
+ methods = [variable="var_declaration"]
  }
 private table_cols ::= table_column (semicolon table_column)*
 fake table_columns ::= table_cols {
@@ -130,9 +136,16 @@ table ::= paren_open bracket_open [key_columns] bracket_close [value_columns] pa
  pin = 2
 }
 
-inner query_column ::= (variable colon expression_query) | expression_query  {
+fake psi_expression ::= {}
+
+query_expression ::= statement+ {
+ extends = psi_expression
+}
+
+inner query_column ::= (var_declaration colon query_expression) | query_expression  {
  pin(".*") = 2
  extends = column_assignment
+ methods = [variable="var_declaration"]
 }
 private query_cols ::= query_column (comma query_column)*
 fake query_columns ::= query_cols
@@ -144,29 +157,35 @@ query_selects ::= query_cols {
 }
 // - not mistake. WHERE goes into the final expression here and belong to it by Q grammar
 // - we do where fist and then select from the result what we need.
-query ::= query_type [query_selects] (query_by query_groups)? (query_from expression_common) {
+query ::= query_type [query_selects] (query_by query_groups)? (query_from expression) {
  pin(".*")=1
  methods = [columns="query_selects" groups="query_groups"]
  }
 
 // Context: \d ...
-private context_name ::= variable {recoverWhile = end_of_line }
+private context_name ::= var_declaration {recoverWhile = end_of_line }
 context ::= command_context (line_space+ context_name expressions)? {
  pin = 1
- mixin = "org.kdb.inside.brains.psi.impl.QContextElementImpl"
+ mixin = "org.kdb.inside.brains.psi.impl.QPsiContextImpl"
+ methods = [variable="var_declaration"]
  }
 
 // Command - anything with \...
-private command_params ::= command_arguments {recoverWhile = end_of_line}
-command ::= command_system (line_space+ command_params)? { pin = 1}
+command_params ::= command_arguments {recoverWhile = end_of_line}
+command ::= command_system (line_space+ command_params)? {
+ pin = 1
+ methods = [parameters="command_params"]
+}
 
 // In mode we can't use line_break as a separator
-private mode_content ::= semicolon* expression_common (semicolon+ expression_common)* semicolon* {
+private mode_content ::= semicolon* expression (semicolon+ expression)* semicolon* {
  recoverWhile = end_of_line
 }
 mode ::= mode_pattern [mode_content] { pin = 1 } // Mode: [a-Z]) .....
 
-parameters ::= bracket_open [variable (semicolon variable)*] bracket_close // it's not private for fast search
+parameters ::= bracket_open [var_declaration (semicolon var_declaration)*] bracket_close {
+ methods = [variables="var_declaration"]
+}
 lambda ::= brace_open [parameters] [expressions] brace_close {pin = 1}
 
 arguments ::= bracket_open [expressions] bracket_close {pin = 1}// [...]
@@ -179,23 +198,19 @@ type_cast ::= type_cast_pattern
 
 //dict ::= key_statement "!" expression { pin = 2}
 list ::= vector | symbols | string | mix_list
-private mix_list ::= paren_open [expression_common] (semicolon+ [expression_common])+ semicolon* paren_close { pin=3 }
+private mix_list ::= paren_open [expression] (semicolon+ [expression])+ semicolon* paren_close { pin=3 }
 
-parentheses ::= paren_open expression_common paren_close
+parentheses ::= paren_open expression paren_close
 
-private unary_invokable ::= unary_function | lambda | variable | list | parentheses
+private unary_invokable ::= unary_function | lambda | var_reference | list | parentheses
 private binary_invokable ::= binary_function | complex_function | ((operator | iterator) colon?)
 invoke ::= (unary_invokable | binary_invokable) iterator? arguments+
 
 private function ::= unary_function | binary_function | complex_function | lambda
-private statement ::= control | condition | type_cast | variable_assignment | invoke | import_system | variable | table | list | parentheses | nill | atom | symbol | char | arguments | function | operator | iterator | colon colon?
+private statement ::= control | condition | type_cast | variable_assignment | invoke | import_system | var_reference | table | list | parentheses | nill | atom | symbol | char | arguments | function | operator | iterator | colon colon?
 
-fake expression ::= query | (statement | comma)+ query?
-expression_query ::= statement+ {
- extends = expression
-}
-expression_common ::= query | (statement | comma)+ query? {
- extends = expression
+expression ::= query | (statement | comma)+ query? {
+ extends = psi_expression
 }
 
-private expressions ::= separator* expression_common (separator+ expression_common)* separator*
+private expressions ::= separator* expression (separator+ expression)* separator*

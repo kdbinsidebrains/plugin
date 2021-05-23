@@ -2,6 +2,33 @@
 
 # KdbInsideBrains Changelog
 
+## [0.9.0]
+
+### Added
+
+- StructureView for Q files is ready
+- A toolbar to a table result view has been added
+
+## [0.8.0]
+
+### Added
+
+- Variable references have been updated and works fine inside global/local and query contexts.
+- MixinLambdaVarDeclaration added - minix local and global scope of a variable is shown as an error with quick fix (
+  changing scope into initial one).
+
+### Changed
+
+- Inline comment parsing has been finished and appropriate code doesn't blink anymore
+- Psi tree elements slightly redesigned to reduce complexity
+- Export rows/columns fixed
+- Nulls are exported into Excel instead of wrong Q values
+- Export re-uses current TableResultView formatting options (string escaping and so on) instead of default one.
+
+### Removed
+
+- QInplaceRenameHandler removed from the project
+
 ## [0.7.12]
 
 ### Added

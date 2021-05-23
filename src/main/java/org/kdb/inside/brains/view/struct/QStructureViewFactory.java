@@ -9,7 +9,6 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@Deprecated
 public class QStructureViewFactory implements PsiStructureViewFactory {
     @Nullable
     @Override

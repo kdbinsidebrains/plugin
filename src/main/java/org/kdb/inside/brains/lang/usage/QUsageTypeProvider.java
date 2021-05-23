@@ -4,7 +4,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.usages.impl.rules.UsageType;
 import com.intellij.usages.impl.rules.UsageTypeProvider;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.psi.AssignmentType;
+import org.kdb.inside.brains.psi.ElementScope;
 import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QSymbol;
 import org.kdb.inside.brains.psi.QVariable;
@@ -27,20 +27,20 @@ public final class QUsageTypeProvider implements UsageTypeProvider {
         if (element instanceof QVariable) {
             final QVariable variable = (QVariable) element;
 
-            final AssignmentType type = QPsiUtil.getAssignmentType(variable);
+            final ElementScope type = QPsiUtil.getAssignmentType(variable);
             if (type == null) {
                 return VARIABLE_REFERENCE;
             }
             switch (type) {
-                case LOCAL:
+                case LAMBDA:
                     return LOCAL_ASSIGNMENT;
-                case GLOBAL:
+                case FILE:
                     return GLOBAL_ASSIGNMENT;
-                case PARAMETER:
+                case PARAMETERS:
                     return PARAMETER;
-                case TABLE_COLUMN:
+                case TABLE:
                     return TABLE_COLUMN;
-                case QUERY_COLUMN:
+                case QUERY:
                     return QUERY_COLUMN;
                 default:
                     return UNKNOWN_ASSIGNMENT;

@@ -4,20 +4,15 @@ import com.intellij.lang.ASTNode;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.kdb.inside.brains.psi.QPsiElement;
 import org.kdb.inside.brains.psi.QVariable;
-import org.kdb.inside.brains.psi.QVariableElement;
 
 import java.util.Objects;
 
-public class QContextElementImpl extends QPsiElementImpl implements QPsiElement {
+public class QPsiContextImpl extends QPsiElementImpl implements QPsiElement {
     private String contextName = null;
 
-    public QContextElementImpl(ASTNode node) {
+    public QPsiContextImpl(ASTNode node) {
         super(node);
         updateContextName();
-    }
-
-    public String getContextName() {
-        return contextName;
     }
 
     @Override
@@ -40,6 +35,6 @@ public class QContextElementImpl extends QPsiElementImpl implements QPsiElement 
     }
 
     private void invalidateVariables() {
-        PsiTreeUtil.findChildrenOfType(this, QVariableElement.class).forEach(QVariableElement::invalidate);
+        PsiTreeUtil.findChildrenOfType(this, QVariableBase.class).forEach(QVariableBase::invalidate);
     }
 }

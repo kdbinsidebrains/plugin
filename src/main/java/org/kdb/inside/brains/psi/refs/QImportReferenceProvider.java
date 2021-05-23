@@ -7,16 +7,16 @@ import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferenceSet;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.QImportElement;
+import org.kdb.inside.brains.psi.QImport;
 
 public class QImportReferenceProvider extends PsiReferenceProvider {
     @Override
     public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context) {
-        if (!(element instanceof QImportElement)) {
+        if (!(element instanceof QImport)) {
             return PsiReference.EMPTY_ARRAY;
         }
 
-        final QImportElement imp = (QImportElement) element;
+        final QImport imp = (QImport) element;
         final TextRange range = imp.getFilepathRange();
         if (range == null) {
             return PsiReference.EMPTY_ARRAY;

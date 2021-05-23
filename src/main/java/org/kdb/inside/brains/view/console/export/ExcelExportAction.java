@@ -7,8 +7,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.table.JBTable;
+import icons.KdbIcons;
+import kx.KxConnection;
 import org.apache.poi.ss.usermodel.*;
-import org.kdb.inside.brains.view.console.KdbOutputFormatter;
 import org.kdb.inside.brains.view.console.TableResultView;
 
 import javax.swing.*;
@@ -19,18 +20,12 @@ import java.io.FileOutputStream;
 public class ExcelExportAction extends AnExportAction {
     private final boolean saveOnDisk;
 
-    public ExcelExportAction(String text, ExportingType type, boolean saveOnDisk) {
-        super(text, type);
-        this.saveOnDisk = saveOnDisk;
+    public ExcelExportAction(String text, ExportingType type, TableResultView resultView, String description, boolean saveOnDisk) {
+        this(text, type, resultView, description, saveOnDisk, KdbIcons.Console.ExportExcel);
     }
 
-    public ExcelExportAction(String text, String description, ExportingType type, boolean saveOnDisk) {
-        super(text, description, type);
-        this.saveOnDisk = saveOnDisk;
-    }
-
-    public ExcelExportAction(String text, String description, Icon icon, ExportingType type, boolean saveOnDisk) {
-        super(text, description, icon, type);
+    public ExcelExportAction(String text, ExportingType type, TableResultView resultView, String description, boolean saveOnDisk, Icon icon) {
+        super(text, type, resultView, description, icon);
         this.saveOnDisk = saveOnDisk;
     }
 
@@ -58,7 +53,6 @@ public class ExcelExportAction extends AnExportAction {
         final JBTable table = view.getTable();
         final ExportingType.IndexIterator ri = type.rowsIterator(table);
         final ExportingType.IndexIterator ci = type.columnsIterator(table);
-        final KdbOutputFormatter formatter = KdbOutputFormatter.getInstance();
 
         int index = 0;
         if (type.withHeader()) {
@@ -79,9 +73,13 @@ public class ExcelExportAction extends AnExportAction {
                 if (value instanceof Boolean) {
                     row.createCell(i++, CellType.BOOLEAN).setCellValue((Boolean) value);
                 } else if (value instanceof Number) {
-                    row.createCell(i++, CellType.NUMERIC).setCellValue(((Number) value).doubleValue());
+                    if (KxConnection.isNull(value)) {
+                        row.createCell(i++, CellType.NUMERIC).setCellValue(view.convertValue(value));
+                    } else {
+                        row.createCell(i++, CellType.NUMERIC).setCellValue(((Number) value).doubleValue());
+                    }
                 } else {
-                    row.createCell(i++).setCellValue(formatter.convertObject(value));
+                    row.createCell(i++).setCellValue(view.convertValue(value));
                 }
             }
         }

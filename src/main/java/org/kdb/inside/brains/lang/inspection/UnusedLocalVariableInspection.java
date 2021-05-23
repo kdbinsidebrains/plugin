@@ -7,7 +7,7 @@ import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.*;
@@ -16,36 +16,33 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class UnusedLocalVariableInspection extends ElementInspection<QVariable> {
+public class UnusedLocalVariableInspection extends ElementInspection<QVarDeclaration> {
     public UnusedLocalVariableInspection() {
-        super(QVariable.class);
+        super(QVarDeclaration.class);
     }
 
     @Override
-    protected void validate(@NotNull QVariable variable, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
-        final QLambda lambda = variable.getContext(QLambda.class);
-        if (lambda == null) {
+    protected void validate(@NotNull QVarDeclaration variable, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
+        final ElementContext context = QPsiUtil.getElementContext(variable);
+        if (!context.is(ElementScope.LAMBDA)) {
             return;
         }
 
-        final AssignmentType type = QPsiUtil.getAssignmentType(variable);
-        if (type != AssignmentType.LOCAL) {
+        if (QPsiUtil.isGlobalDeclaration(variable)) {
             return;
         }
+
+        final QLambda lambda = context.lambda();
 
         // TODO: What about QSymbol?
-        final Collection<QVariable> variables = PsiTreeUtil.findChildrenOfType(lambda, QVariable.class);
+        final Collection<QVarReference> variables = PsiTreeUtil.findChildrenOfType(lambda, QVarReference.class);
         if (variables.isEmpty()) {
             return;
         }
 
         final String qualifiedName = variable.getQualifiedName();
-        for (QVariable v : variables) {
-            if (v == variable) {
-                continue;
-            }
-
-            if (v.getQualifiedName().equals(qualifiedName) && QPsiUtil.getAssignmentType(v) == null) {
+        for (QVarReference v : variables) {
+            if (v.getQualifiedName().equals(qualifiedName)) {
                 return;
             }
         }
@@ -66,18 +63,16 @@ public class UnusedLocalVariableInspection extends ElementInspection<QVariable> 
                     removing = parent;
                 }
 
-                List<PsiElement> rem = new ArrayList<>();
+                final List<PsiElement> rem = new ArrayList<>();
                 rem.add(removing);
 
-                PsiElement nextSibling = removing.getNextSibling();
-                while (nextSibling instanceof PsiWhiteSpace) {
-                    nextSibling = nextSibling.getNextSibling();
+                final PsiElement nextSibling = PsiTreeUtil.skipWhitespacesAndCommentsForward(removing);
+                if (nextSibling != null) {
+                    final IElementType elementType = nextSibling.getNode().getElementType();
+                    if (elementType == QTypes.SEMICOLON) {
+                        rem.add(nextSibling);
+                    }
                 }
-
-                if (nextSibling.getNode().getElementType() == QTypes.SEMICOLON) {
-                    rem.add(nextSibling);
-                }
-
                 rem.forEach(PsiElement::delete);
             }
         });

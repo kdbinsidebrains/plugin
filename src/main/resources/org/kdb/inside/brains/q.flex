@@ -185,7 +185,6 @@ VECTOR={BOOLEAN_LIST}|{BYTE_LIST}|{INTEGER_LIST}|{FLOAT_LIST}|
   .*{LINE_BREAK}?                            { return BLOCK_COMMENT; }
 }
 
-// NOT MIGRATED
 <YYINITIAL> {
   "("{LINE_SPACE}*")"                         { return VECTOR; }
   "("{LINE_SPACE}*"::"{LINE_SPACE}*")"        { return NILL; }
@@ -203,11 +202,11 @@ VECTOR={BOOLEAN_LIST}|{BYTE_LIST}|{INTEGER_LIST}|{FLOAT_LIST}|
   {OPERATOR}                                  { return OPERATOR;}
   {ITERATOR}                                  { return ITERATOR; }
 
-  ^"/".*                                      { return LINE_COMMENT; }
   {WHITE_SPACE}+"/".*                         { return LINE_COMMENT; }
   {LINE_BREAK}+/{LINE_SPACE}*"/"              { return WHITE_SPACE; }
-  ^"\\"/{LINE_BREAK}                          { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
   ^"/"/{LINE_BREAK}                           { yybegin(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
+  ^"\\"/{LINE_BREAK}                          { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
+  ^"/".*                                      { if (zzCurrentPos == 0 || zzBuffer.charAt(zzCurrentPos - 1) == '\n' || zzBuffer.charAt(zzCurrentPos - 1) == '\r') { return LINE_COMMENT;} return ITERATOR; }
 
   {LINE_BREAK}+                               { return LINE_BREAK; }
 

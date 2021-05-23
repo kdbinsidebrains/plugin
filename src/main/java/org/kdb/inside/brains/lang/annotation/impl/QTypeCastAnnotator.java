@@ -18,6 +18,7 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.lang.annotation.QElementAnnotator;
+import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QTypeCast;
 
 import java.util.List;
@@ -36,8 +37,7 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
     public void annotate(@NotNull QTypeCast cast, @NotNull AnnotationHolder holder) {
         final PsiElement castType = cast.getFirstChild();
 
-        final String text = castType.getText();
-        final String name = getTypeName(text);
+        final String name = QPsiUtil.getTypeCast(cast);
         if (name.isEmpty()) {
             return;
         }
@@ -61,7 +61,6 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
             code = false;
             range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 1);
         }
-
 
         holder.newAnnotation(HighlightSeverity.ERROR, "Unknown cast type: " + name)
                 .range(range)
@@ -107,9 +106,5 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
                         return false;
                     }
                 }).create();
-    }
-
-    private String getTypeName(String text) {
-        return text.charAt(0) == '`' ? text.substring(1, text.length() - 1) : text.substring(1, text.length() - 2);
     }
 }

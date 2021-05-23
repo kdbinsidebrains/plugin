@@ -9,8 +9,8 @@ import org.kdb.inside.brains.view.console.TableResultView;
 public class SendIntoAction extends AnExportAction {
     private final InstanceConnection connection;
 
-    public SendIntoAction(InstanceConnection connection) {
-        super(connection.getName(), connection.toString(), null, ExportingType.ALL_WITH_HEADER);
+    public SendIntoAction(TableResultView resultView, InstanceConnection connection) {
+        super(connection.getCanonicalName() + " (" + connection.getDetails() + ")", ExportingType.ALL_WITH_HEADER, resultView, null, null);
         this.connection = connection;
     }
 

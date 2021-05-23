@@ -8,26 +8,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.table.JBTable;
-import org.kdb.inside.brains.view.console.KdbOutputFormatter;
 import org.kdb.inside.brains.view.console.TableResultView;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class CsvExportAction extends AnExportAction {
-    public CsvExportAction(String text, ExportingType type) {
-        super(text, type);
-    }
-
-    public CsvExportAction(String text, String description, ExportingType type) {
-        super(text, description, type);
-    }
-
-    public CsvExportAction(String text, String description, Icon icon, ExportingType type) {
-        super(text, description, icon, type);
+    public CsvExportAction(String text, ExportingType type, TableResultView resultView, String description) {
+        super(text, type, resultView, description);
     }
 
     @Override
@@ -47,8 +37,6 @@ public class CsvExportAction extends AnExportAction {
         final ExportingType.IndexIterator ri = type.rowsIterator(table);
         final ExportingType.IndexIterator ci = type.columnsIterator(table);
 
-        final KdbOutputFormatter formatter = KdbOutputFormatter.getInstance();
-
         if (type.withHeader()) {
             for (int i = ci.reset(); i != -1; i = ci.next()) {
                 String val = table.getColumnName(i);
@@ -61,7 +49,7 @@ public class CsvExportAction extends AnExportAction {
         for (int r = ri.reset(); r != -1; r = ri.next()) {
             ci.reset();
             for (int c = ci.reset(); c != -1; c = ci.next()) {
-                final Object val = getValueAt(table, formatter, r, c);
+                final Object val = getValueAt(table, view, r, c);
                 plainStr.append(val).append('\t');
             }
             // we want a newline at the end of each line and not a tab
@@ -74,7 +62,7 @@ public class CsvExportAction extends AnExportAction {
         Files.writeString(file.toPath(), plainStr.toString(), StandardCharsets.UTF_8);
     }
 
-    private Object getValueAt(JBTable table, KdbOutputFormatter formatter, int r, int c) {
+    private Object getValueAt(JBTable table, TableResultView resultView, int r, int c) {
         final Object valueAt = table.getValueAt(r, c);
         if (valueAt == null) {
             return "";
@@ -83,6 +71,6 @@ public class CsvExportAction extends AnExportAction {
         if (Primitives.isWrapperType(valueAt.getClass())) {
             return valueAt;
         }
-        return '"' + formatter.convertObject(valueAt) + '"';
+        return '"' + resultView.convertValue(valueAt).replace("\"", "\"\"") + '"';
     }
 }

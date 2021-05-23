@@ -8,7 +8,7 @@ import org.kdb.inside.brains.psi.QTypes;
 
 public class QWordsScanner extends DefaultWordsScanner {
     public QWordsScanner() {
-        super(QLexer.newLexer(), TokenSet.create(QTypes.VARIABLE, QTypes.SYMBOL), QParserDefinition.COMMENTS, TokenSet.EMPTY);
+        super(QLexer.newLexer(), TokenSet.create(QTypes.VAR_DECLARATION, QTypes.VAR_REFERENCE, QTypes.SYMBOL), QParserDefinition.COMMENTS, TokenSet.EMPTY);
         setMayHaveFileRefsInLiterals(true);
     }
 }

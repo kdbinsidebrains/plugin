@@ -8,6 +8,7 @@ import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.table.JBTable;
+import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
@@ -133,7 +134,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
-                    new ClipboardExportAction(null, ExportingType.SELECTION).performExport(project, TableResultView.this);
+                    new ClipboardExportAction(null, ExportingType.SELECTION, TableResultView.this).performExport(project, TableResultView.this);
                 } else {
                     super.mouseReleased(e);
                 }
@@ -150,7 +151,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         statusBar.add(rightStatus, BorderLayout.EAST);
 
         createSearchComponent(project);
-        PopupHandler.installPopupHandler(myTable, createContextMenu(), "TableResultView.Context");
+
+        final ActionGroup contextMenu = createContextMenu();
+        PopupHandler.installPopupHandler(myTable, contextMenu, "TableResultView.Context");
+        final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Toolbar", contextMenu, false);
 
         final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myTable, true);
 //        scrollPane.setRowHeaderView();
@@ -159,13 +163,13 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         add(searchComponent, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
+        add(actionToolbar.getComponent(), BorderLayout.WEST);
     }
 
     public ActionGroup createContextMenu() {
         final DefaultActionGroup group = new DefaultActionGroup();
 
         if (repeater != null) {
-
             group.add(new AnAction("_Repeat the Query", "Re-run the query related with this result", AllIcons.Actions.Refresh) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e) {
@@ -178,34 +182,36 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         group.add(searchAction);
         group.addSeparator();
 
-        final DefaultActionGroup copyGroup = new DefaultActionGroup("Copy Special", true);
-        copyGroup.add(new ClipboardExportAction("Copy Only Rows", "Copy the whole row values", ExportingType.ROWS));
+        final ClipboardExportAction copy_all = new ClipboardExportAction("_Copy", ExportingType.SELECTION_WITH_HEADER, this, "Copy selected cells into the clipboard", KdbIcons.Console.CopyTable);
+        copy_all.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK, myTable);
+        group.add(copy_all);
 
-        copyGroup.add(new ClipboardExportAction("Copy Rows with Header", "Copy the whole row values including column names", ExportingType.ROWS_WITH_HEADER));
-        copyGroup.addSeparator();
-        copyGroup.add(new ClipboardExportAction("Copy Only Columns", "Copy the whole columns values", ExportingType.COLUMNS));
-        copyGroup.add(new ClipboardExportAction("Copy Columns with Header", "Copy the whole columns values including column names", ExportingType.COLUMNS_WITH_HEADER));
-
-        final ClipboardExportAction copy_header = new ClipboardExportAction("_Copy", "Copy selected cells into the clipboard", AllIcons.Actions.Copy, ExportingType.SELECTION_WITH_HEADER);
-        copy_header.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK, myTable);
-
-        final ClipboardExportAction copy_values = new ClipboardExportAction("Copy _Values", "Copy selected cells into the clipboard", null, ExportingType.SELECTION);
+        final ClipboardExportAction copy_values = new ClipboardExportAction("Copy _Values", ExportingType.SELECTION, this, "Copy selected cells into the clipboard", KdbIcons.Console.CopyValues);
         copy_values.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
-
-        group.add(copy_header);
         group.add(copy_values);
+
+        final DefaultActionGroup copyGroup = new DefaultActionGroup("Copy _Special", true);
+        copyGroup.getTemplatePresentation().setIcon(KdbIcons.Console.CopySpecial);
+        copyGroup.add(new ClipboardExportAction("Copy Only Rows", ExportingType.ROWS, this, "Copy the whole row values"));
+
+        copyGroup.add(new ClipboardExportAction("Copy Rows with Header", ExportingType.ROWS_WITH_HEADER, this, "Copy the whole row values including column names"));
+        copyGroup.addSeparator();
+        copyGroup.add(new ClipboardExportAction("Copy Only Columns", ExportingType.COLUMNS, this, "Copy the whole columns values"));
+        copyGroup.add(new ClipboardExportAction("Copy Columns with Header", ExportingType.COLUMNS_WITH_HEADER, this, "Copy the whole columns values including column names"));
         group.add(copyGroup);
 
         group.addSeparator();
 
-        group.add(new ExcelExportAction("Open in _Excel", "Open curent table in Excel or compatible application", ExportingType.ALL_WITH_HEADER, false));
+        group.add(new ExcelExportAction("Open in _Excel", ExportingType.ALL_WITH_HEADER, this, "Open current table in Excel or compatible application", false));
 
         group.addSeparator();
 
         final DefaultActionGroup exportGroup = new DefaultActionGroup("Export Data _Into ...", true);
-        exportGroup.add(new CsvExportAction("CSV format", "Export current table into Comma Separated File format", ExportingType.ALL_WITH_HEADER));
-        exportGroup.add(new ExcelExportAction("Excel xls format", "Export current table into Excel XLS format", ExportingType.ALL_WITH_HEADER, true));
-        exportGroup.add(new BinaryExportAction("KDB binary format", "Binary KDB IPC file format. Can be imported directly into KDB.", ExportingType.ALL_WITH_HEADER));
+        exportGroup.getTemplatePresentation().setIcon(KdbIcons.Console.Export);
+
+        exportGroup.add(new CsvExportAction("CSV format", ExportingType.ALL_WITH_HEADER, this, "Export current table into Comma Separated File format"));
+        exportGroup.add(new ExcelExportAction("Excel xls format", ExportingType.ALL_WITH_HEADER, this, "Export current table into Excel XLS format", true, null));
+        exportGroup.add(new BinaryExportAction("KDB binary format", ExportingType.ALL_WITH_HEADER, this, "Binary KDB IPC file format. Can be imported directly into KDB."));
         group.add(exportGroup);
 
         group.addSeparator();
@@ -213,9 +219,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         final ActionGroup sendTo = new ActionGroup("_Send Data Into ...", true) {
             @Override
             public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
-                return KdbConnectionManager.getManager(project).getConnections().stream().map(SendIntoAction::new).toArray(AnAction[]::new);
+                return KdbConnectionManager.getManager(project).getConnections().stream().map(c -> new SendIntoAction(TableResultView.this, c)).toArray(AnAction[]::new);
             }
         };
+        sendTo.getTemplatePresentation().setIcon(KdbIcons.Console.SendInto);
         group.add(sendTo);
         return group;
     }
@@ -362,6 +369,17 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         return null;
     }
 
+    public String convertValue(Object value) {
+        if (value instanceof String && !options.isPrefixSymbols()) {
+            return String.valueOf(value);
+        } else if (value instanceof char[] && !options.isWrapStrings()) {
+            return new String((char[]) value);
+        } else if (value instanceof Character && !options.isWrapStrings()) {
+            return String.valueOf(value);
+        }
+        return formatter.convertObject(value);
+    }
+
     private void updateHeaderWidth() {
         final TableCellRenderer renderer = myTable.getTableHeader().getDefaultRenderer();
         final TableColumnModel columnModel = myTable.getColumnModel();
@@ -373,17 +391,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
     private class QTableCellRenderer extends DefaultTableCellRenderer {
         @Override
         protected void setValue(Object value) {
-            final String text;
-            if (value instanceof String && !options.isPrefixSymbols()) {
-                text = String.valueOf(value);
-            } else if (value instanceof char[] && !options.isWrapStrings()) {
-                text = new String((char[]) value);
-            } else if (value instanceof Character && !options.isWrapStrings()) {
-                text = String.valueOf(value);
-            } else {
-                text = formatter.convertObject(value);
-            }
-            setText(text);
+            setText(convertValue(value));
         }
     }
 }

@@ -37,7 +37,7 @@ public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
         final PsiElement psi = node.getPsi();
         if (psi instanceof QLambda) {
             final QLambda lambda = (QLambda) psi;
-            return "{" + Optional.of(lambda).map(QLambda::getParameters).map(QParameters::getVariableList).map(Collection::stream).map(v -> "[" + v.map(QVariable::getName).collect(Collectors.joining(";")) + "]").orElse("") + "...}";
+            return "{" + Optional.of(lambda).map(QLambda::getParameters).map(QParameters::getVariables).map(Collection::stream).map(v -> "[" + v.map(QVariable::getQualifiedName).collect(Collectors.joining(";")) + "]").orElse("") + "...}";
         } else if (psi instanceof QTable) {
             final QTable tbl = (QTable) psi;
             return "([" +

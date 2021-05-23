@@ -9,22 +9,13 @@ import com.intellij.openapi.vfs.VirtualFileWrapper;
 import kx.c;
 import org.kdb.inside.brains.view.console.TableResultView;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
 public class BinaryExportAction extends AnExportAction {
-    public BinaryExportAction(String text, ExportingType type) {
-        super(text, type);
-    }
-
-    public BinaryExportAction(String text, String description, ExportingType type) {
-        super(text, description, type);
-    }
-
-    public BinaryExportAction(String text, String description, Icon icon, ExportingType type) {
-        super(text, description, icon, type);
+    public BinaryExportAction(String text, ExportingType type, TableResultView resultView, String description) {
+        super(text, type, resultView, description);
     }
 
     @Override

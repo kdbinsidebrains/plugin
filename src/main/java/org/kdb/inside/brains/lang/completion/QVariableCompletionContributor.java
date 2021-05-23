@@ -43,7 +43,7 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
         QLanguage.getSystemNamespaces()
                 .stream()
                 .filter(qualifiedName::startsWith)
-                .forEach(s -> addEntities(QLanguage.getSystemFunctions(s), qualifiedName, KdbIcons.Node.functionPrivate, result));
+                .forEach(s -> addEntities(QLanguage.getSystemFunctions(s), qualifiedName, KdbIcons.Node.Lambda, result));
     }
 
     private void addEntities(List<QKeyword> entities, String qualifiedName, Icon icon, CompletionResultSet result) {

@@ -6,7 +6,7 @@ import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
 import com.intellij.spellchecker.tokenizer.TokenizerBase;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.QVariableElement;
+import org.kdb.inside.brains.psi.QVariable;
 
 public class QSpellcheckingStrategy extends SpellcheckingStrategy {
     final TokenizerBase<PsiElement> VARIABLE_TOKENIZER = TokenizerBase.create(PlainTextSplitter.getInstance());
@@ -14,7 +14,7 @@ public class QSpellcheckingStrategy extends SpellcheckingStrategy {
     @Override
     @SuppressWarnings("unchecked")
     public @NotNull Tokenizer<PsiElement> getTokenizer(PsiElement element) {
-        if (element instanceof QVariableElement) {
+        if (element instanceof QVariable) {
             return VARIABLE_TOKENIZER;
         }
         return super.getTokenizer(element);

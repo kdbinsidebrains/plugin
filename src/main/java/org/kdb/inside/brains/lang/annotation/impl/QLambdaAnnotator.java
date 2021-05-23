@@ -14,6 +14,7 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.lang.annotation.QElementAnnotator;
 import org.kdb.inside.brains.psi.QParameters;
+import org.kdb.inside.brains.psi.QVarDeclaration;
 import org.kdb.inside.brains.psi.QVariable;
 
 import java.util.HashMap;
@@ -28,7 +29,7 @@ public class QLambdaAnnotator extends QElementAnnotator<QParameters> {
 
     @Override
     public void annotate(@NotNull QParameters element, @NotNull AnnotationHolder holder) {
-        final List<QVariable> params = element.getVariableList();
+        final List<QVarDeclaration> params = element.getVariables();
         if (params.size() > 8) {
             for (int i = 8; i < params.size(); i++) {
                 final QVariable var = params.get(i);
