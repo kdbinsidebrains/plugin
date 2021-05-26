@@ -206,7 +206,7 @@ VECTOR={BOOLEAN_LIST}|{BYTE_LIST}|{INTEGER_LIST}|{FLOAT_LIST}|
   {LINE_BREAK}+/{LINE_SPACE}*"/"              { return WHITE_SPACE; }
   ^"/"/{LINE_BREAK}                           { yybegin(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
   ^"\\"/{LINE_BREAK}                          { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
-  ^"/".*                                      { if (zzCurrentPos == 0 || zzBuffer.charAt(zzCurrentPos - 1) == '\n' || zzBuffer.charAt(zzCurrentPos - 1) == '\r') { return LINE_COMMENT;} return ITERATOR; }
+  ^"/".*                                      { if (zzCurrentPos == 0 || zzBuffer.length() == zzCurrentPos || zzBuffer.charAt(zzCurrentPos - 1) == '\n' || zzBuffer.charAt(zzCurrentPos - 1) == '\r') { return LINE_COMMENT;} return ITERATOR; }
 
   {LINE_BREAK}+                               { return LINE_BREAK; }
 
