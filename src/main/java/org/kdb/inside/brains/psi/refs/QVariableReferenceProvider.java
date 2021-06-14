@@ -17,11 +17,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QVariableReferenceProvider extends PsiReferenceProvider {
-/*
-    private static final EnumSet<VariableScope> GLOBAL_ALLOWED = EnumSet.of(VariableScope.FILE);
-    private static final EnumSet<VariableScope> LOCAL_ALLOWED = EnumSet.of(VariableScope.LAMBDA, VariableScope.FILE, VariableScope.PARAMETERS);
-*/
-
     @Override
     public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext pc) {
         if (!(element instanceof QVariable)) {
@@ -38,39 +33,8 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
             return PsiReference.EMPTY_ARRAY;
         }
         return createReference(var);
-/*
-
-        final QVariable def = scope == VariableScope.LAMBDA ? findFirstLocalDefinition(var) : findFirstGlobalDefinition(var);
-        if (def == var) {
-            return PsiReference.EMPTY_ARRAY;
-        }
-*/
-//        return createReference(var);
     }
 
-
-    /*
-
-
-        private static QVariable findFirstLocalDefinition(final QVariable variable) {
-            final QLambda lambda = variable.getContext(QLambda.class);
-            if (lambda == null) {
-                return null;
-            }
-            return findFirstDefinition(lambda, variable, LOCAL_ALLOWED);
-        }
-
-        private static QVariable findFirstGlobalDefinition(final QVariable variable) {
-            final PsiFile file = variable.getContainingFile();
-            return findFirstDefinition(file, variable, GLOBAL_ALLOWED);
-        }
-
-        private static QVariable findFirstDefinition(final PsiElement fromElement, final QVariable variable, EnumSet<VariableScope> variableScopes) {
-            final String qualifiedName = variable.getQualifiedName();
-            final Collection<QVariable> lambdaVars = PsiTreeUtil.findChildrenOfType(fromElement, QVariable.class);
-            return lambdaVars.stream().filter(var -> var.getQualifiedName().equals(qualifiedName) && variableScopes.contains(QPsiUtil.getAssignmentType(var))).findFirst().orElse(null);
-        }
-    */
     @NotNull
     private PsiReference[] createReference(QVariable var) {
         return new PsiReference[]{new QVariableReference(var)};
@@ -137,7 +101,6 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
             final QExpression expression = query.getExpression();
             if (expression == null) {
                 return ResolveResult.EMPTY_ARRAY;
-//                final PsiElement  =
             }
 
             final List<QVarReference> refs = new ArrayList<>();

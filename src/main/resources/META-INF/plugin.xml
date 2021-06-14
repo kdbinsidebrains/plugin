@@ -322,33 +322,9 @@
         <fileBasedIndex implementation="org.kdb.inside.brains.psi.index.QIdentifiersIndex"/>
         <projectService serviceImplementation="org.kdb.inside.brains.psi.index.QIndexService"/>
 
-        <!--  Refactoring -->
+        <gotoSymbolContributor implementation="org.kdb.inside.brains.lang.QChooseByNameContributor"/>
         <lang.psiStructureViewFactory language="q"
                                       implementationClass="org.kdb.inside.brains.view.struct.QStructureViewFactory"/>
-
-
-        <usageTypeProvider implementation="org.kdb.inside.brains.lang.usage.QUsageTypeProvider"/>
-        <lang.findUsagesProvider language="q"
-                                 implementationClass="org.kdb.inside.brains.lang.usage.QFindUsagesProvider"/>
-
-        <psi.referenceContributor language="q" implementation="org.kdb.inside.brains.psi.refs.QReferenceContributor"/>
-
-        <!--  Not refactored YET-->
-        <typedHandler id="QTypedHandler" implementation="org.kdb.inside.brains.lang.completion.QTypedHandler"/>
-
-
-        <completion.contributor language="q"
-                                order="first"
-                                implementationClass="org.kdb.inside.brains.lang.completion.QCompletionContributor"/>
-
-        <renamePsiElementProcessor
-                implementation="org.kdb.inside.brains.lang.refactoring.QRenamePsiElementProcessor"/>
-        <gotoSymbolContributor implementation="org.kdb.inside.brains.lang.QChooseByNameContributor"/>
-
-        <!--
-        <codeInsight.parameterInfo language="q" implementationClass="org.kdb.inside.brains.lang.QParameterInfoHandler"/>
-                <lang.documentationProvider language="q" implementationClass="org.kdb.inside.brains.lang.QDocumentationProvider"/>
-        -->
 
 
         <!-- Inspections -->
@@ -371,6 +347,27 @@
                          displayName="Mixin lambda variables declaration"
                          groupName="KDB+Q" enabledByDefault="true" level="ERROR" order="after UnresolvedImport"
                          implementationClass="org.kdb.inside.brains.lang.inspection.MixinLambdaVarDeclaration"/>
+
+        <!-- Usage and references -->
+        <usageTypeProvider implementation="org.kdb.inside.brains.lang.usage.QUsageTypeProvider"/>
+        <psi.referenceContributor language="q" implementation="org.kdb.inside.brains.psi.refs.QReferenceContributor"/>
+
+        <!--  Refactoring -->
+        <lang.findUsagesProvider language="q"
+                                 implementationClass="org.kdb.inside.brains.lang.usage.QFindUsagesProvider"/>
+        <codeInsight.parameterInfo language="q" implementationClass="org.kdb.inside.brains.lang.QParameterInfoHandler"/>
+        <!--        <lang.documentationProvider language="q" implementationClass="org.kdb.inside.brains.lang.QDocumentationProvider"/>-->
+
+        <!--  Not refactored YET-->
+        <typedHandler id="QTypedHandler" implementation="org.kdb.inside.brains.lang.completion.QTypedHandler"/>
+
+
+        <completion.contributor language="q"
+                                order="first"
+                                implementationClass="org.kdb.inside.brains.lang.completion.QCompletionContributor"/>
+
+        <renamePsiElementProcessor
+                implementation="org.kdb.inside.brains.lang.refactoring.QRenamePsiElementProcessor"/>
 
     </extensions>
 </idea-plugin>

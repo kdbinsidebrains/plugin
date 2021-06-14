@@ -4,10 +4,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QFileType;
-
-import java.util.Optional;
 
 public final class QPsiUtil {
     private QPsiUtil() {
@@ -59,8 +56,22 @@ public final class QPsiUtil {
         return false;
     }
 
+    /**
+     * Checks is the specified element colon or not.
+     *
+     * @param el the element to be checked
+     * @return <code>true</code> if the elemtn is colon; <code>false</code> - otherwise.
+     */
     public static boolean isColon(PsiElement el) {
-        return el instanceof LeafPsiElement && ":".equals(el.getText());
+        return isLeafText(el, ":");
+    }
+
+    public static boolean isSemicolon(PsiElement el) {
+        return isLeafText(el, ";");
+    }
+
+    public static boolean isLeafText(PsiElement el, String text) {
+        return el instanceof LeafPsiElement && text.equals(el.getText());
     }
 
     public static ElementContext getElementContext(QPsiElement element) {
@@ -89,64 +100,5 @@ public final class QPsiUtil {
 
     public static QVarDeclaration createVarDeclaration(Project project, String name) {
         return PsiTreeUtil.findChildOfType(QFileType.createFactoryFile(project, name + ":`"), QVarDeclaration.class);
-    }
-
-
-    @Deprecated
-    public static ElementScope getAssignmentType(QVariable variable) {
-        final PsiElement parent = variable.getParent();
-        if (parent instanceof QParameters) {
-            return ElementScope.PARAMETERS;
-        }
-
-        if (parent instanceof QTableColumn) {
-            return ElementScope.TABLE;
-        }
-        if (parent instanceof QQueryColumn) {
-            return ElementScope.QUERY;
-        }
-
-        if (!(parent instanceof QVariableAssignment)) {
-            return null;
-        }
-
-        final String qualifiedName = variable.getQualifiedName();
-        if (hasNamespace(qualifiedName)) {
-            return ElementScope.FILE;
-        }
-
-        final QLambda lambda = variable.getContext(QLambda.class);
-        if (lambda == null) {
-            return ElementScope.FILE;
-        }
-
-        final PsiElement colon = PsiTreeUtil.findSiblingForward(variable, QTypes.COLON, true, null);
-        if (colon != null && colon.getNextSibling().getNode().getElementType() == QTypes.COLON) {
-            return ElementScope.FILE;
-        }
-        return ElementScope.LAMBDA;
-    }
-
-    @NotNull
-    @Deprecated
-    public static String getDescriptiveName(@NotNull QVariable element) {
-        final String fqnOrName = element.getQualifiedName();
-        return getFunctionDefinition(element).map((QLambda lambda) -> {
-            final QParameters lambdaParams = lambda.getParameters();
-            final String paramsText = Optional.ofNullable(lambdaParams)
-                    .map(QParameters::getVariables)
-                    .map(params -> params.isEmpty() ? "" : lambdaParams.getText())
-                    .orElse("");
-            return fqnOrName + paramsText;
-        }).orElse(fqnOrName);
-    }
-
-    @Deprecated
-    public static Optional<QLambda> getFunctionDefinition(@NotNull QVariable element) {
-        final QExpression expression = PsiTreeUtil.getNextSiblingOfType(element, QExpression.class);
-        if (expression != null && expression.getFirstChild() instanceof QLambda) {
-            return Optional.of((QLambda) expression.getFirstChild());
-        }
-        return Optional.empty();
     }
 }

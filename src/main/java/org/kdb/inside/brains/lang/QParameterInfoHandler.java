@@ -1,35 +1,242 @@
 package org.kdb.inside.brains.lang;
 
-@Deprecated
-public class QParameterInfoHandler {
-//    implements ParameterInfoHandlerWithTabActionSupport<QArguments, Object, QExpression>
-//} {
+import com.intellij.lang.parameterInfo.CreateParameterInfoContext;
+import com.intellij.lang.parameterInfo.ParameterInfoHandler;
+import com.intellij.lang.parameterInfo.ParameterInfoUIContext;
+import com.intellij.lang.parameterInfo.UpdateParameterInfoContext;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.psi.*;
+
+import java.util.*;
+
+public class QParameterInfoHandler implements ParameterInfoHandler<QInvoke, QParameterInfoHandler.QParameterInfo> {
+    @Override
+    public @Nullable QInvoke findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
+        final QInvoke invoke = findInvoke(context.getFile(), context.getOffset());
+
+        final QVarReference ref;
+        final QLambda rawLambda = invoke.getLambda();
+
+        final List<QLambda> lambdas;
+        if (rawLambda != null) {
+            ref = null;
+            lambdas = List.of(rawLambda);
+        } else {
+            ref = invoke.getVarReference();
+            if (ref == null) {
+                return null;
+            }
+            lambdas = findLambdasByName(ref);
+        }
+
+        if (lambdas.isEmpty()) {
+            return null;
+        }
+
+        final QParameterInfo[] params = distinctParameters(ref, lambdas);
+        if (params.length == 0) {
+            return null;
+        }
+        context.setItemsToShow(params);
+        return invoke;
+    }
+
+    @Override
+    public void showParameterInfo(@NotNull QInvoke element, @NotNull CreateParameterInfoContext context) {
+        context.showHint(element, context.getOffset(), this);
+    }
+
+    @Override
+    public @Nullable QInvoke findElementForUpdatingParameterInfo(@NotNull UpdateParameterInfoContext context) {
+        final QInvoke invoke = findInvoke(context.getFile(), context.getOffset());
+        if (invoke != null) {
+            final PsiElement currentInvoke = context.getParameterOwner();
+            if (currentInvoke == null || currentInvoke == invoke) {
+                return invoke;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void updateParameterInfo(@NotNull QInvoke invoke, @NotNull UpdateParameterInfoContext context) {
+        context.setParameterOwner(invoke);
+
+        final int param = findCurrentParameter(invoke, context.getOffset());
+        context.setCurrentParameter(param);
+    }
+
+    private int findCurrentParameter(@NotNull QInvoke invoke, int offset) {
+        final boolean[] busy = new boolean[8]; // 8 arguments, not more
+
+        final List<QArguments> arguments = invoke.getArgumentsList();
+        for (QArguments argument : arguments) {
+            int index = findFreeIndex(busy, 0);
+
+            PsiElement el = argument.getFirstChild();
+
+            boolean expr = false;
+            int pos = el.getTextOffset();
+            while (el != null) {
+                if (offset > pos && offset <= el.getTextOffset()) {
+                    return index;
+                }
+
+                if (QPsiUtil.isSemicolon(el) || QPsiUtil.isLeafText(el, "]")) {
+                    if (expr) {
+                        busy[index] = true;
+                        expr = false;
+                    }
+                    index = findFreeIndex(busy, index + 1);
+                    pos = el.getTextOffset();
+                } else if (el instanceof QExpression) {
+                    expr = true;
+                }
+                el = PsiTreeUtil.skipWhitespacesAndCommentsForward(el);
+            }
+        }
+        return -1;
+
+    }
+
+    private int findFreeIndex(boolean[] busy, int index) {
+        while (index < busy.length && busy[index]) {
+            index++;
+        }
+        return index;
+    }
+
+    @Override
+    public void updateUI(QParameterInfo p, @NotNull ParameterInfoUIContext context) {
+        int startOffset = -1;
+        int endOffset = -1;
+        final int index = context.getCurrentParameterIndex();
+
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < p.parameters.length; i++) {
+            String parameter = p.parameters[i];
+            if (i == index) {
+                startOffset = b.length();
+                endOffset = startOffset + parameter.length();
+            }
+            b.append(parameter);
+            b.append(";");
+        }
+        if (b.length() != 0) {
+            b.setLength(b.length() - 1);
+        }
+        context.setupUIComponentPresentation(b.toString(), startOffset, endOffset, false, false, true, context.getDefaultParameterColor());
+    }
+
+    private QParameterInfo[] distinctParameters(QVarReference ref, List<QLambda> lambdas) {
+        final String name = ref == null ? null : ref.getQualifiedName();
+        final LinkedHashSet<QParameterInfo> res = new LinkedHashSet<>();
+
+        for (QLambda lambda : lambdas) {
+            final QParameters parameters = lambda.getParameters();
+            if (parameters == null) {
+                res.add(new QParameterInfo(name, new String[]{"x"}));
+                res.add(new QParameterInfo(name, new String[]{"x", "y"}));
+                res.add(new QParameterInfo(name, new String[]{"x", "y", "z"}));
+            } else {
+                final List<QVarDeclaration> variables = parameters.getVariables();
+                if (variables.isEmpty()) {
+                    res.add(new QParameterInfo(name, new String[]{"no parameters"}));
+                } else {
+                    res.add(new QParameterInfo(name, variables.stream().map(QVariable::getName).toArray(String[]::new)));
+                }
+            }
+        }
+        return res.toArray(QParameterInfo[]::new);
+    }
+
+    private QInvoke findInvoke(PsiFile file, int offset) {
+        if (!(file instanceof QFile)) {
+            return null;
+        }
+
+        PsiElement element = file.findElementAt(offset);
+        if (element == null) {
+            return null;
+        }
+        element = element.getParent();
+
+        while (element != null) {
+            if (element instanceof QInvoke) {
+                return (QInvoke) element;
+            }
+            element = element.getParent();
+        }
+        return null;
+    }
+
+    private List<QLambda> findLambdasByName(QVarReference ref) {
+        final List<QLambda> lambdas = new ArrayList<>();
+        final PsiReference[] references = ref.getReferences();
+        for (PsiReference reference : references) {
+            final PsiElement resolve = reference.resolve();
+            if (resolve == null) {
+                continue;
+            }
+
+            final PsiElement parent = resolve.getParent();
+            if (parent instanceof QVariableAssignment) {
+                final QVariableAssignment assignment = (QVariableAssignment) parent;
+                final QExpression expression = assignment.getExpression();
+                if (expression != null && !expression.getLambdaList().isEmpty()) {
+                    lambdas.addAll(expression.getLambdaList());
+                }
+            }
+        }
+        return lambdas;
+    }
+
+    protected static class QParameterInfo {
+        private final String name;
+        private final String[] parameters;
+
+        public QParameterInfo(String name, String[] parameters) {
+            this.name = name;
+            this.parameters = parameters;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            QParameterInfo that = (QParameterInfo) o;
+            return Objects.equals(name, that.name) && Arrays.equals(parameters, that.parameters);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hash(name);
+            result = 31 * result + Arrays.hashCode(parameters);
+            return result;
+        }
+    }
+
 
 
 /*
-
-    private static final Pattern PARAM = Pattern.compile("@param\\s+(\\w+)\\s+(\\(.+\\))");
-
     @Override
-    public QExpression @NotNull [] getActualParameters(@NotNull QArguments o) {
-        return new QExpression[0];
+    public QArguments @NotNull [] getActualParameters(@NotNull QInvoke o) {
+        return new QArguments[0];
     }
 
-    @NotNull
     @Override
-    public IElementType getActualParameterDelimiterType() {
+    public @NotNull IElementType getActualParameterDelimiterType() {
         return QTypes.SEMICOLON;
     }
 
-    @NotNull
     @Override
-    public IElementType getActualParametersRBraceType() {
+    public @NotNull IElementType getActualParametersRBraceType() {
         return QTypes.BRACKET_CLOSE;
-    }
-
-    @Override
-    public boolean isWhitespaceSensitive() {
-        return false;
     }
 
     @Override
@@ -42,152 +249,38 @@ public class QParameterInfoHandler {
         return Set.of();
     }
 
-    @NotNull
     @Override
-    public Class<QArguments> getArgumentListClass() {
-        return QArguments.class;
-    }
-
-    @Override
-    public boolean couldShowInLookup() {
+    public boolean isWhitespaceSensitive() {
         return false;
     }
 
-    @Nullable
     @Override
-    public Object[] getParametersForLookup(LookupElement item, ParameterInfoContext context) {
-//        item.putCopyableUserData(null, null);
-        return new Object[0];
-    }
-
-    @Nullable
-    @Override
-    public QArguments findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
-        PsiElement element = context.getFile().findElementAt(context.getOffset());
-        if (element == null) {
-            return null;
-        }
-        final QArguments args = PsiTreeUtil.getParentOfType(element, QArguments.class);
-        if (args == null) {
-            return null;
-        }
-        final QVariable declaration = Optional.ofNullable(PsiTreeUtil.getPrevSiblingOfType(args, QVariable.class))
-                .map(id -> new VariableReference(id).resolveFirstUnordered())
-                .filter(QVariable.class::isInstance)
-                .map(QVariable.class::cast)
-                .orElse(null);
-        if (declaration == null) {
-            return null;
-        }
-        return Optional.of(declaration)
-                .map(PsiElement::getParent)
-                .filter(QAssignment.class::isInstance)
-                .map(QAssignment.class::cast)
-                .map(QAssignment::getExpression)
-                .map(e -> PsiTreeUtil.findChildOfType(e, QLambda.class))
-                .map(lambda -> {
-                    KParameterInfo info = new KParameterInfo(declaration, lambda, args);
-                    context.setItemsToShow(new Object[]{info});
-                    return args;
-                })
-                .orElse(null);
+    public void showParameterInfo(@NotNull QInvoke element, @NotNull CreateParameterInfoContext context) {
     }
 
     @Override
-    public void showParameterInfo(@NotNull QArguments element, @NotNull CreateParameterInfoContext context) {
-        context.showHint(element, context.getOffset(), this);
-    }
-
-    @Nullable
-    @Override
-    public QArguments findElementForUpdatingParameterInfo(@NotNull UpdateParameterInfoContext context) {
-        if (isOutsideOfInvocation(context)) {
-            return null;
-        }
-        PsiElement element = context.getFile().findElementAt(context.getOffset());
-        if (element == null) {
-            return null;
-        }
-        return PsiTreeUtil.getParentOfType(element, QArguments.class);
-    }
-
-    private boolean isOutsideOfInvocation(UpdateParameterInfoContext context) {
-        PsiElement currentElement = context.getFile().findElementAt(context.getOffset());
-        PsiElement currentArgs = PsiTreeUtil.getParentOfType(currentElement, QArguments.class);
-        PsiElement expectedArgs = context.getParameterOwner();
-        return !Objects.equals(expectedArgs, currentArgs);
+    public @NotNull Class<QInvoke> getArgumentListClass() {
+        return QInvoke.class;
     }
 
     @Override
-    public void updateParameterInfo(@NotNull QArguments args, @NotNull UpdateParameterInfoContext context) {
-        int i = 0;
-        QExpression arg = PsiTreeUtil.getChildOfType(args, QExpression.class);
-        while (arg != null && arg.getTextOffset() + arg.getTextLength() + ";".length() <= context.getOffset()) {
-            i++;
-            arg = PsiTreeUtil.getNextSiblingOfType(arg, QExpression.class);
-        }
-        context.setCurrentParameter(i);
+    public @Nullable QInvoke findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
+        return null;
     }
 
     @Override
-    public void updateUI(KParameterInfo p, @NotNull ParameterInfoUIContext context) {
-        final QParameters params = p.params.getParameters();
-        final QVariable id = p.declaration;
-        if (params == null) { // implicit x;y;z params
-            setupParameterInfoPresentation(id, Arrays.asList("x", "y", "z"), context);
-            return;
-        }
-        if (params.getVariableList().isEmpty()) { // no params
-            context.setupRawUIComponentPresentation("no params");
-            return;
-        }
-        final List<String> paramNames = params.getVariableList().stream().map(QVariable::getName).collect(Collectors.toList());
-        setupParameterInfoPresentation(id, paramNames, context);
+    public @Nullable QInvoke findElementForUpdatingParameterInfo(@NotNull UpdateParameterInfoContext context) {
+        return null;
     }
 
-    private void setupParameterInfoPresentation(QVariable id, List<String> names, ParameterInfoUIContext context) {
-        final Map<String, String> types = new HashMap<>();
-        for (String line : KDocumentationProvider.getFunctionDocs(id)) {
-            final Matcher matcher = PARAM.matcher(line);
-            if (!matcher.find()) {
-                continue;
-            }
-            final String n = matcher.group(1);
-            final String t = matcher.group(2);
-            types.put(n, t);
-        }
-        final List<String> namesAndTypes = new ArrayList<>();
-        for (String name : names) {
-            if (types.containsKey(name)) {
-                namesAndTypes.add(name + " " + types.get(name));
-            } else {
-                namesAndTypes.add(name);
-            }
-        }
-        final String display = String.format("%s[%s]", id.getQualifiedName(), String.join(";", namesAndTypes));
-        int i = context.getCurrentParameterIndex();
-        int start = -1, end = -1;
-        if (i > -1 && i < namesAndTypes.size()) {
-            start = display.indexOf('[') + 1;
-            for (int j = 0; j < i; j++) {
-                String name = namesAndTypes.get(j);
-                start += name.length() + ";".length();
-            }
-            end = start + namesAndTypes.get(i).length();
-        }
-        context.setupUIComponentPresentation(display, start, end, false, false, false, context.getDefaultParameterColor());
+    @Override
+    public void updateParameterInfo(@NotNull QInvoke qInvoke, @NotNull UpdateParameterInfoContext context) {
+
     }
 
-    static class KParameterInfo {
-        final QVariable declaration;
-        final QLambda params;
-        final QArguments arguments;
+    @Override
+    public void updateUI(Object p, @NotNull ParameterInfoUIContext context) {
 
-        KParameterInfo(QVariable declaration, QLambda params, QArguments arguments) {
-            this.declaration = declaration;
-            this.params = params;
-            this.arguments = arguments;
-        }
     }
 */
 }

@@ -32,6 +32,9 @@ public final class QLanguage extends Language {
 
     private List<QKeyword> loadCompletionItems(String namespace, QKeyword.Type type) {
         final InputStream resourceAsStream = getClass().getResourceAsStream("/org/kdb/inside/brains/completion/" + namespace + ".csv");
+        if (resourceAsStream == null) {
+            return List.of();
+        }
 
         final List<QKeyword> res = new ArrayList<>();
         try (BufferedReader r = new BufferedReader(new InputStreamReader(resourceAsStream))) {
@@ -76,6 +79,6 @@ public final class QLanguage extends Language {
     }
 
     public static boolean isIdentifier(String name) {
-        return INSTANCE.IDENTIFIER.test(name);
+        return IDENTIFIER.test(name);
     }
 }

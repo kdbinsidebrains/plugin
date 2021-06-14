@@ -4,14 +4,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.usages.impl.rules.UsageType;
 import com.intellij.usages.impl.rules.UsageTypeProvider;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.psi.ElementScope;
-import org.kdb.inside.brains.psi.QPsiUtil;
-import org.kdb.inside.brains.psi.QSymbol;
-import org.kdb.inside.brains.psi.QVariable;
+import org.kdb.inside.brains.psi.*;
 
-/**
- * TODO: in progress. Symbol is not supported yet.
- */
 public final class QUsageTypeProvider implements UsageTypeProvider {
     public static final UsageType SYMBOL_REFERENCE = new UsageType(() -> "Symbol references");
     public static final UsageType VARIABLE_REFERENCE = new UsageType(() -> "Variable references");
@@ -24,29 +18,31 @@ public final class QUsageTypeProvider implements UsageTypeProvider {
 
     @Override
     public @Nullable UsageType getUsageType(PsiElement element) {
-        if (element instanceof QVariable) {
-            final QVariable variable = (QVariable) element;
+        if (element instanceof QVarReference) {
+            return VARIABLE_REFERENCE;
+        }
+        if (element instanceof QSymbol) {
+            return SYMBOL_REFERENCE;
+        }
 
-            final ElementScope type = QPsiUtil.getAssignmentType(variable);
-            if (type == null) {
-                return VARIABLE_REFERENCE;
-            }
-            switch (type) {
-                case LAMBDA:
-                    return LOCAL_ASSIGNMENT;
+        if (element instanceof QVarDeclaration) {
+            final QVarDeclaration declaration = (QVarDeclaration) element;
+            final ElementContext elementContext = QPsiUtil.getElementContext(declaration);
+            final ElementScope scope = elementContext.getScope();
+            switch (scope) {
                 case FILE:
                     return GLOBAL_ASSIGNMENT;
-                case PARAMETERS:
-                    return PARAMETER;
                 case TABLE:
                     return TABLE_COLUMN;
                 case QUERY:
                     return QUERY_COLUMN;
+                case LAMBDA:
+                    return LOCAL_ASSIGNMENT;
+                case PARAMETERS:
+                    return PARAMETER;
                 default:
                     return UNKNOWN_ASSIGNMENT;
             }
-        } else if (element instanceof QSymbol) {
-            return SYMBOL_REFERENCE;
         }
         return null;
     }

@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [0.10.0]
+
+### Added
+
+- Lambda parameters info has been added (Ctrl+P)]
+
 ## [0.9.0]
 
 ### Added
