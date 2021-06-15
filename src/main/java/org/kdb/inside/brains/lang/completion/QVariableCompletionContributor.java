@@ -36,24 +36,27 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
     }
 
     private void addKeywords(String qualifiedName, CompletionResultSet result) {
-        addEntities(QLanguage.getKeywords(), qualifiedName, KdbIcons.Node.keyword, result);
+        addEntities(QLanguage.getKeywords(), qualifiedName, KdbIcons.Node.Keyword, result);
     }
 
     private void addSystemFunction(String qualifiedName, CompletionResultSet result) {
         QLanguage.getSystemNamespaces()
                 .stream()
                 .filter(qualifiedName::startsWith)
-                .forEach(s -> addEntities(QLanguage.getSystemFunctions(s), qualifiedName, KdbIcons.Node.Lambda, result));
+                .forEach(s -> addEntities(QLanguage.getSystemFunctions(s), qualifiedName, KdbIcons.Node.Function, result));
     }
 
     private void addEntities(List<QKeyword> entities, String qualifiedName, Icon icon, CompletionResultSet result) {
         for (QKeyword function : entities) {
             final String name = function.getName();
             if (name.startsWith(qualifiedName)) {
-                final LookupElementBuilder b = LookupElementBuilder
+                LookupElementBuilder b = LookupElementBuilder
                         .create(name)
                         .withIcon(icon)
                         .withTypeText(function.getDescription(), true);
+                if (function.getArguments() != null) {
+                    b = b.withTailText(function.getArguments());
+                }
                 result.addElement(b);
             }
         }
@@ -66,11 +69,14 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
                 GlobalSearchScope.allScope(project),
                 (key, file, descriptor) -> {
                     final IdentifierType type = descriptor.getType();
-
-                    final LookupElementBuilder b = LookupElementBuilder
+                    LookupElementBuilder b = LookupElementBuilder
                             .create(key)
                             .withIcon(type.getIcon())
-                            .withTypeText(descriptor.getType() + "[" + descriptor.getRange() + "]: " + file.getName(), true);
+                            .withTypeText(file.getName(), true);
+
+                    if (type == IdentifierType.LAMBDA && descriptor.getParams() != null) {
+                        b = b.withTailText("[" + String.join(";", descriptor.getParams()) + "]");
+                    }
                     result.addElement(b);
                 }
         );

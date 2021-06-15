@@ -56,8 +56,6 @@ public final class KdbIcons {
         public static final Icon NewPackage = AllIcons.Actions.NewFolder;
         public static final Icon NewInstance = load("/org/kdb/inside/brains/icons/newInstance.svg");
 
-        public static final Icon keyword = AllIcons.Nodes.Constant;
-
 
         public static final Icon File = Main.File;
         public static final Icon Load = load("/org/kdb/inside/brains/icons/nodes/load.svg");
@@ -65,6 +63,8 @@ public final class KdbIcons {
         public static final Icon Context = load("/org/kdb/inside/brains/icons/nodes/context.svg");
         public static final Icon Lambda = AllIcons.Nodes.Lambda;
         public static final Icon Variable = AllIcons.Nodes.Variable;
+        public static final Icon Function = AllIcons.Nodes.Function;
+        public static final Icon Keyword = AllIcons.Nodes.Constant;
 
         public static final Icon Table = AllIcons.Nodes.DataTables;
         public static final Icon TableKeyColumn = load("/org/kdb/inside/brains/icons/nodes/keyColumn.svg");

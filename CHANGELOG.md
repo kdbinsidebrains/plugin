@@ -7,6 +7,12 @@
 ### Added
 
 - Lambda parameters info has been added (Ctrl+P)]
+- Arguments for keywords and .Q namespace have been described in completion
+
+### Changed
+
+- Correct variable type is shown in the completion popup
+- Lambda parameters are shown in the completion popup
 
 ## [0.9.0]
 

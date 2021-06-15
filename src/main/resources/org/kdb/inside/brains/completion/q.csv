@@ -1,73 +1,81 @@
-.Q.bt   ,backtrace
-.Q.dd   ,join symbols
-.Q.f    ,format
-.Q.ff   ,append columns
-.Q.fmt  ,format
-.Q.ft   ,apply simple
-.Q.fu   ,apply unique
-.Q.gc   ,garbage collect
-.Q.gz   ,GZip
-.Q.id   ,sanitize
-.Q.qt   ,is table                     ,
-.Q.res  ,keywords
-.Q.s    ,plain text
-.Q.s1   ,string representation
-.Q.sbt  ,string backtrace
-.Q.trp  ,extend trap
-.Q.ts   ,time and space
-.Q.u    ,date based
-.Q.V    ,table to dict
-.Q.v    ,value
-.Q.view ,subview
-.Q.A    ,uppercase alphabet
-.Q.a    ,lowercase alphabet
-.Q.b6   ,bicameral alphanums
-.Q.nA   ,alphanums
-.Q.k    ,version
-.Q.opt  ,command parameters
-.Q.w    ,memory stats
-.Q.x    ,non-command parameters
-.Q.addr ,IP address
-.Q.fps  ,fpn streaming algorithm
-.Q.fs   ,fsn streaming algorithm
-.Q.hg   ,HTTP get
-.Q.host ,hostname
-.Q.hp   ,HTTP post
-.Q.l    ,load
-.Q.Cf   ,create empty nested char file
-.Q.Xf   ,create file
-.Q.btoa ,b64 encode
-.Q.j10  ,encode binhex
-.Q.j12  ,encode base 36
-.Q.M    ,long infinity
-.Q.ty   ,type
-.Q.x10  ,decode binhex
-.Q.x12  ,decode base 36
-.Q.chk  ,fill HDB
-.Q.dpft ,save table
-.Q.dpfts,save table with sym
-.Q.dsftg,load process save
-.Q.en   ,enumerate varchar cols
-.Q.ens  ,enumerate against domain
-.Q.fk   ,foreign key
-.Q.hdpf ,save tables
-.Q.qt   ,is table
-.Q.qp   ,is partitioned
-.Q.bv   ,build vp
-.Q.ind  ,partitioned index
-.Q.cn   ,count partitioned table
-.Q.MAP  ,maps partitions
-.Q.D    ,partitions
-.Q.par  ,locate partition
-.Q.PD   ,partition locations
-.Q.pd   ,modified partition locns
-.Q.pf   ,partition field
-.Q.pn   ,partition counts
-.Q.qp   ,is partitioned
-.Q.pt   ,partitioned tables
-.Q.PV   ,partition values
-.Q.pv   ,modified partition values
-.Q.vp   ,missing partitions
-.Q.D    ,partitions
-.Q.P    ,segments
-.Q.u    ,date based
+.Q.A,[]    ,uppercase alphabet
+.Q.a,[]    ,lowercase alphabet
+.Q.an, [], all alphanumerics
+.Q.addmonths, [x;y], Where x is a date and y is an int returns x plus y months.
+.Q.addr,[x], Returns the IP address as an integer
+.Q.b6,[],Returns upper- and lower-case alphabet and numerics.
+.Q.bt,[],Dumps the backtrace to stdout at any point during execution or debug.
+.Q.btoa,[x],b64 encode
+.Q.bv,[x],build vp
+.Q.Cf,[x], create empty nested char file
+.Q.chk,[x], fill HDB
+.Q.cn,[x], (count partitioned table)
+.Q.D,[],a list of the partitions
+.Q.dd,[x;y],join symbols
+.Q.dpft,[d;p;f;t],save table
+.Q.dpfts,[d;p;f;t;s],save table with symtable
+.Q.dpt,[d;p;t],save table unsorted
+.Q.dpts,[d;p;t;s],save table unsorted with symtable
+.Q.dsftg,[d;s;f;t;g],load process save
+.Q.en,[dir;table],enumerate varchar cols
+.Q.ens,[dir;table;name],enumerate against domain)
+.Q.f,[x;y], y as a string formatted as a float to x decimal places.
+.Q.fc,[f;vec],the result of evaluating f vec – using multiple threads if possible
+.Q.ff,[x;y],append columns
+.Q.fk,[x],foreign key
+.Q.fmt,[x;y;z],z as a string of length x formatted to y decimal places
+.Q.fps,[x;y],streaming algorithm
+.Q.fpn,[x;y;z],streaming algorithm
+.Q.fs,[x;y],streaming algorithm
+.Q.fsn,[x;y],streaming algorithm
+.Q.ft,[x;y],apply simple
+.Q.fu,[x;y],apply unique
+.Q.gc,[],garbage collect
+.Q.gz,[x;y],.Q.gz[::]- zlib loaded;.Q.gz cbv - unzipped; .Q.gz (cl;cbv) - zipped
+.Q.hdpf,[historicalport;directory;partition;`p#field],save tables
+.Q.hg,[x],HTTP get
+.Q.host,[x],returns its hostname as a symbol atom.
+.Q.hp,[x;y;z],HTTP post
+.Q.id,[x],sanitize
+.Q.ind,[x;y],partitioned index
+.Q.j10,[s],encode binhex
+.Q.j12,[s],decode binhex
+.Q.x10,[s],encode base-36
+.Q.x12,[s],decode base-36
+.Q.K,[],version date
+.Q.k,[],version number
+.Q.l,[x],load
+.Q.M,[],long infinity
+.Q.MAP,[],maps partitions
+.Q.n,[],nums
+.Q.nA,[],alphanums
+.Q.opt,[x],command parameters
+.Q.P,[],segments
+.Q.par,[dir;part;table],locate partition
+.Q.PD,[],partition locations
+.Q.pd,[],odified partition locations
+.Q.pf,[],partition field
+.Q.pn,[],partition counts
+.Q.prf0,[pid],code profiler
+.Q.pt,[],Returns a list of partitioned tables.
+.Q.pv,[],modified partition values
+.Q.PV,[],partition values
+.Q.qp,[x],is partitioned table
+.Q.qt,[x],is table
+.Q.res,[],Returns the control words and keywords as a symbol vector.
+.Q.s,[x],plain text as used by the console.
+.Q.s1,[x],a string representation of x
+.Q.sbt,[x],string backtrace
+.Q.sha1,[x],SHA-1 encode
+.Q.t,[],type letters
+.Q.trp,[f;x;g],extends Trap (@[f;x;g]) to collect backtrace
+.Q.ts,[x;y],Apply with time and space
+.Q.ty,[x],type
+.Q.u,[],date based
+.Q.V,[x],table to dict
+.Q.v,[x],value
+.Q.view,[x],subview
+.Q.vp,[],returns a dictionary of table schemas for tables with missing partitions
+.Q.w,[],memory stats
+.Q.Xf,[x;y],create file
+.Q.x,[],non-command parameters

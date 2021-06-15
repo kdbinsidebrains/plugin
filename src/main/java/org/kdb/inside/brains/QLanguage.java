@@ -23,14 +23,38 @@ public final class QLanguage extends Language {
         super("q");
 
         keywords.addAll(loadCompletionItems("keywords", QKeyword.Type.KEYWORD));
-        for (String s : Set.of("z", "j", "h")) {
-            systemFunctions.put("." + s, loadCompletionItems(s, QKeyword.Type.FUNCTION));
-        }
         systemFunctions.put(".Q", loadCompletionItems("q", QKeyword.Type.FUNCTION));
-        systemFunctions.put("\\", loadCompletionItems("system", QKeyword.Type.COMMAND));
+
+        for (String s : Set.of("z", "j", "h")) {
+            systemFunctions.put("." + s, loadCompletionItemsOld(s, QKeyword.Type.FUNCTION));
+        }
+        systemFunctions.put("\\", loadCompletionItemsOld("commands", QKeyword.Type.COMMAND));
     }
 
-    private List<QKeyword> loadCompletionItems(String namespace, QKeyword.Type type) {
+    private List<QKeyword> loadCompletionItems(String scope, QKeyword.Type type) {
+        final InputStream resourceAsStream = getClass().getResourceAsStream("/org/kdb/inside/brains/completion/" + scope + ".csv");
+        if (resourceAsStream == null) {
+            return List.of();
+        }
+
+        final List<QKeyword> res = new ArrayList<>();
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(resourceAsStream))) {
+            String s = r.readLine();
+            while (s != null) {
+                final String[] split = s.split(",");
+
+                final String name = split[0].trim();
+                final String args = split[1].trim();
+                final String desc = split[2].trim();
+                res.add(new QKeyword(name, type, args, desc));
+                s = r.readLine();
+            }
+        } catch (IOException ignore) {
+        }
+        return res;
+    }
+
+    private List<QKeyword> loadCompletionItemsOld(String namespace, QKeyword.Type type) {
         final InputStream resourceAsStream = getClass().getResourceAsStream("/org/kdb/inside/brains/completion/" + namespace + ".csv");
         if (resourceAsStream == null) {
             return List.of();

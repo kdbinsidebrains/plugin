@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 5;
+    protected static final int VERSION = 6;
 
     public static final @NotNull TokenSet COLUMNS_TOKEN = TokenSet.create(KEY_COLUMNS, VALUE_COLUMNS);
 
@@ -83,22 +83,18 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         if (!statements.isEmpty()) {
             final LighterASTNode statement = statements.get(0);
             final IElementType tt = statement.getTokenType();
-            if (tt == EXPRESSION) {
-                final LighterASTNode obj = tree.getChildren(statement).get(0);
-                final IElementType tokenType = obj.getTokenType();
-                if (tokenType == TABLE) {
-                    final List<LighterASTNode> columns = LightTreeUtil.getChildrenOfType(tree, obj, COLUMNS_TOKEN).stream()
-                            .flatMap(c -> LightTreeUtil.getChildrenOfType(tree, c, TABLE_COLUMN).stream())
-                            .flatMap(a -> LightTreeUtil.getChildrenOfType(tree, a, VAR_DECLARATION).stream())
-                            .collect(Collectors.toList());
-                    return new Token(IdentifierType.TABLE, columns);
-                } else if (tokenType == LAMBDA) {
-                    List<LighterASTNode> params = LightTreeUtil.getChildrenOfType(tree, obj, PARAMETERS);
-                    if (params.size() == 1) {
-                        params = LightTreeUtil.getChildrenOfType(tree, params.get(0), VAR_DECLARATION);
-                    }
-                    return new Token(IdentifierType.LAMBDA, params);
+            if (tt == LAMBDA) {
+                List<LighterASTNode> params = LightTreeUtil.getChildrenOfType(tree, statement, PARAMETERS);
+                if (params.size() == 1) {
+                    params = LightTreeUtil.getChildrenOfType(tree, params.get(0), VAR_DECLARATION);
                 }
+                return new Token(IdentifierType.LAMBDA, params);
+            } else if (tt == TABLE) {
+                final List<LighterASTNode> columns = LightTreeUtil.getChildrenOfType(tree, statement, COLUMNS_TOKEN).stream()
+                        .flatMap(c -> LightTreeUtil.getChildrenOfType(tree, c, TABLE_COLUMN).stream())
+                        .flatMap(a -> LightTreeUtil.getChildrenOfType(tree, a, VAR_DECLARATION).stream())
+                        .collect(Collectors.toList());
+                return new Token(IdentifierType.TABLE, columns);
             }
         }
         return new Token(IdentifierType.VARIABLE);
@@ -138,7 +134,7 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         if (offset < text.length() - 1 && text.charAt(offset) == ':' && text.charAt(offset + 1) == ':') {
             return false;
         }
-        return findParent(tree, var, LAMBDA) != null;
+        return findParent(tree, var, LAMBDA) != null || findParent(tree, var, TABLE) != null;
     }
 
     private LighterASTNode findParent(LighterAST tree, LighterASTNode item, IElementType type) {
