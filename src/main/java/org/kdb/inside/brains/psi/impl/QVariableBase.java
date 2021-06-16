@@ -54,6 +54,23 @@ public class QVariableBase extends QPsiElementImpl implements QVariable {
             return name;
         }
 
+        // no lambda - return full name
+        final QLambda lambda = getContext(QLambda.class);
+        if (lambda != null) {
+            final QParameters lambdaParams = lambda.getParameters();
+            // implicit variable or in parameters list - ignore namespace
+            if (lambdaParams == null) {
+                if (QVariable.IMPLICIT_VARS.contains(name)) {
+                    return name;
+                }
+            } else {
+                final List<QVarDeclaration> variables = lambdaParams.getVariables();
+                if (variables.stream().anyMatch(v -> v.getName().equals(name))) {
+                    return name;
+                }
+            }
+        }
+
         // No namespace - ignore
         final QContext context = PsiTreeUtil.getParentOfType(this, QContext.class);
         if (context == null || context.getVariable() == null) {
@@ -66,22 +83,6 @@ public class QVariableBase extends QPsiElementImpl implements QVariable {
             return name;
         }
 
-        // no lambda - return full name
-        final QLambda lambda = getContext(QLambda.class);
-        if (lambda != null) {
-            final QParameters lambdaParams = lambda.getParameters();
-            // implicit variable or in parameters list - ignore namespace
-            if (lambdaParams == null) {
-                if (QVariable.IMPLICIT_VARS.contains(name)) {
-                    return name;
-                }
-            } else {
-                final List<QVarDeclaration> variables = lambdaParams.getVariables();
-                if (variables.contains(this)) {
-                    return name;
-                }
-            }
-        }
         return QPsiUtil.createQualifiedName(namespaceName, name);
     }
 

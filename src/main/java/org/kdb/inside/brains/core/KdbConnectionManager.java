@@ -534,6 +534,11 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         }
 
         @Override
+        public boolean isTemporal() {
+            return isTempInstance(instance);
+        }
+
+        @Override
         public long getStateChangeTime() {
             return stateChangeTime;
         }
@@ -556,6 +561,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
             this.myConnection = connection;
             updateState(InstanceState.CONNECTED);
         }
+
 
         void close(Exception exception) {
             if (myConnection != null) {

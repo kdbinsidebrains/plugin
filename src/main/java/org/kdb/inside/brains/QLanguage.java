@@ -26,9 +26,9 @@ public final class QLanguage extends Language {
         systemFunctions.put(".Q", loadCompletionItems("q", QKeyword.Type.FUNCTION));
 
         for (String s : Set.of("z", "j", "h")) {
-            systemFunctions.put("." + s, loadCompletionItemsOld(s, QKeyword.Type.FUNCTION));
+            systemFunctions.put("." + s, loadCompletionItems(s, QKeyword.Type.FUNCTION));
         }
-        systemFunctions.put("\\", loadCompletionItemsOld("commands", QKeyword.Type.COMMAND));
+        systemFunctions.put("\\", loadCompletionItems("commands", QKeyword.Type.COMMAND));
     }
 
     private List<QKeyword> loadCompletionItems(String scope, QKeyword.Type type) {
@@ -47,28 +47,6 @@ public final class QLanguage extends Language {
                 final String args = split[1].trim();
                 final String desc = split[2].trim();
                 res.add(new QKeyword(name, type, args, desc));
-                s = r.readLine();
-            }
-        } catch (IOException ignore) {
-        }
-        return res;
-    }
-
-    private List<QKeyword> loadCompletionItemsOld(String namespace, QKeyword.Type type) {
-        final InputStream resourceAsStream = getClass().getResourceAsStream("/org/kdb/inside/brains/completion/" + namespace + ".csv");
-        if (resourceAsStream == null) {
-            return List.of();
-        }
-
-        final List<QKeyword> res = new ArrayList<>();
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(resourceAsStream))) {
-            String s = r.readLine();
-            while (s != null) {
-                final String[] split = s.split(",");
-
-                final String name = split[0].trim();
-                final String desc = split.length > 1 ? split[1].trim() : "";
-                res.add(new QKeyword(name, type, desc));
                 s = r.readLine();
             }
         } catch (IOException ignore) {

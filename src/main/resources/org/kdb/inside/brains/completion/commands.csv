@@ -1,30 +1,30 @@
-\a, tables
-\b, views
-\B, pending views
-\c, console size
-\c, change directory
-\C, HTTP size
-\d, directory
-\e, error trap clients
-\E, TLS server mode
-\f, functions
-\g, garbage collection mode
-\l, load file or directory
-\o, offset from UTC
-\p, listening port
-\P, precision
-\r, rename / replication master
-\s      , number of secondary threadss
-\S      , random seed
-\t      , timer
-\T      , timeout
-\ts     , time and space
-\u      , reload user password file
-\v      , variables
-\w      , workspace
-\W      , week offset
-\x      , expunge
-\z      , date parsing
-\1 & \2 , redirect
-\_      , hide q code
-\\      , quit
+\a, [namespace], tables
+\b, [namespace], views
+\B, [namespace], pending views
+\c, [size], console size
+\cd,[name], change directory
+\C,[size], HTTP size
+\d,[namespace], Sets the current namespace
+\e,[mode], error trap clients
+\E,[], TLS server mode
+\f,[namespace], functions
+\g,[mode], garbage collection mode
+\l, [name], load file or directory
+\o,[n], offset from UTC
+\p,[rp,][hostname:][portnumber|servicename], listening port
+\P,[n], precision
+\r,[src dst], rename / replication master
+\s      ,[N], number of secondary threadss
+\S      ,[n], random seed
+\t      ,[ [N|[:n ]e] ], timer
+\T      ,[n], timeout
+\ts     ,[:n] exp, time and space
+\u      ,, reload user password file
+\v      ,[namespace], variables
+\w      ,[0|1|n], workspace
+\W      ,[n], week offset
+\x      ,[x], expunge
+\z      ,[0|1], date parsing
+\1 & \2 ,[filename], redirect
+\_      ,[scriptname], hide q code
+\\      ,[], quit

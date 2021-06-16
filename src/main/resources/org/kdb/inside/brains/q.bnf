@@ -72,7 +72,8 @@ root ::= top*
 private separator ::= semicolon | line_break
 private end_of_line ::= !(line_break)
 
-private top ::= import_command | context | command | mode | expression | separator
+private top ::= context | mode | top_in_context
+private top_in_context ::= import_command | command | expression | separator
 
 symbol ::= symbol_pattern
 private symbols ::= symbol symbol+
@@ -163,8 +164,8 @@ query ::= query_type [query_selects] (query_by query_groups)? (query_from expres
  }
 
 // Context: \d ...
-private context_name ::= var_declaration {recoverWhile = end_of_line }
-context ::= command_context (line_space+ context_name expressions)? {
+private context_name ::= var_declaration
+context ::= command_context (line_space+ context_name)? (line_break top_in_context*)? {
  pin = 1
  mixin = "org.kdb.inside.brains.psi.impl.QPsiContextImpl"
  methods = [variable="var_declaration"]

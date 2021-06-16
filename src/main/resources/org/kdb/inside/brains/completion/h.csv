@@ -1,44 +1,44 @@
-.h.br     ,linebreak
-.h.code   ,code after Tab
-.h.fram   ,frame
-.h.ha     ,anchor
-.h.hb     ,anchor target
-.h.ht     ,Marqdown to HTML
-.h.hta    ,start tag
-.h.htac   ,element
-.h.htc    ,element
-.h.html   ,document
-.h.http   ,hyperlinks
-.h.nbr    ,no break
-.h.pre    ,pre
-.h.text   ,paragraphs
-.h.xmp    ,XMP
-.h.he     ,HTTP 400
-.h.hn     ,HTTP response
-.h.hp     ,HTTP response pre
-.h.hy     ,HTTP response content
-.h.hu     ,URI escape
-.h.hug    ,URI map
-.h.sc     ,URI-safe
-.h.uh     ,URI unescape
-.h.cd     ,CSV from data
-.h.d      ,delimiter
-.h.ed     ,Excel from data
-.h.edsn   ,Excel from tables
-.h.hc     ,escape lt
-.h.hr     ,horizontal rule
-.h.iso8601,ISO timestamp
-.h.jx     ,table
-.h.td     ,TSV from data
-.h.tx     ,filetypes
-.h.xd     ,XML
-.h.xs     ,XML escape
-.h.xt     ,JSON
-.h.c0     ,web color
-.h.c1     ,web color
-.h.HOME   ,webserver root
-.h.logo   ,KX logo
-.h.sa     ,anchor style
-.h.sb     ,body style
-.h.ty     ,MIME types
-.h.val    ,value
+.h.br     , [] ,HTML linebreak (string). Defaults to "<br>".
+.h.code   , [x] ,code after Tab
+.h.fram   , [t;s;(l;r)] ,HTML page with two frames
+.h.ha     , [url;text] ,string an HTML A element.
+.h.hb     , [url;text] ,string an HTML A element but adds a target=v attribute
+.h.ht     , [x] ,Marqdown to HTML
+.h.hta    , [x;y] ,start tag
+.h.htac   , [x;y;z] ,element
+.h.htc    , [x;y] ,element
+.h.html   , [x] ,document
+.h.http   , [x] ,hyperlinks
+.h.nbr    , [x] ,no break
+.h.pre    , [x] ,pre
+.h.text   , [x] ,paragraphs
+.h.xmp    , [x] ,XMP
+.h.he     , [x] ,HTTP 400
+.h.hn     , [x;y;z] ,HTTP response
+.h.hp     , [x] ,HTTP response pre
+.h.hy     , [x;y] ,HTTP response content
+.h.hu     , [x] ,URI escape
+.h.hug    , [x] ,URI map
+.h.sc     , [] ,URI-safe
+.h.uh     , [x] ,URI unescape
+.h.cd     , [x] ,CSV from data
+.h.d      , [] ,Delimiter used by .h.cd to join subitems of nested lists.
+.h.ed     , [x] ,Excel from data
+.h.edsn   , [x;y] ,Excel from tables
+.h.hc     , [x] ,escape lt
+.h.hr     , [x] ,horizontal rule
+.h.iso8601, [x] ,ISO timestamp
+.h.jx     , [x;y] ,table
+.h.td     , [x] ,TSV from data
+.h.tx     , [] ,filetypes
+.h.xd     , [x] ,XML
+.h.xs     , [x] ,XML escape
+.h.xt     , [x;y] ,JSON
+.h.c0     , [] ,web color
+.h.c1     , [] ,web color
+.h.HOME   , [] ,webserver root
+.h.logo   , [] ,KX logo
+.h.sa     , [] ,anchor style
+.h.sb     , [] ,body style
+.h.ty     , [] ,MIME types
+.h.val    , [x] ,value

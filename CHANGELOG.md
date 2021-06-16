@@ -2,6 +2,17 @@
 
 # KdbInsideBrains Changelog
 
+## [0.10.1]
+
+### Added
+
+- Arguments for .z, .j, .h and commands have been described in the completion
+
+### Changed
+
+- Duplicate connection from console tab has been fixed (https://github.com/kdbinsidebrains/plugin/issues/3)
+- Namespace declaration issue fixed (https://github.com/kdbinsidebrains/plugin/issues/2)
+
 ## [0.10.0]
 
 ### Added

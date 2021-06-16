@@ -12,6 +12,9 @@ public interface InstanceConnection {
     void disconnect();
 
 
+    boolean isTemporal();
+
+
     InstanceState getState();
 
     long getStateChangeTime();

@@ -427,6 +427,10 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
         }
 
         private void updateInstanceItem(InstanceConnection connection) {
+            if (connection.isTemporal()) {
+                return;
+            }
+
             final KdbInstance instance = connection.getInstance();
             if (instance.getScope() == scope) {
                 model.itemUpdated(scope, instance);
