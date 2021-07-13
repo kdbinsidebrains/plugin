@@ -1,0 +1,16 @@
+<p><em>Exclude items from a list</em></p>
+<pre><code class="language-syntax">x except y    except[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a list</li>
+    <li><code>y</code> is a list or atom</li>
+</ul>
+<p>returns a list of all items of <code>x</code> that are not (items of) <code>y</code>.</p>
+<pre><code class="language-q">q)1 2 3 except 2
+1 3
+q)1 2 3 4 1 3 except 2 3
+1 4 1
+</code></pre>
+<p><code>except</code> uses <a href="https://code.kx.com/q/ref/find/">Find</a> to identify items of <code>x</code> in
+    <code>y</code>.</p>

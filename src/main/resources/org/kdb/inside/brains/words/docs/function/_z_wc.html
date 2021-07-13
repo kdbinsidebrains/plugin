@@ -1,0 +1,12 @@
+<pre><code class="language-txt">.z.wc:f
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>f</code> is a unary function</li>
+    <li><code>h</code> is the handle to a websocket connection to a kdb+ session</li>
+</ul>
+<p><code>f[h]</code> is evaluated <em>after</em> a websocket connection has been closed.
+    (Since V3.3t 2014.11.26.)</p>
+<p>As the connection has been closed by the time <code>.z.wc</code> is called, there are strictly no remote values that
+    can be put into <code>.z.a</code>, <code>.z.u</code> or <code>.z.w</code> so the local values are returned.</p>
+<p>This allows you to clean up things like tables of users keyed by handle.</p>

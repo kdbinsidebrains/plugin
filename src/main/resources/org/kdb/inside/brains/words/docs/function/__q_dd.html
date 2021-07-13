@@ -1,0 +1,15 @@
+<pre><code class="language-txt">.Q.dd[x;y]
+</code></pre>
+<p>Shorthand for <code>` sv x,`$string y</code>. Useful for creating filepaths, suffixed stock symbols, etc.</p>
+<pre><code class="language-q">q).Q.dd[`:dir]`file
+`:dir/file
+q){x .Q.dd'key x}`:dir
+`:dir/file1`:dir/file2
+q).Q.dd[`AAPL]&quot;O&quot;
+`AAPL.O
+q)update sym:esym .Q.dd'ex from([]esym:`AAPL`IBM;ex:&quot;ON&quot;)
+esym ex sym
+--------------
+AAPL O  AAPL.O
+IBM  N  IBM.N
+</code></pre>

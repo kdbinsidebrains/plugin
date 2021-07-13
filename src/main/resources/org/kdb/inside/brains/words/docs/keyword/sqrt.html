@@ -1,0 +1,22 @@
+<p><em>Square root</em></p>
+<pre><code class="language-txt">sqrt x    sqrt[x]
+</code></pre>
+<p>Returns as a float where <code>x</code> is numeric and</p>
+<ul>
+    <li>non-negative, the square root of <code>x</code></li>
+    <li>negative or null, null</li>
+    <li>real or float infinity, <code>0w</code></li>
+    <li>any other infinity, the square root of the largest value for the datatype</li>
+</ul>
+<pre><code class="language-q">q)sqrt -1 0n 0 25 50
+0n 0n 0 5 7.071068
+
+q)sqrt 12:00:00.000000000
+6572671f
+
+q)sqrt 0Wh
+181.0166
+
+q)sqrt 101b
+1 0 1f
+</code></pre>

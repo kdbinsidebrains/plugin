@@ -1,0 +1,22 @@
+<p><em>Window join</em></p>
+<pre><code class="language-txt">wj [w; c; t; (q; (f0;c0); (f1;c1))]
+wj1[w; c; t; (q; (f0;c0); (f1;c1))]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>t</code> and <code>q</code> are simple tables to be joined (<code>q</code> should be sorted <code>`sym`time</code>
+        with <code>`p#</code> on sym)
+    </li>
+    <li><code>w</code> is a pair of lists of times/timestamps, begin and end</li>
+    <li><code>c</code> are the names of the common columns, syms and times, which must have integral types</li>
+    <li><code>f0</code>, <code>f1</code> are aggregation functions applied to values in q columns <code>c0</code>,<code>c1</code>
+        over the intervals
+    </li>
+</ul>
+<p>returns for each record in <code>t</code>, a record with additional columns <code>c0</code> and <code>c1</code>,
+    which are the results of the aggregation functions applied to values over the matching intervals in <code>w</code>.
+</p>
+<p>Typically this might be:</p>
+<pre><code class="language-q">wj[w;`sym`time;trade;(quote;(max;`ask);(min;`bid))]
+</code></pre>
+<p>A quote is understood to be in existence until the next quote.</p>

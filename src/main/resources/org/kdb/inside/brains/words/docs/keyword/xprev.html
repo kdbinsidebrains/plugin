@@ -1,0 +1,18 @@
+<p><em>Nearby items in a list</em></p>
+<pre><code class="language-txt">x xprev y     xprev[x;y]
+</code></pre>
+<p>Where <code>x</code> is a long atom and <code>y</code> is a list, returns for each item of <code>y</code> the item
+    <code>x</code> indices before it. </p>
+<p>The first <code>x</code> items of the result are null, empty or blank as appropriate.</p>
+<div class="admonition tip">
+    <p class="admonition-title">There is no <code>xnext</code> function.</p>
+    <p>Fortunately <code>xprev</code> with a negative number on the left can achieve this.</p>
+</div>
+<pre><code class="language-q">q)2 xprev 2 7 5 3 11
+0N 0N 2 7 5
+q)-2 xprev 2 7 5 3 11
+5 3 11 0N 0N
+q)1 xprev &quot;abcde&quot;
+&quot; abcd&quot;
+</code></pre>
+<p><code>xprev</code> is a right-uniform function.</p>

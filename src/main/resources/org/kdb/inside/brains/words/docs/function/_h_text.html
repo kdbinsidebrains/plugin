@@ -1,0 +1,10 @@
+<p>Dictionary of file types and corresponding conversion functions (<code>.h.cd</code>, <code>.h.td</code>,
+    <code>.h.xd</code>, <code>.h.ed</code>).</p>
+<pre><code class="language-q">q).h.tx
+raw | ,:
+json| k){$[10=abs t:@x;s@,/{$[x in r:&quot;\t\n\r\&quot;\\&quot;;&quot;\\&quot;,&quot;tnr\&quot;\\&quot;r?x;x]}'x;(::..
+csv | k){.q.csv 0:x}
+txt | k){&quot;\t&quot;0:x}
+xml | k){g:{(#*y)#'(,,&quot;&lt;&quot;,x),y,,,&quot;&lt;/&quot;,x:($x),&quot;&gt;&quot;};(,&quot;&lt;R&gt;&quot;),(,/'+g[`r]@,/(!x)g..
+xls | k){ex eb es[`Sheet1]x}
+</code></pre>

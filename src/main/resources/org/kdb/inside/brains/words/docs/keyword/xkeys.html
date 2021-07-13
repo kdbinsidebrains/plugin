@@ -1,0 +1,23 @@
+<p><em>Set specified columns as primary keys of a table</em></p>
+<pre><code class="language-txt">x xkey y    xkey[x;y]
+</code></pre>
+<p>Where symbol atom or vector <code>x</code> lists columns in table <code>y</code>, which is passed by</p>
+<ul>
+    <li>value, returns</li>
+    <li>reference, updates</li>
+</ul>
+<p><code>y</code> with <code>x</code> set as the primary keys.</p>
+<pre><code class="language-q">q)\l trade.q
+q)keys trade
+`symbol$()            / no primary key
+q)`sym xkey trade     / return table with primary key sym
+sym| time         price size
+---| -----------------------
+a  | 09:30:00.000 10.75 100
+q)keys trade         / trade has not changed
+`symbol$()
+q)`sym xkey `trade   / pass trade by reference updates the table in place
+`trade
+q)keys trade         / sym is now primary key of trade
+,`sym
+</code></pre>

@@ -1,0 +1,60 @@
+<p><em>Total</em></p>
+<pre><code class="language-txt">sum x    sum[x]
+</code></pre>
+<p>Where <code>x</code> is</p>
+<ul>
+    <li>a simple numeric list, returns the sums of its items</li>
+    <li>an atom, returns <code>x</code></li>
+    <li>a list of numeric lists, returns their sums</li>
+    <li>a dictionary with numeric values</li>
+</ul>
+<p>Nulls are treated as zeros.</p>
+<pre><code class="grey">q)sum 7                         / sum atom (returned unchanged)
+7
+q)sum 2 3 5 7                   / sum list
+17
+q)sum 2 3 0N 7                  / 0N is treated as 0
+12
+q)sum (1 2 3 4;2 3 5 7)         / sum list of lists
+3 5 8 11                        / same as 1 2 3 4 + 2 3 5 7
+q)sum `a`b`c!1 2 3
+6
+q)\l sp.q
+q)select sum qty by s from sp   / use in select statement
+s | qty
+--| ----
+s1| 1600
+s2| 700
+s3| 200
+s4| 600
+q)sum &quot;abc&quot;                     / type error if list is not numeric
+'type
+q)sum (0n 8;8 0n) / n.b. sum list of vectors does not ignore nulls
+0n 0n
+q)sum 0n 8 / the vector case was modified to match sql92 (ignore nulls)
+8f
+q)sum each flip(0n 8;8 0n) /do this to fall back to vector case
+8 8f
+</code></pre>
+<p><code>sum</code> is an aggregate function, equivalent to <code>+/</code>.</p>
+<details class="warning">
+    <summary>Floating-point addition is not associative</summary>
+    <p>Different results may be obtained by changing the order of the summation.</p>
+    <pre><code>❯ q -s 4
+KDB+ 4.0 2021.01.20 Copyright (C) 1993-2021 Kx Systems
+m64/ 12()core 65536MB sjt mackenzie.local 127.0.0.1 ..
+
+q)\s 0
+q)a:100000000?1.
+q)\P 0
+q)sum a
+49999897.181930684
+q)sum reverse a
+49999897.181931004
+</code></pre>
+    <p>The order of summation changes when the primitive is able to use threads. </p>
+    <pre><code>q)\s 4
+q)sum a
+49999897.181933172
+</code></pre>
+</details>

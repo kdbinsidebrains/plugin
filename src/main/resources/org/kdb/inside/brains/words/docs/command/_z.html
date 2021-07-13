@@ -1,0 +1,12 @@
+<pre><code class="language-txt">\z [0|1]
+</code></pre>
+<p>Show or set the format for <code>"D"$</code> date parsing. <code>B</code> is 0 for mm/dd/yyyy and 1 for dd/mm/yyyy.
+</p>
+<pre><code class="language-q">q)\z
+0
+q)&quot;D&quot;$&quot;06/01/2010&quot;
+2010.06.01
+q)\z 1
+q)&quot;D&quot;$&quot;06/01/2010&quot;
+2010.01.06
+</code></pre>

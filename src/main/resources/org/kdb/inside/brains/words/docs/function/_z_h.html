@@ -1,0 +1,22 @@
+<p>The host name as a symbol</p>
+<pre><code class="language-q">q).z.h
+`demo.kx.com
+</code></pre>
+<p>On Linux this should return the same as the shell command <code>hostname</code>. If you require a fully qualified
+    domain name, and the <code>hostname</code> command returns a hostname only (with no domain name), this should be
+    resolved by your system administrators. Often this can be traced to the ordering of entries in
+    <code>/etc/hosts</code>, e.g.</p>
+<p>Non-working <code>/etc/host</code> looks like :</p>
+<pre><code class="language-txt">127.0.0.1      localhost.localdomain localhost
+192.168.1.1  myhost.mydomain.com myhost
+</code></pre>
+<p>Working one has this ordering :</p>
+<pre><code class="language-txt">127.0.0.1      localhost.localdomain localhost
+192.168.1.1  myhost myhost.mydomain.com
+</code></pre>
+<p>One solution seems to be to flip around the entries, i.e. so the entries should be</p>
+<pre><code class="language-txt">ip hostname fqdn
+</code></pre>
+<p>A workaround from within kdb+ is</p>
+<pre><code class="language-q">q).Q.host .z.a
+</code></pre>

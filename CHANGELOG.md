@@ -2,6 +2,22 @@
 
 # KdbInsideBrains Changelog
 
+## [0.11.0]
+
+### Added
+
+- Documentations for all keywords and system (.Q, .h, .j and .z namespaces) functions have been added. Press Ctrl+Q on a
+  function.
+- Dynamic documentation based on comments with qdoc-tags
+  supporting: https://code.kx.com/developer/libraries/documentation-generator/#qdoc-tags. Press Ctrl+Q on a variable.
+- TypeCast to hh, mm, ss has been fixed. Lower and upper (parse from a string) casting is supported now.
+
+### Fixed
+
+- Issue with files renaming/moving (files refactoring) has been fixed.
+- Global/Local variables inside a lamba defined in a namespace are detected correctly now.
+- Variable references work inside a table definition
+
 ## [0.10.1]
 
 ### Added

@@ -1,0 +1,27 @@
+<pre><code class="language-txt">.z.exit:f
+</code></pre>
+<p>Where <code>f</code> is a unary function, <code>f</code> is called with the exit parameter as the argument just
+    before exiting the kdb+ session.</p>
+<p>The exit parameter is the argument to the <a href="../exit/"><code>exit</code></a> function, or 0 if manual exit with
+    <a href="../../basics/syscmds/#quit"><code>\\</code> quit</a></p>
+<div class="admonition important">
+    <p class="admonition-title">The handler cannot cancel the exit.</p>
+</div>
+<p><code>.z.exit</code> can be unset with <code>\x .z.exit</code>, which restores the default behavior.</p>
+<p>The default behavior is equivalent to setting <code>.z.exit</code> to <code>{}</code>, i.e. do nothing.</p>
+<pre><code class="language-q">q).z.exit
+'.z.exit
+q).z.exit:{0N!x}
+q)\\
+0
+os&gt;..
+
+q).z.exit:{0N!x}
+q)exit 42
+42
+os&gt;..
+
+q).z.exit:{0N!x}
+q)exit 0
+0
+</code></pre>

@@ -1,0 +1,32 @@
+<pre><code class="language-txt">.h.hy[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is an HTTP content type as a symbol atom</li>
+    <li><code>y</code> is a string</li>
+</ul>
+<p>returns as a string an HTTP response for <code>y</code> as content-type <code>x</code>.</p>
+<pre><code class="language-q">q)show t:([]idx: 1 2 3 4 5;val: `a`b`c`d`e)
+idx val
+-------
+1   a
+2   b
+3   c
+4   d
+5   e
+q)show r: .h.hy[`json] .j.j 0! select count i by val from t
+&quot;HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nCo..
+q)`:test.txt 0: enlist r
+`:test.txt
+q)\head test.txt
+&quot;HTTP/1.1 200 OK&quot;
+&quot;Content-Type: application/json&quot;
+&quot;Connection: close&quot;
+&quot;Content-Length: 99&quot;
+&quot;&quot;
+&quot;[{\&quot;val\&quot;:\&quot;a\&quot;,\&quot;x\&quot;:1},&quot;
+&quot; {\&quot;val\&quot;:\&quot;b\&quot;,\&quot;x\&quot;:1},&quot;
+&quot; {\&quot;val\&quot;:\&quot;c\&quot;,\&quot;x\&quot;:1},&quot;
+&quot; {\&quot;val\&quot;:\&quot;d\&quot;,\&quot;x\&quot;:1},&quot;
+&quot; {\&quot;val\&quot;:\&quot;e\&quot;,\&quot;x\&quot;:1}]&quot;
+</code></pre>

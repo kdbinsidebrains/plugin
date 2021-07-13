@@ -1,0 +1,23 @@
+<p><em>Remove leading or trailing nulls from a list</em></p>
+<pre><code class="language-txt"> trim x     trim[x]
+ltrim x    ltrim[x]
+rtrim x    rtrim[x]
+</code></pre>
+<p>Where <code>x</code> is a vector or non-null atom, returns <code>x</code> without leading (<code>ltrim</code>) or
+    trailing (<code>rtrim</code>) nulls or without either (<code>trim</code>).</p>
+<pre><code class="language-q">q)trim &quot;   IBM   &quot;
+&quot;IBM&quot;
+q)trim 0N 0N 1 2 3 0N 0N  4 5 0N 0N
+1 2 3 0N 0N 4 5
+
+q)ltrim&quot;   IBM   &quot;
+&quot;IBM   &quot;
+
+q)rtrim&quot;   IBM   &quot;
+&quot;   IBM&quot;
+
+q)trim&quot;a&quot;
+&quot;a&quot;
+q)trim 42
+42
+</code></pre>

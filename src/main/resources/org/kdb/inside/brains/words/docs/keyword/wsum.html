@@ -1,0 +1,16 @@
+<p><em>Weighted sum</em></p>
+<pre><code class="language-txt">x wsum y    wsum[x;y]
+</code></pre>
+<p>Where <code>x</code> and <code>y</code> are numeric lists, returns the weighted sum of the products of <code>x</code>
+    and <code>y</code>. When both <code>x</code> and <code>y</code> are integer lists, they are first converted to
+    floats. </p>
+<pre><code class="language-q">q)2 3 4 wsum 1 2 4   / equivalent to sum 2 3 4 * 1 2 4f
+24f
+
+q)2 wsum 1 2 4       / equivalent to sum 2 * 1 2 4
+14
+
+q)(1 2;3 4) wsum (500 400;300 200)
+1400 1600
+</code></pre>
+<p><code>wsum</code> is an aggregate function, equivalent to <code>{sum x*y}</code>.</p>

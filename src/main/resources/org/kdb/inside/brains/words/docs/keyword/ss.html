@@ -1,0 +1,20 @@
+<p><em>String search</em></p>
+<pre><code class="language-txt">x ss y     ss[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a string</li>
+    <li><code>y</code> is a <a href="https://code.kx.com/q/basics/regex/">pattern</a> as a string (no asterisk)</li>
+</ul>
+<p>returns an int vector of position/s within <code>x</code> of substrings that match pattern <code>y</code>.</p>
+<pre><code class="language-q">q)&quot;We the people of the United States&quot; ss &quot;the&quot;
+3 17
+
+q)s:&quot;toronto ontario&quot;
+q)s ss &quot;ont&quot;
+3 8
+q)s ss &quot;[ir]o&quot;
+2 13
+q)s ss &quot;t?r&quot;
+0 10
+</code></pre>

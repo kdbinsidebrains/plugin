@@ -1,0 +1,22 @@
+<p><em>Reverse the order of items of a list or dictionary</em></p>
+<pre><code class="language-txt">reverse x    reverse[x]
+</code></pre>
+<p>Returns the items of <code>x</code> in reverse order.</p>
+<pre><code class="language-q">q)reverse 1 2 3 4
+4 3 2 1
+</code></pre>
+<p>On atoms, returns the atom; on dictionaries, reverses the keys; and on tables, reverses the columns.</p>
+<pre><code class="language-q">q)d:`a`b!(1 2 3;&quot;xyz&quot;)
+q)reverse d
+b| x y z
+a| 1 2 3
+q)reverse each d
+a| 3 2 1
+b| z y x
+q)reverse flip d
+a b
+---
+3 z
+2 y
+1 x
+</code></pre>

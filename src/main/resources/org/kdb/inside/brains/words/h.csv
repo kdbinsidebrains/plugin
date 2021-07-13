@@ -1,0 +1,44 @@
+.h.br     , [] ,HTML linebreak (string). Defaults to "<br>".,ref/doth/#hbr-linebreak
+.h.c0     , [] ,web color,ref/doth/#hc0-web-color
+.h.c1     , [] ,web color,ref/doth/#hc1-web-color
+.h.cd     , [x] ,CSV from data,ref/doth/#hcd-csv-from-data
+.h.code   , [x] ,code after Tab,ref/doth/#hcode-code-after-tab
+.h.d      , [] ,Delimiter used by .h.cd to join subitems of nested lists.,ref/doth/#hd-delimiter
+.h.ed     , [x] ,Excel from data,ref/doth/#hed-excel-from-data
+.h.edsn   , [x;y] ,Excel from tables,ref/doth/#hedsn-excel-from-tables
+.h.fram   , [t;s;(l;r)] ,HTML page with two frames,ref/doth/#hfram-frame
+.h.ha     , [url;text] ,string an HTML A element.,ref/doth/#hha-anchor
+.h.hb     , [url;text] ,string an HTML A element but adds a target=v attribute,ref/doth/#hhb-anchor-target
+.h.hc     , [x] ,escape lt,ref/doth/#hhc-escape-lt
+.h.he     , [x] ,HTTP 400,ref/doth/#hhe-http-400
+.h.hn     , [x;y;z] ,HTTP response,ref/doth/#hhn-http-response
+.h.hp     , [x] ,HTTP response pre,ref/doth/#hhp-http-response-pre
+.h.hr     , [x] ,horizontal rule,ref/doth/#hhr-horizontal-rule
+.h.ht     , [x] ,Marqdown to HTML,ref/doth/#hht-marqdown-to-html
+.h.hta    , [x;y] ,start tag,ref/doth/#hhta-start-tag
+.h.htac   , [x;y;z] ,element,ref/doth/#hhtac-element
+.h.htc    , [x;y] ,element,ref/doth/#hhtac-element
+.h.html   , [x] ,document,ref/doth/#hhtml-document
+.h.http   , [x] ,hyperlinks,ref/doth/#hhttp-hyperlinks
+.h.hu     , [x] ,URI escape,ref/doth/#hhu-uri-escape
+.h.hug    , [x] ,URI map,ref/doth/#hhug-uri-map
+.h.hy     , [x;y] ,HTTP response content,ref/doth/#hhy-http-response-content
+.h.HOME   , [] ,webserver root,ref/doth/#hhome-webserver-root
+.h.iso8601, [x] ,ISO timestamp,ref/doth/#hiso8601-iso-timestamp
+.h.jx     , [x;y] ,table,ref/doth/#hjx-table
+.h.logo   , [] ,KX logo,ref/doth/#hlogo-kx-logo
+.h.nbr    , [x] ,no break,ref/doth/#hnbr-no-break
+.h.pre    , [x] ,pre,ref/doth/#hpre-pre
+.h.sa     , [] ,anchor style,ref/doth/#hsa-anchor-style
+.h.sb     , [] ,body style,ref/doth/#hsb-body-style
+.h.sc     , [] ,URI-safe,ref/doth/#hsc-uri-safe
+.h.td     , [x] ,TSV from data,ref/doth/#htd-tsv-from-data
+.h.text   , [x] ,paragraphs,ref/doth/#htext-paragraphs
+.h.tx     , [] ,filetypes,ref/doth/#htx-filetypes
+.h.ty     , [] ,MIME types,ref/doth/#hty-mime-types
+.h.uh     , [x] ,URI unescape,ref/doth/#huh-uri-unescape
+.h.val    , [x] ,value,ref/doth/#hval-value
+.h.xd     , [x] ,XML,ref/doth/#hxd-xml
+.h.xmp    , [x] ,XMP,ref/doth/#hxmp-xmp
+.h.xs     , [x] ,XML escape,ref/doth/#hxs-xml-escape
+.h.xt     , [x;y] ,JSON,ref/doth/#hxt-json

@@ -1,0 +1,20 @@
+<div class="typewriter">
+    <p>\d [<em>namespace</em>]</p>
+</div>
+<p>Sets the current namespace (also known as directory or context). The namespace can be empty, and a new namespace is
+    created when an object is defined in it. The q session prompt indicates the current namespace.</p>
+<pre><code class="language-q">q)\d                  / default namespace
+`.
+q)\d .o               / change to .o
+q.o)\f
+`Cols`Columns`FG`Fkey`Gkey`Key`Special..
+q.o)\d .              / return to default
+q)key`                / lists namespaces other than .z
+`q`Q`o`h
+q)\d .s               / change to non-existent namespace
+q.s)key`              / not yet created
+`q`Q`o`h
+q.s)a:1               / create object, also creates namespace
+q.s)key`
+`q`Q`o`h`s
+</code></pre>

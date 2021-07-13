@@ -1,0 +1,13 @@
+<pre><code class="language-txt">.h.hn[x;y;z]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is the <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">status code</a> (string)
+    </li>
+    <li><code>y</code> is the <a href="#hty-mime-types">content type</a> (symbol)</li>
+    <li><code>z</code> is the content (string)</li>
+</ul>
+<p>returns as a string an HTTP error response.</p>
+<pre><code class="language-q">q).h.hn[&quot;404&quot;;`txt;&quot;Not found: favicon.ico&quot;]
+&quot;HTTP/1.1 404\r\nContent-Type: text/plain\r\nConnection: close\r\nContent-Len..
+</code></pre>

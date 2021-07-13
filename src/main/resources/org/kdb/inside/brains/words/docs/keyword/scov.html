@@ -1,0 +1,16 @@
+<p><em>Sample covariance</em></p>
+<pre><code class="language-txt">x scov y    scov[x;y]
+</code></pre>
+<p>Where <code>x</code> and <code>y</code> are conforming numeric lists returns their <a
+        href="https://en.wikipedia.org/wiki/Covariance#Calculating_the_sample_covariance" title="Wikipedia">sample
+    covariance</a> as a float atom.</p>
+<div class="arithmatex">\[scov(x,y)=\frac{n}{n-1}cov(x,y)\]</div>
+<p>Applies to all numeric data types and signals an error with temporal types, char and sym.</p>
+<pre><code class="language-q">q)2 3 5 7 scov 3 3 5 9
+8
+q)2 3 5 7 scov 4 3 0 2
+-2.416667
+q)select price scov size by sym from trade
+</code></pre>
+<p><code>scov</code> is an aggregate function.</p>
+<p>The function <code>scov</code> is equivalent to <code>{cov[x;y]*count[x]%-1+count x}</code>.</p>

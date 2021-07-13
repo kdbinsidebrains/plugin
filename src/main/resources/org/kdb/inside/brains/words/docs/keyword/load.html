@@ -1,0 +1,15 @@
+<p><em>Load binary data from a file</em></p>
+<pre><code class="language-txt">load x     load[x]
+</code></pre>
+<p>Where <code>x</code> is </p>
+<ul>
+    <li>a symbol atom or vector matching the name/s of datafile/s (with no extension) in the current directory, reads
+        the datafile/s and assigns the value/s to global variable/s of the same name, which it returns
+    </li>
+    <li>a filesymbol atom or vector for datafile/s (with no extension), reads the datafile/s and assigns the value/s to
+        global variable/s of the same name, which it returns
+    </li>
+    <li>a filesymbol for a directory, creates a global dictionary of the same name and within that dictionary recurses
+        on any datafiles the directory contains
+    </li>
+</ul>

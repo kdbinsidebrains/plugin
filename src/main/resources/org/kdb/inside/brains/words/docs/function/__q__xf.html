@@ -1,0 +1,13 @@
+<pre><code class="language-txt">.Q.Xf[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a mapped nested datatype as either an upper-case char atom, or as a short symbol (e.g. <code>`char</code>)
+    </li>
+    <li><code>y</code> is a filepath</li>
+</ul>
+<p>creates an empty nested-vector file at <code>y</code>.</p>
+<pre><code class="language-q">q).Q.Xf[&quot;C&quot;;`:emptyNestedCharVector];
+q)type get`:emptyNestedCharVector
+87h
+</code></pre>

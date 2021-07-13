@@ -1,0 +1,22 @@
+<pre><code class="language-txt">.Q.gz[::]           / zlib loaded?
+.Q.gz cbv           / unzipped
+.Q.gz (cl;cbv)      / zipped
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>cbv</code> is a char or byte vector</li>
+    <li><code>cl</code> is compression level [1-9] as a long</li>
+</ul>
+<p>returns, for</p>
+<ul>
+    <li>the <a href="https://code.kx.com/q/ref/identity/#null">general null</a>, a boolean atom as whether Zlib is
+        loaded
+    </li>
+    <li><code>cbv</code>, the inflated (unzipped) vector</li>
+    <li>a 2-list, the deflated (zipped) vector</li>
+</ul>
+<p>since V4.0 2020.04.16.</p>
+<pre><code class="language-q">q).Q.gz{0N!count x;x}[.Q.gz(9;10000#&quot;helloworld&quot;)]
+66
+&quot;helloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhellow..
+</code></pre>

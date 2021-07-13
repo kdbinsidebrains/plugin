@@ -1,0 +1,24 @@
+<p>User ID, as a symbol, associated with the current handle.</p>
+<pre><code class="language-q">q).z.u
+`demo
+</code></pre>
+<p>For</p>
+<ul>
+    <li>handle 0 (console) returns the userid under which the process is running.</li>
+    <li>handles &gt; 0 returns either:
+        <ul>
+            <li>on the server end of a connection, the userid as passed to <code>hopen</code> by the client</li>
+            <li>on the client end of a connection, the null symbol <code>`</code></li>
+        </ul>
+    </li>
+</ul>
+<pre><code class="language-q">q).z.u                  / console is handle 0
+`charlie
+q)0&quot;.z.u&quot;               / explicitly using handle 0
+`charlie
+q)h:hopen`:localhost:5000:geoffrey:geffspasswd
+q)h&quot;.z.u&quot;               / server side .z.u is as passed by the client to hopen
+`geoffrey
+q)h({.z.w&quot;.z.u&quot;};::)    / client side returns null symbol
+`
+</code></pre>

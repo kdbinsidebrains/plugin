@@ -1,0 +1,21 @@
+<pre><code class="language-txt">.z.pi:f
+</code></pre>
+<p>Where <code>f</code> is a unary function, it is evaluated as the default handler for input.</p>
+<p>As this is called on every line of input it can be used to log all console input, or even to modify the output. For
+    example, if you prefer the more compact <a href="https://code.kx.com/q/releases/ChangesIn2.4/#zpi">V2.3 way of
+        formatting tables</a>, you can reset the output handler.</p>
+<pre><code class="language-q">q)aa:([]a:1 2 3;b:11 22 33)
+q)aa
+a b
+----
+1 11
+2 22
+3 33
+q).z.pi:{0N!value x;}
+q)aa
++`a`b!(1 2 3;11 22 33)
+q)
+</code></pre>
+<p>To return to the default display, just delete your custom handler</p>
+<pre><code class="language-q">q)\x .z.pi
+</code></pre>

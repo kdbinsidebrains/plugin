@@ -1,0 +1,21 @@
+<pre><code class="language-txt">.z.pd: x
+</code></pre>
+<p>Where q has been <a href="../../basics/cmdline/#-s-secondarys">started with secondary processes for use in parallel
+    processing</a>, <code>x</code> is</p>
+<ul>
+    <li>an int vector of handles to secondary processes</li>
+    <li>a function that returns a list of handles to those secondary processes</li>
+</ul>
+<p>For evaluating the function passed to <code>peach</code> or <code>':</code>, kdb+ gets the handles to the secondary
+    processes by calling <a href="#zpd-peach-handles"><code>.z.pd[]</code></a>.</p>
+<pre><code class="language-q">q)/open connections to 4 processes on the localhost
+q).z.pd:`u#hopen each 20000+til 4
+</code></pre>
+<p>The int vector (returned by) <code>x</code> <em>must</em> have the <a href="../set-attribute/">unique attribute</a>
+    set.</p>
+<p>A more comprehensive setup might be</p>
+<pre><code class="language-q">q).z.pd:{n:abs system&quot;s&quot;;$[n=count handles;handles;[hclose each handles;:handles::`u#hopen each 20000+til n]]}
+q).z.pc:{handles::`u#handles except x;}
+q)handles:`u#`int$();
+</code></pre>
+<p>Note that (since V3.1) the worker processes are not started automatically by kdb+.</p>

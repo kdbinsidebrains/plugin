@@ -1,0 +1,19 @@
+<pre><code class="language-txt">.Q.dsftg[d;s;f;t;g]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>d</code> is <code>(dst;part;table)</code> where <code>table</code> has <code>M</code> rows</li>
+    <li><code>s</code> is <code>(src;offset;length)</code></li>
+    <li><code>f</code> is fields as a symbol vector</li>
+    <li><code>t</code> is <code>(types;widths)</code></li>
+    <li><code>g</code> is a unary post-processing function</li>
+</ul>
+<p>loops <code>M&amp;1000000</code> rows at a time.
+    For example, loading TAQ DVD:</p>
+<pre><code class="language-q">q)d:(`:/dst/taq;2000.10.02;`trade)
+q)s:(`:/src/taq;19;0)  / nonpositive length from end
+q)f:`time`price`size`stop`corr`cond`ex
+q)t:(&quot;iiihhc c&quot;;4 4 4 2 2 1 1 1)
+q)g:{x[`stop]=:240h;@[x;`price;%;1e4]}
+q).Q.dsftg[d;s;f;t;g]
+</code></pre>

@@ -1,0 +1,38 @@
+<p><em>Make a list.</em></p>
+<pre><code class="language-txt">enlist x    enlist[x]    enlist[x;y;z;…]
+</code></pre>
+<p>Returns a list with its argument/s as items.</p>
+<p>The most common use is to make a 1-item list.
+    An atom is not a one-item list. <code>enlist</code> and <code>first</code> convert between the two.</p>
+<pre><code class="language-q">q)a:10
+q)b:enlist a
+q)c:enlist b
+q)type each (a;b;c)
+-7 7 0h
+q)a~b
+0b
+q)a~first b
+1b
+q)b~c
+0b
+q)b~first c
+1b
+</code></pre>
+<p>The result has as many items as the keyword is applied to.</p>
+<pre><code class="language-q">q)show a:enlist[til 5;`ibm`goog;&quot;hello&quot;]
+0 1 2 3 4
+`ibm`goog
+&quot;hello&quot;
+q)count a
+3
+</code></pre>
+<p>Unlike user-defined functions, <code>enlist</code> is not limited to 8 arguments.</p>
+<pre><code class="language-q">q)count b:enlist[0;`1;&quot;two&quot;;3;`four;5;`6;&quot;seven&quot;;8;`nine]
+10
+</code></pre>
+<p>Where <code>x</code> is a dictionary, the result is a 1-item table.</p>
+<pre><code class="language-q">q)enlist `a`b`c!(1;2 3; 4)
+a b   c
+-------
+1 2 3 4
+</code></pre>

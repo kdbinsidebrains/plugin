@@ -1,0 +1,11 @@
+<pre><code class="language-txt">.z.pw:f
+</code></pre>
+<p>Where <code>f</code> is a binary function, <code>.z.pw</code> is evaluated <em>after</em> the <code>-u/-U</code>
+    checks, and <em>before</em> <code>.z.po</code> when opening a new connection to a kdb+ session.</p>
+<p>The arguments are the user ID (as a symbol) and password (as a string) to be verified; the result is a boolean
+    atom.</p>
+<p>As <code>.z.pw</code> is simply a function it can be used to implement rules such as “ordinary users can sign on only
+    between 0800 and 1800 on weekdays” or can go out to external resources like an LDAP directory.</p>
+<p>If <code>.z.pw</code> returns <code>0b</code> the task attempting to establish the connection will get an <code>'access</code>
+    error.</p>
+<p>The default definition is <code>{[user;pswd]1b}</code></p>

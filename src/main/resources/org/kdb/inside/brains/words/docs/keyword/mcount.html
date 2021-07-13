@@ -1,0 +1,16 @@
+<p><em>Moving counts</em></p>
+<pre><code class="language-txt">x mcount y     mcount[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a positive int atom</li>
+    <li><code>y</code> is a numeric list</li>
+</ul>
+<p>returns the <code>x</code>-item moving counts of the non-null items of <code>y</code>. The first <code>x</code> items
+    of the result are the counts so far, and thereafter the result is the moving count.</p>
+<pre><code class="language-q">q)3 mcount 0 1 2 3 4 5
+1 2 3 3 3 3
+q)3 mcount 0N 1 2 3 0N 5
+0 1 2 3 2 2
+</code></pre>
+<p><code>mcount</code> is a uniform function. </p>

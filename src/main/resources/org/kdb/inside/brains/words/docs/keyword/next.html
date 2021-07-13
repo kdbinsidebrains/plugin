@@ -1,0 +1,16 @@
+<p><em>Next item/s in a list</em></p>
+<pre><code class="language-txt">next x      next[x]
+</code></pre>
+<p>Where <code>x</code> is a list, for each item in <code>x</code>, returns the next item. </p>
+<p>For the last item, it returns a null if the list is a vector, otherwise an empty list <code>()</code>.</p>
+<pre><code class="language-q">q)next 2 3 5 7 11
+3 5 7 11 0N
+q)next (1 2;&quot;abc&quot;;`ibm)
+&quot;abc&quot;
+`ibm
+`int$()
+</code></pre>
+<p>Duration of a quote:</p>
+<pre><code class="language-q">q)update (next time)-time by sym from quote
+</code></pre>
+<p><code>next</code> is a uniform function.</p>

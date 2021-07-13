@@ -1,0 +1,25 @@
+<p><em>Left join</em></p>
+<div class="typewriter">
+    <p>x lj y lj [x;y]
+        x ljf y ljf[x;y]</p>
+</div>
+<p>Where </p>
+<ul>
+    <li><code>x</code> is a table</li>
+    <li><code>y</code> is
+        <ul>
+            <li>a keyed table whose key column/s are columns of <code>x</code>, returns <code>x</code> and
+                <code>y</code> joined on the key columns of <code>y</code></li>
+            <li>or the general empty list <code>()</code>, returns <code>x</code></li>
+        </ul>
+    </li>
+</ul>
+<p>For each record in <code>x</code>, the result has one record with the columns of <code>y</code> joined to columns of
+    <code>y</code>:</p>
+<ul>
+    <li>if there is a matching record in <code>y</code>, it is joined to the <code>x</code> record; common columns are
+        replaced from <code>y</code>.
+    </li>
+    <li>if there is no matching record in <code>y</code>, common columns are left unchanged, and new columns are null
+    </li>
+</ul>

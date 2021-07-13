@@ -1,0 +1,22 @@
+<p><em>Unique items of a list</em></p>
+<pre><code class="language-txt">distinct x    distinct[x]
+</code></pre>
+<p>Where <code>x</code> is a list returns the distinct (unique) items of <code>x</code> in the order of their first
+    occurrence.
+    The result does <em>not</em> have the <a href="https://code.kx.com/q/ref/set-attribute/">unique attribute</a> set.
+</p>
+<pre><code class="language-q">q)distinct 2 3 7 3 5 3
+2 3 7 5
+</code></pre>
+<p>Returns the distinct rows of a table.</p>
+<pre><code class="language-q">q)distinct flip `a`b`c!(1 2 1;2 3 2;&quot;aba&quot;)
+a b c
+-----
+1 2 a
+2 3 b
+</code></pre>
+<p>It does not use <a href="https://code.kx.com/q/basics/precision/">comparison tolerance</a></p>
+<pre><code class="language-q">q)\P 14
+q)distinct 2 + 0f,10 xexp -13
+2 2.0000000000001
+</code></pre>

@@ -1,0 +1,34 @@
+<pre><code class="language-txt">.Q.fs[x;y]
+.Q.fsn[x;y;z]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a unary value</li>
+    <li><code>y</code> is a filepath</li>
+    <li><code>z</code> is an integer</li>
+</ul>
+<p>loops over file <code>y</code>, grabs <code>z</code>-sized lumps of complete <code>"\n"</code> delimited records,
+    applies <code>x</code> to each record, and returns the size of the file as given by <a href="../hcount/"><code>hcount</code></a>.
+    This enables you to implement a streaming algorithm to convert a large CSV file into an on-disk database without
+    holding the data in memory all at once.</p>
+<p><code>.Q.fsn</code> is almost identical to <code>.Q.fs</code> but takes an extra argument <code>z</code>, the size in
+    bytes that chunks will be read in. This is particularly useful for balancing load speed and RAM usage.</p>
+<div class="admonition tip">
+    <p class="admonition-title"><code>.Q.fs</code> is a projection of <code>.Q.fsn</code> with the chunk size set to
+        131000 bytes.</p>
+</div>
+<p>For example, assume that the file <code>potamus.csv</code> contains the following:</p>
+<pre><code class="language-csv">Take, a,   hippo, to,   lunch, today,        -1, 1941-12-07
+A,    man, a,     plan, a,     hippopotamus, 42, 1952-02-23
+</code></pre>
+<p>If you call <code>.Q.fs</code> on this file with the function <code>0N!</code>, you get the following list of rows:
+</p>
+<pre><code class="language-q">q).Q.fs[0N!]`:potamus.csv
+(&quot;Take, a,   hippo, to,   lunch, today,        -1, 1941-12-07&quot;;&quot;A,    man, a,..
+120
+</code></pre>
+<p><code>.Q.fs</code> can also be used to read the contents of the file into a list of columns.</p>
+<pre><code class="language-q">q).Q.fs[{0N!(&quot;SSSSSSID&quot;;&quot;,&quot;)0:x}]`:potamus.csv
+(`Take`A;`a`man;`hippo`a;`to`plan;`lunch`a;`today`hippopotamus;-1 42i;1941.12..
+120
+</code></pre>

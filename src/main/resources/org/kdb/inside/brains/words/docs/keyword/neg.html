@@ -1,0 +1,20 @@
+<p><em>Negate</em></p>
+<pre><code class="language-txt">neg x    neg[x]
+</code></pre>
+<p>Returns the negation of boolean or numeric <code>x</code>.
+    A null has no sign, so is its own negation. </p>
+<pre><code class="language-q">q)neg -1 0 1 2
+1 0 -1 -2
+
+q)neg 01001b
+0 -1 0 0 -1i
+
+q)neg (0W;-0w;0N)               / infinities and a null
+-0W
+0w
+0N
+
+q)neg 2000.01.01 2012.01.01     / negates the underlying data value
+2000.01.01 1988.01.01
+</code></pre>
+<p>An atomic function.</p>

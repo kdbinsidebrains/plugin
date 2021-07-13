@@ -10,9 +10,13 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+import static java.util.stream.Stream.concat;
+
 public final class QLanguage extends Language {
-    private final List<QKeyword> keywords = new ArrayList<>();
-    private final Map<String, List<QKeyword>> systemFunctions = new LinkedHashMap<>();
+    private final List<QWord> keywords;
+    private final Map<String, List<QWord>> systemFunctions = new LinkedHashMap<>();
+
+    private final Map<String, QWord> words = new HashMap<>();
 
     private static final String VARIABLE_PATTERN = "([.a-zA-Z][a-zA-Z]|[a-zA-Z])[._a-zA-Z0-9]*";
     private static final Predicate<String> IDENTIFIER = Pattern.compile(VARIABLE_PATTERN).asPredicate();
@@ -22,22 +26,50 @@ public final class QLanguage extends Language {
     private QLanguage() {
         super("q");
 
-        keywords.addAll(loadCompletionItems("keywords", QKeyword.Type.KEYWORD));
-        systemFunctions.put(".Q", loadCompletionItems("q", QKeyword.Type.FUNCTION));
-
+        keywords = loadCompletionItems("keywords", QWord.Type.KEYWORD);
+        systemFunctions.put(".Q", loadCompletionItems("q", QWord.Type.FUNCTION));
         for (String s : Set.of("z", "j", "h")) {
-            systemFunctions.put("." + s, loadCompletionItems(s, QKeyword.Type.FUNCTION));
+            systemFunctions.put("." + s, loadCompletionItems(s, QWord.Type.FUNCTION));
         }
-        systemFunctions.put("\\", loadCompletionItems("commands", QKeyword.Type.COMMAND));
+        systemFunctions.put("\\", loadCompletionItems("commands", QWord.Type.COMMAND));
+
+        concat(keywords.stream(), systemFunctions.values().stream().flatMap(Collection::stream)).forEach(w -> words.put(w.getName(), w));
     }
 
-    private List<QKeyword> loadCompletionItems(String scope, QKeyword.Type type) {
-        final InputStream resourceAsStream = getClass().getResourceAsStream("/org/kdb/inside/brains/completion/" + scope + ".csv");
+    public static QWord getWord(String name) {
+        return INSTANCE.words.get(name);
+    }
+
+
+    public static Collection<QWord> getKeywords() {
+        return Collections.unmodifiableCollection(INSTANCE.keywords);
+    }
+
+    public static Set<String> getSystemNamespaces() {
+        return Collections.unmodifiableSet(INSTANCE.systemFunctions.keySet());
+    }
+
+    public static List<QWord> getSystemFunctions(String namespace) {
+        return Collections.unmodifiableList(INSTANCE.systemFunctions.get(namespace));
+    }
+
+    public static boolean isSystemFunction(String name) {
+        final QWord w = getWord(name);
+        return w != null && w.getType() == QWord.Type.FUNCTION;
+    }
+
+    public static boolean isKeyword(String name) {
+        final QWord w = getWord(name);
+        return w != null && w.getType() == QWord.Type.KEYWORD;
+    }
+
+    private List<QWord> loadCompletionItems(String scope, QWord.Type type) {
+        final InputStream resourceAsStream = getClass().getResourceAsStream("/org/kdb/inside/brains/words/" + scope + ".csv");
         if (resourceAsStream == null) {
             return List.of();
         }
 
-        final List<QKeyword> res = new ArrayList<>();
+        final List<QWord> res = new ArrayList<>();
         try (BufferedReader r = new BufferedReader(new InputStreamReader(resourceAsStream))) {
             String s = r.readLine();
             while (s != null) {
@@ -46,38 +78,13 @@ public final class QLanguage extends Language {
                 final String name = split[0].trim();
                 final String args = split[1].trim();
                 final String desc = split[2].trim();
-                res.add(new QKeyword(name, type, args, desc));
+                final String docs = split.length > 3 ? split[3].trim() : null;
+                res.add(new QWord(name, type, args, desc, docs));
                 s = r.readLine();
             }
         } catch (IOException ignore) {
         }
         return res;
-    }
-
-    public static List<QKeyword> getKeywords() {
-        return Collections.unmodifiableList(INSTANCE.keywords);
-    }
-
-    public static Set<String> getSystemNamespaces() {
-        return Collections.unmodifiableSet(INSTANCE.systemFunctions.keySet());
-    }
-
-    public static List<QKeyword> getSystemFunctions(String namespace) {
-        return Collections.unmodifiableList(INSTANCE.systemFunctions.get(namespace));
-    }
-
-    public static boolean isSystemFunction(String variableName) {
-        final Map<String, List<QKeyword>> systemFunctions = INSTANCE.systemFunctions;
-        for (Map.Entry<String, List<QKeyword>> entry : systemFunctions.entrySet()) {
-            if (variableName.startsWith(entry.getKey())) {
-                return entry.getValue().stream().anyMatch(e -> e.name.equals(variableName));
-            }
-        }
-        return false;
-    }
-
-    public static boolean isKeyword(String name) {
-        return INSTANCE.keywords.stream().anyMatch(e -> e.name.equals(name));
     }
 
     public static boolean isIdentifier(String name) {

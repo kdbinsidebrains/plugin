@@ -1,0 +1,9 @@
+<p><em>Get the value of an environment variable</em></p>
+<pre><code class="language-txt">getenv x     getenv[x]
+</code></pre>
+<p>where <code>x</code> is a symbol atom naming an environment variable, returns its value.</p>
+<pre><code class="language-q">q)getenv `SHELL
+&quot;/bin/bash&quot;
+q)getenv `UNKNOWN      / returns empty if variable not defined
+&quot;&quot;
+</code></pre>

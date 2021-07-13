@@ -1,0 +1,29 @@
+<p><em>Not zero</em></p>
+<p>Syntax: <code>not x</code></p>
+<p>Returns <code>0b</code> where <code>x</code> <strong>not</strong> equal to zero, and <code>1b</code> otherwise.</p>
+<p>Applies to all data types except symbol, and to items of lists, dictionary values and table columns, referring to the
+    underlying data value.</p>
+<p>Nulls and infinities never equal zero.</p>
+<pre><code class="language-q">q)not -1 0 1 2
+0100b
+
+q)not &quot;abc&quot;,&quot;c&quot;$0
+0001b
+
+q)not `a`b!(-1 0 2;&quot;abc&quot;,&quot;c&quot;$0)
+a| 010b
+b| 0001b
+
+q)not 2000.01.01 2020.06.30
+10b
+
+q)not 00:00:00
+1b
+
+q)not 12:00:00.000000000
+0b
+
+q)not (0W;-0w;0N)
+000b
+</code></pre>
+<p>An atomic function. </p>

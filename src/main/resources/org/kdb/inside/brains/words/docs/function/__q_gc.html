@@ -1,0 +1,76 @@
+<pre><code class="language-txt">.Q.gc[]
+</code></pre>
+<p>Returns the amount of memory that was returned to the OS.</p>
+<pre><code class="language-q">q)a:til 10000000
+q).Q.w[]
+used| 67233056
+heap| 134217728
+peak| 134217728
+wmax| 0
+mmap| 0
+syms| 534
+symw| 23926
+q).Q.gc[]
+0
+q)delete a from `.
+`.
+q).Q.gc[]
+67108864
+q).Q.w[]
+used| 128768
+heap| 67108864
+peak| 134217728
+wmax| 0
+mmap| 0
+syms| 535
+symw| 23956
+</code></pre>
+<p>Note that memory can become fragmented and therefore difficult to release back to the OS.</p>
+<pre><code class="language-q">q)v:{(10#&quot;a&quot;;10000#&quot;b&quot;)}each til 10000000;
+q).Q.w[]
+used| 164614358256
+heap| 164752261120
+peak| 164752261120
+wmax| 0
+mmap| 0
+mphy| 270538350592
+syms| 569
+symw| 24934
+q).Q.gc[]
+134217728
+q).Q.w[]
+used| 164614358256
+heap| 164618043392
+peak| 164752261120
+wmax| 0
+mmap| 0
+mphy| 270538350592
+syms| 570
+symw| 24964
+q)v:v[;0] / just retain refs to the small char vectors of &quot;aaaaaaaa&quot;
+q)/the vectors of &quot;bbb..&quot;s will come from the same memory chunks
+q)/so can't be freed
+q).Q.gc[]
+134217728
+q).Q.w[]
+used| 454358256
+heap| 164618043392
+peak| 164752261120
+wmax| 0
+mmap| 0
+mphy| 270538350592
+syms| 570
+symw| 24964
+q)v:-8!v;0N!.Q.gc[];v:-9!v;.Q.w[] / serialize, release, deserialize
+164483825664 / amount freed by gc
+used| 454358848
+heap| 738197504
+peak| 164886478848
+wmax| 0
+mmap| 0
+mphy| 270538350592
+syms| 570
+symw| 24964
+</code></pre>
+<p>So if you have many nested data, e.g. columns of char vectors, or much grouping, you may be fragmenting memory quite
+    heavily.</p>

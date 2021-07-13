@@ -1,0 +1,26 @@
+<p><em>Sine, arcsine</em></p>
+<pre><code class="language-txt">sin x     sin[x]
+asin x    asin[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric, returns </p>
+<dl>
+    <dt><code>sin</code></dt>
+    <dd>the <a href="https://en.wikipedia.org/wiki/Sine">sine</a> of <code>x</code>, taken to be in radians. The result
+        is between <code>-1</code> and <code>1</code>, or null if the argument is null or infinity.
+    </dd>
+    <dt><code>asin</code></dt>
+    <dd>the <a href="https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Basic_properties">arcsine</a> of
+        <code>x</code>; that is, the value whose sine is <code>x</code>. The result is in radians and lies between <span
+                class="arithmatex">\(-\frac{\pi}{2}\)</span> and <span class="arithmatex">\(\frac{\pi}{2}\)</span>. (The
+        range is approximate due to rounding errors).
+        Null is returned if the argument is not between -1 and 1.
+    </dd>
+</dl>
+<pre><code class="language-q">q)sin 0.5       / sine
+0.4794255
+q)sin 1%0
+0n
+
+q)asin 0.8      / arcsine
+0.9272952
+</code></pre>

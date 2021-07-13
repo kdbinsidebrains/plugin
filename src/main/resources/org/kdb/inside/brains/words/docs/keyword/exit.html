@@ -1,0 +1,12 @@
+<p><em>Terminate kdb+</em></p>
+<pre><code class="language-txt">exit x    exit[x]
+</code></pre>
+<p>where <code>x</code> is a positive integer, terminates the kdb+ process with <code>x</code> as the exit code.</p>
+<pre><code class="language-q">q)exit 0        / typical successful exit status
+..
+
+q)exit 42
+</code></pre>
+<pre><code class="language-bash">$ echo $?
+42
+</code></pre>

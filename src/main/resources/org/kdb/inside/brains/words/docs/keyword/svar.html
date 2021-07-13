@@ -1,0 +1,13 @@
+<p><em>Sample variance</em></p>
+<pre><code class="language-txt">svar x    svar[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric list, returns its <a href="https://en.wikipedia.org/wiki/Variance#Sample_variance"
+                                                          title="Wikipedia">sample variance</a> as a float atom.</p>
+<div class="arithmatex">\[svar(x)=\frac{n}{n-1}var(x)\]</div>
+<pre><code class="language-q">q)var 2 3 5 7
+3.6875
+q)svar 2 3 5 7
+4.916667
+q)select svar price by sym from trade where date=2010.10.10,sym in`IBM`MSFT
+</code></pre>
+<p><code>svar</code> is an aggregate function, equivalent to <code>{var[x]*count[x]%-1+count x}</code>.</p>

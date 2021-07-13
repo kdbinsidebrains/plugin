@@ -1,0 +1,33 @@
+<p><em>Everything is true</em></p>
+<pre><code class="language-txt">all x    all[x]
+</code></pre>
+<p>Returns a boolean atom <code>0b</code>; or <code>1b</code> where <code>x</code> is</p>
+<ul>
+    <li>a list and all items are non-zero</li>
+    <li>a non-zero atom</li>
+    <li>an empty list</li>
+</ul>
+<p>Applies to all datatypes except symbols and GUIDs.</p>
+<p>Where <code>x</code> is a table, <code>all</code> iterates over its columns and returns a dictionary.</p>
+<pre><code class="language-q">q)all null ([] c1:`a`b`c; c2:0n 0n 0n; c3:10 0N 30)
+c1| 0
+c2| 1
+c3| 0
+</code></pre>
+<p>Strings are <a href="https://code.kx.com/q/ref/cast/">cast</a> to boolean.</p>
+<p><code>all</code> is an aggregate function.</p>
+<pre><code class="language-q">q)all 1 2 3=1 2 4
+0b
+q)all 1 2 3=1 2 3
+1b
+q)all &quot;YNYN&quot; / string casts to 1111b
+1b
+q)all () /no zeros here
+1b
+q)all 2000.01.01
+0b
+q)all 2000.01.02 2010.01.02
+1b
+
+q)if[all x in y;....]   / use in control structure
+</code></pre>

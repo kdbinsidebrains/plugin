@@ -1,0 +1,9 @@
+<pre><code class="language-txt">.h.ha[x;y]
+</code></pre>
+<p>Where <code>x</code> is the <code>href</code> attribute as a symbol atom or a string, and <code>y</code> is the link
+    text as a string, returns as a string an HTML <code>A</code> element.</p>
+<pre><code class="language-q">q).h.ha[`http://www.example.com;&quot;Example.com Main Page&quot;]
+&quot;&lt;a href=http://www.example.com&gt;Example.com Main Page&lt;/a&gt;&quot;
+q).h.ha[&quot;http://www.example.com&quot;;&quot;Example.com Main Page&quot;]
+&quot;&lt;a href=\&quot;http://www.example.com\&quot;&gt;Example.com Main Page&lt;/a&gt;&quot;
+</code></pre>

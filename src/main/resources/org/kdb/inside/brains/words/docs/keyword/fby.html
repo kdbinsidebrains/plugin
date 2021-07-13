@@ -1,0 +1,10 @@
+<p><em>Apply an aggregate to groups</em></p>
+<pre><code class="language-syntax">(aggr;d) fby g
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>aggr</code> is an aggregate function</li>
+    <li><code>d</code> and <code>g</code> are conforming vectors</li>
+</ul>
+<p>collects the items of <code>d</code> into sublists according to the corresponding items of <code>g</code>, applies
+    <code>aggr</code> to each sublist, and returns the results as a vector with the same count as <code>d</code>.</p>

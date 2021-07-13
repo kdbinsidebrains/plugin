@@ -1,0 +1,10 @@
+<p>A reference to the current function.</p>
+<pre><code class="language-q">q){.z.s}[]
+{.z.s}
+</code></pre>
+<p>Can be used to generate recursive function calls.</p>
+<pre><code class="language-q">q)fact:{$[x&lt;=0;1;x*.z.s x-1]}
+q)fact[5]
+120
+</code></pre>
+<p>Note this is purely an example; there are other ways to achieve the same result.</p>

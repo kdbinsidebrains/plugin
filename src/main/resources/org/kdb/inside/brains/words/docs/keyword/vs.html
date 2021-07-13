@@ -1,0 +1,104 @@
+<p><em>“Vector from scalar”</em></p>
+<ul>
+    <li><em>partition a list</em></li>
+    <li><em>encode a vector from an atom</em></li>
+</ul>
+<pre><code class="language-txt">x vs y    vs[x;y]
+</code></pre>
+<h2 id="partition">Partition</h2>
+<h3 id="string-by-char">String by char</h3>
+<p>Where <code>x</code> is a char atom or string, and <code>y</code> is a string, returns a list of strings:
+    <code>y</code> cut using <code>x</code> as the delimiter.</p>
+<pre><code class="language-q">q)&quot;,&quot; vs &quot;one,two,three&quot;
+&quot;one&quot;
+&quot;two&quot;
+&quot;three&quot;
+q)&quot;, &quot; vs &quot;spring, summer, autumn, winter&quot;
+&quot;spring&quot;
+&quot;summer&quot;
+&quot;autumn&quot;
+&quot;winter&quot;
+q)&quot;|&quot; vs &quot;red|green||blue&quot;
+&quot;red&quot;
+&quot;green&quot;
+&quot;&quot;
+&quot;blue&quot;
+</code></pre>
+<h3 id="string-by-linebreak">String by linebreak</h3>
+<p>Where <code>x</code> is the empty symbol <code>`</code>, and <code>y</code> is a string, returns as a list of strings
+    <code>y</code> partitioned on embedded line terminators into lines. (Recognizes both Unix <code>\n</code> and
+    Windows <code>\r\n</code> terminators).</p>
+<pre><code class="language-q">q)` vs &quot;abc\ndef\nghi&quot;
+&quot;abc&quot;
+&quot;def&quot;
+&quot;ghi&quot;
+q)` vs &quot;abc\r\ndef\r\nghi&quot;
+&quot;abc&quot;
+&quot;def&quot;
+&quot;ghi&quot;
+</code></pre>
+<h3 id="symbol-by-dot">Symbol by dot</h3>
+<p>Where <code>x</code> is the null symbol <code>`</code>, and <code>y</code> is a symbol, returns as a symbol vector
+    <code>y</code> split on <code>`.`</code>.</p>
+<pre><code class="language-q">q)` vs `mywork.dat
+`mywork`dat
+</code></pre>
+<h3 id="file-handle">File handle</h3>
+<p>Where <code>x</code> is the empty symbol <code>`</code>, and <code>y</code> is a file handle, returns as a symbol
+    vector <code>y</code> split into directory and file parts.</p>
+<pre><code class="language-q">q)` vs `:/home/kdb/data/mywork.dat
+`:/home/kdb/data`mywork.dat
+</code></pre>
+<h2 id="encode">Encode</h2>
+<h3 id="bit-representation">Bit representation</h3>
+<p>Where <code>x</code> is <code>0b</code> and <code>y</code> is an integer, returns the bit representation of
+    <code>y</code>.</p>
+<pre><code class="language-q">q)0b vs 23173h
+0101101010000101b
+q)0b vs 23173
+00000000000000000101101010000101b
+</code></pre>
+<h3 id="byte-representation">Byte representation</h3>
+<p>Where <code>x</code> is <code>0x0</code> and <code>y</code> is a number, returns the internal representation of
+    <code>y</code>, with each byte in hex.</p>
+<pre><code class="language-q">q)0x0 vs 2413h
+0x096d
+q)0x0 vs 2413
+0x0000096d
+q)0x0 vs 2413e
+0x4516d000
+q)0x0 vs 2413f
+0x40a2da0000000000
+q)&quot;.&quot;sv string&quot;h&quot;$0x0 vs .z.a / ip address string from .z.a
+&quot;192.168.1.213&quot;
+</code></pre>
+<h3 id="base-x-representation">Base-x representation</h3>
+<p>Where <code>x</code> and <code>y</code> are integer, the result is the representation of <code>y</code> in base
+    <code>x</code>. (Since V3.4t 2015.12.13.)</p>
+<pre><code class="language-q">q)10 vs 1995
+1 9 9 5
+q)2 vs 9
+1 0 0 1
+q)24 60 60 vs 3805
+1 3 25
+q)&quot;.&quot; sv string 256 vs .z.a / ip address string from .z.a
+&quot;192.168.1.213&quot;
+</code></pre>
+<p>Where <code>y</code> is an integer vector the result is a matrix with <code>count[x]</code> items whose
+    <code>i</code>-th column <code>(x vs y)[;i]</code> is identical to <code>x vs y[i]</code>.
+    More generally, <code>y</code> can be any list of integers, and each item of the result is identical to
+    <code>y</code> in structure.</p>
+<pre><code class="language-q">q)a:10 vs 1995 1996 1997
+q)a
+1 1 1
+9 9 9
+9 9 9
+5 6 7
+q)a[;0]
+1 9 9 5
+q)10 vs(1995;1996 1997)
+1 1 1
+9 9 9
+9 9 9
+5 6 7
+</code></pre>

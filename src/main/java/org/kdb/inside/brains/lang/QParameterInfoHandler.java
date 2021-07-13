@@ -18,6 +18,9 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvoke, QPar
     @Override
     public @Nullable QInvoke findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
         final QInvoke invoke = findInvoke(context.getFile(), context.getOffset());
+        if (invoke == null) {
+            return null;
+        }
 
         final QVarReference ref;
         final QLambda rawLambda = invoke.getLambda();

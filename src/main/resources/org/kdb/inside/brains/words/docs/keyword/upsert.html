@@ -1,0 +1,14 @@
+<p><em>Add new records to a table</em></p>
+<pre><code class="language-txt">x upsert y    upsert[x;y]
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>x</code> is a table, or the name of a table as a symbol atom, or the name of a splayed table as a
+        directory handle
+    </li>
+    <li><code>y</code> is one or more records with types matching <code>x</code>, or a table with conforming columns
+    </li>
+</ul>
+<p>If <code>x</code> is the name of a table, it is updated in place. Otherwise the updated table is returned.</p>
+<p>If <code>x</code> is the name of a table as a symbol atom (or the name of a splayed table as a directory handle) that
+    does not exits in the file system, it is written.</p>

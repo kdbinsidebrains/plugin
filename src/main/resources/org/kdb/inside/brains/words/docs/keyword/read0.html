@@ -1,0 +1,56 @@
+<p><em>Read text from a file or process handle</em></p>
+<pre><code class="language-txt">read0 f           read0[f]
+read0 (f;o;n)     read0[(f;o;n)]
+read0 h           read0[h]
+read0 (fifo;n)    read0[(fifo;n)]
+</code></pre>
+<p>where</p>
+<ul>
+    <li><code>f</code> is a <a href="https://code.kx.com/q/basics/glossary/#file-symbol">file symbol</a></li>
+    <li><code>(f;o;n)</code> is a <a href="https://code.kx.com/q/basics/glossary/#file-descriptor">file descriptor</a>
+    </li>
+    <li><code>h</code> is a <a href="https://code.kx.com/q/basics/handles/">system or connection handle</a></li>
+    <li><code>fifo</code> is a communication handle to a <a
+            href="https://code.kx.com/q/ref/hopen/#communication-handles">Fifo</a></li>
+    <li><code>n</code> is a non-negative integer</li>
+</ul>
+<p>returns character data from the source as follows. </p>
+<h2 id="file-symbol">File symbol</h2>
+<p>Returns the lines of the file as a list of strings. Lines are assumed delimited by either LF or CRLF, and the
+    delimiters are removed.</p>
+<pre><code class="language-q">q)`:test.txt 0:(&quot;hello&quot;;&quot;goodbye&quot;)  / write some text to a file
+q)read0`:test.txt
+&quot;hello&quot;
+&quot;goodbye&quot;
+
+q)/ read 500000 lines, chunks of (up to) 100000 at a time
+q)d:raze{read0(`:/tmp/data;x;100000)}each 100000*til 5
+</code></pre>
+<h2 id="file-descriptor">File descriptor</h2>
+<p>Returns <code>n</code> chars from the file, starting from the position <code>o</code>.</p>
+<pre><code class="language-q">q)`:foo 0: enlist &quot;hello world&quot;
+q)read0 (`:foo;6;5)
+&quot;world&quot;
+</code></pre>
+<h2 id="system-or-process-handle">System or process handle</h2>
+<p>Returns a line of text from the source.</p>
+<pre><code class="language-q">q)rl:{1&quot;&gt;&gt; &quot;;read0 0}
+q)rl`
+&gt;&gt; xiskso
+&quot;xiskso&quot;
+</code></pre>
+<p>Reading the console permits interactive input.</p>
+<pre><code class="language-q">q)1&quot;&gt;&gt; &quot;;a:read0 0
+&gt;&gt; whatever
+q)a[4+til 4]
+&quot;ever&quot;
+</code></pre>
+<h2 id="fifonamed-pipe">Fifo/named pipe</h2>
+<p>Returns <code>n</code> characters from the pipe.
+    (Since V3.4 2016.05.31)</p>
+<pre><code class="language-q">q)h:hopen`$&quot;:fifo:///etc/redhat-release&quot;
+q)read0(h;8)
+&quot;Red Hat &quot;
+q)read0(h;8)
+&quot;Enterpri&quot;
+</code></pre>

@@ -1,0 +1,13 @@
+<pre><code class="language-txt">x cov y    cov[x;y]
+</code></pre>
+<p>Where <code>x</code> and <code>y</code> are <a href="https://code.kx.com/q/basics/conformable/">conforming</a>
+    numeric lists returns their <a href="https://en.wikipedia.org/wiki/Covariance" title="Wikipedia">covariance</a> as a
+    floating-point number. Applies to all numeric data types and signals an error with temporal types, char and sym.</p>
+<pre><code class="language-q">q)2 3 5 7 cov 3 3 5 9
+4.5
+q)2 3 5 7 cov 4 3 0 2
+-1.8125
+q)select price cov size by sym from trade
+</code></pre>
+<p><code>cov</code> is an aggregate function.</p>
+<p>The function <code>cov</code> is equivalent to <code>{avg[x*y]-avg[x]*avg y}</code>.</p>

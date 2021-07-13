@@ -1,0 +1,17 @@
+<p><em>First x natural numbers</em></p>
+<pre><code class="language-txt">til x    til[x]
+</code></pre>
+<p>Where <code>x</code> is a non-negative integer atom, returns a vector of the first <code>x</code> integers. </p>
+<pre><code class="language-q">q)til 0
+`long$()
+q)til 1b
+,0
+q)til 5
+0 1 2 3 4
+q)til 5f
+'type
+  [0]  til 5f
+       ^
+</code></pre>
+<p><code>til</code> and <a href="https://code.kx.com/q/ref/key/"><code>key</code></a> are synonyms, but the above usage
+    is conventionally reserved to <code>til</code>.</p>

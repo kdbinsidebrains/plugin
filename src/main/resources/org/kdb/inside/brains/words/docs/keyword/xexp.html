@@ -1,0 +1,17 @@
+<p><em>Raise x to a power</em></p>
+<pre><code class="language-txt">x xexp y    xexp[x;y]
+</code></pre>
+<p>Where <code>x</code> and <code>y</code> are numerics, returns as a float where <code>x</code> is</p>
+<ul>
+    <li>non-negative, x<sup>y</sup></li>
+    <li>null or negative, <code>0n</code></li>
+</ul>
+<pre><code class="language-q">q)2 xexp 8
+256f
+
+q)-2 2 xexp .5
+0n 1.414214
+
+q)1.5 xexp -4.2 0 0.1 0n 0w
+0.1821448 1 1.04138 0n 0w
+</code></pre>

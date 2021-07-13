@@ -1,0 +1,50 @@
+.z.a   ,[] ,The IP address as a 32-bit integer, ref/dotz/#za-ip-address
+.z.ac  ,[], HTTP auth from cookie ,ref/dotz/#zac-http-auth-from-cookie
+.z.b   ,[] ,The dependency dictionary.,ref/dotz/#zb-dependencies
+.z.c   ,[] ,The number of physical cores.,ref/dotz/#zc-cores
+.z.d   ,[] ,UTC date,ref/dotz/#zt-zt-zd-zd-timedate-shortcuts
+.z.D   ,[] ,local date,ref/dotz/#zt-zt-zd-zd-timedate-shortcuts
+.z.e   ,[] ,TLS connection status,ref/dotz/#ze-tls-connection-status
+.z.ex  ,[] ,failed primitive,ref/dotz/#zex-failed-primitive
+.z.ey  ,[] ,argument to failed primitive,ref/dotz/#zey-argument-to-failed-primitive
+.z.f   ,[] ,Name of the q script as a symbol,ref/dotz/#zf-file
+.z.h   ,[] ,The host name as a symbol,ref/dotz/#zh-host
+.z.i   ,[] ,The process ID as an integer.,ref/dotz/#zi-pid
+.z.K   ,[] ,The major version number as a float,ref/dotz/#zk-version
+.z.k   ,[] ,Date on which the version of kdb+ being used was released.,ref/dotz/#zk-release-date
+.z.l   ,[] ,License information as a list of strings,ref/dotz/#zl-license
+.z.N   ,[] ,System local time as timespan in nanoseconds.,ref/dotz/#zn-local-timespan
+.z.n   ,[] ,System UTC time as timespan in nanoseconds.,ref/dotz/#zn-utc-timespan
+.z.o   ,[] ,operating system version as a symbol.,ref/dotz/#zo-os-version
+.z.P   ,[] ,System localtime timestamp in nanoseconds.,ref/dotz/#zp-local-timestamp
+.z.p   ,[] ,UTC timestamp in nanoseconds,ref/dotz/#zp-utc-timestamp
+.z.pm  ,[] ,HTTP options in format (OPTIONS;requestText;requestHeaderDict),ref/dotz/#zpm-http-options
+.z.q   ,[] ,1b if Quiet Mode is set else 0b.,ref/dotz/#zq-quiet-mode
+.z.s   ,[] ,A reference to the current function.,ref/dotz/#zs-self
+.z.T   ,[] ,local time,ref/dotz/#zt-zt-zd-zd-timedate-shortcuts
+.z.t   ,[] ,UTC time,ref/dotz/#zt-zt-zd-zd-timedate-shortcuts
+.z.u   ,[] ,User ID as a symbol,ref/dotz/#zu-user-id
+.z.w   ,[] ,Connection handle; 0 for current session console.,ref/dotz/#zw-handle
+.z.W   ,[] ,Dictionary of IPC handles with bytes in queues.,ref/dotz/#zw-handles
+.z.x   ,[] ,Command-line arguments as a list of strings,ref/dotz/#zx-argv
+.z.X   ,[] ,Returns a list of strings of the raw unfiltered command line,ref/dotz/#zx-raw-command-line
+.z.z   ,[] ,UTC datetime,ref/dotz/#zz-utc-datetime
+.z.Z   ,[] ,local datetime,ref/dotz/#zz-local-datetime
+.z.zd  ,[] ,zip defaults - .z.zd:(lbs;alg;lvl),ref/dotz/#zzd-zip-defaults
+.z.bm  ,[x] ,msg validator,ref/dotz/#zbm-msg-validator
+.z.exit,[x] ,action on exit,ref/dotz/#zexit-action-on-exit
+.z.pc  ,[x] ,close,ref/dotz/#zpc-close
+.z.pd  ,[x] ,peach handles,ref/dotz/#zpd-peach-handles
+.z.pg  ,[x] ,get,ref/dotz/#zpg-get
+.z.ph  ,[x] ,HTTP get,ref/dotz/#zph-http-get
+.z.pi  ,[x] ,input,ref/dotz/#zpi-input
+.z.po  ,[x] ,open,ref/dotz/#zpo-open
+.z.pp  ,[x] ,HTTP post,ref/dotz/#zpp-http-post
+.z.pq  ,[x] ,qcon,ref/dotz/#zpq-qcon
+.z.ps  ,[x] ,set,ref/dotz/#zps-set
+.z.pw  ,[u;p] ,validate user,ref/dotz/#zpw-validate-user
+.z.ts  ,[x] ,timer,ref/dotz/#zts-timer
+.z.vs  ,[x;y] ,value set,ref/dotz/#zvs-value-set
+.z.wc  ,[h] ,WebSocket close,ref/dotz/#zwc-websocket-close
+.z.wo  ,[h] ,WebSocket open,ref/dotz/#zwo-websocket-open
+.z.ws  ,[x] ,WebSockets,ref/dotz/#zws-websockets

@@ -1,0 +1,16 @@
+<pre><code class="language-txt">.h.cd x
+</code></pre>
+<p>Where <code>x</code> is a table or a list of columns returns a matrix of comma-separated values.</p>
+<pre><code class="language-q">q).h.cd ([]a:1 2 3;b:`x`y`z)
+&quot;a,b&quot;
+&quot;1,x&quot;
+&quot;2,y&quot;
+&quot;3,z&quot;
+
+q).h.cd (`a`b`c;1 2 3;&quot;xyz&quot;)
+&quot;a,1,x&quot;
+&quot;b,2,y&quot;
+&quot;c,3,z&quot;
+</code></pre>
+<p>Columns can be nested vectors, in which case <a href="#hd-delimiter"><code>.h.d</code></a> is used to separate
+    subitems. (Since V4.0 2020.03.17.)</p>

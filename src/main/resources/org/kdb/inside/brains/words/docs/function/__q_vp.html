@@ -1,0 +1,21 @@
+<pre><code class="language-txt">.Q.vp
+</code></pre>
+<p>In partitioned DBs, returns a dictionary of table schemas for tables with missing partitions, as populated by <code>.Q.bv</code>.
+    (Since V3.0 2012.01.26.)</p>
+<pre><code class="language-q">q)n:100
+q)t:([]time:.z.T+til n;sym:n?`2;num:n)
+q).Q.dpft[`:.;;`sym;`t]each 2010.01.01+til 5
+`t`t`t`t`t
+q)tt:t
+q).Q.dpft[`:.;;`sym;`tt]last 2010.01.01+til 5
+`tt
+q)\l .
+q)tt
++`sym`time`num!`tt
+q)@[get;&quot;select from tt&quot;;-2@]; / error
+./2010.01.01/tt/sym: No such file or directory
+q).Q.bv[]
+q).Q.vp
+tt| +`date`sym`time`num!(`date$();`sym$();`time$();`long$())
+q)@[get;&quot;select from tt&quot;;-2@]; / no error
+</code></pre>

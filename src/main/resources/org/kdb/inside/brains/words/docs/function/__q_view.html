@@ -1,0 +1,10 @@
+<pre><code class="language-txt">.Q.view x
+</code></pre>
+<p>Where <code>x</code> is a list of partition values that serves as a filter for all queries against any partitioned
+    table in the database, <code>x</code> is added as a constraint in the first sub-phrase of the where-clause of every
+    query.</p>
+<p><code>.Q.view</code> is handy when you are executing queries against partitioned or segmented tables. Recall that
+    multiple tables can share the partitioning. <code>Q.view</code> can guard against runaway queries that ask for all
+    historical data.</p>
+<pre><code class="language-q">.Q.view 2#date
+</code></pre>

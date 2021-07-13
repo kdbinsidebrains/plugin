@@ -1,0 +1,30 @@
+<div class="typewriter">
+    <p>\g [<em>mode</em>]</p>
+</div>
+<p>Show or set garbage-collection mode.
+    The default mode is 0.</p>
+<table>
+    <thead>
+    <tr>
+        <th>B</th>
+        <th>mode</th>
+        <th>behavior</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>0</td>
+        <td>deferred</td>
+        <td>returns memory to the OS when either <code>.Q.gc[]</code> is called or an allocation fails, hence has a
+            performance advantage, but can be more difficult to dimension or manage memory requirements.
+        </td>
+    </tr>
+    <tr>
+        <td>1</td>
+        <td>immediate</td>
+        <td>returns (certain types of) memory to the OS as soon as no longer referenced; has an associated performance
+            overhead.
+        </td>
+    </tr>
+    </tbody>
+</table>

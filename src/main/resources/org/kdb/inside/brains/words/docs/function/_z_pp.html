@@ -1,0 +1,7 @@
+<pre><code class="language-txt">.z.pp:f
+</code></pre>
+<p>Where <code>f</code> is a unary function, <code>.z.pp</code> is evaluated when an HTTP POST request is received in
+    the kdb+ session.</p>
+<p>There is no default implementation, but an example would be that it calls <a href="../value/"><code>value</code></a>
+    on the first item of its argument and returns the result to the calling task.</p>
+<p>See <code>.z.ph</code> for details of the argument.</p>

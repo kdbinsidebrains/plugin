@@ -1,0 +1,27 @@
+<p><em>Shift the items of a list to the left or right</em></p>
+<pre><code class="language-txt">x rotate y    rotate[x;y]
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>x</code> is an integer atom</li>
+    <li><code>y</code> is a list</li>
+</ul>
+<p>returns <code>y</code> rotated by <code>x</code> items.
+    Rotation is to the ‘left’ for positive <code>x</code>, to the ‘right’ for negative <code>x</code>.</p>
+<pre><code class="language-q">q)2 rotate 2 3 5 7 11    / rotate a list
+5 7 11 2 3
+q)-2 rotate 2 3 5 7 11
+7 11 2 3 5
+q)t:([]a:1 2 3;b:&quot;xyz&quot;)
+q)1 rotate t             / rotate a table
+a b
+---
+2 y
+3 z
+1 x
+q)0 1 -1 rotate' 3 4#til 12
+0  1 2 3
+5  6 7 4
+11 8 9 10
+</code></pre>
+<p><code>rotate</code> is a uniform function. </p>

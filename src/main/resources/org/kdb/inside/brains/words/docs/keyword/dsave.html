@@ -1,0 +1,13 @@
+<p><em>Write global tables to disk as splayed, enumerated, indexed kdb+ tables.</em></p>
+<pre><code class="language-txt">x dsave y     dsave[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is the <em>save path</em> as a file symbol atom or vector</li>
+    <li><code>y</code> is one or more table names as a symbol atom or vector</li>
+</ul>
+<p>save the table/s and returns the list of table names.
+    (Since V3.2 2014.05.07.)</p>
+<p>The first column of each table saved has the <a href="https://code.kx.com/q/ref/set-attribute/">partitioned
+    attribute</a> applied to it. If the save path is a list, the first item is the HDB root (where the sym file, if any,
+    will be stored), while the remaining items are a path within the HDB (e.g. a partition).</p>

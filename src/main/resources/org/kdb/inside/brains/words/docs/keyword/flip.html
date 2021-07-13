@@ -1,0 +1,21 @@
+<pre><code class="language-txt">flip x     flip[x]
+</code></pre>
+<p>Returns <code>x</code> transposed, where <code>x</code> may be a list of lists, a dictionary or a table. </p>
+<p>In a list of lists, each list must be the same length.</p>
+<pre><code class="language-q">q)flip (1 2 3;4 5 6)
+1 4
+2 5
+3 6
+</code></pre>
+<p>The flip of a dictionary is a table, and vice versa. If <code>x</code> is a dictionary where the keys are a list of
+    symbols, and the values are lists of the same count (or atoms), then <code>flip x</code> will return a table. The
+    flip of a table is a dictionary.</p>
+<pre><code class="language-q">q)D:`sym`price`size!(`IBM`MSFT;10.2 23.45;100 100)
+q)flip D
+sym  price size
+---------------
+IBM  10.2  100
+MSFT 23.45 100
+q)D~flip flip D
+1b
+</code></pre>

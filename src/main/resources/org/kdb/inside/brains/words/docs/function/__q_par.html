@@ -1,0 +1,15 @@
+<pre><code class="language-txt">.Q.par[dir;part;table]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>dir</code> is a directory filepath</li>
+    <li><code>part</code> is a date</li>
+</ul>
+<p>returns the location of <code>table</code>. (Sensitive to <code>par.txt</code>.)</p>
+<pre><code class="language-q">q).Q.par[`:.;2010.02.02;`quote]
+`:/data/taq/2010.02.02/quote
+</code></pre>
+<p>Can assist in checking <code>`p</code> attribute is present on all partitions of a table in an HDB</p>
+<pre><code class="language-q">q)all{`p=attr .Q.par[`:.;x;`quote]`sym}each  date
+1b
+</code></pre>

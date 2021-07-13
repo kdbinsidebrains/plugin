@@ -1,0 +1,106 @@
+<p><em>"Scalar from vector"</em></p>
+<ul>
+    <li><em>join strings, symbols, or filepath elements</em></li>
+    <li><em>decode a vector to an atom</em></li>
+</ul>
+<pre><code class="language-txt">x sv y    sv[x;y]
+</code></pre>
+<h2 id="join">Join</h2>
+<h3 id="strings">Strings</h3>
+<p>Where</p>
+<ul>
+    <li><code>y</code> is a list of strings</li>
+    <li><code>x</code> is a char atom, string, or the empty symbol</li>
+</ul>
+<p>returns as a string the strings in <code>y</code> joined by <code>x</code>.</p>
+<p>Where <code>x</code> is the empty symbol <code>`</code>, the strings are separated by the host line separator: <code>\n</code>
+    on Unix, <code>\r\n</code> on Windows.</p>
+<pre><code class="language-q">q)&quot;,&quot; sv (&quot;one&quot;;&quot;two&quot;;&quot;three&quot;)    / comma-separated
+&quot;one,two,three&quot;
+q)&quot;\t&quot; sv (&quot;one&quot;;&quot;two&quot;;&quot;three&quot;)   / tab-separated
+&quot;one\ttwo\tthree&quot;
+q)&quot;, &quot; sv (&quot;one&quot;;&quot;two&quot;;&quot;three&quot;)   / x may be a string
+&quot;one, two, three&quot;
+q)&quot;.&quot; sv string 192 168 1 23      / form IP address
+&quot;192.168.1.23&quot;
+q)` sv (&quot;one&quot;;&quot;two&quot;;&quot;three&quot;)      / use host line separator
+&quot;one\ntwo\nthree\n&quot;
+</code></pre>
+<h3 id="symbols">Symbols</h3>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is the empty symbol <code>`</code></li>
+    <li><code>y</code> is a symbol list</li>
+</ul>
+<p>returns a symbol atom in which the items of <code>y</code> are joined by periods, i.e. </p>
+<pre><code class="language-q">q)` sv `quick`brown`fox
+`quick.brown.fox
+q)`$&quot;.&quot;sv string `quick`brown`fox
+`quick.brown.fox
+</code></pre>
+<h3 id="filepath-components">Filepath components</h3>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is the empty symbol <code>`</code></li>
+    <li><code>y</code> is a symbol list of which the first item is a file handle</li>
+</ul>
+<p>returns a file handle where the items of the list are joined, separated by slashes. (This is useful when building
+    file paths.)</p>
+<pre><code class="language-q">q)` sv `:/home/kdb/q`data`2010.03.22`trade
+`:/home/kdb/q/data/2010.03.22/trade
+</code></pre>
+<p>If the first item is not a file handle, returns a symbol where the items are joined, separated by <code>.</code>
+    (dot). This is useful for building filenames with a given extension:</p>
+<pre><code class="language-q">q)` sv `mywork`dat
+`mywork.dat
+</code></pre>
+<h2 id="decode">Decode</h2>
+<h3 id="base-to-integer">Base to integer</h3>
+<p>Where <code>x</code> and <code>y</code> are <strong>numeric</strong> atoms or lists, <code>y</code> is evaluated to
+    base <code>x</code>.</p>
+<pre><code class="language-q">q)10 sv 2 3 5 7
+2357
+q)100 sv 2010 3 17
+20100317
+q)0 24 60 60 sv 2 3 5 7   / 2 days, 3 hours, 5 minutes, 7 seconds
+183907
+</code></pre>
+<p>When <code>x</code> is a list, the first number is not used. The calculation is done as:</p>
+<pre><code class="language-q">q)baseval:{y wsum reverse prds 1,reverse 1_x}
+q)baseval[0 24 60 60;2 3 5 7]
+183907f
+</code></pre>
+<h3 id="bytes-to-integer">Bytes to integer</h3>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is <code>0x0</code></li>
+    <li><code>y</code> is a vector of bytes of length 2, 4 or 8</li>
+</ul>
+<p>returns <code>y</code> converted to the corresponding integer.</p>
+<pre><code class="language-q">q)0x0 sv &quot;x&quot; $0 255           / short
+255h
+q)0x0 sv &quot;x&quot; $128 255
+-32513h
+q)0x0 sv &quot;x&quot; $0 64 128 255    / int
+4227327
+q)0x0 sv &quot;x&quot; $til 8           / long
+283686952306183
+q)256 sv til 8                / same calculation
+283686952306183
+</code></pre>
+<h3 id="bits-to-integer">Bits to integer</h3>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is <code>0b</code></li>
+    <li><code>y</code> is a boolean vector of length 8, 16, 32, or 64</li>
+</ul>
+<p>returns <code>y</code> converted to the corresponding integer or (in the case of 8 bits) a byte value.</p>
+<pre><code class="language-q">q)0b sv 64#1b
+-1
+q)0b sv 32#1b
+-1i
+q)0b sv 16#1b
+-1h
+q)0b sv 8#1b
+0xff
+</code></pre>

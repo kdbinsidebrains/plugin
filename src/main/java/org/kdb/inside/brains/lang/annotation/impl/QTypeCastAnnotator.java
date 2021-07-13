@@ -22,15 +22,17 @@ import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QTypeCast;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
-    final List<KdbType> types;
+    private final List<TypeCast> typeCasts;
+    private final Set<String> extractors = Set.of("hh", "mm", "ss");
 
     public QTypeCastAnnotator() {
         super(QTypeCast.class);
-        types = Stream.of(KdbType.values()).collect(Collectors.toList());
+        typeCasts = Stream.of(KdbType.values()).map(TypeCast::new).collect(Collectors.toList());
     }
 
     @Override
@@ -44,21 +46,25 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
 
         final TextRange r = castType.getTextRange();
 
-        final boolean code;
+        final int code;
         final TextRange range;
         if (name.length() == 1) {
             final char ch = name.charAt(0);
-            if (Character.isUpperCase(ch) && KdbType.byCode(Character.toLowerCase(ch)) != null) {
+            if (KdbType.byCode(Character.toLowerCase(ch)) != null) {
                 return;
             }
-            code = true;
+            code = Character.isUpperCase(ch) ? 1 : 2;
             range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 2);
         } else {
+            if (extractors.contains(name)) {
+                return;
+            }
+
             final KdbType type = KdbType.byName(name);
             if (type != null) {
                 return;
             }
-            code = false;
+            code = 0;
             range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 1);
         }
 
@@ -83,18 +89,21 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
                     @Override
                     public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
                         JBPopupFactory.getInstance()
-                                .createPopupChooserBuilder(types)
+                                .createPopupChooserBuilder(typeCasts)
                                 .setRenderer(new ListCellRendererWithRightAlignedComponent<>() {
                                     @Override
-                                    protected void customize(KdbType value) {
-                                        this.setLeftText(value.getName());
+                                    protected void customize(TypeCast typeCast) {
+                                        this.setLeftText(typeCast.name);
                                         this.setRightForeground(JBColor.GRAY);
-                                        this.setRightText(String.valueOf(value.getUpperCode()));
+                                        if (code == 1) {
+                                            this.setRightText(typeCast.upperCode);
+                                        } else if (code == 2) {
+                                            this.setRightText(typeCast.lowerCode);
+                                        }
                                     }
-
                                 })
                                 .setItemChosenCallback(t -> {
-                                    final String name = code ? String.valueOf(Character.toUpperCase(t.getCode())) : t.getName();
+                                    final String name = code == 0 ? t.name : code == 1 ? t.upperCode : t.lowerCode;
                                     WriteCommandAction.runWriteCommandAction(project, () -> editor.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), name));
                                 })
                                 .createPopup()
@@ -106,5 +115,21 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
                         return false;
                     }
                 }).create();
+    }
+
+    private static class TypeCast {
+        private final String name;
+        private final String lowerCode;
+        private final String upperCode;
+
+        public TypeCast(KdbType type) {
+            this(type.getName(), type.getCode());
+        }
+
+        public TypeCast(String name, char code) {
+            this.name = name;
+            this.lowerCode = String.valueOf(Character.toLowerCase(code));
+            this.upperCode = String.valueOf(Character.toUpperCase(code));
+        }
     }
 }

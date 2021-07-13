@@ -1,0 +1,29 @@
+<p><em>Matrix multiply, dot product</em></p>
+<pre><code class="language-txt">x mmu y    mmu[x;y]
+x$y        $[x;y]
+</code></pre>
+<p>Where <code>x</code> and <code>y</code> are both float vectors or matrixes, returns their matrix- or dot-product.</p>
+<p><code>count y</code> must match</p>
+<ul>
+    <li><code>count x</code> where <code>x</code> is a vector</li>
+    <li><code>count first x</code> where <code>x</code> is a matrix</li>
+</ul>
+<pre><code class="language-q">q)a:2 4#2 4 8 3 5 6 0 7f
+q)b:4 3#&quot;f&quot;$til 12
+q)a mmu b
+87 104 121
+81 99  117
+
+q)c:3 3#2 4 8 3 5 6 0 7 1f
+q)1=c mmu inv c
+100b
+010b
+001b
+
+q)(1 2 3f;4 5 6f)$(7 8f;9 10f;11 12f)
+58  64
+139 154
+
+q)1 2 3f$4 5 6f  /dot product of two vectors
+32f
+</code></pre>

@@ -1,0 +1,18 @@
+<p><em>Close a connection to a file or process</em></p>
+<pre><code class="language-txt">hclose x     hclose[x]
+</code></pre>
+<p>Where <code>x</code> is a connection handle, closes the connection, and destroys the handle.
+    The corresponding integer can then no longer be applied to an argument.</p>
+<pre><code class="language-q">q)show h:hopen `::5001
+3i
+q)h&quot;til 5&quot;
+0 1 2 3 4
+q)hclose h
+q)h&quot;til 5&quot;
+': Bad file descriptor
+</code></pre>
+<p>Async connections: pending data on the connection handle is not sent prior to closing.
+    If flushing is required prior to close, this must be done explicitly.
+    (Since V3.6 2019.09.19)</p>
+<pre><code class="language-q">q)neg[h][];hclose h;
+</code></pre>

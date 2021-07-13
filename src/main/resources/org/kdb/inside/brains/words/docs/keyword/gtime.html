@@ -1,0 +1,9 @@
+<p><em>UTC equivalent of local timestamp</em></p>
+<pre><code class="language-txt">gtime ts    gtime[ts]
+</code></pre>
+<p>Where <code>ts</code> is a datetime/timestamp, returns the UTC datetime/timestamp.</p>
+<pre><code class="language-q">q).z.p
+2009.10.20D10:52:17.782138000
+q)gtime .z.P                      / same timezone as .z.p
+2009.10.20D10:52:17.783660000
+</code></pre>

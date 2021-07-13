@@ -1,0 +1,42 @@
+<pre><code class="language-txt">key x     key[x]
+</code></pre>
+
+<h2 id="key-of-a-dictionary">Key of a dictionary</h2>
+<p>Where <code>x</code> is a dictionary (or the name of one), returns its key.</p>
+<p>A namespace is a dictionary.</p>
+
+<h2 id="keys-of-a-keyed-table">Keys of a keyed table</h2>
+<p>Where <code>x</code> is a keyed table (or the name of one), returns its key column/s.</p>
+
+<h2 id="files-in-a-folder">Files in a folder</h2>
+<p>Where <code>x</code> is a directory handle returns a list of objects in the directory, sorted ascending.</p>
+
+<h2 id="whether-a-folder-exists">Whether a folder exists</h2>
+<p>An empty folder returns an empty symbol vector; a non-existent folder returns an empty general list. </p>
+
+<h2 id="whether-a-file-exists">Whether a file exists</h2>
+<p>Where <code>x</code> is a file handle, returns the descriptor if the file exists, otherwise an empty list.</p>
+<p>Note that </p>
+<ul>
+    <li>an empty directory returns an empty symbol vector</li>
+    <li>a non-existent directory returns an empty general list</li>
+</ul>
+
+<h2 id="whether-a-name-is-defined">Whether a name is defined</h2>
+<p>Where <code>x</code> is a symbol atom that is not a file or directory descriptor, nor the name of a dictionary or
+    table, returns the original symbol if a variable of that name exists, otherwise an empty list. The name is
+    interpreted relative to the current context if not fully qualified.</p>
+
+<h2 id="target-of-a-foreign-key">Target of a foreign key</h2>
+<p>Where <code>x</code> is a foreign-key column returns the name of the foreign-key table.</p>
+
+<h2 id="type-of-a-vector">Type of a vector</h2>
+<p>Where <code>x</code> is a vector returns the name of its <a href="https://code.kx.com/q/basics/datatypes/">type</a>
+    as a symbol.</p>
+
+<h2 id="enumerator-of-a-list">Enumerator of a list</h2>
+<p>Where <code>x</code> is an enumerated list returns the name of the enumerating list.</p>
+
+<h2 id="til"><code>til</code></h2>
+<p>Where <code>x</code> is a non-negative integer returns the same result as <a
+        href="https://code.kx.com/q/ref/til/"><code>til</code></a>.</p>

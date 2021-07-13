@@ -1,0 +1,30 @@
+<p><em>Integer division</em></p>
+<pre><code class="language-txt">x div y    div[x;y]
+</code></pre>
+<p>Returns the greatest whole number that does not exceed <code>x%y</code>.</p>
+<pre><code class="language-q">q)7 div 3
+2
+
+q)7 div 2 3 4
+3 2 1
+
+q)-7 7 div/:\:-2.5 -2 2 2.5
+2  3  -4 -3
+-3 -4 3  2
+</code></pre>
+<p>Except for char, byte, short, and real, preserves the type of the first argument.</p>
+<pre><code class="language-q">q)7f div 2
+3f
+q)6i div 4
+1i
+q)2014.10.13 div 365
+2000.01.15
+</code></pre>
+<p>The exceptions are char, byte, short, and real, which get converted to ints.</p>
+<pre><code class="language-q">q)7h div 3
+2i
+q)0x80 div 16
+8i
+q)&quot;\023&quot; div 8
+2i
+</code></pre>

@@ -1,0 +1,18 @@
+<p><em>Parse a string</em></p>
+<pre><code class="language-txt">parse x     parse[x]
+</code></pre>
+<p>Where <code>x</code> is a string representing </p>
+<ul>
+    <li>a well-formed q expression, returns a parse tree (V3.4 can accept newlines within the string; earlier versions
+        cannot.)
+    </li>
+    <li>a function, returns the function</li>
+</ul>
+<pre><code class="language-q">q)parse &quot;1 2 3 + 5&quot;            / the list 1 2 3 is parsed as a single item
++
+1 2 3
+5
+
+q)parse &quot;{x*x}&quot;
+{x*x}
+</code></pre>

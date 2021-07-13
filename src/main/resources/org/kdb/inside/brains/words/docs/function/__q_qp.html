@@ -1,0 +1,21 @@
+<pre><code class="language-txt">.Q.qp x
+</code></pre>
+<p>Where <code>x</code></p>
+<ul>
+    <li>is a partitioned table, returns <code>1b</code></li>
+    <li>a splayed table, returns <code>0b</code></li>
+    <li>anything else, returns 0</li>
+</ul>
+<pre><code class="language-q">q)\
+  B
++`time`sym`price`size!`B
+  C
++`sym`name!`:C/
+  \
+q).Q.qp B
+1b
+q).Q.qp select from B
+0
+q).Q.qp C
+0b
+</code></pre>

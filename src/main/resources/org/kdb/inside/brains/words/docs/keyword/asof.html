@@ -1,0 +1,24 @@
+<p><em>As-of join</em></p>
+<pre><code class="language-txt">t1 asof t2     asof[t1;t2]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>t1</code> is a table</li>
+    <li><code>t2</code> is a table or dictionary</li>
+    <li>the last key or column of <code>t2</code> corresponds to a time column in <code>t1</code></li>
+</ul>
+<p>returns the values from the last rows matching the rest of the keys and time ≤ the time in <code>t2</code>.</p>
+<pre><code class="language-q">q)show trade asof`sym`time!(`IBM;09:30:00.0)
+price| 96.3e
+size | 200
+stop | 0b
+corr | 0
+cond | &quot;T&quot;
+ex   | &quot;D&quot;
+
+q)show trade asof([]sym:`AAPL`IBM;ex:&quot;TD&quot;;time:09:30:00.0)
+price size stop corr cond
+-------------------------
+78.14 100  0    0    T
+96.3  200  0    0    T
+</code></pre>

@@ -1,0 +1,13 @@
+<pre><code class="language-txt">.Q.hp[x;y;z]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a URL as a symbol handle or string (since V3.6 2018.02.10)</li>
+    <li><code>y</code> is a MIME type as a string</li>
+    <li><code>z</code> is the POST query as a string</li>
+</ul>
+<p>returns as a list of strings the result of an HTTP[S] POST query.
+    (Since V3.4)</p>
+<pre><code class="language-q">q).Q.hp[&quot;http://google.com&quot;;.h.ty`json]&quot;my question&quot;
+&quot;&lt;!DOCTYPE html&gt;\n&lt;html lang=en&gt;\n  &lt;meta charset=utf-8&gt;\n  &lt;meta name=viewpo..
+</code></pre>

@@ -1,0 +1,17 @@
+<p><em>Evaluate expression/s some number of times</em></p>
+<pre><code class="language-txt">do[count;e1;e2;e3;…;en]
+</code></pre>
+<p>Control construct. Where </p>
+<ul>
+    <li><code>count</code> is a non-negative integer</li>
+    <li><code>e1</code>, <code>e2</code>, … <code>en</code> are expressions</li>
+</ul>
+<p>the expressions <code>e1</code> to <code>en</code> are evaluated, in order, <code>count</code> times.</p>
+<p>The result of <code>do</code> is always the <a href="https://code.kx.com/q/ref/identity/#null">generic null</a>.</p>
+<p>Continued fraction for <span class="arithmatex">\(\pi\)</span>, for 7 steps:</p>
+<pre><code class="language-q">q)r:()
+q)t:2*asin 1
+q)do[7;r,:q:floor t;t:reciprocal t-q]
+q)r
+3 7 15 1 292 1 1
+</code></pre>

@@ -1,0 +1,28 @@
+<p><em>Arithmetic mean</em></p>
+<pre><code class="language-txt">avg x     avg[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric or temporal list,
+    returns the arithmetic mean as a float.</p>
+<p>The mean of an atom is its value as a float.
+    Null is returned if <code>x</code> is empty, or contains both positive and negative infinity. Where <code>x</code>
+    is a vector null items are ignored.</p>
+<pre><code class="language-q">q)avg 1 2 3
+2f
+q)avg 1 0n 2 3       / vector: null items are ignored
+2f
+q)avg (1 2;0N 4)     / nested: null items are preserved
+0n 3
+q)avg 1.0 0w
+0w
+q)avg -0w 0w
+0n
+q)avg 101b
+0.6666667
+q)avg 1b
+1f
+q)\l trade.q
+q)show select ap:avg price by sym from trade
+sym| ap
+---| -----
+a  | 10.75
+</code></pre>

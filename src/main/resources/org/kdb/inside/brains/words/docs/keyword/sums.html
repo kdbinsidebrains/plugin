@@ -1,0 +1,26 @@
+<p><em>Running totals</em></p>
+<pre><code class="language-txt">sums x    sums[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric or temporal list, returns the cumulative sums of the items of <code>x</code>.</p>
+<p>The sum of an atom is itself. Nulls are treated as zeros.</p>
+<pre><code class="language-q">q)sums 7                        / cumulative sum atom (returned unchanged)
+7
+q)sums 2 3 5 7                  / cumulative sum list
+2 5 10 17
+q)sums 2 3 0N 7                 / 0N is treated as 0
+2 5 5 12
+q)sums (1 2 3;2 3 5)            / cumulative sum list of lists
+1 2 3                           / same as (1 2 3;1 2 3 + 2 3 5)
+3 5 8
+q)\l sp.q
+q)select sums qty by s from sp  / use in select statement
+s | qty
+--| --------------------------
+s1| 300 500 900 1100 1200 1600
+s2| 300 700
+s3| ,200
+s4| 100 300 600
+q)sums &quot;abc&quot;                    / type error if list is not numeric
+'type
+</code></pre>
+<p><code>sums</code> is a uniform function, equivalent to <code>+\</code>.</p>

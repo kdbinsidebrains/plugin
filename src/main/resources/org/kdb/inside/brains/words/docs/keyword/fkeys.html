@@ -1,0 +1,15 @@
+<p><em>Foreign-key columns of a table</em></p>
+<p>Syntax: <code>fkeys x</code>, <code>fkeys[x]</code></p>
+<p>Where <code>x</code> is a table, returns a dictionary that maps foreign-key columns to their tables.</p>
+<pre><code class="language-q">q)f:([x:1 2 3]y:10 20 30)
+q)t:([]a:`f$2 2 2;b:0;c:`f$1 1 1)
+q)meta t
+c| t f a
+-| -----
+a| i f
+b| i
+c| i f
+q)fkeys t
+a| f
+c| f
+</code></pre>

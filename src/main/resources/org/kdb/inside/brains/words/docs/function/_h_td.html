@@ -1,0 +1,17 @@
+<pre><code class="language-txt">.h.td x
+</code></pre>
+<p>Where <code>x</code> is a table, returns it as a list of tab-separated value strings</p>
+<pre><code class="language-q">q).h.td ([]a:1 2 3;b:`x`y`z)
+&quot;a\tb&quot;
+&quot;1\tx&quot;
+&quot;2\ty&quot;
+&quot;3\tz&quot;
+</code></pre>
+<h2 id="htext-paragraphs"><code>.h.text</code> (paragraphs)</h2>
+<pre><code class="language-txt">.h.text x
+</code></pre>
+<p>Where <code>x</code> is a list of strings, returns as a string, <code>x</code> with each item as the content of a
+    <code>p</code> element.</p>
+<pre><code class="language-q">q).h.text(&quot;foo&quot;;&quot;bar&quot;)
+&quot;&lt;p&gt;foo&lt;/p&gt;\n&lt;p&gt;bar&lt;/p&gt;\n&quot;
+</code></pre>

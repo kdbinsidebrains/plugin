@@ -1,0 +1,50 @@
+<p><em>Read bytes from a file or named pipe</em></p>
+<pre><code class="language-txt">read1 f           read1[f]
+read1 (f;o;n)     read1[(f;o;n)]
+read1 h           read1[h]
+read1 (fifo;n)    read1[(fifo;n)]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>f</code> is a <a href="https://code.kx.com/q/basics/glossary/#file-symbol">file symbol</a></li>
+    <li><code>(f;o;n)</code> is a <a href="https://code.kx.com/q/basics/glossary/#file-descriptor">file descriptor</a>
+    </li>
+    <li><code>h</code> is a <a href="https://code.kx.com/q/basics/handles/">system or process handle</a></li>
+    <li><code>fifo</code> is a communication handle to a <a
+            href="https://code.kx.com/q/ref/hopen/#communication-handles">Fifo</a></li>
+    <li><code>n</code> is a non-negative integer</li>
+</ul>
+<p>returns bytes from the source, as follows.</p>
+<h2 id="file">File</h2>
+<p>Where the argument is </p>
+<ul>
+    <li>a file symbol, returns the entire content of the file</li>
+    <li>a file descriptor <code>(f;o;n)</code>, returns up to <code>n</code> bytes from <code>f</code> starting at
+        <code>o</code></li>
+    <li>a file descriptor <code>(f;o)</code>, returns the entire content of <code>f</code> from <code>o</code> onwards
+    </li>
+</ul>
+<pre><code class="language-q">q)`:test.txt 0:(&quot;hello&quot;;&quot;goodbye&quot;)      / write some text to a file
+q)read1`:test.txt                       / read in as bytes
+0x68656c6c6f0a676f6f646279650a
+q)&quot;c&quot;$read1`:test.txt                   / convert from bytes to char
+&quot;hello\ngoodbye\n&quot;
+
+q)/ read 500000 lines, chunks of (up to) 100000 at a time
+q)d:raze{read1(`:/tmp/data;x;100000)}each 100000*til 5
+</code></pre>
+<h2 id="named-pipe">Named pipe</h2>
+<p>(Since V3.4.) Where <code>x</code> is</p>
+<ul>
+    <li>a list <code>(fifo;length)</code>, returns <code>length</code> bytes read from <code>fifo</code></li>
+    <li>an atom <code>fifo</code>, blocks and returns bytes from <code>fifo</code> when EOF is encountered
+        (<code>0#0x</code> if immediate)
+    </li>
+</ul>
+<pre><code class="language-q">q)h:hopen`$&quot;:fifo:///etc/redhat-release&quot;
+q)&quot;c&quot;$read1(h;8)
+&quot;Red Hat &quot;
+q)&quot;c&quot;$read1(h;8)
+&quot;Enterpri&quot;
+q)system&quot;mkfifo somefifo&quot;;h:hopen`fifo:somefifo; 0N!read1 h; hclose h
+</code></pre>

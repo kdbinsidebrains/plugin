@@ -1,0 +1,11 @@
+<p><em>Insert or append records to a table</em></p>
+<pre><code class="language-txt">x insert y    insert[x;y]
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>x</code> is a symbol atom naming a non-splayed table</li>
+    <li><code>y</code> is one or more records that match the columns of <code>x</code>; <strong>or</strong> if
+        <code>x</code> is undefined, a table
+    </li>
+</ul>
+<p>inserts <code>y</code> into the table named by <code>x</code> and returns the new row indexes. </p>

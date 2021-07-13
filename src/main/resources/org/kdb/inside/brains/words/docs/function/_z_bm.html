@@ -1,0 +1,17 @@
+<pre><code class="language-txt">.z.bm:x
+</code></pre>
+<p>Where <code>x</code> is a unary function.</p>
+<p>Kdb+ before V2.7 was sensitive to being fed malformed data structures, sometimes resulting in a crash, but now
+    validates incoming IPC messages to check that data structures are well formed, reporting <code>'badmsg</code> and
+    disconnecting senders of malformed data structures. The raw message is captured for analysis via the callback <code>.z.bm</code>.
+    The sequence upon receiving such a message is</p>
+<ol>
+    <li>calls <code>.z.bm</code> with a 2-item list: <code>(handle;msgBytes)</code></li>
+    <li>close the handle and call <code>.z.pc</code></li>
+    <li>signals <code>'badmsg</code></li>
+</ol>
+<p>E.g. with the callback defined</p>
+<pre><code class="language-q">q).z.bm:{`msg set (.z.p;x);}
+</code></pre>
+<p>after a bad msg has been received, the global var <code>msg</code> will contain the timestamp, the handle and the
+    full message. Note that this check validates only the data structures, it cannot validate the data itself.</p>

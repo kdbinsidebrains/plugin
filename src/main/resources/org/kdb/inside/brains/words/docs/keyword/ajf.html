@@ -1,0 +1,36 @@
+<p><em>As-of join</em></p>
+<div class="typewriter">
+    <p>aj [c<sub>1</sub>…c<sub>n</sub>; t1; t2]
+        aj0 [c<sub>1</sub>…c<sub>n</sub>; t1; t2]
+        ajf [c<sub>1</sub>…c<sub>n</sub>; t1; t2]
+        ajf0[c<sub>1</sub>…c<sub>n</sub>; t1; t2]</p>
+</div>
+<p>Where </p>
+<ul>
+    <li><code>t1</code> is a table</li>
+    <li><code>t2</code> is a simple table</li>
+    <li><code>c<sub>1</sub>…c<sub>n</sub></code> is a symbol list of column names, common to <code>t1</code> and <code>t2</code>,
+        and of matching type
+    </li>
+    <li>column <code>c<sub>n</sub></code> is of a sortable type (typically time)</li>
+</ul>
+<p>returns a table with records from the left-join of <code>t1</code> and <code>t2</code>.
+    In the join, columns <code>c<sub>1</sub>…c<sub>n-1</sub></code> are matched for equality, and the last value of
+    <code>c<sub>n</sub></code> (most recent time) is taken.
+    For each record in <code>t1</code>, the result has one record with the items in <code>t1</code>, and</p>
+<ul>
+    <li>if there are matching records in <code>t2</code>, the items of the last (in row order) matching record are
+        appended to those of <code>t1</code>;
+    </li>
+    <li>otherwise the remaining columns are null.</li>
+</ul>
+
+<h2 id="ajf-ajf0"><code>ajf</code>, <code>ajf0</code></h2>
+<p>Since V3.6 2018.05.18 <code>ajf</code> and <code>ajf0</code> behave as V2.8 <code>aj</code> and <code>aj0</code>,
+    i.e. they fill from LHS if RHS is null. e.g.</p>
+<pre><code class="language-q">q)t0:([]time:2#00:00:01;sym:`a`b;p:1 1;n:`r`s)
+q)t1:([]time:2#00:00:01;sym:`a`b;p:0 1)
+q)t2:([]time:2#00:00:00;sym:`a`b;p:1 0N;n:`r`s)
+q)t0~ajf[`sym`time;t1;t2]
+1b
+</code></pre>

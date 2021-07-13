@@ -1,0 +1,24 @@
+<p>Delimiter used by <a href="#hcd-csv-from-data"><code>.h.cd</code></a> to join subitems of nested lists. Default is
+    <code>" "</code>.</p>
+<pre><code class="language-q">q)show t:([a:til 3]b:3 3#&quot;abc&quot;;c:3 3#1 2 3)
+a| b     c
+-| -----------
+0| &quot;abc&quot; 1 2 3
+1| &quot;abc&quot; 1 2 3
+2| &quot;abc&quot; 1 2 3
+
+q).h.d
+&quot; &quot;
+q).h.cd t
+&quot;a,b,c&quot;
+&quot;0,a b c,1 2 3&quot;
+&quot;1,a b c,1 2 3&quot;
+&quot;2,a b c,1 2 3&quot;
+
+q).h.d:&quot;*&quot;
+q).h.cd t
+&quot;a,b,c&quot;
+&quot;0,a*b*c,1*2*3&quot;
+&quot;1,a*b*c,1*2*3&quot;
+&quot;2,a*b*c,1*2*3&quot;
+</code></pre>

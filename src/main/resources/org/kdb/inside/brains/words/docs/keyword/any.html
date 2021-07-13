@@ -1,0 +1,26 @@
+<p><em>Something is true</em></p>
+<pre><code class="language-txt">any x    any[x]
+</code></pre>
+<p>Returns a boolean atom <code>0b</code>; or <code>1b</code> where <code>x</code> is</p>
+<ul>
+    <li>a list with at least one non-zero item</li>
+    <li>a non-zero atom</li>
+</ul>
+<p>Applies to all datatypes except symbols and GUIDs.
+    Strings are <a href="https://code.kx.com/q/ref/cast/">cast</a> to boolean.</p>
+<p><code>any</code> is an aggregate function.</p>
+<pre><code class="language-q">q)any 1 2 3=10 20 4
+0b
+q)any 1 2 3=1 20 30
+1b
+q)any &quot;YNYN&quot; / string casts to 1111b
+1b
+q)any () / no non-zeros here
+0b
+q)any 2000.01.01
+0b
+q)any 2000.01.01 2000.01.02
+1b
+
+q)if[any x in y;....]   / use in control structure
+</code></pre>

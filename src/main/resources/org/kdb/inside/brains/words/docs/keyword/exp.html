@@ -1,0 +1,21 @@
+<p><em>Raise e to a power</em></p>
+<pre><code class="language-txt">exp x     exp[x]
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>x</code> is numeric</li>
+    <li><em>e</em> is the base of natural logarithms</li>
+</ul>
+<p>returns as a float <em>e</em><sup>x</sup>, or null if <code>x</code> is null.</p>
+<pre><code class="language-q">q)exp 1
+2.718282
+
+q)exp 0.5
+1.648721
+
+q)exp -4.2 0 0.1 0n 0w
+0.01499558 1 1.105171 0n 0w
+
+q)exp 00:00:00 00:00:12 12:00:00
+1 162754.8 0w
+</code></pre>

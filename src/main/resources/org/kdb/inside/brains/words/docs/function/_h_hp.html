@@ -1,0 +1,17 @@
+<pre><code class="language-txt">.h.hp x
+</code></pre>
+<p>Where <code>x</code> is a list of strings, returns as a string a valid HTTP response displaying them as a
+    <code>pre</code> element in an HTML document.</p>
+<pre><code class="language-q">q)1 .h.hp&quot; &quot;sv'2#''string 5 10#50?100;
+HTTP/1.1 200 OK
+Content-Type: text/html
+Connection: close
+Content-Length: 257
+
+&lt;html&gt;&lt;head&gt;&lt;style&gt;body{font:10pt verdana;text-align:justify}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;pre&gt;89 97 11 99 33 77 98 30 22 15
+28 17 11 55 51 81 68 96 61 70
+70 39 76 26 91 83 76 88 44 56
+32 30 97 31 96 53 47 65 34 50
+96 99 13 72 81 70 33 99 56 12
+&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre>

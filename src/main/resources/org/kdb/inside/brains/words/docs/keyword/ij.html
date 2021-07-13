@@ -1,0 +1,43 @@
+<p><em>Inner join</em></p>
+<div class="typewriter">
+    <p>x ij y ij [x;y]
+        x ijf y ijf[x;y]</p>
+</div>
+<p>Where</p>
+<ul>
+    <li><code>x</code> and <code>y</code> are tables</li>
+    <li><code>y</code> is keyed, and its key columns are columns of <code>x</code></li>
+</ul>
+<p>returns two tables joined on the key columns of the second table.
+    The result has one combined record for each row in <code>x</code> that matches a row in <code>y</code>.</p>
+<pre><code class="language-q">q)t
+sym  price
+---------------
+IBM  0.7029677
+FDP  0.08378167
+FDP  0.06046216
+FDP  0.658985
+IBM  0.2608152
+MSFT 0.5433888
+
+q)s
+sym | ex  MC
+----| --------
+IBM | N   1000
+MSFT| CME 250
+
+q)t ij s
+sym  price     ex  MC
+-----------------------
+IBM  0.7029677 N   1000
+IBM  0.2608152 N   1000
+MSFT 0.5433888 CME 250
+</code></pre>
+<p>Common columns are replaced from <code>y</code>.</p>
+<pre><code class="language-q">q)([] k:1 2 3 4; v:10 20 30 40) ij ([k:2 3 4 5]; v:200 300 400 500;s:`a`b`c`d)
+k v   s
+-------
+2 200 a
+3 300 b
+4 400 c
+</code></pre>

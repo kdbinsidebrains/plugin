@@ -1,0 +1,22 @@
+<p><em>Ascending grade</em></p>
+<pre><code class="language-txt">iasc x    iasc[x]
+</code></pre>
+<p>Where <code>x</code> is a list or dictionary, returns the indexes needed to sort list <code>x</code> in ascending
+    order. </p>
+<pre><code class="language-q">q)L:2 1 3 4 2 1 2
+q)iasc L
+1 5 0 4 6 2 3
+q)L iasc L
+1 1 2 2 2 3 4
+q)(asc L)~L iasc L
+1b
+q)iasc `a`c`b!1 2 3
+`a`c`b
+</code></pre>
+<p>Reverse a sort with <code>iasc iasc</code>:</p>
+<pre><code class="language-q">q)x:100?100
+q)b:100?.Q.a
+q)c:b iasc x
+q)b~c iasc iasc x
+1b
+</code></pre>

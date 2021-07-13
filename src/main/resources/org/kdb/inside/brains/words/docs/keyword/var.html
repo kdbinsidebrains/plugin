@@ -1,0 +1,13 @@
+<p><em>Variance</em></p>
+<pre><code class="language-txt">var x    var[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric list, returns its variance as a float atom. Nulls are ignored.</p>
+<pre><code class="language-q">q)var 2 3 5 7
+3.6875
+q)var 2 3 5 0n 7
+3.6875
+q)select var price by sym from trade where date=2010.10.10,sym in`IBM`MSFT
+</code></pre>
+<p><code>var</code> is an aggregate function, equivalent, where <code>sqr:{x*x}</code> to </p>
+<pre><code class="language-q">{avg[sqr x]-sqr[avg x]}
+</code></pre>

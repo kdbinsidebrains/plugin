@@ -1,0 +1,14 @@
+<p>The From phrase
+    <code markdown="1">from <em>t<sub>exp</sub></em></code>
+    is required in all query templates. </p>
+<p>The table expression <em>t<sub>exp</sub></em> is</p>
+<ul>
+    <li>a table or dictionary (call-by-value)</li>
+    <li>the name of a table or dictionary, in memory or on disk, as a symbol atom (call-by-name)</li>
+</ul>
+<p>Examples:</p>
+<pre><code class="language-txt">update c:b*2 from ([]a:1 2;b:3 4)   / call by value
+select a,b from t                   / call by value
+select a,b from `t                  / call by name
+update c:b*2 from `:path/to/db      / call by name
+</code></pre>

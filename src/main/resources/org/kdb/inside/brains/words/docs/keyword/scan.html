@@ -1,0 +1,33 @@
+<p>The keywords <code>over</code> and <code>scan</code> are covers for the accumulating iterators, <a
+        href="https://code.kx.com/q/ref/accumulators/">Over and Scan</a>.
+    It is good style to use <code>over</code> and <code>scan</code> with unary and binary values.</p>
+<p>Just as with Over and Scan, <code>over</code> and <code>scan</code> share the same syntax and perform the same
+    computation; but while <code>scan</code> returns the result of each evaluation, <code>over</code> returns only the
+    last.</p>
+<p>See the <a href="https://code.kx.com/q/ref/accumulators/">Accumulators</a> for a more detailed discussion.</p>
+<h2 id="converge">Converge</h2>
+<pre><code class="language-txt"> v1 over x    over[v1;x]        v1 scan x    scan[v1;x]
+(vv)over x    over[vv;x]       (vv)scan x    scan[vv;x]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>v1</code> is a unary applicable value</li>
+    <li><code>vv</code> is a variadic applicable value</li>
+</ul>
+<p>applies the value progressively to <code>x</code>, then to <code>v1[x]</code> (or <code>vv[x]</code>), and so on,
+    until the result matches (within <a href="https://code.kx.com/q/basics/precision/#comparison-tolerance">comparison
+        tolerance</a>) either</p>
+<ul>
+    <li>the previous result; or</li>
+    <li><code>x</code>.</li>
+</ul>
+<pre><code class="language-q">q)n:(&quot;the &quot;;(&quot;quick &quot;;&quot;brown &quot;;(&quot;fox &quot;;&quot;jumps &quot;;&quot;over &quot;);&quot;the &quot;);(&quot;lazy &quot;;&quot;dog.&quot;))
+q)raze over n
+&quot;the quick brown fox jumps over the lazy dog.&quot;
+q)(,/)over n
+&quot;the quick brown fox jumps over the lazy dog.&quot;
+q){x*x} scan .01
+0.01 0.0001 1e-08 1e-16 1e-32 1e-64 1e-128 1e-256 0
+</code></pre>
+<p>See the <a href="https://code.kx.com/q/ref/accumulators/">Accumulators</a> for more detail, and for the related forms
+    Do and While.</p>

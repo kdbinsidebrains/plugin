@@ -1,0 +1,25 @@
+<pre><code class="language-txt">.Q.bt[]
+</code></pre>
+<p>Dumps the backtrace to stdout at any point during execution or debug.</p>
+<pre><code class="language-q">q)f:{{.Q.bt[];x*2}x+1}
+q)f 4
+  [2]  f@:{.Q.bt[];x*2}
+           ^
+  [1]  f:{{.Q.bt[];x*2}x+1}
+          ^
+  [0]  f 4
+       ^
+10
+q)g:{a:x*2;a+y}
+q)g[3;&quot;hello&quot;]
+'type
+  [1]  g:{a:x*2;a+y}
+                 ^
+q)).Q.bt[]
+&gt;&gt;[1]  g:{a:x*2;a+y}
+                 ^
+  [0]  g[3;&quot;hello&quot;]
+       ^
+</code></pre>
+<p><code>&gt;&gt;</code> marks the current stack frame. (Since V4.0 2020.03.23.)</p>
+<p>The debugger itself occupies a stack frame, but its source is hidden. (Since V3.5 2017.03.15.)</p>

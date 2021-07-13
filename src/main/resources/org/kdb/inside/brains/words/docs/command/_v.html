@@ -1,0 +1,14 @@
+<pre><code class="language-txt">\v [namespace]
+</code></pre>
+<p>Lists the variables in the given namespace, default current namespace.</p>
+<pre><code class="language-q">q)a:1+b:2
+q)\v
+`a`b
+q)\v .h
+`HOME`br`c0`c1`logo`sa`sb`sc`tx`ty
+q){x where x like&quot;????&quot;}system&quot;v .h&quot;
+`HOME`logo
+</code></pre>
+<p>To expunge <code>a</code> from the default namespace</p>
+<pre><code class="language-q">delete a from `.
+</code></pre>

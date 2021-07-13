@@ -1,0 +1,30 @@
+<pre><code class="language-txt">.Q.id x
+</code></pre>
+<p>Where <code>x</code> is</p>
+<ul>
+    <li>
+        <p>a <strong>symbol atom</strong>, returns <code>x</code> with items sanitized to valid q names</p>
+        <p>
+        <pre><code class="language-q">
+q).Q.id each `$("ab";"a/b";"two words";"2drifters";"2+2")
+`ab`ab`twowords`a2drifters`a22
+</code></pre>
+        </p>
+    </li>
+    <li>
+        <p>a <strong>table</strong>, returns <code>x</code> with column names sanitized by removing characters that
+            interfere with <code>select/exec/update</code> and adding <code>"1"</code> to column names which clash with
+            commands in the <code>.q</code> namespace. (Updated in V3.2 to include <code>.Q.res</code> for checking
+            collisions.)</p>
+        <p>
+        <pre><code class="language-q">
+q).Q.id flip (5#.Q.res)!(5#())
+in1 within1 like1 bin1 binr1
+----------------------------
+q).Q.id flip(`$("a";"a/b"))!2#()
+a ab
+----
+</code></pre>
+        </p>
+    </li>
+</ul>

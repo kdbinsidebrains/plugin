@@ -1,0 +1,19 @@
+<p><em>Natural logarithm</em></p>
+<pre><code class="language-txt">log x    log[x]
+</code></pre>
+<p>Where <code>x</code> is numeric and </p>
+<ul>
+    <li>null, returns null</li>
+    <li>0, returns <code>-0w</code></li>
+    <li>a datetime, returns <code>x</code></li>
+    <li>otherwise, the natural logarithm of <code>x</code></li>
+</ul>
+<pre><code class="language-q">q)log 1
+0f
+q)log 0.5
+-0.6931472
+q)log exp 42
+42f
+q)log -2 0n 0 0.1 1 42
+0n 0n -0w -2.302585 0 3.73767
+</code></pre>

@@ -1,0 +1,14 @@
+<p><em>Key column/s of a table</em></p>
+<pre><code class="language-txt">keys x    keys[x]
+</code></pre>
+<p>Where <code>x</code> is a table (by value or reference), returns as a symbol vector the primary key column/s of
+    <code>x</code> – empty if none.</p>
+<pre><code class="language-q">q)\l trade.q        / no keys
+q)keys trade
+`symbol$()
+q)keys`trade
+`symbol$()
+q)`sym xkey`trade   / define a key
+q)keys`trade
+,`sym
+</code></pre>

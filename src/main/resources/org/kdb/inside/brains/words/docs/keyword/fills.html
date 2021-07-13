@@ -1,0 +1,39 @@
+<p><em>Replace nulls with preceding non-nulls</em></p>
+<pre><code class="language-txt">fills x     fills[x]
+</code></pre>
+<p>Where <code>x</code> is a list, returns <code>x</code> with any null items replaced by their preceding non-null
+    values, if any.</p>
+<p><code>fills</code> is a uniform function. </p>
+<pre><code class="language-q">q)fills 0N 2 3 0N 0N 7 0N
+0N 2 3 3 3 7 7
+</code></pre>
+<p>To back-fill, reverse the list and the result:</p>
+<pre><code class="language-q">q)reverse fills reverse 0N 2 3 0N 0N 7 0N
+2 2 3 7 7 7 0N
+</code></pre>
+<p>For a similar function on infinities, first replace them with nulls:</p>
+<pre><code class="language-q">q)fills {(x where x=0W):0N;x} 0N 2 3 0W 0N 7 0W
+0N 2 3 3 3 7 7
+</code></pre>
+<p>The keyword <code>fills</code> is defined as <code>^\</code>, which fills forward, meaning that non-null items are
+    filled over succeeding null items.</p>
+<pre><code class="language-q">q)fills 1 0N 3 0N 0N 5
+1 1 3 3 3 5
+q)fills `x``y```z
+`x`x`y`y`y`z
+q)update fills c2 from ([] `a`b`c`d`e`f; c2:1 0N 3 0N 0N 5)
+x c2
+----
+a 1
+b 1
+c 3
+d 3
+e 3
+f 5
+</code></pre>
+<p>To fill initial nulls apply the derived function as a binary.</p>
+<pre><code class="language-q">q)fills 0N 0N 3 0N 5
+0N 0N 3 3 5
+q)0 ^\ 0N 0N 3 0N 5
+0 0 3 3 5
+</code></pre>

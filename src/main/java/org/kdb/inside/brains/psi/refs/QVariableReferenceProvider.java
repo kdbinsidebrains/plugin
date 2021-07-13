@@ -93,7 +93,7 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
                 case LAMBDA:
                     return resolveLambda(variable, context.lambda());
                 default:
-                    return resolveGlobal(variable, context.file());
+                    return resolveGlobal(variable);
             }
         }
 
@@ -162,15 +162,16 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
             if (first.isPresent()) {
                 final QVarDeclaration el = first.get();
                 if (QPsiUtil.isGlobalDeclaration(el)) {
-                    return resolveGlobal(var, var.getContainingFile());
+                    return resolveGlobal(var);
                 } else {
                     return single(el);
                 }
             }
-            return resolveGlobal(var, var.getContainingFile());
+            return resolveGlobal(var);
         }
 
-        private ResolveResult[] resolveGlobal(QVariable var, PsiFile file) {
+        private ResolveResult[] resolveGlobal(QVariable var) {
+            final PsiFile file = var.getContainingFile();
             if (file == null) {
                 return ResolveResult.EMPTY_ARRAY;
             }

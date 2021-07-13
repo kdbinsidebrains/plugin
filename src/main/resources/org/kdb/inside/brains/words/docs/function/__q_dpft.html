@@ -1,0 +1,69 @@
+<p>Syntax:</p>
+<pre><code class="language-txt">.Q.dpft[d;p;f;t]
+.Q.dpfts[d;p;f;t;s]
+.Q.dpt[d;p;t]
+.Q.dpts[d;p;t;s]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>d</code> is a directory handle</li>
+    <li><code>p</code> is a partition of a database</li>
+    <li><code>f</code> a field of the table named by</li>
+    <li><code>t</code>, the name (as a symbol) of a simple table whose columns are vectors or compound lists</li>
+    <li><code>s</code> is the handle of a symtable</li>
+</ul>
+<p>saves <code>t</code> splayed to partition <code>p</code>.</p>
+<p>It also rearranges the columns of the table so that the column specified by <code>f</code> is second in the table
+    (the first column in the table will be the virtual column determined by the partitioning e.g. date).</p>
+<p>Returns the table name if successful.</p>
+<pre><code class="language-q">q)trade:([]sym:10?`a`b`c;time:.z.T+10*til 10;price:50f+10?50f;size:100*1+10?10)
+q).Q.dpft[`:db;2007.07.23;`sym;`trade]
+`trade
+q)delete trade from `.
+`.
+q)trade
+'trade
+q)\l db
+q)trade
+date       sym time         price    size
+-----------------------------------------
+2007.07.23 a   11:36:27.972 76.37383 1000
+2007.07.23 a   11:36:27.982 77.17908 200
+2007.07.23 a   11:36:28.022 75.33075 700
+2007.07.23 a   11:36:28.042 58.64531 200
+2007.07.23 b   11:36:28.002 87.46781 800
+2007.07.23 b   11:36:28.012 85.55088 400
+2007.07.23 c   11:36:27.952 78.63043 200
+2007.07.23 c   11:36:27.962 90.50059 400
+2007.07.23 c   11:36:27.992 73.05742 600
+2007.07.23 c   11:36:28.032 90.12859 600
+</code></pre>
+<p>If you are getting an <code>'unmappable</code> error, you can identify the offending columns and tables:</p>
+<pre><code class="language-q">/ create 2 example tables
+q)t:([]a:til 2;b:2#enlist (til 1;10))  / bad table, b is unmappable
+q)t1:([]a:til 2;b:2#til 1)  / good table, b is mappable
+q)helper:{$[(type x)or not count x;1;t:type first x;all t=type each x;0]};
+q)select from (raze {([]table:enlist x;columns:enlist where not helper each flip .Q.en[`:.]`. x)} each tables[]) where 0&lt;count each columns
+table columns
+-------------
+t     b
+</code></pre>
+<p><code>.Q.dpfts</code> allows the enum domain to be specified. Since V3.6 (2018.04.13)</p>
+<pre><code class="language-q">q)show t:([]a:10?`a`b`c;b:10?10)
+a b
+---
+c 8
+a 1
+b 9
+b 5
+c 4
+a 6
+b 6
+c 1
+b 8
+c 5
+q).Q.dpfts[`:db;2007.07.23;`a;`t;`mysym]
+`t
+q)mysym
+`c`a`b
+</code></pre>

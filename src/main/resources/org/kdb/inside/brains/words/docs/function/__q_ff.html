@@ -1,0 +1,39 @@
+<pre><code class="language-txt">.Q.ff[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is table to modify</li>
+    <li><code>y</code> is a table of columns to add to <code>x</code> and set to null</li>
+</ul>
+<p>returns <code>x</code>, with all new columns in <code>y</code>, with values in new columns set to null of the
+    appropriate type.</p>
+<p>If there is a common column in <code>x</code> and <code>y</code>, the column from <code>x</code> is kept (i.e. it
+    will not null any columns that exist in <code>x</code>).</p>
+<pre><code class="language-q">q)src:0N!flip`sym`time`price`size!10?'(`3;.z.t;1000f;10000)
+ sym time         price    size
+ ------------------------------
+ mil 10:30:32.148 470.7883 6360
+ igf 00:28:17.727 634.6716 7885
+ kao 06:52:34.397 967.2398 4503
+ baf 10:07:47.382 230.6385 4204
+ kfh 00:45:40.134 949.975  6210
+ jec 05:12:49.761 439.081  8740
+ kfm 16:31:50.104 575.9051 8732
+ lkk 04:54:11.685 591.9004 4756
+ kfi 13:01:04.698 848.1567 3998
+ fgl 05:18:45.828 389.056  9342
+
+q).Q.ff[src] enlist `sym`ratioA`ratioB!3#1
+ sym time         price    size ratioA ratioB
+ --------------------------------------------
+ mil 10:30:32.148 470.7883 6360
+ igf 00:28:17.727 634.6716 7885
+ kao 06:52:34.397 967.2398 4503
+ baf 10:07:47.382 230.6385 4204
+ kfh 00:45:40.134 949.975  6210
+ jec 05:12:49.761 439.081  8740
+ kfm 16:31:50.104 575.9051 8732
+ lkk 04:54:11.685 591.9004 4756
+ kfi 13:01:04.698 848.1567 3998
+ fgl 05:18:45.828 389.056  9342
+</code></pre>

@@ -1,0 +1,30 @@
+<div class="typewriter">
+    <p>\e [<em>mode</em>]</p>
+</div>
+<p>This enables error trapping for client requests. The default mode is 0 (off).</p>
+<table>
+    <thead>
+    <tr>
+        <th align="center">mode</th>
+        <th>behavior</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td align="center">0</td>
+        <td>When a client request has an error, by default the server clears the stack. Appropriate for production use
+            as it enables the server to continue processing other client requests.
+        </td>
+    </tr>
+    <tr>
+        <td align="center">1</td>
+        <td>The server suspends on an error, and does not process other requests until the stack is cleared. Appropriate
+            for development: enables debugging on the server.
+        </td>
+    </tr>
+    <tr>
+        <td align="center">2</td>
+        <td>Dumps stack to stderr for untrapped errors during request from a remote. (Since V3.5 2016.10.03)</td>
+    </tr>
+    </tbody>
+</table>

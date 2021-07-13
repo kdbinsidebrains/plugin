@@ -1,0 +1,15 @@
+<p><em>Symbol/s to file or process symbol/s</em></p>
+<pre><code class="language-txt">hsym x     hsym[x]
+</code></pre>
+<p>Where <code>x</code> is a symbol atom or vector (since V3.1) returns the symbol/s prefixed with a colon if it does
+    begin with one.</p>
+<pre><code class="language-q">q)hsym`c:/q/test.txt                / file path to symbolic file handle
+`:c:/q/test.txt
+q)hsym`10.43.23.197                 / IP address to symbolic handle
+`:10.43.23.197
+q)hsym `host:port`localhost:8001    / hostname to symbolic handle
+`:host:port`:localhost:8001
+
+q)hsym `abc`:def`::ghi
+`:abc`:def`::ghi
+</code></pre>

@@ -1,0 +1,19 @@
+<p><em>Evaluate expression/s under some condition</em></p>
+<pre><code class="language-txt">if[test;e1;e2;e3;…;en]
+</code></pre>
+<p>Control construct. Where</p>
+<ul>
+    <li><code>test</code> is an expression that evaluates to an atom of integral type</li>
+    <li><code>e1</code>, <code>e2</code>, … <code>en</code> are expressions</li>
+</ul>
+<p>unless <code>test</code> evaluates to zero, the expressions <code>e1</code> to <code>en</code> are evaluated, in
+    order.</p>
+<p>The result of <code>if</code> is always the <a href="https://code.kx.com/q/ref/identity/#null">generic null</a>.</p>
+<pre><code class="language-q">q)a:100
+q)r:&quot;&quot;
+q)if[a&gt;10;a:20;r:&quot;true&quot;]
+q)a
+20
+q)r
+&quot;true&quot;
+</code></pre>

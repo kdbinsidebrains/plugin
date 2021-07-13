@@ -1,0 +1,9 @@
+<p><em>Size of a file in bytes</em></p>
+<pre><code class="language-txt">hcount x     hcount[x]
+</code></pre>
+<p>Where <code>x</code> is a <a href="https://code.kx.com/q/basics/glossary/#file-symbol">file symbol</a>,
+    returns as a long the size of the file.</p>
+<pre><code class="language-q">q)hcount`:c:/q/test.txt
+42
+</code></pre>
+<p>On a compressed file returns the size of the original uncompressed file.</p>

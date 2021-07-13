@@ -1,0 +1,3 @@
+.j.j ,[x],serialize,ref/dotj/#jj-serialize
+.j.k ,[x],deserialize,ref/dotj/#jk-deserialize
+.j.jd,[x;d],serialize infinity,ref/dotj/#jjd-serialize-infinity

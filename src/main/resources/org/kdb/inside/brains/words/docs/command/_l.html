@@ -1,0 +1,33 @@
+<div class="typewriter">
+    <p>\l <em>name</em>
+        \l .</p>
+</div>
+<p>Where <em>name</em> is the name of a </p>
+<ul>
+    <li>q script, executes the script</li>
+    <li>serialized object, deserializes it into memory as variable <code>name</code></li>
+    <li>directory of a splayed table, maps the table to variable <code>name</code>, without loading any columns into
+        memory
+    </li>
+    <li>directory and the value of one of the permitted partition types, the most recent partition directory is
+        inspected for splayed directories and each such directory mapped into memory with the name of the splayed
+        directory
+    </li>
+    <li>directory containing a kdb+ database, recursively loads whatever it finds there: serialized objects, scripts,
+        splayed tables, etc.
+    </li>
+</ul>
+<p><strong>Current directory</strong> When a directory is opened, it becomes the current directory. </p>
+<p><strong>Reload current directory</strong> You can reload the current database with <code>\l .</code>. This will
+    ignore scripts and reload only data. </p>
+<p><strong>Never mind the dollars</strong> If a file or directory under the path being loaded has a dollar-sign suffix
+    then it is ignored. e.g. <code>db/tickdata/myfile$</code> and <code>db/tickdata/mydir$</code> would be ignored on
+    <code>\l db/tickdata</code> or on <code>\l .</code> if <code>db/tickdata</code> is the current directory.</p>
+<pre><code class="language-q">q)\l sp.q            / load sp.q script
+...
+q)\a                 / tables defined in sp.q
+`p`s`sp
+q)\l db/tickdata     / load the data found in db/tickdata
+q)\a                 / with tables quote and trade
+`p`quote`s`sp`trade
+</code></pre>

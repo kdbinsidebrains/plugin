@@ -1,0 +1,11 @@
+<p>Dictionary of IPC handles with the number of bytes waiting in their output queues.</p>
+<!-- (Since V2.5 2008.12.31.) In V2.6 this was changed to a list of bytes per handle, see [Changes in V2.6](../releases/ChangesIn2.6.md#zw) -->
+
+<pre><code class="language-q">q)h:hopen ...
+q)h
+3
+q)neg[h]({};til 1000000); neg[h]({};til 10); .z.W
+3| 4000030 70
+q)sum each .z.W
+3| 0
+</code></pre>

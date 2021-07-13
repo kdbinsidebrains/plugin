@@ -1,0 +1,35 @@
+<pre><code class="language-txt">.Q.hg x
+</code></pre>
+<p>Where <code>x</code> is a URL as a symbol atom or (since V3.6 2018.02.10) a string, returns as a list of strings the
+    result of an HTTP[S] GET query.
+    (Since V3.4)</p>
+<pre><code class="language-q">q).Q.hg`:http://www.google.com
+q)count a:.Q.hg`:http:///www.google.com
+212
+q)show a
+&quot;&lt;!DOCTYPE HTML PUBLIC \&quot;-//IETF//DTD HTML 2.0//EN\&quot;&gt;\n&lt;html&gt;&lt;head&gt;\n&lt;title&gt;4..
+q).Q.hg &quot;:http://username:password@www.google.com&quot;
+</code></pre>
+<p>If you have configured SSL/TLS, HTTPS can also be used.</p>
+<pre><code class="language-q">q).Q.hg &quot;:https://www.google.com&quot;
+</code></pre>
+<p><code>.Q.hg</code> will utilize proxy settings from the environment, lower-case versions taking precedence:</p>
+<table>
+    <thead>
+    <tr>
+        <th>environment variable</th>
+        <th>use</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td><code>http_proxy</code>, <code>HTTP_PROXY</code></td>
+        <td>The URL of the HTTP proxy to use</td>
+    </tr>
+    <tr>
+        <td><code>no_proxy</code>, <code>NO_PROXY</code></td>
+        <td>Comma-separated list of domains for which to disable use of proxy</td>
+    </tr>
+    </tbody>
+</table>
+<p>N.B. HTTPS is not supported across proxies which require <code>CONNECT</code>.</p>

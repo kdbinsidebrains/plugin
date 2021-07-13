@@ -1,0 +1,21 @@
+<pre><code class="language-txt">.Q.fc[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is is a unary atomic function</li>
+    <li><code>y</code> is a list</li>
+</ul>
+<p>returns the result of evaluating <code>f vec</code> – using multiple threads if possible. (Since V2.6)</p>
+<pre><code class="language-q">q -s 8
+q)f:{2 xexp x}
+q)vec:til 100000
+q)\t f vec
+12
+q)\t .Q.fc[f]vec
+6
+</code></pre>
+<p>In this case the overhead of creating threads in <code>peach</code> significantly outweighs the computational benefit
+    of parallel execution.</p>
+<pre><code class="language-q">q)\t f peach vec
+45
+</code></pre>

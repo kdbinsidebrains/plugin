@@ -1,0 +1,21 @@
+<pre><code class="language-txt">\[1|2] filename
+</code></pre>
+<p><code>\1</code> and <code>\2</code> let you redirect stdout and stderr to files from within the q session. The files
+    and intermediate directories are created if necessary.</p>
+<pre><code class="language-bash">~/q$ rm -f t1.txt t2.txt
+~/q$ l64/q
+KDB+ 2.6 2010.05.10 Copyright (C) 1993-2010 Kx Systems
+...
+</code></pre>
+<pre><code class="language-q">q)\1 t1.txt              / stdout
+q)\2 t2.txt              / stderr
+til 10
+2 + &quot;hello&quot;
+\\
+</code></pre>
+<pre><code class="language-bash">~/q$ cat t1.txt          / entry in stdout
+0 1 2 3 4 5 6 7 8 9
+~/q$ cat t2.txt          / entry in stderr
+q)q)'type
+</code></pre>
+<p>On macOS and Linux <code>\1 /dev/stdin</code> returns output to the default.</p>

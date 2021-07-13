@@ -1,0 +1,15 @@
+<p><em>Set the value of an environment variable</em></p>
+<pre><code class="language-txt">x setenv y     setenv[x;y]
+</code></pre>
+<p>where</p>
+<ul>
+    <li><code>x</code> is a symbol atom</li>
+    <li><code>y</code> is a string</li>
+</ul>
+<p>sets the environment variable named by <code>x</code>.</p>
+<pre><code class="language-q">q)`RTMP setenv &quot;/home/user/temp&quot;
+q)getenv `RTMP
+&quot;/home/user/temp&quot;
+q)\echo $RTMP
+&quot;/home/user/temp&quot;
+</code></pre>

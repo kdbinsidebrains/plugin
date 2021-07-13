@@ -1,0 +1,39 @@
+<pre><code class="language-txt">.h.jx[x;y]
+</code></pre>
+<p>Where <code>x</code> is an int atom, and <code>y</code> is the name of a table, returns a list of strings
+    representing the records of <code>y</code>, starting from row <code>x</code>.</p>
+<pre><code class="language-q">q)a:([] a:100*til 1000;b:1000?1000;c:1000?1000)
+q){(where x=&quot;&lt;&quot;)_x}first .h.jx[0;`a]
+&quot;&lt;a href=\&quot;?[0\&quot;&gt;home&quot;
+&quot;&lt;/a&gt; &quot;
+&quot;&lt;a href=\&quot;?[0\&quot;&gt;up&quot;
+&quot;&lt;/a&gt; &quot;
+&quot;&lt;a href=\&quot;?[32\&quot;&gt;down&quot;
+&quot;&lt;/a&gt; &quot;
+&quot;&lt;a href=\&quot;?[968\&quot;&gt;end&quot;
+&quot;&lt;/a&gt; 1000[0]&quot;
+q)1_.h.jx[5;`a]
+&quot;&quot;
+&quot;a    b   c  &quot;
+&quot;------------&quot;
+&quot;500  904 34 &quot;
+&quot;600  251 912&quot;
+&quot;700  584 388&quot;
+&quot;800  810 873&quot;
+&quot;900  729 430&quot;
+&quot;1000 210 148&quot;
+&quot;1100 645 499&quot;
+&quot;1200 898 285&quot;
+&quot;1300 20  279&quot;
+&quot;1400 686 267&quot;
+&quot;1500 894 668&quot;
+&quot;1600 879 611&quot;
+&quot;1700 350 352&quot;
+&quot;1800 254 600&quot;
+&quot;1900 145 257&quot;
+&quot;2000 666 101&quot;
+&quot;2100 757 132&quot;
+&quot;2200 601 910&quot;
+&quot;2300 794 637&quot;
+..
+</code></pre>

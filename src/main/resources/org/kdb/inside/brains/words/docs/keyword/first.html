@@ -1,0 +1,28 @@
+<p><em>First item of a list</em></p>
+<pre><code class="language-txt">first x    first[x]
+</code></pre>
+<p>Where <code>x</code> is a list or dictionary, returns its first item, else <code>x</code>.</p>
+<p>Often used with <a href="https://code.kx.com/q/ref/maps/#each">Each</a> to get the first item of each item of a list,
+    or of each key in a dictionary.</p>
+<pre><code class="language-q">q)first 1 2 3 4 5
+1
+q)first 42
+42
+q)RaggedArray:(1 2 3;4 5;6 7 8 9;0)
+q)first each RaggedArray
+1 4 6 0
+q)RaggedDict:`a`b`c!(1 2;3 4 5;&quot;hello&quot;)
+q)first RaggedDict  / value of first key
+1 2
+q)first each RaggedDict
+a| 1
+b| 3
+c| &quot;h&quot;
+</code></pre>
+<p>Returns the first row of a table.</p>
+<pre><code class="language-q">q)\l sp.q
+q)first sp
+s  | `s$`s1
+p  | `p$`p1
+qty| 300
+</code></pre>

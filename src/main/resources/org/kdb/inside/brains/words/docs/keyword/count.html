@@ -1,0 +1,30 @@
+<p><em>Number of items</em></p>
+<pre><code class="language-txt">count x     count[x]
+</code></pre>
+<p>Where <code>x</code> is</p>
+<ul>
+    <li>a list, returns the number of its items</li>
+    <li>a dictionary, the number of items in its value</li>
+    <li>anything else, 1</li>
+</ul>
+<pre><code class="language-q">q)count 0                            / atom
+1
+q)count &quot;zero&quot;                       / vector
+4
+q)count (2;3 5;&quot;eight&quot;)              / mixed list
+3
+q)count each (2;3 5;&quot;eight&quot;)
+1 2 5
+q)count `a`b`c!2 3 5                 / dictionary
+3
+q)/ the items of a table are its rows
+q)count ([]city:`London`Paris`Berlin; country:`England`France`Germany)
+3
+q)count each ([]city:`London`Paris`Berlin; country:`England`France`Germany)
+2 2 2
+
+q)count ({x+y})
+1
+q)count (+/)
+1
+</code></pre>

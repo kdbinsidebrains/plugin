@@ -1,0 +1,38 @@
+<pre><code class="language-txt">\t [ [N|[:n ]e] ]
+</code></pre>
+<p>This command has two different uses, according to the parameter.
+    If the parameter is omitted, it shows the number of milliseconds between timer ticks: 0 means the timer is off.</p>
+<dl>
+    <dt><code>N</code> (integer)</dt>
+    <dd>
+        <p>Set the number of milliseconds between timer ticks. If 0, the timer is disabled, otherwise the timer is
+            enabled and the first tick given. On each tick, the function assigned to <a
+                    href="https://code.kx.com/q/ref/dotz/#zts-timer"><code>.z.ts</code></a> is executed.</p>
+    </dd>
+    <dd>
+        <p>This usage corresponds to the <a href="https://code.kx.com/q/basics/cmdline/#-t-timer-ticks"><code>-t</code>
+            command-line option</a></p>
+    </dd>
+    <dt><code>[:n] e</code> (expression)</dt>
+    <dd>
+        <p>A q expression <code>e</code> (other than a single integer) is executed and the execution time shown in
+            milliseconds. Since V3.0 2011.11.22, if <code>n</code> is specified, <code>e</code> is executed
+            <code>n</code> times.</p>
+    </dd>
+</dl>
+<pre><code class="language-q">q)/Show or set timer ticks
+q)\t                           / default off
+0
+q).z.ts:{show`second$.z.N}
+q)\t 1000                      / tick each second
+q)13:12:52
+13:12:53
+13:12:54
+\t 0                           / turn off
+
+q)/Time an expression
+q)\t log til 100000            / milliseconds for log of first 100000 numbers
+3
+q)\t:100 log til 100000        / timing for 100 repetitions
+186
+</code></pre>

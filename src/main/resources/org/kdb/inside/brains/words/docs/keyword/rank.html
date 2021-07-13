@@ -1,0 +1,18 @@
+<p><em>Position in the sorted list</em></p>
+<pre><code class="language-txt">rank x    rank[x]
+</code></pre>
+<p>Where <code>x</code> is a list or dictionary, returns for each item in <code>x</code> the index of where it would
+    occur in the sorted list or dictionary. </p>
+<p>This is the same as calling <a href="https://code.kx.com/q/ref/asc/#iasc"><code>iasc</code></a> twice on the list.
+</p>
+<pre><code class="language-q">q)rank 2 7 3 2 5
+0 4 2 1 3
+q)iasc 2 7 3 2 5
+0 3 2 4 1
+q)iasc iasc 2 7 3 2 5            / same as rank
+0 4 2 1 3
+q)asc[2 7 3 2 5] rank 2 7 3 2 5  / identity
+2 7 3 2 5
+q)iasc idesc 2 7 3 2 5           / descending rank
+3 0 2 4 1
+</code></pre>

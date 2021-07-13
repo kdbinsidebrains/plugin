@@ -1,0 +1,11 @@
+<pre><code class="language-txt">\ts[:n] exp
+</code></pre>
+<p>Executes the expression <code>exp</code> and shows the execution time in milliseconds and the space used in bytes.
+</p>
+<pre><code class="language-q">q)\ts log til 100000
+7 2621568
+</code></pre>
+<p>Since 3.1 2014.02.07</p>
+<pre><code class="language-q">q)\ts:10000 log til 1000           /same as \ts do[10000; log til 1000]
+329 24672
+</code></pre>

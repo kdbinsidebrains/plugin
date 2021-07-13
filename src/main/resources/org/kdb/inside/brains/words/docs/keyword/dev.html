@@ -1,0 +1,11 @@
+<p><em>Standard deviation</em></p>
+<pre><code class="language-txt">dev x     dev[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric list, returns its <a href="https://en.wikipedia.org/wiki/Standard_deviation"
+                                                          title="Wikipedia">standard deviation</a> (as the square root
+    of the variance).
+    Applies to all numeric data types and signals an error with temporal types, char and sym.</p>
+<pre><code class="language-q">q)dev 10 343 232 55
+134.3484
+</code></pre>
+<p><code>dev</code> is an aggregate function, equivalent to <code>{sqrt var x}</code>.</p>

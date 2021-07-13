@@ -1,0 +1,16 @@
+<h2 id="zk-version"><code>.z.K</code> (version)</h2>
+<p>The major version number, as a float, of the version of kdb+ being used.
+    (A test version of 2.4t is reported as 2.4)</p>
+<pre><code class="language-q">q).z.K
+2.4
+q).z.k
+2006.10.30
+</code></pre>
+<h2 id="zk-release-date"><code>.z.k</code> (release date)</h2>
+<p>Date on which the version of kdb+ being used was released.</p>
+<pre><code class="language-q">q).z.k
+2006.10.30
+q)
+</code></pre>
+<p>This value is checked against <code>.Q.k</code> as part of the startup to make sure that the executable and the
+    version of q.k being used are compatible.</p>

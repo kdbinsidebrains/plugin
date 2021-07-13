@@ -1,0 +1,13 @@
+<pre><code class="language-txt">.z.vs:f
+</code></pre>
+<p>Where <code>f</code> is a binary function, <code>.z.vs</code> is evaluated <em>after</em> a value is set globally in
+    the default namespace (e.g. <code>a</code>, <code>a.b</code>): <code>x</code> is the symbol of the variable that is
+    being modified and <code>y</code> is the index. This is not triggered for function-local variables, nor globals that
+    are not in the default namespace (e.g. those prefixed with a dot such as .a.b) .</p>
+<p>The following example sets <code>.z.vs</code> to display the symbol, the index and the value of the variable.</p>
+<pre><code class="language-q">q).z.vs:{0N!(x;y;value x)}
+q)m:(1 2;3 4)
+(`m;();(1 2;3 4))
+q)m[1;1]:0
+(`m;1 1;(1 2;3 0))
+</code></pre>

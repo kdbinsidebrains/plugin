@@ -1,0 +1,18 @@
+<pre><code class="language-txt">.Q.D
+</code></pre>
+<p>In segmented DBs, contains a list of the partitions – conformant to <code>.Q.P</code> – that are present in each
+    segment.</p>
+<p><code>.Q.P!.Q.D</code> can be used to create a dictionary of partition-to-segment information.</p>
+<pre><code class="language-q">q).Q.P
+`:../segments/1`:../segments/2`:../segments/3`:../segments/4
+q).Q.D
+2010.05.26 2010.05.31
+,2010.05.27
+2010.05.28 2010.05.30
+2010.05.29 2010.05.30
+q).Q.P!.Q.D
+:../segments/1| 2010.05.26 2010.05.31
+:../segments/2| ,2010.05.27
+:../segments/3| 2010.05.28 2010.05.30
+:../segments/4| 2010.05.29 2010.05.30
+</code></pre>

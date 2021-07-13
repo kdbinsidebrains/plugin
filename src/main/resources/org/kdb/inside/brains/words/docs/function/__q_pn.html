@@ -1,0 +1,39 @@
+<pre><code class="language-txt">.Q.pn
+</code></pre>
+<p>In partitioned DBs, returns a dictionary of cached partition counts – conformant to <code>.Q.pt</code>, each
+    conformant to <code>.Q.pv</code> – as populated by <code>.Q.cn</code>.
+    Cleared by <code>.Q.view</code>.</p>
+<p><code>.Q.pv!flip .Q.pn</code> can be used to create a crosstab of table-to-partition-counts once <code>.Q.pn</code>
+    is fully populated.</p>
+<pre><code class="language-q">q)n:100
+q)t:([]time:.z.T+til n;sym:n?`2;num:n)
+q).Q.dpft[`:.;;`sym;`t]each 2010.01.01+til 5
+`t`t`t`t`t
+q)\l .
+q).Q.pn
+t|
+q).Q.cn t
+100 100 100 100 100
+q).Q.pn
+t| 100 100 100 100 100
+q).Q.pv!flip .Q.pn
+          | t
+----------| ---
+2010.01.01| 100
+2010.01.02| 100
+2010.01.03| 100
+2010.01.04| 100
+2010.01.05| 100
+q).Q.view 2#date
+q).Q.pn
+t|
+q).Q.cn t
+100 100
+q).Q.pn
+t| 100 100
+q).Q.pv!flip .Q.pn
+          | t
+----------| ---
+2010.01.01| 100
+2010.01.02| 100
+</code></pre>

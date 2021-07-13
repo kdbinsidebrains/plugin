@@ -1,0 +1,25 @@
+<pre><code class="language-txt">.Q.ind[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a partitioned table</li>
+    <li><code>y</code> is a <strong>long</strong> int vector of row indexes into <code>x</code></li>
+</ul>
+<p>returns rows <code>y</code> from <code>x</code>.</p>
+<p>When picking individual records from an in-memory table you can simply use the special virtual field <code>i</code>:
+</p>
+<pre><code class="language-q">select from table where i&lt;100
+</code></pre>
+<p>But you cannot do that directly for a partitioned table.</p>
+<p><code>.Q.ind</code> comes to the rescue here, it takes a table and indexes into the table – and returns the
+    appropriate rows.</p>
+<pre><code class="language-q">.Q.ind[trade;2 3]
+</code></pre>
+<p>A more elaborate example that selects all the rows from a date:</p>
+<pre><code class="language-q">q)t:select count i by date from trade
+q)count .Q.ind[trade;(exec first sum x from t where date&lt;2010.01.07)+til first exec x from t where date=2010.01.07]
+28160313
+/ show that this matches the full select for that date
+q)(select from trade where date=2010.01.07)~.Q.ind[trade;(exec first sum x from t where date&lt;2010.01.07)+til first exec x from t where date=2010.01.07]
+1b
+</code></pre>

@@ -1,0 +1,10 @@
+<p><em>Sample standard deviation</em></p>
+<pre><code class="language-txt">sdev x     sdev[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric list, returns its sample standard deviation as the square root of the <a
+        href="https://code.kx.com/q/ref/var/#svar">sample variance</a>.</p>
+<div class="arithmatex">\[sdev(x)=\sqrt{\frac{n}{n-1}var(x)}\]</div>
+<pre><code class="language-q">q)sdev 10 343 232 55
+155.1322
+</code></pre>
+<p><code>sdev</code> is an aggregate function, equivalent to <code>{sqrt var[x]*count[x]%-1+count x}</code>.</p>

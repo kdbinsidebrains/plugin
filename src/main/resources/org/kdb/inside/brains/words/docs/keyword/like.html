@@ -1,0 +1,23 @@
+<p><em>Whether text matches a pattern</em></p>
+<pre><code class="language-txt">x like y    like[x;y]
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>x</code> is a symbol or string</li>
+    <li><code>y</code> is a pattern as a string</li>
+</ul>
+<p>returns a boolean: whether <code>x</code> matches the pattern of <code>y</code>.</p>
+<pre><code class="language-q">q)`quick like &quot;qu?ck&quot;
+1b
+q)`brown like &quot;br[ao]wn&quot;
+1b
+q)`quickly like &quot;quick*&quot;
+1b
+</code></pre>
+<p>Absent <a href="https://code.kx.com/q/basics/regex/">pattern characters</a> in <code>y</code>, <code>like</code> is
+    equivalent to <code>{y~string x}</code>.</p>
+<pre><code class="language-q">q)`quick like &quot;quick&quot;
+1b
+q)`quick like &quot;quickish&quot;
+0b
+</code></pre>

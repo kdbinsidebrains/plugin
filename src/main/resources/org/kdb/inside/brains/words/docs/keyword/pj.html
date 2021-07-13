@@ -1,0 +1,18 @@
+<p><em>Plus join</em></p>
+<pre><code class="language-txt">x pj y     pj[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> and <code>y</code> are tables</li>
+    <li><code>y</code> is keyed</li>
+    <li>the key column/s of <code>y</code> are columns of <code>x</code></li>
+</ul>
+<p>returns <code>x</code> and <code>y</code> joined on the key columns of <code>y</code>.</p>
+<p><code>pj</code> adds matching records in <code>y</code> to those in <code>x</code>, by adding common columns, other
+    than the key columns. These common columns must be of appropriate types for addition.</p>
+<p>For each record in <code>x</code>:</p>
+<ul>
+    <li>if there is a matching record in <code>y</code> it is added to the <code>x</code> record.</li>
+    <li>if there is no matching record in <code>y</code>, common columns are left unchanged, and new columns are zero.
+    </li>
+</ul>

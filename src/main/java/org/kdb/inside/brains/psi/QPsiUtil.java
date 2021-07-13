@@ -42,8 +42,7 @@ public final class QPsiUtil {
             case FILE:
                 return true;
             case LAMBDA:
-                final String qualifiedName = declaration.getQualifiedName();
-                if (hasNamespace(qualifiedName)) {
+                if (hasNamespace(declaration.getName())) {
                     return true;
                 }
                 final PsiElement el1 = PsiTreeUtil.skipWhitespacesAndCommentsForward(declaration);
@@ -70,6 +69,10 @@ public final class QPsiUtil {
         return isLeafText(el, ";");
     }
 
+    public static boolean isLineBreak(PsiElement el) {
+        return el != null && el.getNode().getElementType() == QTypes.LINE_BREAK;
+    }
+
     public static boolean isLeafText(PsiElement el, String text) {
         return el instanceof LeafPsiElement && text.equals(el.getText());
     }
@@ -84,7 +87,6 @@ public final class QPsiUtil {
         }
         return namespace + "." + identifier;
     }
-
 
     public static QSymbol createSymbol(Project project, String name) {
         if (name.length() == 0 || name.charAt(0) != '`') {

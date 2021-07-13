@@ -1,0 +1,11 @@
+<p><em>Message Digest hash</em></p>
+<pre><code class="language-txt">md5 x    md5[x]
+</code></pre>
+<p>Where <code>x</code> is a string, returns as a bytestream its <a href="https://en.wikipedia.org/wiki/MD5">MD5
+    (Message-Digest algorithm 5)</a> hash.</p>
+<pre><code class="language-q">q)md5 &quot;this is a not so secret message&quot;
+0x6cf192c1938b79012c323fa30e62787e
+</code></pre>
+<p>MD5 is a widely used, Internet standard (RFC 1321), hash function that computes a 128-bit hash, commonly used to
+    check the integrity of files. It is not recommended for serious cryptographic protection, for which strong hashes
+    should be used.</p>

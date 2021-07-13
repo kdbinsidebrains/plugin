@@ -1,0 +1,18 @@
+<pre><code class="language-txt">.Q.ty x
+</code></pre>
+<p>Where <code>x</code> is a list, returns the type of <code>x</code> as a character code:</p>
+<ul>
+    <li>lower case for a vector</li>
+    <li>upper case for a list of uniform type</li>
+    <li>else blank</li>
+</ul>
+<pre><code class="language-q">q)t:([]a:3 4 5;b:&quot;abc&quot;;c:(3;&quot;xy&quot;;`ab);d:3 2#3 4 5;e:(&quot;abc&quot;;&quot;de&quot;;&quot;fg&quot;))
+q)t
+a b c    d   e
+------------------
+3 a 3    3 4 &quot;abc&quot;
+4 b &quot;xy&quot; 5 3 &quot;de&quot;
+5 c `ab  4 5 &quot;fg&quot;
+q).Q.ty each t`a`b`c`d`e
+&quot;jc JC&quot;
+</code></pre>

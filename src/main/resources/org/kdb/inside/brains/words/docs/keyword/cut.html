@@ -1,0 +1,14 @@
+<p><em>Cut a list or table into a matrix of <code>x</code> columns</em></p>
+<pre><code class="language-txt">x cut y     cut[x;y]
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>x</code> is an <strong>integer atom</strong></li>
+    <li><code>y</code> is a list</li>
+</ul>
+<p>returns <code>y</code> splits into a list of lists, all (except perhaps the last) of count <code>x</code>.</p>
+<pre><code class="language-q">q)4 cut til 10
+0 1 2 3
+4 5 6 7
+8 9
+</code></pre>

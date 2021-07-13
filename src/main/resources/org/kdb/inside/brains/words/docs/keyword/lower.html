@@ -1,0 +1,16 @@
+<p><em>Shift case</em></p>
+<pre><code class="language-txt">lower x     lower[x]
+upper x     upper[x]
+</code></pre>
+<p>Where <code>x</code> is a character or symbol atom or vector, returns it with any bicameral characters in the
+    lower/upper case.</p>
+<pre><code class="language-q">q)lower&quot;IBM&quot;
+&quot;ibm&quot;
+q)lower`IBM
+`ibm
+
+q)upper&quot;ibm&quot;
+&quot;IBM&quot;
+q)upper`ibm`msft
+`IBM`MSFT
+</code></pre>

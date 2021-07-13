@@ -1,0 +1,13 @@
+<p><em>Maximums</em></p>
+<pre><code class="language-txt">maxs x    maxs[x]
+</code></pre>
+<p>Where <code>x</code> is a non-symbol sortable list, returns the running maximums of its prefixes. </p>
+<p>Nulls are ignored, except that initial nulls are returned as negative infinity.</p>
+<pre><code class="language-q">q)maxs 2 5 7 1 3
+2 5 7 7 7
+q)maxs &quot;genie&quot;
+&quot;ggnnn&quot;
+q)maxs 0N 5 0N 1 3         / initial nulls return negative infinity
+-0W 5 5 5 5
+</code></pre>
+<p><code>maxs</code> is a uniform function. It is equivalent to <code>|\</code>.</p>

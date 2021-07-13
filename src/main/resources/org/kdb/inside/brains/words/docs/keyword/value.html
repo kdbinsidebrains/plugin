@@ -1,0 +1,18 @@
+<p><em>Recurse the interpreter</em></p>
+<pre><code class="language-txt">value x     value[x]
+</code></pre>
+<p>Returns the value of <code>x</code>:</p>
+<div class="typewriter">
+    <p>dictionary value of the dictionary
+        symbol atom value of the variable it names
+        enumeration corresponding symbol vector</p>
+    <p>string result of evaluating it in current context
+        list result of evaluating list as a <a href="https://code.kx.com/q/basics/parsetrees/">parse tree</a></p>
+    <p>projection list: function followed by argument/s
+        composition list of composed values
+        derived function argument of the iterator
+        operator internal code</p>
+    <p>view <a href="https://code.kx.com/q/ref/value/#view">list of metadata</a>
+        lambda <a href="https://code.kx.com/q/ref/value/#lambda">structure</a></p>
+    <p>file symbol <a href="https://code.kx.com/q/ref/value/#get">content of datafile</a></p>
+</div>

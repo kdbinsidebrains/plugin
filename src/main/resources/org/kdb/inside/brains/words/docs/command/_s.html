@@ -1,0 +1,28 @@
+<pre><code class="language-txt">\s [N]
+</code></pre>
+<p>Show or , where <code>N</code> is an integer, set the number of secondary threads available for parallel processing,
+    within the limit set by the <a href="https://code.kx.com/q/basics/cmdline/#-s-secondary-threads"><code>-s</code>
+        command-line option</a>.
+    <code>N</code> is an integer.</p>
+<p>Since V3.5 2017.05.02, secondary threads can be adjusted dynamically up to the maximum specified on the command line.
+    A negative <code>N</code> indicates processes should be used, instead of threads.</p>
+<pre><code class="language-q">q)0N!(&quot;current secondary threads&quot;;system&quot;s&quot;);system&quot;s 4&quot;;0N!(&quot;current,max secondary threads&quot;;system&quot;s&quot;;system&quot;s 0N&quot;); / q -s 8
+(&quot;current secondary threads&quot;;0i)
+(&quot;current,max secondary threads&quot;;4i;8i)
+q)system&quot;s 0&quot; / disable secondary threads
+q)system&quot;s 0N&quot; / show max secondary threads
+8i
+</code></pre>
+<pre><code class="language-txt">N    parallel processing uses
+------------------------------------
+&gt;0   N threads
+&lt;0   processes with handles in .z.pd
+</code></pre>
+<p>For processes:</p>
+<ul>
+    <li><code>peach</code> or <code>':</code> will call <a
+            href="https://code.kx.com/q/ref/dotz/#zpd-peach-handles"><code>.z.pd</code></a> for a list of handles to the
+        processes, which must have been started previously
+    </li>
+    <li>the absolute value of <code>-N</code> in the command line is ignored</li>
+</ul>

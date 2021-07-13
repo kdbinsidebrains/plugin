@@ -1,0 +1,20 @@
+p><em>Execute a system command</em></p>
+<pre><code class="language-txt">system x     system[x]
+</code></pre>
+<p>Where <code>x</code> is a string representing a <a href="https://code.kx.com/q/basics/syscmds/">system command</a>
+    and any parameters to it, executes the command and returns any result.</p>
+<pre><code class="language-q">q)\l sp.q
+…
+q)\a                     / tables in namespace
+`p`s`sp
+q)count \a               / \ must be the first character
+'\
+q)system &quot;a&quot;             / same command called with system
+`p`s`sp
+q)count system &quot;a&quot;       / this returns a result
+3
+</code></pre>
+<p>As with <code>\</code>, if the argument is not a q command, it is executed in the shell:</p>
+<pre><code class="language-q">q)system &quot;pwd&quot;
+&quot;/home/guest/q&quot;
+</code></pre>

@@ -1,0 +1,19 @@
+<div class="typewriter">
+    <p>\o [<em>n</em>]</p>
+</div>
+<p>Show or set the local time offset, as integer <em>n</em> hours from UTC, or as minutes if <code>abs[n]&gt;23</code>.
+    The initial value of <code>0N</code> means the machine’s offset is used.</p>
+<pre><code class="language-q">q)\o
+0N
+q).z.p                        / UTC
+2010.05.31D23:45:52.086467000
+q).z.P                        / local time is UTC + 8
+2010.06.01D07:45:53.830469000
+q)\o -5                       / set local time as UTC - 5
+q).z.P
+2010.05.31D18:45:58.470468000
+q)\o 390                      / set local time as UTC + 6:30
+q).z.P
+2010.06.01D06:16:06.603981000
+</code></pre>
+<p>This corresponds to the <code>-o</code> command line parameter.</p>

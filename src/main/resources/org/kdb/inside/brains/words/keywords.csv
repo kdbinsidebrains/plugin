@@ -1,0 +1,178 @@
+abs, [x], Absolute value,ref/abs/
+aj, [c1...cn; t1; t2], As-of join. Returns boundary time from t1.,ref/aj/#aj-aj0
+aj0, [c1...cn; t1; t2], As-of join. Returns actual time from t2.,ref/aj/#aj-aj0
+ajf, [c1...cn; t1; t2], As-of join. Since V3.6 behave as V2.8 aj,ref/aj/#ajf-ajf0
+ajf0, [c1...cn; t1; t2], As-of join. Since V3.6 behave as V2.8 aj,ref/aj/#ajf-ajf0
+all, [x], Everything is true,ref/all-any/#all
+any, [x], Something is true,ref/all-any/#any
+and, [x;y], Lesser of two values; logical AND,ref/lesser/
+asc, [x], Ascending sort,ref/asc/#asc
+iasc, [x], Ascending grade,ref/asc/#iasc
+xasc, [x;y], Sort a table in ascending order of specified columns.,ref/asc/#xasc
+asof, [t1;t2], As-of join,ref/asof/
+attr, [x], Attributes of an object,ref/attr/
+avg, [x], Arithmetic mean,ref/avg/#avg
+avgs, [x], Running averages,ref/avg/#avgs
+mavg, [x;y], Moving averages,ref/avg/#mavg
+wavg, [x;y], Weighted average,ref/avg/#wavg
+bin, [x;y], Binary search,ref/bin/
+binr, [x;y], Binary search right,ref/bin/
+ceiling, [x], Round up,ref/ceiling/
+count, [x], Count the items of a list or dictionary,ref/count/#count
+mcount, [x;y], Moving counts,ref/count/#mcount
+cols, [x], Column names of a table,ref/cols/#cols
+xcol, [x;y], Rename table columns,ref/cols/#xcol
+xcols, [x;y], Reorder table columns,ref/cols/#xcols
+cor, [x;y], Correlation,ref/cor/
+cos, [x], The cosine of x taken to be in radians.,ref/cos/
+acos, [x], The arccosine of x taken to be in radians.,ref/cos/
+cov, [x;y], Covariance: {avg[x*y]-avg[x]*avg y},ref/cov/#cov
+scov, [x;y], Sample covariance: {cov[x;y]*count[x]%-1+count x},ref/cov/#scov
+cross, [x;y], Returns the cross-product (all possible combinations),ref/cross/
+csv, [], CSV delimiter,ref/csv/
+cut, [x;y], Cut a list or table into a matrix of x columns or as _ Cut operator,ref/cut/
+delete, <delete ... from>, Delete rows or columns from a table; entries from a dictionary; or objects from a namespace,ref/delete/
+deltas, [x], Differences between adjacent list items,ref/deltas/
+desc, [x],  Descending sort,ref/desc/#desc
+idesc, [x], Descending grade,ref/desc/#idesc
+xdesc, [x;y], Sorts a table in descending order of specified columns.,ref/desc/#xdesc
+dev, [x], Standard deviation,ref/dev/#dev
+mdev, [x;y], Moving deviations,ref/dev/#mdev
+sdev, [x], Sample standard deviation: {sqrt var[x]*count[x]%-1+count x},ref/dev/#sdev
+differ, [x], Find where list items change value,ref/differ/
+distinct, [x], Unique items of a list,ref/distinct/
+div, [x;y], Integer division,ref/div/
+dsave, [x;y], Write global tables to disk as splayed enumerated indexed kdb+ tables.,ref/dsave/
+each, [v1;x], Iterate a unary,ref/each/
+peach, [v1;x] ,  Iterate a unary in parallel,ref/each/
+ej, [c;t1;t2], Equi join,ref/ej/
+ema, [x;y], Exponential moving average,ref/ema/
+enlist, [x], Make a list.,ref/enlist/
+eval, [x], Evaluate a parse tree,ref/eval/#eval
+reval, [x], Restricted evaluation of a parse tree,ref/eval/#reval
+except, [x;y], Exclude items from a list,ref/except/
+exec, <exec ... from> ,Return selected rows and columns from a table,ref/exec/
+exit, [x], Terminate kdb+,ref/exit/
+exp, [x], Raise e to a power,ref/exp/#exp
+xexp, [x;y], Raise x to a power,ref/exp/#xexp
+fby, [g], Apply an aggregate to groups,ref/fby/
+fills, [x], Replace nulls with preceding non-nulls,ref/fills/
+first, [x], First item of a list,ref/first/#first
+last, [x], Last item of a list,ref/first/#last
+fkeys, [x], Foreign-key columns of a table,ref/fkeys/
+flip, [x], Returns x transposed,ref/flip/
+floor, [x], Round down,ref/floor/
+get, [x], Read or memory-map a variable or kdb+ data file,ref/get/#get
+set, [x;y], Assign a value to a global variable. Persist an object as a file or directory,ref/get/#set
+getenv, [x], Get the value of an environment variable,ref/getenv/#getenv_1
+setenv, [x;y], Set the value of an environment variable,ref/getenv/#setenv
+group, [x], Returns a dictionary in which the keys are the distinct items,ref/group/
+gtime, [ts], UTC equivalent of local timestamp,ref/gtime/#gtime
+ltime, [ts], Local equivalent of UTC timestamp,ref/gtime/#ltime
+hcount, [x], Size of a file in bytes,ref/hcount/
+hdel, [x], Delete a file or folder,ref/hdel/
+hopen, [x], Open a connection to a file or process,ref/hopen/#hopen
+hclose, [x], Close a connection to a file or process,ref/hopen/#hclose
+hsym, [x], Symbol/s to file or process symbol/s,ref/hsym/
+ij, [x;y], Inner join,ref/ij/
+ijf, [x;y], Inner join,ref/ij/
+in, [x;y], Whether x is an item of y,ref/in/
+insert, [x;y], Insert or append records to a table,ref/insert/
+inter, [x;y], Intersection of two lists or dictionaries,ref/inter/
+inv, [x], Matrix inverse,ref/inv/
+key, [x], Keys of a keyed table. Files in a folder.,ref/key/
+keys, [x], Key column/s of a table,ref/keys/#keys
+xkey, [x;y], Set specified columns as primary keys of a table,ref/keys/#xkey
+like, [x;y], Whether text matches a pattern,ref/like/
+lj,[x;y],Left join,ref/lj/
+ljf,[x;y],Left join,ref/lj/
+load,[x],Load binary data from a file,ref/load/#load
+rload,[x],Load a splayed table from a directory,ref/load/#rload
+log,[x],Natural logarithm,ref/log/#log
+xlog,[x;y],Logarithm,ref/log/#xlog
+lower,[x],Shift case lower,ref/lower/
+upper,[x],Shift case upper,ref/lower/
+lsq,[x;y],Least squares matrix divide,ref/lsq/
+max,[x],Maximum,ref/max/#max
+maxs,[x],Maximums,ref/max/#maxs
+mmax,[x;y],Moving maximums,ref/max/#mmax
+md5,[x],Message Digest hash,ref/md5/
+med,[x],Median,ref/med/
+meta,[x],Metadata for a table,ref/meta/
+min,[x],Minimum,ref/min/#min
+mins,[x],Minimums,ref/min/#mins
+mmin,[x;y],Moving minimums,ref/min/#mmin
+mmu,[x;y],Matrix multiply dot product,ref/mmu/
+mod,[x;y],Modulus,ref/mod/
+neg,[x],Negate,ref/neg/
+next,[x],Next item/s in a list,ref/next/#next
+prev,[x],Immediately preceding item/s in a list,ref/next/#prev
+xprev,[x;y],Nearby items in a list,ref/next/#xprev
+not,[x],Not zero,ref/not/
+null,[x],Is null,ref/null/
+or, [x;y], Greater; logical OR,ref/greater/
+over, [v1;x], Returns only the last,ref/over/
+scan, [v1;x], Returns the result of each evaluation,ref/over/
+parse, [x], Parse a string,ref/parse/
+pj, [x;y], Plus join,ref/pj/
+prd, [x], Product,ref/prd/#prd
+prds, [x], Products,ref/prd/#prds
+prior, [v2;x], Is a wrapper for the Each Prior iterator,ref/prior/
+rand,[x],Pick randomly,ref/rand/
+rank,[x],Position in the sorted list,ref/rank/
+ratios,[y],Ratios between items,ref/ratios/
+raze,[x],Return the items of x joined collapsing one level of nesting,ref/raze/
+read0,[f],Read text from a file or process handle,ref/read0/
+read1,[f],Read bytes from a file or named pipe,ref/read1/
+reciprocal,[x],Reciprocal of a number,ref/reciprocal/
+reverse,[x],Reverse the order of items of a list or dictionary,ref/reverse/
+rotate,[x;y],Shift the items of a list to the left or right,ref/rotate/
+save,[x],Write a global variable to file,ref/save/#save
+rsave,[x],Write a table splayed to a directory,ref/save/#rsave
+select,<select ... from>, Select all or part of a table,ref/select/
+from, <select ... from ...>, Select all or part of a table,ref/../basics/qsql/#from-phrase
+show,[x],Format and display at the console.,ref/show/
+signum,[x],signum,ref/signum/
+sin,[x],The sine of x taken to be in radians.,ref/sin/
+asin,[x],The arcsine of x taken to be in radians.,ref/sin/
+sqrt,[x],Square root,ref/sqrt/
+ss,[x;y],String search; y is a pattern,ref/ss/#ss
+ssr,[x;y;z],String search and replace;y is a pattern;z is a string or a function,ref/ss/#ssr
+string,[x],Cast to string,ref/string/
+sublist,[x;y],Select a sublist of a list,ref/sublist/
+sum,[x],Total,ref/sum/#sum
+sums,[x],Running totals,ref/sum/#sums
+msum,[x;y],Moving sums,ref/sum/#msum
+wsum,[x;y],Weighted sum,ref/sum/#wsum
+sv,[x;y],Scalar from vector;y is a list;x is a char atom,ref/sv/
+system,[x],Execute a system command,ref/system/
+tables,[x],List of tables in a namespace,ref/tables/
+tan,[x],The tangent of x taken to be in radians,ref/tan/
+atan,[x],The arctangent of x taken to be in radians,ref/tan/
+til,[x],First x natural numbers,ref/til/
+trim, [x], Remove leading and trailing nulls from a list,ref/trim/
+ltrim, [x], Remove leading nulls from a list,ref/trim/
+rtrim, [x], Remove trailing nulls from a list,ref/trim/
+type, [x], Datatype of an object,ref/type/
+uj,[x;y],Union join,ref/uj/
+ujf,[x;y],Union join,ref/uj/
+union,[x;y],Union of two lists,ref/union/
+ungroup,[x], Returns the normalized table with one row for each item of a lists,ref/ungroup/
+update , <update ... from>,Add or amend rows or columns of a table or entries in a dictionary,ref/update/
+upsert,[x;y],Add new records to a table,ref/upsert/
+value,[x],Recurse the interpreter,ref/value/
+var,[x],Variance,ref/var/#var
+svar,[x],Sample variance,ref/var/#svar
+view,[x],Expression defining a view,ref/view/#view
+views,[],List views defined in the default namespace,ref/view/#views
+vs,[x;y],Vector from scalar,ref/vs/
+where,[x],Copies of indexes of a list or keys of a dictionary,ref/where/
+within,[x;y],Check bounds,ref/within/
+wj,[w; c; t; (q; (f0;c0); (f1;c1))],Window join,ref/wj/
+wj1,[w; c; t; (q; (f0;c0); (f1;c1))],Window join,ref/wj/
+xbar,[x;y],Round down,ref/xbar/
+xgroup,[x;y],Groups a table by values in selected columns,ref/xgroup/
+xrank,[x;y],Group by value,ref/xrank/
+do,[count;e1;e2;e3;...;en],Evaluate expression/s some number of times,ref/do/
+if,[test;e1;e2;e3;...;en],Evaluate expression/s under some condition,ref/if/
+while,[test;e1;e2;e3;...;en],Evaluate expression/s while some condition remains true,ref/while/

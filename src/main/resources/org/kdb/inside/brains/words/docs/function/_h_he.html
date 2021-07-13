@@ -1,0 +1,7 @@
+<pre><code class="language-txt">.h.he x
+</code></pre>
+<p>Where <code>x</code> is a string, escapes <code>"&lt;"</code> characters, adds a <code>"'"</code> at the front, and
+    returns an HTTP 400 error (Bad Request) with that content.</p>
+<pre><code class="language-q">q).h.he &quot;&lt;rubbish&gt;&quot;
+&quot;HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain\r\nConnection: close\r\..
+</code></pre>

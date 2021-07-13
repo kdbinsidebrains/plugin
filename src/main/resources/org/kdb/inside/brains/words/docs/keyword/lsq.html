@@ -1,0 +1,14 @@
+<p><em>Least squares, matrix divide</em></p>
+<pre><code class="language-txt">x lsq y     lsq[x;y]
+</code></pre>
+<p>Where:</p>
+<ul>
+    <li><code>x</code> and <code>y</code> are float matrixes with the same number of columns</li>
+    <li>the number of rows of <code>y</code> do not exceed the number of columns</li>
+    <li>the rows of <code>y</code> are linearly independent</li>
+</ul>
+<p>returns the least-squares solution of <code>x = (x lsq y) mmu y</code>. That is, if</p>
+<pre><code class="language-q">d:x - (x lsq y) mmu y
+</code></pre>
+<p>then <code>sum d*d</code> is minimized. If <code>y</code> is a square matrix, <code>d</code> is the zero matrix, up
+    to rounding errors.</p>

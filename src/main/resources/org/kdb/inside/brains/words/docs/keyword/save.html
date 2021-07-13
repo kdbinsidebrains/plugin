@@ -1,0 +1,24 @@
+<p><em>Write a global variable to file</em></p>
+<pre><code class="language-syntax">save x     save[x]
+</code></pre>
+<p>Where <code>x</code> is a symbol atom or vector of the form <code>[path/to/]v[.ext]</code> in which </p>
+<ul>
+    <li><code>v</code> is the name of a global variable</li>
+    <li><code>path/to/</code> is a file path (optional)</li>
+    <li><code>.ext</code> is a file extension (optional)</li>
+</ul>
+<p>writes global variable/s <code>v</code> etc. to file and returns the filename/s.</p>
+<h3 id="file-path">File path</h3>
+<p>If a file </p>
+<ul>
+    <li>exists, it is overwritten</li>
+    <li>does not exist, it is created, with any required parent directories</li>
+</ul>
+<h3 id="format">Format</h3>
+<p>The format used depends on the file extension:</p>
+<pre><code class="language-txt">(none)   binary
+ csv     comma-separated values
+ txt     plain text
+ xls     Excel spreadsheet
+ xml     Extensible Markup Language (XML)
+</code></pre>

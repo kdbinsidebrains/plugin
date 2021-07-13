@@ -1,0 +1,15 @@
+<p><em>Evaluate a parse tree</em></p>
+<pre><code class="language-txt">eval x     eval[x]
+</code></pre>
+<p>Where <code>x</code> is a parse tree, returns the result of evaluating it. </p>
+<p>The <code>eval</code> function is the complement of <a href="https://code.kx.com/q/ref/parse/"><code>parse</code></a>
+    and can be used to evaluate the parse trees it returns. (Also parse trees constructed explicitly.)</p>
+<pre><code class="language-q">q)parse &quot;2+3&quot;
++
+2
+3
+q)eval parse &quot;2+3&quot;
+5
+q)eval (+;2;3)      / constructed explicitly
+5
+</code></pre>

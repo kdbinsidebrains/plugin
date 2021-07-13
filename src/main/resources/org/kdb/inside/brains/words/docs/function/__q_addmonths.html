@@ -1,0 +1,11 @@
+<pre><code class="language-txt">.Q.addmonths[x;y]
+</code></pre>
+<p>Where <code>x</code> is a date and <code>y</code> is an int, returns <code>x</code> plus <code>y</code> months.</p>
+<pre><code class="language-q">q).Q.addmonths[2007.10.16;6 7]
+2008.04.16 2008.05.16
+</code></pre>
+<p>If the date <code>x</code> is near the end of the month and (<code>x.month + y</code>)’s month has fewer days than
+    <code>x.month</code>, the result may spill over to the following month.</p>
+<pre><code class="language-q">q).Q.addmonths[2006.10.29;4]
+2007.03.01
+</code></pre>

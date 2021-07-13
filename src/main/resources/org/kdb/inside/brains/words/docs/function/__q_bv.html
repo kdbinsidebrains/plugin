@@ -1,0 +1,31 @@
+<pre><code class="language-txt">.Q.bv[]
+.Q.bv[`]
+</code></pre>
+<p>In partitioned DBs, construct the dictionary <code>.Q.vp</code> of table schemas for tables with missing partitions.
+    Optionally allow tables to be missing from partitions, by scanning partitions for missing tables and taking the
+    tables’ prototypes from the last partition. After loading/re-loading from the filesystem, invoke
+    <code>.Q.bv[]</code> to (re)populate <code>.Q.vt</code>/<code>.Q.vp</code>, which are used inside <code>.Q.p1</code>
+    during the partitioned select <code>.Q.ps</code>.
+    (Since V2.8 2012.01.20, modified V3.0 2012.01.26)</p>
+<p>If your table exists at least in the latest partition (so there is a prototype for the schema), you could use <code>.Q.bv[]</code>
+    to create empty tables on the fly at run-time without having to create those empties on disk. <code>.Q.bv[`]</code>
+    (with argument) will use prototype from first partition instead of last. (Since V3.2 2014.08.22.)</p>
+<p>Some admins prefer to see errors instead of auto-manufactured empties for missing data, which is why
+    <code>.Q.bv</code> is not the default behavior.</p>
+<pre><code class="language-q">q)n:100
+q)t:([]time:.z.T+til n;sym:n?`2;num:n)
+q).Q.dpft[`:.;;`sym;`t]each 2010.01.01+til 5
+`t`t`t`t`t
+q)tt:t
+q).Q.dpft[`:.;;`sym;`tt]last 2010.01.01+til 5
+`tt
+q)\l .
+q)tt
++`sym`time`num!`tt
+q)@[get;&quot;select from tt&quot;;-2@]; / error
+./2010.01.01/tt/sym: No such file or directory
+q).Q.bv[]
+q).Q.vp
+tt| +`date`sym`time`num!(`date$();`sym$();`time$();`long$())
+q)@[get;&quot;select from tt&quot;;-2@]; / no error
+</code></pre>

@@ -1,0 +1,25 @@
+<pre><code class="language-txt">group x     group[x]
+</code></pre>
+<p>Returns a dictionary in which the keys are the distinct items of <code>x</code>, and the values the indexes where the
+    distinct items occur.</p>
+<p>The order of the keys is the order in which they appear in <code>x</code>.</p>
+<pre><code class="language-q">q)group &quot;mississippi&quot;
+m| ,0
+i| 1 4 7 10
+s| 2 3 5 6
+p| 8 9
+</code></pre>
+<p>To count the number of occurrences of each distinct item:</p>
+<pre><code class="language-q">q)count each group &quot;mississippi&quot;
+m| 1
+i| 4
+s| 4
+p| 2
+</code></pre>
+<p>To get the index of the first occurrence of each distinct item:</p>
+<pre><code class="language-q">q)first each group &quot;mississippi&quot;
+m| 0
+i| 1
+s| 2
+p| 8
+</code></pre>

@@ -1,0 +1,13 @@
+<p><em>List of tables in a namespace</em></p>
+<p>Syntax: <code>tables x</code>, <code>tables[x]</code></p>
+<p>Where <code>x</code> is a reference to a namespace, returns as a symbol vector a sorted list of the tables in
+    <code>x</code></p>
+<pre><code class="language-q">q)\l sp.q
+q)tables `.       / tables in root namespace
+`p`s`sp
+q)tables[]        / default is root namespace
+`p`s`sp
+q).work.tab:sp    / assign table in work namespace
+q)tables `.work   / tables in work
+,`tab
+</code></pre>

@@ -1,0 +1,31 @@
+<pre><code class="language-txt">\S [n]
+</code></pre>
+<p>Where <code>n</code> is</p>
+<ul>
+    <li>omitted: display the last value to which the random seed was initialized</li>
+    <li><code>0N</code>: display the current value of the random seed (since V3.6)</li>
+    <li>non-zero integer: re-initialize the seed to <code>n</code></li>
+</ul>
+<p>Note that <code>\S</code> displays the last value to which the seed was initialized: it is not updated as the
+    random-number generator (rng) is used.</p>
+<pre><code class="language-q">q)\S                       / default
+-314159i
+q)5?10
+8 1 9 5 4
+q)5?10
+6 6 1 8 5
+q)\S -314159               / restore default seed
+q)5?10                     / same random numbers generated
+8 1 9 5 4
+q)\S                       / seed is not updated
+-314159
+q)x:system &quot;S 0N&quot;          / current value of seed
+q)r:10?10
+q)system &quot;S &quot;,string x     / re-initialize seed
+q)r~10?10
+1b
+</code></pre>
+<p>Allows user to save and restore state of the rng.
+    (Since V3.6 2017.09.26.)</p>
+<pre><code class="language-q">q)x:system&quot;S 0N&quot;;r:10?10;system&quot;S &quot;,string x;r~10?10
+</code></pre>

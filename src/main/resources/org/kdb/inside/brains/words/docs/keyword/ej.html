@@ -1,0 +1,50 @@
+<p><em>Equi join</em></p>
+<pre><code class="language-txt">ej[c;t1;t2]
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>c</code> is a list of column names (or a single column name)</li>
+    <li><code>t1</code> and <code>t2</code> are tables</li>
+</ul>
+<p>returns <code>t1</code> and <code>t2</code> joined on column/s <code>c</code>.</p>
+<p>The result has one combined record for each row in <code>t2</code> that matches <code>t1</code> on columns
+    <code>c</code>.</p>
+<pre><code class="language-q">q)t:([]sym:`IBM`FDP`FDP`FDP`IBM`MSFT;price:0.7029677 0.08378167 0.06046216
+    0.658985 0.2608152 0.5433888)
+q)s:([]sym:`IBM`MSFT;ex:`N`CME;MC:1000 250)
+
+q)t
+sym  price
+---------------
+IBM  0.7029677
+FDP  0.08378167
+FDP  0.06046216
+FDP  0.658985
+IBM  0.2608152
+MSFT 0.5433888
+
+q)s
+sym  ex  MC
+-------------
+IBM  N   1000
+MSFT CME 250
+
+q)ej[`sym;s;t]
+sym  price     ex  MC
+-----------------------
+IBM  0.7029677 N   1000
+IBM  0.2608152 N   1000
+MSFT 0.5433888 CME 250
+</code></pre>
+<p>Duplicate column values are filled from <code>t2</code>.</p>
+<pre><code class="language-q">q)t1:([] k:1 2 3 4; c:10 20 30 40)
+q)t2:([] k:2 2 3 4 5; c:200 222 300 400 500; v:2.2 22.22 3.3 4.4 5.5)
+
+q)ej[`k;t1;t2]
+k c   v
+-----------
+2 200 2.2
+2 222 22.22
+3 300 3.3
+4 400 4.4
+</code></pre>

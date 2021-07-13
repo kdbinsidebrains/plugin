@@ -1,0 +1,29 @@
+<p><em>Return the items of <code>x</code> joined, collapsing one level of nesting</em></p>
+<pre><code class="language-txt">raze x    raze[x]
+</code></pre>
+<p>To collapse all levels, use <a href="https://code.kx.com/q/ref/accumulators/#converge">Converge</a> i.e. <code>raze/[x]</code>.
+</p>
+<pre><code class="language-q">q)raze (1 2;3 4 5)
+1 2 3 4 5
+q)b:(1 2;(3 4;5 6);7;8)
+q)raze b                 / flatten one level
+1
+2
+3 4
+5 6
+7
+8
+q)raze/[b]               / flatten all levels
+1 2 3 4 5 6 7 8
+q)raze 42                / atom returned as a list
+,42
+</code></pre>
+<p>Returns the flattened values from a dictionary.</p>
+<pre><code class="language-q">q)d:`q`w`e!(1 2;3 4;5 6)
+q)value d
+1 2
+3 4
+5 6
+q)raze d
+1 2 3 4 5 6
+</code></pre>

@@ -1,0 +1,14 @@
+<pre><code class="language-txt">.z.ac:(requestText;requestHeaderAsDictionary)
+</code></pre>
+<p>Lets you define custom code to extract Single Sign On (SSO) token cookies from the HTTP header and verify it,
+    decoding and returning the username, or instructing what action to take.</p>
+<pre><code class="language-q">q).z.ac:{mySSOAuthenticator x[1]`Authorization}
+</code></pre>
+<p>where allowed return values are</p>
+<pre><code class="language-q">(0;&quot;&quot;)              / return default 401
+(1;&quot;username&quot;)      / authenticated username (.z.u becomes this)
+(2;&quot;response text&quot;) / send raw response text to client
+</code></pre>
+<p>and <code>mySSOAuthenticator</code> is your custom code that authenticates against your SSO library.</p>
+<p>Note that if <code>.z.ac</code> is defined, <code>.z.pw</code> will <em>not</em> be called for HTTP connections for
+    authentication.</p>

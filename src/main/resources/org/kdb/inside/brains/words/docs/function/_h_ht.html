@@ -1,0 +1,21 @@
+<pre><code class="language-txt">.h.ht x
+</code></pre>
+<p>HTML documentation generator: <!-- for <a href="https://kx.com/q/d/">https://kx.com/q/d/</a> -->
+    where <code>x</code> is a symbol atom, reads file <code>:src/x.txt</code> and writes file <code>:x.htm</code>.
+    (Marqdown is a rudimentary form of Markdown.)</p>
+<ul>
+    <li>edit <code>src/mydoc.txt</code></li>
+    <li><code>q).h.ht`mydoc</code></li>
+    <li>browse <code>mydoc.htm</code> (<code>a/_mydoc.htm</code> is navigation frame, <code>a/mydoc.htm</code> is
+        content frame)
+    </li>
+</ul>
+<p>Basic Marqdown formatting rules:</p>
+<ul>
+    <li>Paragraph text starts at the beginning of the line.</li>
+    <li>Lines beginning with <code>"."</code> are treated as section headings.</li>
+    <li>Lines beginning with <code>"\t"</code> get wrapped in <code>code</code> tags</li>
+    <li>Line data beginning with <code>" "</code> get wrapped in <code>xmp</code> tags</li>
+    <li>If second line of data starts with <code>"-"</code>, draw a horizontal rule to format the header</li>
+    <li>Aligns two-column data if 2nd column starts with <code>"\t "</code></li>
+</ul>

@@ -1,0 +1,30 @@
+<p><em>Binary search</em></p>
+<pre><code class="language-txt">x bin  y    bin[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a sorted list</li>
+    <li><code>y</code> is a list or atom of exactly the same type (no type promotion)</li>
+</ul>
+<p>returns the index of the <em>last</em> item in <code>x</code> which is ≤<code>y</code>. The result is <code>-1</code>
+    for <code>y</code> less than the first item of <code>x</code>.
+    <code>binr</code> <em>binary search right</em>, introduced in V3.0 2012.07.26, gives the index of the <em>first</em>
+    item in <code>x</code> which is ≥<code>y</code>.</p>
+<p>They use a binary-search algorithm, which is generally more efficient on large data than the linear-search algorithm
+    used by <code>?</code> (<a href="https://code.kx.com/q/ref/find/">Find</a>).</p>
+<p>The items of <code>x</code> should be sorted ascending although <code>bin</code> does not verify that; if the items
+    are not sorted ascending, the result is undefined. <code>y</code> can be either an atom or a simple list of the same
+    type as the left argument.</p>
+<p>The result <code>r</code> can be interpreted as follows: for an atom <code>y</code>, <code>r</code> is an integer
+    atom whose value is either a valid index of <code>x</code> or <code>-1</code>. In general:</p>
+<pre><code class="language-txt">r[i]=-1            iff y[i]&lt;x[0]
+r[i]=i             iff x[i]&lt;=y[i]&lt;x[i+1]
+</code></pre>
+<p>and</p>
+<pre><code class="language-txt">r[j]=x bin y[j]    for all j in index of y
+</code></pre>
+<p>Essentially <code>bin</code> gives a half-open interval on the left.</p>
+<p><code>bin</code> and <code>binr</code> are right-atomic: their results have the same count as <code>y</code>.</p>
+<p><code>bin</code> also operates on tuples and table columns and is the function used in <a
+        href="https://code.kx.com/q/ref/aj/"><code>aj</code></a> and <a
+        href="https://code.kx.com/q/ref/aj/"><code>lj</code></a>.</p>

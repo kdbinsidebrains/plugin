@@ -1,0 +1,13 @@
+<p><em>Restricted evaluation of a parse tree</em></p>
+<pre><code class="language-txt">reval x     reval[x]
+</code></pre>
+<p>The <code>reval</code> function is similar to <a href="https://code.kx.com/q/ref/eval/"><code>eval</code></a>, and
+    behaves as if the <a href="https://code.kx.com/q/basics/cmdline/#-b-blocked">command-line option <code>-b</code></a>
+    were active during evaluation.</p>
+<p>An example usage is inside the message handler <a href="https://code.kx.com/q/ref/dotz/#zpg-get"><code>.z.pg</code>,</a>
+    useful for access control, here blocking sync messages from updating:</p>
+<pre><code class="language-q">q).z.pg:{reval(value;enlist x)} / define in process listening on port 5000
+q)h:hopen 5000 / from another process on same host
+q)h&quot;a:4&quot;
+'noupdate: `. `a
+</code></pre>

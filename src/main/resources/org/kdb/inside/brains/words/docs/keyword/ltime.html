@@ -1,0 +1,9 @@
+<p><em>Local equivalent of UTC timestamp</em></p>
+<pre><code class="language-txt">ltime ts    ltime[ts]
+</code></pre>
+<p>Where <code>ts</code> is a datetime/timestamp, returns the local datetime/timestamp.</p>
+<pre><code class="language-q">q).z.P
+2009.11.05D15:21:10.040666000
+q)ltime .z.p                  / same timezone as .z.P
+2009.11.05D15:21:10.043235000
+</code></pre>

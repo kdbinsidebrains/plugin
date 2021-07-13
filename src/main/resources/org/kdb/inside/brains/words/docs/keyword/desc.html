@@ -1,0 +1,33 @@
+<p><em>Descending sort</em></p>
+<pre><code class="language-txt">desc x    desc[x]
+</code></pre>
+<p>Returns <code>x</code> sorted into descending order.
+    The function is uniform.
+    The sort is stable: it preserves order between equals. </p>
+<p>Where <code>x</code> is a</p>
+<ul>
+    <li><strong>vector</strong>, it is returned sorted</li>
+    <li><strong>mixed list</strong>, the result is sorted within datatype</li>
+    <li><strong>dictionary</strong> or <strong>table</strong>, the result is sorted by the first key value or column
+        (respectively).
+    </li>
+</ul>
+<pre><code class="language-q">q)desc 2 1 3 4 2 1 2                    / vector
+4 3 2 2 2 1 1
+
+q)desc (1;1b;&quot;b&quot;;2009.01.01;&quot;a&quot;;0)      / mixed list
+2009.01.01
+&quot;b&quot;
+&quot;a&quot;
+1
+0
+1b
+
+q)t:([]a:3 4 1;b:`a`d`s)                / table
+q)desc t
+a b
+---
+4 d
+3 a
+1 s
+</code></pre>

@@ -1,0 +1,17 @@
+<p><em>Minimum</em></p>
+<pre><code class="language-txt">min x     min[x]
+</code></pre>
+<p>Where <code>x</code> is a non-symbol sortable list, returns its minimum.
+    The minimum of an atom is itself. </p>
+<p>Nulls are ignored, except that if the argument has only nulls, the result is infinity.</p>
+<pre><code class="language-q">q)min 2 5 7 1 3
+1
+q)min &quot;genie&quot;
+&quot;e&quot;
+q)min 0N 5 0N 1 3                  / nulls are ignored
+1
+q)min 0N 0N                        / infinity if all null
+0W
+q)select min price by sym from t   / use in a select statement
+</code></pre>
+<p><code>min</code> is an aggregate function, equivalent to <code>&amp;/</code>.</p>

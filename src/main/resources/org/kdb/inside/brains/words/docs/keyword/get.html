@@ -1,0 +1,26 @@
+<p><em>Read or memory-map a variable or kdb+ data file</em></p>
+<pre><code class="language-txt">get x     get[x]
+</code></pre>
+<p>Where <code>x</code> is</p>
+<ul>
+    <li>the name of a global variable as a symbol atom</li>
+    <li>a <a href="https://code.kx.com/q/basics/glossary/#file-symbol">file or folder</a> named as a symbol atom or
+        vector
+    </li>
+</ul>
+<p>returns its value.</p>
+<p>Signals a <code>type</code> error if the file is not a kdb+ data file.</p>
+<p>Used to map columns of databases in and out of memory when querying splayed databases, and can be used to read q log
+    files, etc.</p>
+<pre><code class="language-q">q)a:42
+q)get `a
+42
+
+q)\l trade.q
+q)`:NewTrade set trade                  / save trade data to file
+`:NewTrade
+q)t:get`:NewTrade                       / t is a copy of the table
+q)`:SNewTrade/ set .Q.en[`:.;trade]     / save splayed table
+`:SNewTrade/
+q)s:get`:SNewTrade/                     / s has columns mapped on demand
+</code></pre>

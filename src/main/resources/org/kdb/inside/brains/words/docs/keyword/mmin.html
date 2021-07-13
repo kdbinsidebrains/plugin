@@ -1,0 +1,17 @@
+<p><em>Moving minimums</em></p>
+<pre><code class="language-txt">x mmin y     mmin[x;y]
+</code></pre>
+<p>Where <code>y</code> is a non-symbol sortable list and <code>x</code> is a </p>
+<ul>
+    <li>positive int atom, returns the <code>x</code>-item moving minimums of <code>y</code>, with nulls treated as the
+        minimum value; the first <code>x</code> items of the result are the minimums of the terms so far, and thereafter
+        the result is the moving minimum
+    </li>
+    <li>0 or a negative int, returns <code>y</code></li>
+</ul>
+<pre><code class="language-q">q)3 mmin 0N -3 -2 1 -0W 0
+0N 0N 0N -3 -0W -0W
+q)3 mmin 0N -3 -2 1 0N -0W    / null is the minimum value
+0N 0N 0N -3 0N 0N
+</code></pre>
+<p><code>mmin</code> is a uniform function.</p>

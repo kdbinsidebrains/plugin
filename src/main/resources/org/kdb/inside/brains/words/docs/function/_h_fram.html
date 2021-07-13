@@ -1,0 +1,22 @@
+<p><em>HTML page with two frames</em></p>
+<pre><code class="language-txt">.h.fram[t;s;(l;r)]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>t</code> is the page title (string)</li>
+    <li><code>s</code> is a list of strings</li>
+    <li><code>l</code> and <code>r</code> are respectively the sources of the left and right frames (strings)</li>
+</ul>
+<p>returns as a string an HTML page with two frames in a frameset wide enough to accommodate the lines of <code>s</code>.
+</p>
+<p>Example: suppose <code>tmp.htm</code> contains the content for the first frame.</p>
+<pre><code class="language-q">q)`tmp.txt: 0:0N!s:&quot; &quot;sv'2#''string 5 10#50?100
+&quot;12 10 11 90 73 90 43 90 84 63&quot;
+&quot;93 54 38 97 88 58 68 45 22 39&quot;
+&quot;64 49 82 40 88 77 30 17 23 12&quot;
+&quot;66 36 37 44 28 20 30 34 77 61&quot;
+&quot;70 36 12 97 92 99 45 83 94 88&quot;
+q).h.fram[&quot;Five rows&quot;;s;(&quot;tmpl.htm&quot;;&quot;tmp.txt&quot;)]
+&quot;&lt;html&gt;&lt;head&gt;&lt;title&gt;Five rows&lt;/title&gt;&lt;frameset cols=\&quot;316,*\&quot;&gt;&lt;frame
+src=\&quot;tmp.htm\&quot;&gt;&lt;frame name=v src=\&quot;tmp.txt\&quot;&gt;&lt;/frameset&gt;&lt;/head&gt;&lt;/html&gt;&quot;
+</code></pre>

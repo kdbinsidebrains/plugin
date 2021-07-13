@@ -1,0 +1,29 @@
+<p>Command-line arguments as a list of strings</p>
+<pre><code class="language-q">$ q test.q -P 0 -abc 123
+q).z.x
+(&quot;-abc&quot;;&quot;123&quot;)
+</code></pre>
+<p>Note that the script name and the single-letter options used by q itself are not included.</p>
+<p>Command-line options can be converted to a dictionary using the convenient <code>.Q.opt</code> function.</p>
+<pre><code class="language-bash">$ q -abc 123 -xyz 321
+</code></pre>
+<pre><code class="language-q">q).Q.opt .z.x
+abc| &quot;123&quot;
+xyz| &quot;321&quot;
+</code></pre>
+<p>Defaults and types can be provided with <code>.Q.def</code>.</p>
+<pre><code class="language-bash">$ q -abc 123 -xyz 321
+</code></pre>
+<pre><code class="language-q">q).Q.def[`abc`xyz`efg!(1;2.;`a)].Q.opt .z.x
+abc| 123
+xyz| 321f
+efg| `a
+q)\\
+</code></pre>
+<pre><code class="language-bash">$ q -abc 123 -xyz 321 -efg foo
+</code></pre>
+<pre><code class="language-q">q).Q.def[`abc`xyz`efg!(1;2.;`a)].Q.opt .z.x
+abc| 123
+xyz| 321f
+efg| `foo
+</code></pre>

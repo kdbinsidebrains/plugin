@@ -1,0 +1,14 @@
+<pre><code class="language-txt">.j.k x
+</code></pre>
+<p>Where <code>x</code> is a string containing JSON, returns a K object.</p>
+<pre><code class="language-q">q).j.k 0N!.j.j `a`b!(0 1;(&quot;hello&quot;;&quot;world&quot;))        / dictionary
+&quot;{\&quot;a\&quot;:[0,1],\&quot;b\&quot;:[\&quot;hello\&quot;,\&quot;world\&quot;]}&quot;
+a| 0       1
+b| &quot;hello&quot; &quot;world&quot;
+q).j.k 0N!.j.j ([]a:1 2;b:`Greetings`Earthlings)   / table
+&quot;[{\&quot;a\&quot;:1,\&quot;b\&quot;:\&quot;Greetings\&quot;},{\&quot;a\&quot;:2,\&quot;b\&quot;:\&quot;Earthlings\&quot;}]&quot;
+a b
+--------------
+1 &quot;Greetings&quot;
+2 &quot;Earthlings&quot;
+</code></pre>

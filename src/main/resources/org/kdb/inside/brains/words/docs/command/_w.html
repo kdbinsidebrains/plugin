@@ -1,0 +1,55 @@
+<pre><code class="language-txt">\w [0|1|n]
+</code></pre>
+<p>With no parameter, returns current memory usage, as a list of 6 long integers.</p>
+<pre><code class="language-txt">0   number of bytes allocated
+1   bytes available in heap
+2   maximum heap size so far
+3   limit on thread heap size, from -w command-line option
+4   mapped bytes
+5   physical memory
+</code></pre>
+<pre><code class="language-q">q)\w
+168144 67108864 67108864 0 0 8589934592
+</code></pre>
+<p><code>\w 0</code> and <code>\w 1</code> return a pair of longs:</p>
+<pre><code class="language-txt">0   number of internalized symbols
+1   corresponding memory usage
+</code></pre>
+<pre><code class="language-q">q)\w 0
+577 25436
+</code></pre>
+<p>The utility <a href="https://code.kx.com/q/ref/dotq/#qw-memory-stats"><code>.Q.w</code></a> formats all this
+    information.</p>
+<p><strong>Run-time increase</strong>
+    Since 2017.11.06, <code>\w</code> allows the workspace limit to be increased at run-time, if it was initialized via
+    the
+    <a href="https://code.kx.com/q/basics/cmdline/#-w-workspace"><code>-w</code> command-line option</a>.
+    E.g. <code>system "w 128"</code> sets the <code>-w</code> limit to the larger of 128 MB and the current setting and
+    returns it.</p>
+<p>If the system tries to allocate more memory than allowed, it signals <code>-w abort</code> and terminates with exit
+    code 1. </p>
+<p>Specifying too large a number will fall back to the same behavior as <code>\w 0</code> or <code>\w 1</code>.</p>
+<pre><code class="language-q">q)\w
+339168 67108864 67108864 104857600 0 8589934592
+q)\w 0
+651 28009
+q)\w 128
+134217728
+q)\w 1000000000
+1048576000000000
+q)\w 1000000000000
+651 28009
+</code></pre>
+<p>If the workspace limit has not been set by the command-line option <code>-w</code>, an error is signalled.</p>
+<pre><code class="language-q">q)\w 3
+'-w init via cmd line
+</code></pre>
+<p><strong>Domain-local</strong>
+    Since V4.0 2020.03.17 returns information for the <a href="https://code.kx.com/q/ref/dotm/">current memory
+        domain</a> only.</p>
+<pre><code class="language-q">q)value each (&quot;\\d .m&quot;;&quot;\\w&quot;;&quot;\\d .&quot;;&quot;\\w&quot;)
+::
+353968 67108864 67108864 0 0 8589934592
+::
+354032 67108864 67108864 0 0 8589934592
+</code></pre>

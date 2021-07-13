@@ -1,0 +1,15 @@
+<pre><code class="language-txt">\x .z.p*
+</code></pre>
+<p>By default, callbacks like <code>.z.po</code> are not defined in the session. After they have been assigned, you can
+    restore the default using <code>\x</code> to delete the definition that was made.</p>
+<pre><code class="language-q">q).z.pi                       / default has no user defined function
+'.z.pi
+q).z.pi:{&quot;&gt;&quot;,.Q.s value x}    / assign function
+q)2+3
+&gt;5
+q)\x .z.pi                    / restore default
+</code></pre>
+<details class="warning">
+    <summary>Works only for <code>.z.p*</code> variables defined in k before <code>q.k</code> is loaded</summary>
+    <p>For example, as <code>.z.ph</code> is defined in <code>q.k</code>, there is no default for it to be reset to.</p>
+</details>

@@ -1,0 +1,23 @@
+<p><em>Pick randomly</em></p>
+<pre><code class="language-syntax">rand x   rand[x]
+</code></pre>
+<h2 id="pick-an-item-from-a-list">Pick an item from a list</h2>
+<p>Where <code>x</code> is a <strong>list</strong> returns one item chosen randomly from <code>x</code></p>
+<pre><code class="language-q">q)rand 1 30 45 32
+32
+q)rand(&quot;abc&quot;;&quot;def&quot;;&quot;ghi&quot;)  / list of lists
+&quot;ghi&quot;
+</code></pre>
+<h2 id="pick-a-value-at-random">Pick a value at random</h2>
+<p>Where <code>x</code> is an <strong>atom</strong> returns an atom of the same type.</p>
+<pre><code class="language-q">q)rand 100
+10
+q)rand each 20#6  /roll twenty 6-sided dice
+2 5 4 5 1 0 5 2 4 5 1 2 0 1 1 2 1 0 0 5
+q)rand 3.14159
+1.277572
+q)rand 2012.09.12
+2008.02.04
+q)rand `3
+`afe
+</code></pre>

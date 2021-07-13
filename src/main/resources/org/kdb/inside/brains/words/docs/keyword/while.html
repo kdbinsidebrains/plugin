@@ -1,0 +1,18 @@
+<p><em>Evaluate expression/s while some condition remains true</em></p>
+<p>Syntax: <code>while[test;e1;e2;e3;…;en]</code></p>
+<p>Control construct. Where</p>
+<ul>
+    <li><code>test</code> is an expression that evaluates to an atom of integral type</li>
+    <li><code>e1</code>, <code>e2</code>, … <code>en</code> are expressions</li>
+</ul>
+<p>unless <code>test</code> evaluates to zero, the expressions <code>e1</code> to <code>en</code> are evaluated, in
+    order. The cycle – evaluate <code>test</code>, then the expressions – continues until <code>test</code> evaluates to
+    zero.</p>
+<pre><code class="language-q">q)r:1 1
+q)x:10
+q)while[x-:1;r,:sum -2#r]
+q)r
+1 1 2 3 5 8 13 21 34 55 89
+</code></pre>
+<p>The result of <code>while</code> is always the <a href="https://code.kx.com/q/ref/identity/#null">generic null</a>.
+</p>

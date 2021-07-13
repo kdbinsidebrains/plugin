@@ -1,0 +1,20 @@
+<pre><code class="language-txt">signum x    signum[x]
+</code></pre>
+<p>Where <code>x</code> (or its underlying value for temporals) is</p>
+<ul>
+    <li>null or negative, returns <code>-1i</code></li>
+    <li>zero, returns <code>0i</code></li>
+    <li>positive, returns <code>1i</code></li>
+</ul>
+<pre><code class="language-q">q)signum -2 0 1 3
+-1 0 1 1i
+
+q)signum (0n;0N;0Nt;0Nd;0Nz;0Nu;0Nv;0Nm;0Nh;0Nj;0Ne)
+-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1i
+
+q)signum 1999.12.31
+-1i
+</code></pre>
+<p>Find counts of price movements by direction:</p>
+<pre><code class="language-q">select count i by signum deltas price from trade
+</code></pre>

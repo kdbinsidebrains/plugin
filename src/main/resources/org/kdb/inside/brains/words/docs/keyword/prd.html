@@ -1,0 +1,19 @@
+<p><em>Product</em></p>
+<pre><code class="language-txt">prd x    prd[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric list, returns its product.</p>
+<p>Nulls are treated as 1s.</p>
+<pre><code class="language-q">q)prd 7                    / product of atom (returned unchanged)
+7
+q)prd 2 3 5 7              / product of list
+210
+q)prd 2 3 0N 7             / 0N is treated as 1
+42
+q)prd (1 2 3 4;2 3 5 7)    / product of list of lists
+2 6 15 28
+q)prd 101b
+0b
+q)prd &quot;abc&quot;
+'type
+</code></pre>
+<p><code>prd</code> is an aggregate function, equivalent to <code>*/</code>.</p>

@@ -1,0 +1,25 @@
+pre><code class="language-txt">.Q.f[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is an int atom</li>
+    <li><code>y</code> is a numeric atom</li>
+</ul>
+<p>returns <code>y</code> as a string formatted as a float to <code>x</code> decimal places.</p>
+<p>Because of the limits of precision in a double, for <code>y</code> above <code>1e13</code> or the limit set by <code>\P</code>,
+    formats in scientific notation.</p>
+<pre><code class="language-q">q)\P 0
+q).Q.f[2;]each 9.996 34.3445 7817047037.90 781704703567.90 -.02 9.996 -0.0001
+&quot;10.00&quot;
+&quot;34.34&quot;
+&quot;7817047037.90&quot;
+&quot;781704703567.90&quot;
+&quot;-0.02&quot;
+&quot;10.00&quot;
+&quot;-0.00&quot;
+</code></pre>
+<p>The <code>1e13</code> limit is dependent on <code>x</code>. The maximum then becomes <code>y*10 xexp x</code> and
+    that value must be less than <code>1e17</code> – otherwise you'll see sci notation or overflow.</p>
+<pre><code class="language-q">q)10 xlog 0Wj-1
+18.964889726830812
+</code></pre>

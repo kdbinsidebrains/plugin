@@ -1,0 +1,12 @@
+<p><em>Median</em></p>
+<pre><code class="language-txt">med x    med[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric list returns its <a href="https://en.wikipedia.org/wiki/Median" title="Wikipedia">median</a>.
+</p>
+<pre><code class="language-q">q)med 10 34 23 123 5 56
+28.5
+q)select med price by sym from trade where date=2001.10.10,sym in`AAPL`LEH
+</code></pre>
+<p><code>med</code> is an aggregate function, equivalent to </p>
+<pre><code class="language-q">{avg x (iasc x)@floor .5*-1 0+count x,:()}
+</code></pre>

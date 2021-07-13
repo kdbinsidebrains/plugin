@@ -1,0 +1,38 @@
+<pre><code class="language-txt">.q.fmt[x;y;z]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> and <code>y</code> are integer atoms</li>
+    <li><code>z</code> is a numeric atom</li>
+</ul>
+<p>returns <code>z</code> as a string of length <code>x</code>, formatted to <code>y</code> decimal places. (Since V2.4)
+</p>
+<pre><code class="language-q">q).Q.fmt[6;2]each 1 234
+&quot;  1.00&quot;
+&quot;234.00&quot;
+</code></pre>
+<p>To format the decimal data in a column to 2 decimal places, change it to string.</p>
+<pre><code class="language-q">q)fix:{.Q.fmt'[x+1+count each string floor y;x;y]}
+q)fix[2]1.2 123 1.23445 -1234578.5522
+&quot;1.20&quot;
+&quot;123.00&quot;
+&quot;1.23&quot;
+&quot;-1234578.55&quot;
+</code></pre>
+<p>Also handy for columns:</p>
+<pre><code class="language-q">q)align:{neg[max count each x]$x}
+q)align fix[2]1.2 123 1.23445 -1234578.5522
+&quot;       1.20&quot;
+&quot;     123.00&quot;
+&quot;       1.23&quot;
+&quot;-1234578.55&quot;
+</code></pre>
+<p>Example: persist a table with float values to file as character strings of length 9, e.g. 34.3 to </p>
+<pre><code class="language-q">&quot;     34.3&quot;
+</code></pre>
+<p>Keep as much precision as possible, i.e. persist 343434.3576 as <code>"343434.36"</code>.</p>
+<pre><code class="language-q">q)fmt:{.Q.fmt[x;(count 2_string y-i)&amp;x-1+count string i:&quot;i&quot;$y]y}
+q)fmt[9] each 34.4 343434.358
+&quot;     34.4&quot;
+&quot;343434.36&quot;
+</code></pre>

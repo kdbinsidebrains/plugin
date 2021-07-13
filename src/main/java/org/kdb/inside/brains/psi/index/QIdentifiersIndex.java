@@ -93,7 +93,6 @@ public class QIdentifiersIndex extends FileBasedIndexExtension<String, List<Iden
         return new DefaultFileTypeSpecificInputFilter(QFileType.INSTANCE) {
             @Override
             public boolean acceptInput(@NotNull VirtualFile file) {
-//                return false;
                 return file.isInLocalFileSystem();
             }
         };

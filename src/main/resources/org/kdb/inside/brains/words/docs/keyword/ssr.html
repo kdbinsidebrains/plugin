@@ -1,0 +1,20 @@
+<p><em>String search and replace</em></p>
+<pre><code class="language-txt">ssr[x;y;z]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a string</li>
+    <li><code>y</code> is a <a href="https://code.kx.com/q/basics/regex/">pattern</a> as a string (no asterisk)</li>
+    <li><code>z</code> is a string or a function</li>
+</ul>
+<p>returns <code>x</code> with each substring matching <code>y</code> replaced by:</p>
+<ul>
+    <li><code>z</code> if <code>z</code> is a string</li>
+    <li><code>z[Y]</code> where <code>z</code> is a function and <code>Y</code> is the matched substring</li>
+</ul>
+<pre><code class="language-q">q)s:&quot;toronto ontario&quot;
+q)ssr[s;&quot;ont&quot;;&quot;x&quot;]      / replace &quot;ont&quot; by &quot;x&quot;
+&quot;torxo xario&quot;
+q)ssr[s;&quot;t?r&quot;;upper]    / replace matches by their uppercase
+&quot;TORonto onTARio&quot;
+</code></pre>

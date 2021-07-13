@@ -25,7 +25,6 @@ public enum KdbType {
     YEAR("year", ' ', 0);
 
     private final char code;
-    private final char uppserCode;
     private final String name;
     private final int type;
 
@@ -42,17 +41,12 @@ public enum KdbType {
 
     KdbType(String name, char code, int type) {
         this.code = code;
-        this.uppserCode = Character.toUpperCase(code);
         this.name = name;
         this.type = type;
     }
 
     public char getCode() {
         return code;
-    }
-
-    public char getUpperCode() {
-        return uppserCode;
     }
 
     public int getType() {

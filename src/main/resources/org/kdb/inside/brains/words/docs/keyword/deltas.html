@@ -1,0 +1,19 @@
+<p><em>Differences between adjacent list items</em></p>
+<pre><code class="language-txt">deltas x    deltas[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric or temporal vector, returns differences between consecutive pairs of its items.</p>
+<pre><code class="language-q">q)deltas 1 4 9 16
+1 3 5 7
+</code></pre>
+<p>In a query to get price movements:</p>
+<pre><code class="language-q">update diff:deltas price by sym from trade
+</code></pre>
+<p>With <a href="https://code.kx.com/q/ref/signum/"><code>signum</code></a> to count the number of up/down/same ticks:
+</p>
+<pre><code class="language-q">q)select count i by signum deltas price from trade
+price| x
+-----| ----
+-1   | 247
+0    | 3
+1    | 252
+</code></pre>

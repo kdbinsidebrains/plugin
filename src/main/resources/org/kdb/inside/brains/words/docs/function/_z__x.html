@@ -1,0 +1,17 @@
+<pre><code class="language-txt">.z.X
+</code></pre>
+<p>Returns a list of strings of the raw, unfiltered command line with which kdb+ was invoked, including the name under
+    which q was invoked, as well as single-letter arguments.
+    (Since V3.3 2015.02.12)</p>
+<pre><code class="language-bash">$ q somefile.q -customarg 42 -p localhost:17200
+</code></pre>
+<pre><code class="language-q">KDB+ 3.4 2016.09.22 Copyright (C) 1993-2016 KX Systems
+m64/ 4()core 8192MB ...
+q).z.X
+,&quot;q&quot;
+&quot;somefile.q&quot;
+&quot;-customarg&quot;
+&quot;42&quot;
+&quot;-p&quot;
+&quot;localhost:17200&quot;
+</code></pre>

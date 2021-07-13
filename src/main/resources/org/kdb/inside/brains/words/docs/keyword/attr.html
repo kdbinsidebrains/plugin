@@ -1,0 +1,39 @@
+<p><em>Attributes of an object</em></p>
+<pre><code class="language-txt">attr x     attr[x]
+</code></pre>
+<p>Where <code>x</code> is any object, returns its attributes as a symbol vector.</p>
+<p>The possible attributes are:</p>
+<table>
+    <thead>
+    <tr>
+        <th align="center">code</th>
+        <th>attribute</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td align="center">s</td>
+        <td>sorted</td>
+    </tr>
+    <tr>
+        <td align="center">u</td>
+        <td>unique (hash table)</td>
+    </tr>
+    <tr>
+        <td align="center">p</td>
+        <td>partitioned (grouped)</td>
+    </tr>
+    <tr>
+        <td align="center">g</td>
+        <td>true index (dynamic attribute): enables constant time update and access for real-time tables</td>
+    </tr>
+    </tbody>
+</table>
+<p>A null symbol result <code>`</code> means no attributes are set on <code>x</code>.</p>
+<pre><code class="language-q">q)attr 1 3 4
+`
+q)attr asc 1 3 4
+`s
+q)attr ({x+y})
+`
+</code></pre>

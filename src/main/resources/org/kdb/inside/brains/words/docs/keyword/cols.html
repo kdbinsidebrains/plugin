@@ -1,0 +1,16 @@
+<p><em>Column names of a table</em></p>
+<pre><code class="language-txt">cols x    cols[x]
+</code></pre>
+<p>Where <code>x</code> is a </p>
+<ul>
+    <li>table</li>
+    <li>the name of a table as a symbol atom</li>
+    <li>a filesymbol for a splayed table</li>
+</ul>
+<p>returns as a symbol vector its column names. </p>
+<pre><code class="language-q">q)\l trade.q
+q)cols trade            /value
+ `time`sym`price`size
+q)cols`trade            /reference
+ `time`sym`price`size
+</code></pre>

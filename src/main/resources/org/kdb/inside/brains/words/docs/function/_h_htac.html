@@ -1,0 +1,7 @@
+<pre><code class="language-txt">.h.htac[x;y;z]
+</code></pre>
+<p>Where <code>x</code> is the element as a symbol atom, <code>y</code> is a dictionary of attributes and their values,
+    and <code>z</code> is the content of the node as a string, returns as a string the HTML element.</p>
+<pre><code class="language-q">q).h.htac[`a;(`href`target)!(&quot;http://www.example.com&quot;;&quot;_blank&quot;);&quot;Example.com Main Page&quot;]
+&quot;&lt;a href=\&quot;http://www.example.com\&quot; target=\&quot;_blank\&quot;&gt;Example.com Main Page&lt;/..
+</code></pre>

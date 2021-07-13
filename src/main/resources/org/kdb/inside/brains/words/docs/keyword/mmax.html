@@ -1,0 +1,17 @@
+<p><em>Moving maximums</em></p>
+<pre><code class="language-txt">x mmax y    mmax[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a positive int atom</li>
+    <li><code>y</code> is a non-symbol sortable list</li>
+</ul>
+<p>returns the <code>x</code>-item moving maximums of <code>y</code>, with nulls after the first replaced by the
+    preceding maximum. The first <code>x</code> items of the result are the maximums of the items so far, and thereafter
+    the result is the moving maximum.</p>
+<pre><code class="language-q">q)3 mmax 2 7 1 3 5 2 8
+2 7 7 7 5 5 8
+q)3 mmax 0N -3 -2 0N 1 0  / initial null returns negative infinity
+-0W -3 -2 -2 1 1          / remaining nulls replaced by preceding max
+</code></pre>
+<p><code>mmax</code> is a uniform function.</p>

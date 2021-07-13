@@ -1,0 +1,41 @@
+<pre><code class="language-txt">.z.ph:f
+</code></pre>
+<p>Where <code>f</code> is a unary function, it is evaluated when a synchronous HTTP request is received by the kdb+
+    session.</p>
+<p><code>.z.ph</code> is passed a single argument, a 2-item list <code>(requestText;requestHeaderAsDictionary)</code>:
+</p>
+<ul>
+    <li><code>requestText</code> is parsed in <code>.z.ph</code> – detecting special cases like requests for CSV, XLS
+        output – and the result is returned to the calling task. Since V3.6 and V3.5 2019.11.13 <a
+                href="../doth/#hval-value"><code>.h.val</code></a> is called instead of <code>value</code>, allowing
+        users to interpose their own valuation code.
+    </li>
+    <li><code>requestHeaderAsDictionary</code> contains information such as the user agent and can be used to return
+        content optimized for particular browsers.
+    </li>
+</ul>
+<pre><code class="language-q">q)\c 43 75
+q).last.ph
+    | ::
+when| 2007.08.16T12:20:32.681
+u   | `
+w   | 5
+a   | 2130706433
+x   | k){$[~#x:uh x:$[@x;x;*x];fram[$.z.f;x](&quot;?&quot;;&quot;?&quot;,*x:$.&quot;\\v&quot;);&quot;?&quot;=*x;..
+y   | (,&quot;?&quot;;`Accept-Language`Accept-Encoding`Cookie`Referer`User-Agent`A..
+r   | &quot;&lt;html&gt;&lt;head&gt;&lt;style&gt;a{text-decoration:none}a:link{color:024C7E}a:v..
+q).last.ph.y
+,&quot;?&quot;
+`Accept-Language`Accept-Encoding`Cookie`Referer`User-Agent`Accept`Connec..
+q).last.ph.y 0
+,&quot;?&quot;
+q).last.ph.y 1
+Accept-Language| &quot;en-us&quot;
+Accept-Encoding| &quot;gzip, deflate&quot;
+Cookie         | &quot;defaultsymbol=AAPL&quot;
+Referer        | &quot;http://localhost:5001/&quot;
+User-Agent     | &quot;Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en-us) Appl..
+Accept         | &quot;text/xml,application/xml,application/xhtml+xml,text/ht..
+Connection     | &quot;keep-alive&quot;
+Host           | &quot;localhost:5001&quot;
+</code></pre>

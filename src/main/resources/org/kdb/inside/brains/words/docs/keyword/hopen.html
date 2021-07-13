@@ -1,0 +1,27 @@
+<p><em>Open a connection to a file or process</em></p>
+<pre><code class="language-txt">hopen filehandle
+hopen processhandle
+hopen (communicationhandle;timeout)
+hopen port
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>filehandle</code> is a symbol atom (or string since V3.6 2017.09.26)</li>
+    <li><code>communicationhandle</code> is a symbol atom (or string since V3.6 2017.09.26)</li>
+    <li><code>timeout</code> is milliseconds as an integer</li>
+    <li><code>port</code> is a local port number as an integer atom</li>
+</ul>
+<p>conencts to a file object or a communication handle, and returns a connection handle as an int.</p>
+<pre><code class="language-q">hopen &quot;:path/to/file.txt&quot;                   / filehandle
+hopen `:unix://5010                         / localhost, Unix domain socket
+hopen(&quot;:10.43.23.198:5010&quot;;10000)           / IP address and timeout
+hopen 5010                                  / local port number
+</code></pre>
+<p>For IPC compatibility, it serializes to <code>{hopen x}.</code> e.g.</p>
+<pre><code class="language-q">hopen each(`:mysymbol;
+        &quot;:mycharvector&quot;;
+        `:localhost:5000;
+        &quot;:localhost:5000&quot;;
+        (`:localhost:5000;1000);
+        (&quot;:localhost:5000&quot;;1000))
+</code></pre>

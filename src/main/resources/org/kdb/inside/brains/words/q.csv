@@ -1,0 +1,82 @@
+.Q.A,[]    ,uppercase alphabet,ref/dotq/#qa-upper-case-alphabet
+.Q.a,[]    ,lowercase alphabet,ref/dotq/#qa-lower-case-alphabet
+.Q.an, [], all alphanumerics,ref/dotq/#qan-all-alphanumerics
+.Q.addmonths, [x;y], Where x is a date and y is an int returns x plus y months.,ref/dotq/#qaddmonths
+.Q.addr,[x], Returns the IP address as an integer,ref/dotq/#qaddr-ip-address
+.Q.b6,[],Returns upper- and lower-case alphabet and numerics.,ref/dotq/#qb6-bicameral-alphanums
+.Q.bt,[],Dumps the backtrace to stdout at any point during execution or debug.,ref/dotq/#qbt-backtrace
+.Q.btoa,[x],b64 encode,ref/dotq/#qbtoa-b64-encode
+.Q.bv,[x],build vp,ref/dotq/#qbv-build-vp
+.Q.Cf,[x], create empty nested char file,ref/dotq/#qcf-create-empty-nested-char-file
+.Q.chk,[x], fill HDB,ref/dotq/#qchk-fill-hdb
+.Q.cn,[x], (count partitioned table),ref/dotq/#qcn-count-partitioned-table
+.Q.D,[],a list of the partitions,ref/dotq/#qd-partitions
+.Q.dd,[x;y],join symbols,ref/dotq/#qdd-join-symbols
+.Q.def,[x;y],parse options,ref/dotq/#qdef-parse-options
+.Q.dpft,[d;p;f;t],save table,ref/dotq/#qdpft-save-table
+.Q.dpfts,[d;p;f;t;s],save table with symtable,ref/dotq/#qdpft-save-table
+.Q.dpt,[d;p;t],save table unsorted,ref/dotq/#qdpt-save-table-unsorted
+.Q.dpts,[d;p;t;s],save table unsorted with symtable,ref/dotq/#qdpts-save-table-unsorted-with-symtable
+.Q.dsftg,[d;s;f;t;g],load process save,ref/dotq/#qdsftg-load-process-save
+.Q.en,[dir;table],enumerate varchar cols,ref/dotq/#qen-enumerate-varchar-cols
+.Q.ens,[dir;table;name],enumerate against domain),ref/dotq/#qens-enumerate-against-domain
+.Q.f,[x;y], y as a string formatted as a float to x decimal places.,ref/dotq/#qf-format
+.Q.fc,[f;vec],the result of evaluating f vec – using multiple threads if possible,ref/dotq/#qfc-parallel-on-cut
+.Q.ff,[x;y],append columns,ref/dotq/#qff-append-columns
+.Q.fk,[x],foreign key,ref/dotq/#qfk-foreign-key
+.Q.fmt,[x;y;z],z as a string of length x formatted to y decimal places,ref/dotq/#qfmt-format
+.Q.fpn,[x;y;z],streaming algorithm,ref/dotq/#qfpn-streaming-algorithm
+.Q.fps,[x;y],streaming algorithm,ref/dotq/#qfps-streaming-algorithm
+.Q.fs,[x;y],streaming algorithm,ref/dotq/#qfs-streaming-algorithm
+.Q.fsn,[x;y],streaming algorithm,ref/dotq/#qfsn-streaming-algorithm
+.Q.ft,[x;y],apply simple,ref/dotq/#qft-apply-simple
+.Q.fu,[x;y],apply unique,ref/dotq/#qfu-apply-unique
+.Q.gc,[],garbage collect,ref/dotq/#qgc-garbage-collect
+.Q.gz,[x;y],.Q.gz[::]- zlib loaded;.Q.gz cbv - unzipped; .Q.gz (cl;cbv) - zipped,ref/dotq/#qgz-gzip
+.Q.hdpf,[historicalport;directory;partition;`p#field],save tables,ref/dotq/#qhdpf-save-tables
+.Q.hg,[x],HTTP get,ref/dotq/#qhg-http-get
+.Q.host,[x],returns its hostname as a symbol atom.,ref/dotq/#qhost-hostname
+.Q.hp,[x;y;z],HTTP post,ref/dotq/#qhp-http-post
+.Q.id,[x],sanitize,ref/dotq/#qid-sanitize
+.Q.ind,[x;y],partitioned index,ref/dotq/#qind-partitioned-index
+.Q.j10,[s],encode binhex,ref/dotq/#qj10-encode-binhex
+.Q.j12,[s],decode binhex,ref/dotq/#qj12-encode-base-36
+.Q.x10,[s],encode base-36,ref/dotq/#qx10-decode-binhex
+.Q.x12,[s],decode base-36,ref/dotq/#qx12-decode-base-36
+.Q.K,[],version date,ref/dotq/#qk-version-date
+.Q.k,[],version number,ref/dotq/#qk-version
+.Q.l,[x],load,ref/dotq/#ql-load
+.Q.M,[],long infinity,ref/dotq/#qm-long-infinity
+.Q.MAP,[],maps partitions,ref/dotq/#qmap-maps-partitions
+.Q.n,[],nums,ref/dotq/#qn-nums
+.Q.nA,[],alphanums,ref/dotq/#qna-alphanums
+.Q.opt,[x],command parameters,ref/dotq/#qopt-command-parameters
+.Q.P,[],segments,ref/dotq/#qp-segments
+.Q.par,[dir;part;table],locate partition,ref/dotq/#qpar-locate-partition
+.Q.PD,[],partition locations,ref/dotq/#qpd-partition-locations
+.Q.pd,[],odified partition locations,ref/dotq/#qpd-modified-partition-locations
+.Q.pf,[],partition field,ref/dotq/#qpf-partition-field
+.Q.pn,[],partition counts,ref/dotq/#qpn-partition-counts
+.Q.prf0,[pid],code profiler,ref/dotq/#qprf0-code-profiler
+.Q.pt,[],Returns a list of partitioned tables.,ref/dotq/#qpt-partitioned-tables
+.Q.pv,[],modified partition values,ref/dotq/#qpv-modified-partition-values
+.Q.PV,[],partition values,ref/dotq/#qpv-partition-values
+.Q.qp,[x],is partitioned table,ref/dotq/#qqp-is-partitioned
+.Q.qt,[x],is table,ref/dotq/#qqt-is-table
+.Q.res,[],Returns the control words and keywords as a symbol vector.,ref/dotq/#qres-keywords
+.Q.s,[x],plain text as used by the console.,ref/dotq/#qs-plain-text
+.Q.s1,[x],a string representation of x,ref/dotq/#qs1-string-representation
+.Q.sbt,[x],string backtrace,ref/dotq/#qsbt-string-backtrace
+.Q.sha1,[x],SHA-1 encode,ref/dotq/#qsha1-sha-1-encode
+.Q.t,[],type letters,ref/dotq/#qt-type-letters
+.Q.trp,[f;x;g],extends Trap (@[f;x;g]) to collect backtrace,ref/dotq/#qtrp-extend-trap
+.Q.ts,[x;y],Apply with time and space,ref/dotq/#qts-time-and-space
+.Q.ty,[x],type,ref/dotq/#qty-type
+.Q.u,[],date based,q/ref/dotq/#qu-date-based
+.Q.V,[x],table to dict,ref/dotq/#qv-table-to-dict
+.Q.v,[x],value,ref/dotq/#qv-value
+.Q.view,[x],subview,ref/dotq/#qview-subview
+.Q.vp,[],returns a dictionary of table schemas for tables with missing partitions,ref/dotq/#qvp-missing-partitions
+.Q.w,[],memory stats,ref/dotq/#qw-memory-stats
+.Q.Xf,[x;y],create file,ref/dotq/#qxf-create-file
+.Q.x,[],non-command parameters,ref/dotq/#qx-non-command-parameters

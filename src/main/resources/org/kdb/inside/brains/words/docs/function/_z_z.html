@@ -1,0 +1,13 @@
+<h2 id="zz-local-datetime"><code>.z.Z</code> (local datetime)</h2>
+<p>Local time as a datetime atom.</p>
+<pre><code class="language-q">q).z.Z
+2006.11.13T21:16:14.601
+</code></pre>
+<p>The offset from UTC is fetched from the OS: kdb+ does not have its own time-offset database.</p>
+<p>Which avoids problems like <a href="https://it.slashdot.org/story/07/02/25/2038217/software-bug-halts-f-22-flight">this</a>.
+</p>
+<h2 id="zz-utc-datetime"><code>.z.z</code> (UTC datetime)</h2>
+<p>UTC time as a datetime atom.</p>
+<pre><code class="language-q">q).z.z
+2006.11.13T21:16:14.601
+</code></pre>

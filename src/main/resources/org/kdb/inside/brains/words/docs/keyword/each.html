@@ -1,0 +1,28 @@
+<p><em>Iterate a unary</em></p>
+<pre><code class="language-txt"> v1 each x   each[v1;x]       v1 peach x   peach[v1;x]
+(vv)each x   each[vv;x]      (vv)peach x   peach[vv;x]
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>v1</code> is a unary <a href="https://code.kx.com/q/basics/glossary/#applicable-value">applicable
+        value</a></li>
+    <li><code>vv</code> is a <a href="https://code.kx.com/q/basics/variadic/">variadic</a> applicable value</li>
+</ul>
+<p>applies <code>v1</code> or <code>vv</code> as a unary to each item of <code>x</code> and returns a result of the same
+    length.</p>
+<p>That is, the projections <code>each[v1;]</code>, <code>each[vv;]</code>, <code>each[v1;]</code>, and
+    <code>peach[vv;]</code> are <a href="https://code.kx.com/q/basics/glossary/#uniform-function">uniform</a> functions.
+</p>
+<pre><code class="language-q">q)count each (&quot;the&quot;;&quot;quick&quot;;&quot; brown&quot;;&quot;fox&quot;)
+3 5 5 3
+q)(+\)peach(2 3 4;(5 6;7 8);9 10 11 12)
+2 5 9
+(5 6;12 14)
+9 19 30 42
+</code></pre>
+<p><code>each</code> and <code>peach</code> perform the same computation and return the same result.
+    <code>peach</code> will divide the work between available secondary tasks. </p>
+<p><code>each</code> is a wrapper for the <a href="https://code.kx.com/q/ref/maps/#each">Each iterator</a>.
+    <code>peach</code> is a wrapper for the <a href="https://code.kx.com/q/basics/glossary/#uniform-function">Each
+        Parallel iterator</a>.
+    It is good q style to use <code>each</code> and <code>peach</code> for unary values. </p>

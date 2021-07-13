@@ -1,0 +1,17 @@
+<pre><code class="language-txt">.j.jd (x;d)
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a K object</li>
+    <li><code>d</code> is a dictionary</li>
+</ul>
+<p>returns the result of <code>.j.j</code> unless <code>d`null0w</code>, in which case <code>0w</code> and
+    <code>-0w</code> are mapped to <code>"null"</code>.
+    (Since V3.6 2018.12.06.)</p>
+<pre><code class="language-q">q).j.j -0w 0 1 2 3 0w
+&quot;[-inf,0,1,2,3,inf]&quot;
+q).j.jd(-0w 0 1 2 3 0w;()!())
+&quot;[-inf,0,1,2,3,inf]&quot;
+q).j.jd(-0w 0 1 2 3 0w;(!). 1#'`null0w,1b)
+&quot;[null,0,1,2,3,null]&quot;
+</code></pre>

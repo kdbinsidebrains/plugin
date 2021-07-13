@@ -1,0 +1,19 @@
+<p><em>Reorder table columns</em></p>
+<pre><code class="language-txt">x xcols y    xcols[x;y]
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>y</code> is a simple table, passed by value</li>
+    <li><code>x</code> is a symbol vector of some or all of <code>y</code>’s column names</li>
+</ul>
+<p>returns <code>y</code> with <code>x</code> as its first column/s.</p>
+<pre><code class="language-q">q)\l trade.q
+q)cols trade
+`time`sym`price`size
+q)trade:xcols[reverse cols trade;trade] / reverse cols and reassign trade
+q)cols trade
+`size`price`sym`time
+q)trade:`sym xcols trade                / move sym to the front
+q)cols trade
+`sym`size`price`time
+</code></pre>

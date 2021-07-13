@@ -1,0 +1,56 @@
+<pre><code class="language-txt">.Q.trp[f;x;g]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>f</code> is a unary function</li>
+    <li><code>x</code> is its argument</li>
+    <li><code>g</code> is a binary function</li>
+</ul>
+<p>extends <a href="../apply/#trap">Trap</a> (<code>@[f;x;g]</code>) to collect backtrace: <code>g</code> gets called
+    with arguments:</p>
+<ol>
+    <li>the error string</li>
+    <li>the backtrace object</li>
+</ol>
+<p>You can format the backtrace object with <code>.Q.sbt</code>.</p>
+<pre><code class="language-q">q)f:{`hello+x}
+q)           / print the formatted backtrace and error string to stderr
+q).Q.trp[f;2;{2@&quot;error: &quot;,x,&quot;\nbacktrace:\n&quot;,.Q.sbt y;-1}]
+error: type
+backtrace:
+  [2]  f:{`hello+x}
+                ^
+  [1]  (.Q.trp)
+
+  [0]  .Q.trp[f;2;{2@&quot;error: &quot;,x,&quot;\nbacktrace:\n&quot;,.Q.sbt y;-1}]
+       ^
+-1
+q)
+</code></pre>
+<p><code>.Q.trp</code> can be used for remote debugging.</p>
+<pre><code class="language-q">q)h:hopen`::5001   / f is defined on the remote
+q)h&quot;f `a&quot;
+'type              / q's IPC protocol can only get the error string back
+  [0]  h&quot;f `a&quot;
+       ^
+q)                 / a made up protocol: (0;result) or (1;backtrace string)
+q)h&quot;.z.pg:{.Q.trp[(0;)@value@;x;{(1;.Q.sbt y)}]}&quot;
+q)h&quot;f 3&quot;
+0                  / result
+,9 9 9
+q)h&quot;f `a&quot;
+1                  / failure
+&quot;  [4]  f@:{x*y}\n            ^\n  [3..
+q)1@(h&quot;f `a&quot;)1;    / output the backtrace string to stdout
+  [4]  f@:{x*y}
+            ^
+  [3]  f:{{x*y}[x;3#x]}
+          ^
+  [2]  f `a
+       ^
+  [1]  (.Q.trp)
+
+  [0]  .z.pg:{.Q.trp[(0;)@enlist value@;x;{(1;.Q.sbt y)}]}
+              ^
+</code></pre>
+<p>Since V3.5 2017.03.15.</p>

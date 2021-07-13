@@ -1,0 +1,16 @@
+<pre><code class="language-txt">.Q.fu[x;y]
+</code></pre>
+<p>Where <code>x</code> is a unary function and <code>y</code> is</p>
+<ul>
+    <li>a list, returns <code>x[y]</code> after evaluating <code>x</code> only on distinct items of <code>y</code></li>
+    <li>not a list, returns <code>x[y]</code></li>
+</ul>
+<pre><code class="language-q">q)vec:100000 ? 30     / long vector with few different values
+q)f:{exp x*x}         / e raised to x*x
+q)\t:1000 r1:f vec
+745
+q)\t:1000 r2:.Q.fu[f;vec]
+271
+q)r1~r2
+1b
+</code></pre>

@@ -1,0 +1,9 @@
+<p><em>Running averages</em></p>
+<pre><code class="language-txt">avgs x     avgs[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric or temporal list,
+    returns the running averages, i.e. applies function <code>avg</code> to successive prefixes of <code>x</code>.</p>
+<pre><code class="language-q">q)avgs 1 2 3 0n 4 -0w 0w
+1 1.5 2 2 2.5 -0w 0n
+</code></pre>
+<p><code>avgs</code> is a uniform function, equivalent to <code>(avg\)</code>.</p>

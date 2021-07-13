@@ -1,0 +1,29 @@
+<div class="typewriter">
+    <p>\a [<em>namespace</em>]</p>
+</div>
+<p>Lists tables in <em>namespace</em>; default: current namespace.</p>
+<pre><code class="language-q">q)\a
+`symbol$()
+q)aa:bb:23
+q)\a
+`symbol$()
+q)tt:([]dd:12 34)
+q)\a
+,`tt
+q).nn.vv:([]uu:12 45)
+q)\a
+,`tt
+q)\a .n
+'.n
+q)\a .nn
+,`vv
+q)\d .nn
+q.nn)\a
+,`vv
+q.nn)vv
+uu
+--
+12
+45
+q.nn)
+</code></pre>

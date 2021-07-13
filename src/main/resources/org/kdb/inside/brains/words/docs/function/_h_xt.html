@@ -1,0 +1,10 @@
+<pre><code class="language-txt">.h.xt[x;y]
+</code></pre>
+<p>Where <code>x</code> is <code>`json</code> and <code>y</code> is a list of JSON strings, returns <code>y</code> as a
+    list of dictionaries.</p>
+<pre><code class="language-q">q).h.xt[`json;(&quot;{\&quot;foo\&quot;:\&quot;bar\&quot;}&quot;;&quot;{\&quot;this\&quot;:\&quot;that\&quot;}&quot;)]
+(,`foo)!,&quot;bar&quot;
+(,`this)!,&quot;that&quot;
+q)first .h.xt[`json;(&quot;{\&quot;foo\&quot;:\&quot;bar\&quot;}&quot;;&quot;{\&quot;this\&quot;:\&quot;that\&quot;}&quot;)]
+foo| &quot;bar&quot;
+</code></pre>

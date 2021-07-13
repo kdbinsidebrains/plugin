@@ -1,0 +1,22 @@
+<p><em>Delete a file or folder</em></p>
+<pre><code class="language-txt">hdel x     hdel[x]
+</code></pre>
+<p>Where <code>x</code> is a <a href="https://code.kx.com/q/basics/glossary/#file-symbol">file symbol</a> atom, deletes
+    the file or folder and returns <code>x</code>.</p>
+<pre><code class="language-q">q)hdel`:test.txt   / delete test.txt in current working directory
+`:test.txt
+q)hdel`:test.txt   / should generate an error
+'test.txt: No such file or directory
+</code></pre>
+<p><code>hdel</code> can delete folders only if empty.</p>
+<p>To delete a folder and its contents, <a href="https://code.kx.com/q/ref/dotz/#zs-self">recursively</a></p>
+<pre><code class="language-q">/diR gets recursive dir listing
+q)diR:{$[11h=type d:key x;raze x,.z.s each` sv/:x,/:d;d]}
+/hide power behind nuke
+q)nuke:hdel each desc diR@ / desc sort!
+q)nuke`:mydir
+</code></pre>
+<p>For a general visitor pattern with <code>hdel</code></p>
+<pre><code class="language-q">q)visitNode:{if[11h=type d:key y;.z.s[x]each` sv/:y,/:d;];x y}
+q)nuke:visitNode[hdel]
+</code></pre>

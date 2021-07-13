@@ -1,0 +1,19 @@
+<pre><code class="language-txt">.Q.PD
+</code></pre>
+<p>In partitioned DBs, a list of partition locations – conformant to <code>.Q.PV</code> – which represents the partition
+    location for each partition.
+    (In non-segmented DBs, this will be simply <code>count[.Q.PV]#`:.</code>.)
+    <code>.Q.PV!.Q.PD</code> can be used to create a dictionary of partition-to-location information.</p>
+<pre><code class="language-q">q).Q.PV
+2010.05.26 2010.05.27 2010.05.28 2010.05.29 2010.05.30 2010.05.30 2010.05.31
+q).Q.PD
+`:../segments/1`:../segments/2`:../segments/3`:../segments/4`:../segments/3`:../segments/4`:../segments/1
+q).Q.PV!.Q.PD
+2010.05.26| :../segments/1
+2010.05.27| :../segments/2
+2010.05.28| :../segments/3
+2010.05.29| :../segments/4
+2010.05.30| :../segments/3
+2010.05.30| :../segments/4
+2010.05.31| :../segments/1
+</code></pre>

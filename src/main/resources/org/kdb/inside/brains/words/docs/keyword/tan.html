@@ -1,0 +1,27 @@
+<p><em>Tangent and arctangent</em></p>
+<pre><code class="language-txt">tan x     tan[x]
+atan x    atan[x]
+</code></pre>
+<p>Where <code>x</code> is a numeric, returns </p>
+<dl>
+    <dt><code>tan</code></dt>
+    <dd>the <a href="https://en.wikipedia.org/wiki/Tangent">tangent</a> of <code>x</code>, taken to be in radians.
+        Integer arguments are promoted to floating point. Null is returned if the argument is null or infinity.
+    </dd>
+    <dd>The function is equivalent to <code>{(sin x)%cos x}</code>.</dd>
+    <dt><code>atan</code></dt>
+    <dd>the <a href="https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Basic_properties">arctangent</a> of
+        <code>x</code>; that is, the value whose tangent is <code>x</code>.
+    </dd>
+    <dd>The result is in radians and lies between <span class="arithmatex">\(-\frac{\pi}{2}\)</span> and <span
+            class="arithmatex">\(\frac{\pi}{2}\)</span>. The range is approximate due to rounding errors.
+    </dd>
+</dl>
+<pre><code class="language-q">q)tan 0 0.5 1 1.5707963 2 0w                    / tangent
+0 0.5463025 1.557408 3.732054e+07 -2.18504 0n
+
+q)atan 0.5                                      / arctangent
+0.4636476
+q)atan 42
+1.546991
+</code></pre>

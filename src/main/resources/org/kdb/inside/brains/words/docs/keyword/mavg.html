@@ -1,0 +1,20 @@
+<p><em>Moving averages</em></p>
+<pre><code class="language-txt">x mavg y     mavg[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a positive int atom (not infinite)</li>
+    <li><code>y</code> is a numeric list</li>
+</ul>
+<p>returns the <code>x</code>-item <a href="https://en.wikipedia.org/wiki/Moving_average#Simple_moving_average">simple
+    moving averages</a> of <code>y</code>, with any nulls after the first item replaced by zero. The first
+    <code>x</code> items of the result are the averages of the terms so far, and thereafter the result is the moving
+    average. The result is floating point.</p>
+<pre><code class="language-q">q)2 mavg 1 2 3 5 7 10
+1 1.5 2.5 4 6 8.5
+q)5 mavg 1 2 3 5 7 10
+1 1.5 2 2.75 3.6 5.4
+q)5 mavg 0N 2 0N 5 7 0N    / nulls after the first are replaced by 0
+0n 2 2 3.5 4.666667 4.666667
+</code></pre>
+<p><code>mavg</code> is a uniform function.</p>

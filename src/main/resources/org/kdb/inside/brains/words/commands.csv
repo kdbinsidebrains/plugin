@@ -1,0 +1,31 @@
+\a, [namespace], tables,basics/syscmds/#a-tables
+\b, [namespace], views,basics/syscmds/#b-views
+\B, [namespace], pending views,basics/syscmds/#b-pending-views
+\c, [size], console size,basics/syscmds/#c-console-size
+\C,[size], HTTP size,basics/syscmds/#c-http-size
+\cd,[name], change directory,basics/syscmds/#cd-change-directory
+\d,[namespace], Sets the current namespace,basics/syscmds/#d-directory
+\e,[mode], error trap clients,basics/syscmds/#e-error-trap-clients
+\E,[], TLS server mode,basics/syscmds/#e-tls-server-mode
+\f,[namespace], functions,basics/syscmds/#f-functions
+\g,[mode], garbage collection mode,basics/syscmds/#g-garbage-collection-mode
+\l, [name], load file or directory,basics/syscmds/#l-load-file-or-directory
+\o,[n], offset from UTC,basics/syscmds/#o-offset-from-utc
+\p,[rp,][hostname:][portnumber|servicename] listening port,basics/syscmds/#p-listening-port
+\P,[n], precision,basics/syscmds/#p-precision
+\r,[src dst], rename / replication master,basics/syscmds/#r-replication-primary
+\s      ,[N], number of secondary threadss,basics/syscmds/#s-number-of-secondary-threads
+\S      ,[n], random seed,basics/syscmds/#s-random-seed
+\t      ,[ [N|[:n ]e] ], timer,basics/syscmds/#t-timer
+\T      ,[n], timeout,basics/syscmds/#t-timeout
+\ts     ,[:n] exp, time and space,basics/syscmds/#ts-time-and-space
+\u      ,, reload user password file,basics/syscmds/#u-reload-user-password-file
+\v      ,[namespace], variables,basics/syscmds/#v-variables
+\w      ,[0|1|n], workspace,basics/syscmds/#w-workspace
+\W      ,[n], week offset,basics/syscmds/#w-week-offset
+\x      ,[x], expunge,basics/syscmds/#x-expunge
+\z      ,[0|1], date parsing,basics/syscmds/#z-date-parsing
+\1      ,[filename], redirect,basics/syscmds/#1-2-redirect
+\2      ,[filename], redirect,basics/syscmds/#1-2-redirect
+\_      ,[scriptname], hide q code,basics/syscmds/#_-hide-q-code
+\\      ,[], quit,basics/syscmds/#quit

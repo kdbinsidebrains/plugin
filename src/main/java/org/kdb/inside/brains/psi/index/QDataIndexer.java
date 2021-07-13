@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 6;
+    protected static final int VERSION = 9;
 
     public static final @NotNull TokenSet COLUMNS_TOKEN = TokenSet.create(KEY_COLUMNS, VALUE_COLUMNS);
 
@@ -28,11 +28,6 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
 
         final CharSequence text = content.getContentAsText();
         final int[] offsets = new StringSearcher(":", true, true).findAllOccurrences(text);
-/*
-        int[] offsets = ArrayUtil.mergeArrays(
-                new StringSearcher(":", true, true).findAllOccurrences(text),
-                new StringSearcher("::", true, true).findAllOccurrences(text));
-*/
         if (offsets.length == 0) {
             return Collections.emptyMap();
         }

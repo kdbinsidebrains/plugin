@@ -1,0 +1,15 @@
+<pre><code class="language-txt">.h.code x
+</code></pre>
+<p>Where <code>x</code> is a string with embedded Tab characters, returns the string with alternating segments marked up
+    as</p>
+<ul>
+    <li>plain text</li>
+    <li><code>code</code> and <code>nobr</code>.</li>
+</ul>
+<pre><code class="language-q">q).h.code &quot;foo\tbar&quot;
+&quot;foo &lt;code&gt;&lt;nobr&gt;bar&lt;/nobr&gt;&lt;/code&gt;&quot;
+q).h.code &quot;foo\tbar\tabc\tdef&quot;
+&quot;foo &lt;code&gt;&lt;nobr&gt;bar&lt;/nobr&gt;&lt;/code&gt; abc &lt;code&gt;&lt;nobr&gt;def&lt;/nobr&gt;&lt;/code&gt;&quot;
+q).h.code &quot;foo&quot;
+&quot;foo&quot;
+</code></pre>

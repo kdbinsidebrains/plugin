@@ -1,0 +1,12 @@
+<pre><code class="language-txt">.z.wo:f
+</code></pre>
+<p>Where </p>
+<ul>
+    <li><code>f</code> is a unary function</li>
+    <li><code>h</code> is the handle to a websocket connection to a kdb+ session</li>
+</ul>
+<p><code>f[h]</code> is evaluated when the connection has been initialized, i.e. <em>after</em> it has been validated
+    against any <code>-u</code>/<code>-U</code> file and <code>.z.pw</code> checks.
+    (Since V3.3t 2014.11.26)</p>
+<p>The handle argument is typically used by <code>f</code> to build a dictionary of handles to session information such
+    as the value of <code>.z.a</code>, <code>.z.u</code>.</p>

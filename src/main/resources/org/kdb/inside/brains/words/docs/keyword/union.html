@@ -1,0 +1,22 @@
+<p><em>Union of two lists</em></p>
+<pre><code class="language-txt">x union y    union[x;y]
+</code></pre>
+<p>Where <code>x</code> and <code>y</code> are lists or atoms, returns a list of the distinct items of its combined
+    arguments, i.e. <code>distinct x,y</code>.</p>
+<pre><code class="language-q">q)1 2 3 3 6 union 2 4 6 8
+1 2 3 6 4 8
+q)distinct 1 2 3 3 6, 2 4 6 8      / same as distinct on join
+1 2 3 6 4 8
+
+q)t0:([]x:2 3 5;y:&quot;abc&quot;)
+q)t1:([]x:2 4;y:&quot;ad&quot;)
+q)t0 union t1                      / also on tables
+x y
+---
+2 a
+3 b
+5 c
+4 d
+q)(distinct t0,t1)~t0 union t1
+1b
+</code></pre>

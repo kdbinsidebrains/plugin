@@ -1,0 +1,37 @@
+<pre><code class="language-txt">.Q.ft[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>y</code> is a keyed table</li>
+    <li><code>x</code> is a unary function <code>x[t]</code> in which <code>t</code> is a simple table</li>
+</ul>
+<p>returns a table with at least as many key columns as <code>t</code>.</p>
+<p>As an example, note that you can index into a simple table with row indices, but not into a keyed table – for that
+    you should use a select statement. However, to illustrate the method, we show an indexing function being applied to
+    a keyed table.</p>
+<pre><code class="language-q">q)\l sp.q
+
+q)sp 2 3           / index simple table with integer list argument
+s  p  qty
+---------
+s1 p3 400
+s1 p4 200
+
+q)s 2 3            / index keyed table fails
+'length
+</code></pre>
+<p>Now create an indexing function, and wrap it in <code>.Q.ft</code>.
+    This works on both types of table:</p>
+<pre><code class="language-q">q).Q.ft[{x 2 3};s]
+s | name  status city
+--| -------------------
+s3| blake 30     paris
+s4| clark 20     london
+</code></pre>
+<p>Equivalent select statement:</p>
+<pre><code class="language-q">q)select from s where i in 2 3
+s | name  status city
+--| -------------------
+s3| blake 30     paris
+s4| clark 20     london
+</code></pre>

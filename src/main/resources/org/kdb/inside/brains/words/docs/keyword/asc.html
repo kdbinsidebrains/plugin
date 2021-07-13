@@ -1,0 +1,17 @@
+<p><em>Ascending sort</em></p>
+<pre><code class="language-txt">asc x     asc[x]
+</code></pre>
+<p>Where <code>x</code> is a:</p>
+<ul>
+    <li><strong>vector</strong>, returns its items in ascending order of value, with the sorted attribute set,
+        indicating the list is sorted; where the argument vector is found to be in ascending order already, it is
+        assigned the sorted attribute
+    </li>
+    <li><strong>mixed list</strong>, returns the items sorted within datatype and with the sorted attribute set</li>
+    <li><strong>dictionary</strong>, returns it sorted by the values and with the sorted attribute set</li>
+    <li><strong>table</strong>, returns it sorted by the first non-key column and with the partitioned attribute set on
+        it
+    </li>
+</ul>
+<p>The function is uniform.
+    The sort is stable: it preserves order between equals.</p>

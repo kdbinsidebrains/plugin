@@ -1,0 +1,26 @@
+<pre><code class="language-txt">.Q.en[dir;table]
+.Q.ens[dir;table;name]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>dir</code> is a symbol handle to a folder</li>
+    <li><code>table</code> is a table</li>
+    <li><code>name</code> is a symbol atom naming a sym file in <code>dir</code></li>
+</ul>
+<p>the function</p>
+<ul>
+    <li>creates if necessary the folder <code>dir</code></li>
+    <li>gets <code>sym</code> from <code>dir</code> if it exists</li>
+    <li>enumerates against <code>sym</code> the symbols in <code>table</code></li>
+    <li>writes <code>sym</code> in <code>dir</code></li>
+    <li>returns <code>table</code> with columns enumerated (for <code>.Q.ens</code>, against <code>name</code>)</li>
+</ul>
+<p><code>.Q.ens</code> allows enumeration against domains (and therefore filenames) other than <code>sym</code>.</p>
+<pre><code class="language-q">q)([]sym:`mysym$`a`b`c)~.Q.ens[`:db;([]sym:`a`b`c);`mysym]
+</code></pre>
+<p>Tables splayed across a directory must be fully enumerated and not keyed. The solution is to enumerate columns of
+    type varchar before saving the table splayed.</p>
+<details class="warning">
+    <summary>Locking ensures two processes do not write to the sym file at the same time</summary>
+    <p>Apart from that, it is up to you to manage.</p>
+</details>

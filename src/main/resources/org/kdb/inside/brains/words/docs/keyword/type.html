@@ -1,0 +1,25 @@
+<p><em>Type of an object</em></p>
+<pre><code class="language-syntax">type x    type[x]
+</code></pre>
+<p>Where <code>x</code> is any object, returns its <a href="https://code.kx.com/q/basics/datatypes/">type</a>.</p>
+<p>The type is a short int: </p>
+<ul>
+    <li>zero for a general list</li>
+    <li>negative for atoms of basic datatypes</li>
+    <li>positive for everything else</li>
+</ul>
+<pre><code class="language-q">q)type 5                        / integer atom
+-7h
+q)type 2 3 5                    / integer vector
+7h
+q)type (2 3 5;&quot;hello&quot;)          / general list
+0h
+q)type ()                       / general list
+0h
+q)type each (2;3 5;&quot;hello&quot;)     / int atom; int vector; string
+-7 7 10h
+q)type (+)                      / function
+102h
+q)type (0|+)                    / composition
+105h
+</code></pre>

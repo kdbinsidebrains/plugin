@@ -1,0 +1,22 @@
+<p><em>Ratios between items</em></p>
+<pre><code class="language-txt">ratios y     ratios[y]
+</code></pre>
+<p>Where <code>y</code> is a non-symbolic sortable list, returns the ratios of the underlying values of consecutive
+    pairs of items of <code>y</code>.</p>
+<p><code>ratios</code> is an aggregate function.</p>
+<p>Examples: queries to get returns on prices:</p>
+<pre><code class="language-q">update ret:ratios price by sym from trade
+select log ratios price from trade
+</code></pre>
+<p>In a query to get price movements:</p>
+<pre><code class="language-q">update diff:deltas price by sym from trade
+</code></pre>
+<p>With <a href="https://code.kx.com/q/ref/signum/"><code>signum</code></a> to count the number of up/down/same ticks:
+</p>
+<pre><code class="language-q">q)select count i by signum deltas price from trade
+price| x
+-----| ----
+-1   | 247
+0    | 3
+1    | 252
+</code></pre>

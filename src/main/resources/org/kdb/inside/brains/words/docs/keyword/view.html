@@ -1,0 +1,11 @@
+<p><em>Expression defining a view</em></p>
+<pre><code class="language-txtr">view x    view[x]
+</code></pre>
+<p>Where <code>x</code> is a view (by reference), returns the expression defining <code>x</code>.</p>
+<pre><code class="language-q">q)v::2+a*3                        / define dependency v
+q)a:5
+q)v
+17
+q)view `v                         / view the dependency expression
+&quot;2+a*3&quot;
+</code></pre>

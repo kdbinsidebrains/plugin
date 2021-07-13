@@ -1,0 +1,10 @@
+<pre><code class="language-txt">.Q.chk x
+</code></pre>
+<p>Where <code>x</code> is a HDB as a filepath, fills tables missing from partitions using the most recent partition as
+    a template, and reports which partitions (but not which tables) it is fixing.</p>
+<pre><code class="language-q">q).Q.chk[`:hdb]
+()
+()
+,`:/db/2009.01.04
+,`:/db/2009.01.03
+</code></pre>

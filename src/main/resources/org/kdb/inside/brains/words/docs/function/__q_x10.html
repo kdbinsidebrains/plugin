@@ -1,0 +1,28 @@
+<pre><code class="language-txt">.Q.j10 s     .Q.j12 s
+.Q.x10 s     .Q.x12 s
+</code></pre>
+<p>Where <code>s</code> is a string, these functions return <code>s</code> encoded (<code>j10</code>, <code>j12</code>)
+    or decoded (<code>x10</code>, <code>x12</code>) against restricted alphabets:</p>
+<ul>
+    <li><code>…10</code> en/decodes against the alphabet <code>.Q.b6</code>, this is a base-64 encoding - see <a
+            href="https://en.wikipedia.org/wiki/BinHex">BinHex</a> and <a href="https://en.wikipedia.org/wiki/Base64">Base64</a>
+        for more details than you ever want to know about which characters are where in the encoding. To keep the
+        resulting number an integer the maximum length of <code>s</code> is 10.
+    </li>
+    <li><code>-12</code> en/decodes against <code>.Q.nA</code>, a base-36 encoding. As the alphabet is smaller
+        <code>s</code> can be longer – maximum length 12.
+    </li>
+</ul>
+<p>The main use of these functions is to encode long alphanumeric identifiers (CUSIP, ORDERID..) so they can be quickly
+    searched – but without filling up the symbol table with vast numbers of single-use values.</p>
+<pre><code class="language-q">q).Q.x10 12345
+&quot;AAAAAAADA5&quot;
+q).Q.j10 .Q.x10 12345
+12345
+q).Q.j10 each .Q.x10 each 12345+1 2 3
+12346 12347 12348
+q).Q.x12 12345
+&quot;0000000009IX&quot;
+q).Q.j12 .Q.x12 12345
+12345
+</code></pre>

@@ -1,0 +1,12 @@
+<pre><code class="language-txt">.Q.x
+</code></pre>
+<p>Set by <code>.Q.opt</code>: a list of <em>non-command</em> parameters from the command line, where <em>command
+    parameters</em> are prefixed by <code>-</code>.</p>
+<pre><code class="language-bash">~$ q taq.k path/to/source path/to/destn
+</code></pre>
+<pre><code class="language-q">q)cla:.Q.opt .z.X /command-line arguments
+q).Q.x
+&quot;/Users/me/q/m64/q&quot;
+&quot;path/to/source&quot;
+&quot;path/to/destn&quot;
+</code></pre>

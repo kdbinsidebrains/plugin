@@ -1,0 +1,7 @@
+<pre><code class="language-txt">z.ws:f
+</code></pre>
+<p>Where <code>f</code> is a unary function, it is evaluated on a message arriving at a websocket. If the incoming
+    message is a text message the argument is a string; if a binary message, a byte vector.</p>
+<p>Sending a websocket message is limited to async messages only (sync is <code>'nyi</code>). A string will be sent as a
+    text message; a byte vector as a binary message.</p>
+<p>The default definition is to echo the message back to the client, i.e. <code>{neg[.z.w]x}</code></p>

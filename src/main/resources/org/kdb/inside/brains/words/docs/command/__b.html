@@ -1,0 +1,17 @@
+<div class="typewriter">
+    <p>\B [<em>namespace</em>]</p>
+</div>
+<p>Lists pending dependencies (views) in <em>namespace</em>, i.e. dependencies not yet referenced, or not referenced
+    after their referents have changed.
+    Defaults to current namespace.</p>
+<pre><code class="language-q">q)a::x+1          / a depends on x
+q)\B              / the dependency is pending
+,`a
+q)x:10
+q)\B              / still pending after x is defined
+,`a
+q)a               / use a
+11
+q)\B              / no longer pending
+`symbol$()
+</code></pre>

@@ -62,19 +62,19 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
             return variable != null ? variable.getText() : "\\d";
         }
         if (content instanceof QTable || content instanceof QVariable) {
-            return ((QVariable) element).getName();
+            return ((QVariable) element).getQualifiedName();
         }
         if (content instanceof QLambda) {
             final QParameters parameters = ((QLambda) content).getParameters();
             if (parameters == null) {
-                return ((QVariable) element).getName() + "[]";
+                return ((QVariable) element).getQualifiedName() + "[]";
             }
 
             final String collect = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
-            return ((QVariable) element).getName() + "[" + collect + "]";
+            return ((QVariable) element).getQualifiedName() + "[" + collect + "]";
         }
         if (content instanceof QExpression) {
-            return ((QVariable) element).getName() + ": " + getVariableType((QExpression) content);
+            return ((QVariable) element).getQualifiedName() + ": " + getVariableType((QExpression) content);
         }
 
         return element.getClass().getSimpleName();

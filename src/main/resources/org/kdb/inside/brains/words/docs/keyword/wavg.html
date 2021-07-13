@@ -1,0 +1,26 @@
+<p><em>Weighted average</em></p>
+<pre><code class="language-txt">x wavg y     wavg[x;y]
+</code></pre>
+<p>Where</p>
+<ul>
+    <li><code>x</code> is a numeric list</li>
+    <li><code>y</code> is a numeric list</li>
+</ul>
+<p>returns the average of numeric list <code>y</code> weighted by numeric list <code>x</code>. The result is a float
+    atom. </p>
+<pre><code class="language-q">q)2 3 4 wavg 1 2 4
+2.666667
+q)2 0N 4 5 wavg 1 2 0N 8  / nulls in either argument ignored
+6f
+</code></pre>
+<p>Where <code>x</code> and <code>y</code> conform, the result has an atom for each sublist.</p>
+<pre><code class="language-q">q)(1 2;3 4) wavg (500 400; 300 200)
+350 266.6667
+</code></pre>
+<p>The financial analytic known as VWAP (volume-weighted average price) is a weighted average.</p>
+<pre><code class="language-q">q)select size wavg price by sym from trade
+sym| price
+---| -----
+a  | 10.75
+</code></pre>
+<p><code>wavg</code> is an aggregate function, equivalent to <code>{(sum x*y)%sum x}</code>.</p>
