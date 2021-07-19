@@ -9,10 +9,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-public class KdbGutterProvider extends GutterContentProvider {
+/**
+ * This implementation has copy/paste issue when the marker is inserted into copying test.
+ * <p>
+ * At this moment I'm testing {@link LineNumberGutterProvider} instead that keep a line number in internal cache.
+ * <p>
+ * If this class is deprecated for a log time - it must be just removed from the source code. New one is the best.
+ */
+@Deprecated
+public class MarkerGutterProvider extends GutterContentProvider {
     public static final String MARKER = "\u200C";
 
-    public KdbGutterProvider() {
+    public MarkerGutterProvider() {
     }
 
     @Override

@@ -417,7 +417,7 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
         }
 
         @Override
-        public void queryFinished(InstanceConnection connection, KdbQuery query) {
+        public void queryFinished(InstanceConnection connection, KdbQuery query, KdbResult result) {
             updateInstanceItem(connection);
         }
 

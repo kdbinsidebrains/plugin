@@ -10,6 +10,7 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
     private boolean showConnectionChange = true;
     private int connectionChangeTimeout = 1000;
     private int warningMessageMb = 10;
+    private boolean logQueries = true;
 
     private EditorsBindingStrategy bindingStrategy = EditorsBindingStrategy.CONNECT_TO_TAB;
 
@@ -53,6 +54,14 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
         this.warningMessageMb = warningMessageMb;
     }
 
+    public boolean isLogQueries() {
+        return logQueries;
+    }
+
+    public void setLogQueries(boolean logQueries) {
+        this.logQueries = logQueries;
+    }
+
     @Override
     public void copyFrom(ExecutionOptions executionOptions) {
         bindingStrategy = executionOptions.bindingStrategy;
@@ -60,6 +69,7 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
         showConnectionChange = executionOptions.showConnectionChange;
         connectionChangeTimeout = executionOptions.connectionChangeTimeout;
         warningMessageMb = executionOptions.warningMessageMb;
+        logQueries = executionOptions.logQueries;
     }
 
     @Override
@@ -67,21 +77,22 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExecutionOptions that = (ExecutionOptions) o;
-        return normalizeQuery == that.normalizeQuery && showConnectionChange == that.showConnectionChange && connectionChangeTimeout == that.connectionChangeTimeout && bindingStrategy == that.bindingStrategy && warningMessageMb == that.warningMessageMb;
+        return normalizeQuery == that.normalizeQuery && showConnectionChange == that.showConnectionChange && connectionChangeTimeout == that.connectionChangeTimeout && warningMessageMb == that.warningMessageMb && logQueries == that.logQueries && bindingStrategy == that.bindingStrategy;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(normalizeQuery, showConnectionChange, connectionChangeTimeout, bindingStrategy, warningMessageMb);
+        return Objects.hash(normalizeQuery, showConnectionChange, connectionChangeTimeout, warningMessageMb, logQueries, bindingStrategy);
     }
 
     @Override
     public String toString() {
-        return "ConnectionOptions{" +
+        return "ExecutionOptions{" +
                 "normalizeQuery=" + normalizeQuery +
                 ", showConnectionChange=" + showConnectionChange +
                 ", connectionChangeTimeout=" + connectionChangeTimeout +
                 ", warningMessageMb=" + warningMessageMb +
+                ", logQueries=" + logQueries +
                 ", bindingStrategy=" + bindingStrategy +
                 '}';
     }

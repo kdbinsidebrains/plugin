@@ -1,6 +1,10 @@
 package org.kdb.inside.brains.core;
 
+import java.time.LocalDateTime;
+
 public class KdbResult {
+    private final LocalDateTime time;
+
     private final long statedMillis;
     private final long statedNanos;
 
@@ -10,6 +14,7 @@ public class KdbResult {
     private Object result;
 
     public KdbResult() {
+        time = LocalDateTime.now();
         statedMillis = System.currentTimeMillis();
         statedNanos = System.nanoTime();
     }
@@ -22,6 +27,10 @@ public class KdbResult {
         finishedMillis = System.currentTimeMillis();
         this.result = result;
         return this;
+    }
+
+    public LocalDateTime getTime() {
+        return time;
     }
 
     public boolean isError() {

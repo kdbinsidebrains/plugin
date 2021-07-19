@@ -126,7 +126,7 @@ public class KdbProcessRunConfiguration extends ApplicationConfiguration impleme
             final LanguageConsoleBuilder b = new LanguageConsoleBuilder();
             b.processHandler(processHandler);
             b.initActions(executeActionHandler, "KdbConsoleHistory");
-            b.gutterContentProvider(new KdbGutterProvider());
+            b.gutterContentProvider(new LineNumberGutterProvider());
 
             final LanguageConsoleView console = b.build(environment.getProject(), QLanguage.INSTANCE);
             console.attachToProcess(processHandler);

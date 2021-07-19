@@ -368,5 +368,8 @@
         <!-- Documentations -->
         <lang.documentationProvider language="q"
                                     implementationClass="org.kdb.inside.brains.lang.docs.QDocumentationProvider"/>
+
+        <projectService serviceImplementation="org.kdb.inside.brains.core.KdbQueryLogger"/>
+
     </extensions>
 </idea-plugin>

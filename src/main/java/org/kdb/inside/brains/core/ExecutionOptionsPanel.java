@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class ExecutionOptionsPanel extends JPanel {
+    private JBCheckBox logQueries;
     private JBCheckBox normalizeQuery;
     private JBCheckBox showConnectionState;
     private final JBIntSpinner connectionStateTimeout = new JBIntSpinner(1000, 100, 10000, 500);
@@ -24,6 +25,8 @@ public class ExecutionOptionsPanel extends JPanel {
         super(new BorderLayout());
 
         final var formBuilder = FormBuilder.createFormBuilder();
+
+        addLogQueries(formBuilder);
 
         addNormalizeQuery(formBuilder);
 
@@ -49,6 +52,18 @@ public class ExecutionOptionsPanel extends JPanel {
         formBuilder.setFormLeftIndent(0);
 
         showConnectionState.addItemListener(e -> validateConnectionState());
+    }
+
+    private void addLogQueries(FormBuilder formBuilder) {
+        final ContextHelpLabel infoLabel = ContextHelpLabel.create("Each executed query will be logged in daily file inside .kdbinb folder.");
+
+        logQueries = new JBCheckBox("Log queries");
+
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        p.add(logQueries);
+        p.add(Box.createHorizontalStrut(5));
+        p.add(infoLabel);
+        formBuilder.addComponent(p);
     }
 
     private void addNormalizeQuery(FormBuilder formBuilder) {
@@ -94,6 +109,7 @@ public class ExecutionOptionsPanel extends JPanel {
         o.setShowConnectionChange(showConnectionState.isSelected());
         o.setConnectionChangeTimeout(connectionStateTimeout.getNumber());
         o.setWarningMessageMb(warningMessageSizeEditor.getNumber());
+        o.setLogQueries(logQueries.isSelected());
         return o;
     }
 
@@ -103,6 +119,7 @@ public class ExecutionOptionsPanel extends JPanel {
         showConnectionState.setSelected(options.isShowConnectionChange());
         connectionStateTimeout.setNumber(options.getConnectionChangeTimeout());
         warningMessageSizeEditor.setNumber(options.getWarningMessageMb());
+        logQueries.setSelected(options.isLogQueries());
         validateConnectionState();
     }
 

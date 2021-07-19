@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.console;
 
 import com.intellij.codeEditor.printing.PrintAction;
 import com.intellij.execution.console.BaseConsoleExecuteActionHandler;
+import com.intellij.execution.console.GutterContentProvider;
 import com.intellij.execution.console.LanguageConsoleBuilder;
 import com.intellij.execution.console.LanguageConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -31,13 +32,12 @@ import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.action.ToggleConnectAction;
 import org.kdb.inside.brains.core.*;
-import org.kdb.inside.brains.ide.runner.KdbGutterProvider;
+import org.kdb.inside.brains.ide.runner.LineNumberGutterProvider;
 import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -59,7 +59,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     private final Consumer<KdbConsolePanel> panelKillerConsumer;
 
     private final KdbOutputFormatter formatter;
-    private final KdbGutterProvider gutterProvider;
+    private final GutterContentProvider gutterProvider;
     private final KdbConnectionManager connectionManager;
 
     private final AnAction renameAction = new RenameTabAction();
@@ -78,7 +78,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         }
 
         formatter = KdbOutputFormatter.getInstance();
-        gutterProvider = new KdbGutterProvider();
+        gutterProvider = new LineNumberGutterProvider();
 
         connectionManager = KdbConnectionManager.getManager(project);
         connectionManager.addConnectionListener(connectionListener);
@@ -407,7 +407,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     }
 
     private void printRoundtrip(KdbResult result) {
-        printToConsole("(" + LocalDateTime.now() + ", roundtrip: " + result.getRoundtripMillis() + "ms / " + result.getRoundtripNanos() + "ns)\n", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        printToConsole("(" + result.getTime() + ", roundtrip: " + result.getRoundtripMillis() + "ms / " + result.getRoundtripNanos() + "ns)\n", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
     }
 
     @Override

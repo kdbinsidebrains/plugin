@@ -2,6 +2,17 @@
 
 # KdbInsideBrains Changelog
 
+## [0.12.0]
+
+### Added
+
+- Queries logging functionality has been added: each finished query is logged into .kdbinb folder into daily files (can
+  be disabled in settings).
+
+### Fixed
+
+- Copy/Paste issue in the console has been fixed: market is not copied anymore.
+
 ## [0.11.0]
 
 ### Added

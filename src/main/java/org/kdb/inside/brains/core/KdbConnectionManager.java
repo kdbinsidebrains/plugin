@@ -46,6 +46,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
     private final Project project;
     private final Map<KdbInstance, TheInstanceConnection> connections = new HashMap<>();
 
+    private final KdbQueryLogger queryLogger;
     private final List<KdbQueryListener> queryListeners = new CopyOnWriteArrayList<>();
     private final List<KdbConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
 
@@ -56,6 +57,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
     public KdbConnectionManager(Project project) {
         this.project = project;
+        this.queryLogger = project.getService(KdbQueryLogger.class);
     }
 
     public void addQueryListener(KdbQueryListener listener) {
@@ -189,11 +191,17 @@ public class KdbConnectionManager implements Disposable, DumbAware {
     }
 
     private void processQueryStarted(InstanceConnection conn, KdbQuery query) {
+        if (getOptions().isLogQueries()) {
+            queryLogger.logQueryStarted(conn, query);
+        }
         queryListeners.forEach(l -> l.queryStarted(conn, query));
     }
 
-    private void processQueryFinished(InstanceConnection conn, KdbQuery query) {
-        queryListeners.forEach(l -> l.queryFinished(conn, query));
+    private void processQueryFinished(InstanceConnection conn, KdbQuery query, KdbResult result) {
+        if (getOptions().isLogQueries()) {
+            queryLogger.processQueryFinished(conn, query, result);
+        }
+        queryListeners.forEach(l -> l.queryFinished(conn, query, result));
     }
 
     protected void processConnectionActivated(InstanceConnection old, InstanceConnection connection) {
@@ -206,7 +214,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
             final String content = "Active connection changed to: " + connection.getName();
             NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).notify(project);
 
-            final ExecutionOptions commonOptions = KdbSettingsService.getInstance().getConnectionOptions();
+            final ExecutionOptions commonOptions = getOptions();
             if (commonOptions.isShowConnectionChange()) {
                 final JComponent notificationComponent = InstancesComboAction.getInstance().getNotificationComponent();
                 if (notificationComponent == null) {
@@ -253,6 +261,10 @@ public class KdbConnectionManager implements Disposable, DumbAware {
             this.myConnection = myConnection;
         }
 
+        public KdbResult getResult() {
+            return result;
+        }
+
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
             this.indicator = indicator;
@@ -260,7 +272,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
             try {
                 validate(indicator);
 
-                final boolean normalizeQuery = KdbSettingsService.getInstance().getConnectionOptions().isNormalizeQuery();
+                final boolean normalizeQuery = getOptions().isNormalizeQuery();
                 final KxConnection c = myConnection.safeConnection();
                 final Object object = c.query(
                         query.toQueryObject(normalizeQuery),
@@ -292,7 +304,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         }
 
         private void validateMessageSize(int size) throws CancellationException {
-            if (size > KdbSettingsService.getInstance().getConnectionOptions().getWarningMessageMb() * MB_SIZE) {
+            if (size > getOptions().getWarningMessageMb() * MB_SIZE) {
                 final int sizeMb = ((int) ((size / MB_SIZE) * 100d)) / 100;
 
                 final CompletableFuture<Boolean> res = new CompletableFuture<>();
@@ -333,6 +345,10 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         public boolean isCanceled() {
             return canceled || (indicator != null && indicator.isCanceled());
         }
+    }
+
+    private ExecutionOptions getOptions() {
+        return KdbSettingsService.getInstance().getConnectionOptions();
     }
 
     private class ConnectionProgressive implements Progressive {
@@ -646,8 +662,9 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
                     @Override
                     public void onFinished() {
+                        final KdbResult result = queryProgressive.getResult();
                         queryProgressive = null;
-                        processQueryFinished(TheInstanceConnection.this, query);
+                        processQueryFinished(TheInstanceConnection.this, query, result);
                     }
                 };
             } else {
@@ -659,8 +676,9 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
                     @Override
                     public void onFinished() {
+                        final KdbResult result = queryProgressive.getResult();
                         queryProgressive = null;
-                        processQueryFinished(TheInstanceConnection.this, query);
+                        processQueryFinished(TheInstanceConnection.this, query, result);
                     }
                 };
             }
