@@ -2,6 +2,13 @@
 
 # KdbInsideBrains Changelog
 
+## [0.12.1]
+
+### Fixed
+
+- Quick Documentation format has been fixed
+- Missed keyword docs have been added
+
 ## [0.12.0]
 
 ### Added
