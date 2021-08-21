@@ -371,5 +371,12 @@
 
         <projectService serviceImplementation="org.kdb.inside.brains.core.KdbQueryLogger"/>
 
+
+        <!-- Formatter  -->
+        <lang.formatter language="q"
+                        implementationClass="org.kdb.inside.brains.lang.codestyle.QFormattingModelBuilder"/>
+
+        <langCodeStyleSettingsProvider
+                implementation="org.kdb.inside.brains.lang.codestyle.QLanguageCodeStyleSettingsProvider"/>
     </extensions>
 </idea-plugin>

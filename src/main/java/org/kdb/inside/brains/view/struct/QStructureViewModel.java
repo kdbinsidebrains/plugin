@@ -45,17 +45,12 @@ final class QStructureViewModel extends StructureViewModelBase implements Struct
 
     @Override
     public boolean isSmartExpand() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isAutoExpand(@NotNull StructureViewTreeElement element) {
         return ((QStructureViewElement) element).getType().isAutoExpand();
-    }
-
-    @Override
-    public int getMinimumAutoExpandDepth() {
-        return 1;
     }
 
     private static class TheFilter implements Filter {

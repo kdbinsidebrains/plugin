@@ -110,7 +110,9 @@ fake column_assignment ::= var_declaration? expression? {
  methods = [variable="var_declaration"]
 }
 
-variable_assignment ::= var_declaration [arguments] (operator colon | colon colon | colon) expression {
+assignment_operator ::= operator colon | colon colon | colon
+
+variable_assignment ::= var_declaration [arguments] assignment_operator expression {
  pin = 3
  extends = assignment
  methods = [variable="var_declaration"]
@@ -187,9 +189,9 @@ mode ::= mode_pattern [mode_content] { pin = 1 } // Mode: [a-Z]) .....
 parameters ::= bracket_open [var_declaration (semicolon var_declaration)*] bracket_close {
  methods = [variables="var_declaration"]
 }
-lambda ::= brace_open [parameters] [expressions] brace_close {pin = 1}
+lambda ::= brace_open [parameters] [code_block] brace_close {pin = 1}
 
-arguments ::= bracket_open [expressions] bracket_close {pin = 1}// [...]
+arguments ::= bracket_open [code_block] bracket_close {pin = 1}// [...]
 
 control ::= control_pattern arguments // if/else/while and so on
 condition ::= condition_pattern arguments // $[...]
@@ -214,4 +216,4 @@ expression ::= query | (statement | comma)+ query? {
  extends = psi_expression
 }
 
-private expressions ::= separator* expression (separator+ expression)* separator*
+code_block ::= separator* expression (separator+ expression)* separator*

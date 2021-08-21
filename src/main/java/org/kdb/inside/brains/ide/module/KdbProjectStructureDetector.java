@@ -9,6 +9,7 @@ import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuild
 import com.intellij.ide.util.projectWizard.importSources.ProjectStructureDetector;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QFileType;
+import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.ide.sdk.KdbSdkPanel;
 
 import javax.swing.*;
@@ -19,7 +20,7 @@ import java.util.List;
 public class KdbProjectStructureDetector extends ProjectStructureDetector {
     @Override
     public String getDetectorId() {
-        return "KDB+ Q";
+        return QLanguage.INSTANCE.getDisplayName();
     }
 
     @NotNull

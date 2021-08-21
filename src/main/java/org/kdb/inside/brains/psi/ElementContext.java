@@ -1,6 +1,8 @@
 package org.kdb.inside.brains.psi;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.tree.IElementType;
 
 public class ElementContext {
     private final ElementScope scope;
@@ -49,6 +51,28 @@ public class ElementContext {
 
     public QParameters parameters() {
         return scope == ElementScope.PARAMETERS ? (QParameters) element : null;
+    }
+
+    public static IElementType of(ASTNode node) {
+        ASTNode parent = node.getTreeParent();
+        while (parent != null) {
+            final IElementType elementType = parent.getElementType();
+
+            if (elementType == QTypes.PARAMETERS) {
+                return QTypes.PARAMETERS;
+            }
+            if (elementType == QTypes.LAMBDA) {
+                return QTypes.LAMBDA;
+            }
+            if (elementType == QTypes.QUERY) {
+                return QTypes.QUERY;
+            }
+            if (elementType == QTypes.TABLE) {
+                return QTypes.TABLE;
+            }
+            parent = parent.getTreeParent();
+        }
+        return null;
     }
 
     public static ElementContext of(QPsiElement element) {
