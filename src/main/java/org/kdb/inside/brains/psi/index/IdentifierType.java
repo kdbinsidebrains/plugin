@@ -1,6 +1,8 @@
 package org.kdb.inside.brains.psi.index;
 
 import icons.KdbIcons;
+import org.kdb.inside.brains.psi.QAssignment;
+import org.kdb.inside.brains.psi.QExpression;
 
 import javax.swing.*;
 
@@ -13,6 +15,23 @@ public enum IdentifierType {
 
     IdentifierType(Icon icon) {
         this.icon = icon;
+    }
+
+    public static IdentifierType getType(QAssignment assignment) {
+        final QExpression expression = assignment.getExpression();
+        if (expression == null) {
+            return VARIABLE;
+        }
+
+        if (!expression.getLambdaList().isEmpty()) {
+            return LAMBDA;
+        }
+
+        if (!expression.getTableList().isEmpty()) {
+            return TABLE;
+        }
+
+        return VARIABLE;
     }
 
     public static IdentifierType parseFrom(String name) {

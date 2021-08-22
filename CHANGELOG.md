@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [0.12.2]
+
+### Added
+
+- Local variables added into completion list
+
 ## [0.12.1]
 
 ### Fixed

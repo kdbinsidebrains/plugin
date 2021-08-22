@@ -7,17 +7,20 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.QWord;
-import org.kdb.inside.brains.psi.QVariable;
+import org.kdb.inside.brains.psi.*;
 import org.kdb.inside.brains.psi.index.IdentifierType;
 import org.kdb.inside.brains.psi.index.QIndexService;
 
 import javax.swing.*;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class QVariableCompletionContributor extends CompletionProvider<CompletionParameters> {
     @Override
@@ -30,8 +33,9 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
         final QVariable variable = (QVariable) el.getParent();
         final String qualifiedName = variable.getQualifiedName();
 
-        addIndexes(qualifiedName, el.getProject(), result);
-        addSystemFunction(qualifiedName, result);
+        addGlobal(qualifiedName, el.getProject(), result);
+        addLocal(qualifiedName, ElementContext.of(variable), result);
+        addFunctions(qualifiedName, result);
         addKeywords(qualifiedName, result);
     }
 
@@ -39,7 +43,7 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
         addEntities(QLanguage.getKeywords(), qualifiedName, KdbIcons.Node.Keyword, result);
     }
 
-    private void addSystemFunction(String qualifiedName, CompletionResultSet result) {
+    private void addFunctions(String qualifiedName, CompletionResultSet result) {
         QLanguage.getSystemNamespaces()
                 .stream()
                 .filter(qualifiedName::startsWith)
@@ -62,7 +66,7 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
         }
     }
 
-    private void addIndexes(String qualifiedName, Project project, CompletionResultSet result) {
+    private void addGlobal(String qualifiedName, Project project, CompletionResultSet result) {
         final QIndexService index = QIndexService.getInstance(project);
         index.processValues(
                 s -> s.startsWith(qualifiedName),
@@ -80,5 +84,35 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
                     result.addElement(b);
                 }
         );
+    }
+
+    private void addLocal(String qualifiedName, ElementContext context, CompletionResultSet result) {
+        if (context.getScope() != ElementScope.LAMBDA) {
+            return;
+        }
+
+        final PsiElement element = context.getElement();
+        final Collection<QAssignment> childrenOfType = PsiTreeUtil.findChildrenOfType(element, QAssignment.class);
+
+        final Set<String> names = new HashSet<>();
+        for (QAssignment assignment : childrenOfType) {
+            final QVarDeclaration variable = assignment.getVariable();
+            if (variable == null) {
+                continue;
+            }
+
+            final String varName = variable.getQualifiedName();
+            if (!varName.startsWith(qualifiedName) || !names.add(varName)) {
+                continue;
+            }
+
+            final IdentifierType type = IdentifierType.getType(assignment);
+
+            final LookupElementBuilder b = LookupElementBuilder
+                    .create(variable)
+                    .withIcon(type.getIcon())
+                    .withTypeText("Local variable", true);
+            result.addElement(b);
+        }
     }
 }
