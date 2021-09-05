@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 
 import static com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable.SpacingOption;
 import static com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable.WrappingOrBraceOption;
+import static com.intellij.psi.codeStyle.CodeStyleSettingsCustomizableOptions.getInstance;
 
 public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
     @Override
@@ -91,40 +92,17 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
         consumer.renameStandardOption(WrappingOrBraceOption.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE.name(),
                 "Place ']' on new line");
 
-/*
-        consumer.showCustomOption(QCodeStyleSettings.class,
-                "ASDAS_ASDASDADQWQWE_ASDASDASD",
-                "Is iasdf sdf asdfew asdf asdf",
-                "Lambda declaration parameters",
-                CodeStyleSettingsCustomizableOptions.getInstance().WRAP_OPTIONS, WRAP_VALUES);
-*/
+        final String controlWrapTitle = "Control arguments (if, do, while, ...)";
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_WRAP_TYPE", controlWrapTitle, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_WRAP_ALIGN", "Align when multiline", controlWrapTitle);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_OBRACKET_ON_NEXT_LINE", "New line after '['", controlWrapTitle);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_CBRACKET_ON_NEXT_LINE", "Place ']' on new line", controlWrapTitle);
 
-/*
-            consumer.showCustomOption(JsonCodeStyleSettings.class,
-                    "KEEP_TRAILING_COMMA",
-                    JsonBundle.message("formatter.trailing_comma.label"),
-                    getInstance().WRAPPING_KEEP);
-
-            consumer.showCustomOption(JsonCodeStyleSettings.class,
-                    "ARRAY_WRAPPING",
-                    JsonBundle.message("formatter.wrapping_arrays.label"),
-                    null,
-                    getInstance().WRAP_OPTIONS,
-                    CodeStyleSettingsCustomizable.WRAP_VALUES);
-
-            consumer.showCustomOption(JsonCodeStyleSettings.class,
-                    "OBJECT_WRAPPING",
-                    JsonBundle.message("formatter.objects.label"),
-                    null,
-                    getInstance().WRAP_OPTIONS,
-                    CodeStyleSettingsCustomizable.WRAP_VALUES);*/
-/*
-            consumer.showCustomOption(JsonCodeStyleSettings.class,
-                    "PROPERTY_ALIGNMENT",
-                    JsonBundle.message("formatter.align.properties.caption"),
-                    JsonBundle.message("formatter.objects.label"),
-                    JsonLanguageCodeStyleSettingsProvider.Holder.ALIGN_OPTIONS,
-                    JsonLanguageCodeStyleSettingsProvider.Holder.ALIGN_VALUES);*/
+        final String conditionWrapTitle = "Condition arguments (if, do, while, ...)";
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_WRAP_TYPE", conditionWrapTitle, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_WRAP_ALIGN", "Align when multiline", conditionWrapTitle);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_OBRACKET_ON_NEXT_LINE", "New line after '['", conditionWrapTitle);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_CBRACKET_ON_NEXT_LINE", "Place ']' on new line", conditionWrapTitle);
     }
 
     private void customizeSpacing(@NotNull CodeStyleSettingsCustomizable consumer) {
@@ -136,9 +114,24 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
 
         consumer.renameStandardOption(name(SpacingOption.SPACE_AROUND_ASSIGNMENT_OPERATORS), "Assignment operators (::, :, ...)");
 
-        final String lambda_definition = "Lambda definition";
-        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_BEFORE_BRACE_CLOSE", "Before close brace", lambda_definition);
-        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AFTER_LAMBDA_PARAMETERS", "After parameter semicolon", lambda_definition);
+        // Lambda settings
+        final String lambdaSection = "Lambda definition";
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_BEFORE_BRACE_CLOSE", "Before close brace", lambdaSection);
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_AFTER_PARAMETERS", "After parameter semicolon", lambdaSection);
+
+        // Control settings
+        final String controlSection = "Control statement (if, do, while, ...)";
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_AFTER_OPERATOR", "After operator", controlSection);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_WITHIN_BRACES", "Within braces", controlSection);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_AFTER_SEMICOLON", "After semicolon", controlSection);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_BEFORE_SEMICOLON", "Before semicolon", controlSection);
+
+        // Condition settings
+        final String conditionStatement = "Condition statement ($, @, ?, ...)";
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_AFTER_OPERATOR", "After operator", conditionStatement);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_WITHIN_BRACES", "Within braces", conditionStatement);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_AFTER_SEMICOLON", "After semicolon", conditionStatement);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_BEFORE_SEMICOLON", "Before semicolon", conditionStatement);
     }
 
     @Override

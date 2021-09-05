@@ -14,6 +14,7 @@ import org.kdb.inside.brains.psi.QTypes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class AbstractQBlock extends AbstractBlock {
@@ -38,38 +39,33 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
     @Override
     protected List<Block> buildChildren() {
-        final List<Block> result = new ArrayList<>();
-
-        ASTNode child = getFirstNotEmptyChild(myNode);
-
-        Alignment alignment = createChildrenAlignment();
-        while (child != null) {
-            if (isNotEmptyNode(child)) {
-                final Wrap wrap = createChildWrap(child);
-                final Indent indent = createChildIndent(child);
-
-                child = processChild(result, child, wrap, indent, alignment);
-            }
-
-            if (child != null) {
-                child = child.getTreeNext();
-            }
-        }
-        return result;
+        final Alignment childrenAlignment = createChildrenAlignment();
+        return buildChildren(myNode, child -> {
+            final Wrap wrap = createChildWrap(child);
+            final Indent indent = createChildIndent(child);
+            return createBlock(child, wrap, indent, childrenAlignment);
+        });
     }
 
-    protected final List<Block> buildChildren(Function<ASTNode, Block> function) {
+    protected final List<Block> buildChildren(ASTNode node, Function<ASTNode, Block> function) {
         final List<Block> result = new ArrayList<>();
 
-        ASTNode child = getFirstNotEmptyChild(myNode);
-        while (child != null) {
+        iterateNotEmptyChildren(node, child -> {
             final Block apply = function.apply(child);
             if (apply != null) {
                 result.add(apply);
             }
+        });
+
+        return result;
+    }
+
+    protected final void iterateNotEmptyChildren(ASTNode node, Consumer<ASTNode> consumer) {
+        ASTNode child = getFirstNotEmptyChild(node);
+        while (child != null) {
+            consumer.accept(child);
             child = getNextNotEmptySubling(child);
         }
-        return result;
     }
 
     @Override
@@ -88,6 +84,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
     }
 
     @Nullable
+    @Deprecated
     protected ASTNode processChild(@NotNull final List<Block> result,
                                    @NotNull final ASTNode child,
                                    @Nullable final Wrap wrap,
@@ -124,6 +121,11 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
         if (elementType == QTypes.MODE) {
             return new ModeQBlock(node, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment);
+        }
+
+
+        if (elementType == QTypes.CONTROL || elementType == QTypes.CONDITION) {
+            return new ConditionControlQBlock(node, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment, elementType);
         }
 
         return new SimpleQBlock(node, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment);

@@ -59,8 +59,8 @@
     char="char"
     string="string"
 
-    control_pattern="control"
-    condition_pattern="conditional"
+    control_pattern="control keyword"
+    condition_pattern="condition keyword"
 
     line_comment='line comment'
     block_comment='block comment'
@@ -192,9 +192,10 @@ parameters ::= bracket_open [var_declaration (semicolon var_declaration)*] brack
 lambda ::= brace_open [parameters] [code_block] brace_close {pin = 1}
 
 arguments ::= bracket_open [code_block] bracket_close {pin = 1}// [...]
+code_block ::= separator* expression (separator+ expression)* separator*
 
-control ::= control_pattern arguments // if/else/while and so on
-condition ::= condition_pattern arguments // $[...]
+control ::= control_pattern arguments { pin = 1} // if/else/while and so on
+condition ::= condition_pattern arguments { pin = 1} // $[...]
 
 //  `$ or `...$ - it's a type cast, not a symbol
 type_cast ::= type_cast_pattern
@@ -215,5 +216,3 @@ private statement ::= control | condition | type_cast | variable_assignment | in
 expression ::= query | (statement | comma)+ query? {
  extends = psi_expression
 }
-
-code_block ::= separator* expression (separator+ expression)* separator*

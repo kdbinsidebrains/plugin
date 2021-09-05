@@ -32,7 +32,7 @@ public class LambdaQBlock extends AbstractQBlock {
             return Indent.getNormalIndent(false);
         }
 
-        if (qSettings.SPACE_BEFORE_BRACE_CLOSE && elementType == QTypes.BRACE_CLOSE && ElementContext.of(myNode) == null) {
+        if (qSettings.LAMBDA_SPACE_BEFORE_BRACE_CLOSE && elementType == QTypes.BRACE_CLOSE && ElementContext.of(myNode) == null) {
             return Indent.getSpaceIndent(1);
         }
         return null;

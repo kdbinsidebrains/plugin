@@ -11,34 +11,46 @@ import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.QTypes;
 
 public class QSpacingStrategy {
-    private final SpacingBuilder builder;
+    private SpacingBuilder builder;
+    private final QCodeStyleSettings qSettings;
+    private final CommonCodeStyleSettings settings;
 
     public QSpacingStrategy(@NotNull CodeStyleSettings codeStyleSettings) {
-        final CommonCodeStyleSettings settings = codeStyleSettings.getCommonSettings(QLanguage.INSTANCE);
-        final QCodeStyleSettings qSettings = codeStyleSettings.getCustomSettings(QCodeStyleSettings.class);
+        settings = codeStyleSettings.getCommonSettings(QLanguage.INSTANCE);
+        qSettings = codeStyleSettings.getCustomSettings(QCodeStyleSettings.class);
 
-        builder = new SpacingBuilder(codeStyleSettings, QLanguage.INSTANCE)
-/*
-                .after(QTypes.MODE_PATTERN).spaceIf(true)
-                .between(QTypes.SEMICOLON, QTypes.EXPRESSION).spaceIf(true)
-                .between(QTypes.EXPRESSION, QTypes.SEMICOLON).spaceIf(false)
-                .between(QTypes.SEMICOLON, QTypes.VARIABLE_PATTERN).spaceIf(true)
-                .betweenInside(QTypes.BRACE_OPEN, QTypes.PARAMETERS, QTypes.LAMBDA).spacing(0, 0, 0, settings.KEEP_LINE_BREAKS, 10);
-*/
-/*
-        myResult = Spacing.createDependentLFSpacing(spaces, spaces, dependence, mySettings.KEEP_LINE_BREAKS,
-                mySettings.KEEP_BLANK_LINES_IN_CODE);
-*/
+        builder = new SpacingBuilder(codeStyleSettings, QLanguage.INSTANCE);
 
-//                .afterInside(QTypes.SEMICOLON, QTypes.PARAMETERS).spaceIf()
-                // Around operators
-                .after(QTypes.ASSIGNMENT_OPERATOR).spaceIf(settings.SPACE_AROUND_ASSIGNMENT_OPERATORS)
-                .before(QTypes.ASSIGNMENT_OPERATOR).spaceIf(settings.SPACE_AROUND_ASSIGNMENT_OPERATORS)
+        // Control
+        builder.after(QTypes.CONTROL_PATTERN).lineBreakOrForceSpace(false, qSettings.CONTROL_SPACE_AFTER_OPERATOR);
+        builder.afterInside(QTypes.BRACKET_OPEN, QTypes.CONTROL).lineBreakOrForceSpace(qSettings.CONTROL_OBRACKET_ON_NEXT_LINE, qSettings.CONTROL_SPACE_WITHIN_BRACES);
+        builder.beforeInside(QTypes.BRACKET_CLOSE, QTypes.CONTROL).lineBreakOrForceSpace(qSettings.CONTROL_CBRACKET_ON_NEXT_LINE, qSettings.CONTROL_SPACE_WITHIN_BRACES);
+        builder.afterInside(QTypes.SEMICOLON, QTypes.CONTROL).lineBreakOrForceSpace(false, qSettings.CONTROL_SPACE_AFTER_SEMICOLON);
+        builder.beforeInside(QTypes.SEMICOLON, QTypes.CONTROL).lineBreakOrForceSpace(false, qSettings.CONTROL_SPACE_BEFORE_SEMICOLON);
 
-                // Parameters
-                .afterInside(QTypes.SEMICOLON, QTypes.PARAMETERS).spaceIf(qSettings.SPACE_AFTER_LAMBDA_PARAMETERS)
+        // Condition
+        builder.after(QTypes.CONDITION_PATTERN).lineBreakOrForceSpace(false, qSettings.CONDITION_SPACE_AFTER_OPERATOR);
+        builder.afterInside(QTypes.BRACKET_OPEN, QTypes.CONDITION).lineBreakOrForceSpace(qSettings.CONDITION_OBRACKET_ON_NEXT_LINE, qSettings.CONDITION_SPACE_WITHIN_BRACES);
+        builder.beforeInside(QTypes.BRACKET_CLOSE, QTypes.CONDITION).lineBreakOrForceSpace(qSettings.CONDITION_CBRACKET_ON_NEXT_LINE, qSettings.CONDITION_SPACE_WITHIN_BRACES);
+        builder.afterInside(QTypes.SEMICOLON, QTypes.CONDITION).lineBreakOrForceSpace(false, qSettings.CONDITION_SPACE_AFTER_SEMICOLON);
+        builder.beforeInside(QTypes.SEMICOLON, QTypes.CONDITION).lineBreakOrForceSpace(false, qSettings.CONDITION_SPACE_BEFORE_SEMICOLON);
+
+
+        // Around operators
+        builder = builder
+                .around(QTypes.ASSIGNMENT_OPERATOR).spaceIf(settings.SPACE_AROUND_ASSIGNMENT_OPERATORS)
+        ;
+
+        // Parameters
+        builder = builder
+                .afterInside(QTypes.SEMICOLON, QTypes.PARAMETERS).spaceIf(qSettings.LAMBDA_SPACE_AFTER_PARAMETERS)
                 .afterInside(QTypes.BRACKET_OPEN, QTypes.PARAMETERS).lineBreakInCodeIf(settings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE)
                 .beforeInside(QTypes.BRACKET_CLOSE, QTypes.PARAMETERS).lineBreakInCodeIf(settings.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE)
+        ;
+
+        // Remove spaces before last semicolon in all other cases
+        builder = builder
+                .before(QTypes.SEMICOLON).spaceIf(false)
         ;
     }
 
@@ -49,7 +61,7 @@ public class QSpacingStrategy {
         return getASTSpacing((AbstractBlock) parent, (AbstractBlock) child1, (AbstractBlock) child2);
     }
 
-    public Spacing getASTSpacing(AbstractBlock parent, AbstractBlock child1, AbstractBlock child2) {
+    private Spacing getASTSpacing(AbstractBlock parent, AbstractBlock child1, AbstractBlock child2) {
         return builder.getSpacing(parent, child1, child2);
     }
 }
