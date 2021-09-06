@@ -152,7 +152,7 @@ public class KdbSdkType extends SdkType {
                 if (isWindows() && file.getName().equals("q.exe")) {
                     return file;
                 }
-                if (isWindows() && file.getName().equals("q")) {
+                if (isLinux() && file.getName().equals("q")) {
                     return file;
                 }
             }
