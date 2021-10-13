@@ -174,16 +174,30 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                         if (error == null) {
                             NOTIFICATION_GROUP.createNotification("Instance has been disconnected: " + name, NotificationType.INFORMATION).notify(project);
                         } else {
-                            NOTIFICATION_GROUP.createNotification("Instance can't be connected: " + name + " - " + error.getMessage(), NotificationType.ERROR).addAction(new AnAction("Check Instance Details") {
-                                @Override
-                                public void actionPerformed(@NotNull AnActionEvent e) {
-                                    final KdbInstance instance = conn.getInstance();
-                                    final InstanceEditorDialog editor = new InstanceEditorDialog(InstanceEditorDialog.Mode.UPDATE, project, instance);
-                                    if (editor.showAndGet()) {
-                                        instance.updateFrom(editor.createInstance());
-                                    }
+                            if (oldState == CONNECTED && getOptions().isAutoReconnect()) {
+                                if (conn.connectAndWait() == CONNECTED) {
+                                    return;
                                 }
-                            }).notify(project);
+                            }
+
+                            NOTIFICATION_GROUP.createNotification("Instance can't be connected: " + name + " - " + error.getMessage(), NotificationType.WARNING)
+                                    .addAction(new AnAction("Check Instance Details") {
+                                        @Override
+                                        public void actionPerformed(@NotNull AnActionEvent e) {
+                                            final KdbInstance instance = conn.getInstance();
+                                            final InstanceEditorDialog editor = new InstanceEditorDialog(InstanceEditorDialog.Mode.UPDATE, project, instance);
+                                            if (editor.showAndGet()) {
+                                                instance.updateFrom(editor.createInstance());
+                                            }
+                                        }
+                                    })
+                                    .addAction(new AnAction("Reconnect Instance") {
+                                        @Override
+                                        public void actionPerformed(@NotNull AnActionEvent e) {
+                                            conn.connectAndWait();
+                                        }
+                                    })
+                                    .notify(project);
                         }
                     }
                 }
@@ -523,9 +537,9 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         }
 
         @Override
-        public void connectAndWait() {
+        public InstanceState connectAndWait() {
             if (!state.isConnectable()) {
-                return;
+                return state;
             }
 
             connecting();
@@ -538,6 +552,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                 }
             };
             task.queue();
+            return state;
         }
 
 

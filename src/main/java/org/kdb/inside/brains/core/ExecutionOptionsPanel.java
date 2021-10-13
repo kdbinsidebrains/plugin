@@ -13,6 +13,7 @@ import java.awt.*;
 
 public class ExecutionOptionsPanel extends JPanel {
     private JBCheckBox logQueries;
+    private JBCheckBox autoReconnect;
     private JBCheckBox normalizeQuery;
     private JBCheckBox showConnectionState;
     private final JBIntSpinner connectionStateTimeout = new JBIntSpinner(1000, 100, 10000, 500);
@@ -27,6 +28,8 @@ public class ExecutionOptionsPanel extends JPanel {
         final var formBuilder = FormBuilder.createFormBuilder();
 
         addLogQueries(formBuilder);
+
+        addAutoReconnect(formBuilder);
 
         addNormalizeQuery(formBuilder);
 
@@ -61,6 +64,18 @@ public class ExecutionOptionsPanel extends JPanel {
 
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         p.add(logQueries);
+        p.add(Box.createHorizontalStrut(5));
+        p.add(infoLabel);
+        formBuilder.addComponent(p);
+    }
+
+    private void addAutoReconnect(FormBuilder formBuilder) {
+        final ContextHelpLabel infoLabel = ContextHelpLabel.create("Try to auto-reconnect if a connection has been lost.");
+
+        autoReconnect = new JBCheckBox("Auto-reconnect");
+
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        p.add(autoReconnect);
         p.add(Box.createHorizontalStrut(5));
         p.add(infoLabel);
         formBuilder.addComponent(p);
@@ -110,6 +125,7 @@ public class ExecutionOptionsPanel extends JPanel {
         o.setConnectionChangeTimeout(connectionStateTimeout.getNumber());
         o.setWarningMessageMb(warningMessageSizeEditor.getNumber());
         o.setLogQueries(logQueries.isSelected());
+        o.setAutoReconnect(autoReconnect.isSelected());
         return o;
     }
 
@@ -120,6 +136,7 @@ public class ExecutionOptionsPanel extends JPanel {
         connectionStateTimeout.setNumber(options.getConnectionChangeTimeout());
         warningMessageSizeEditor.setNumber(options.getWarningMessageMb());
         logQueries.setSelected(options.isLogQueries());
+        autoReconnect.setSelected(options.isAutoReconnect());
         validateConnectionState();
     }
 

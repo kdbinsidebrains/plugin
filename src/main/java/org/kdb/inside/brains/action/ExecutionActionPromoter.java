@@ -12,13 +12,14 @@ import java.util.List;
 
 public class ExecutionActionPromoter implements ActionPromoter {
     @Override
-    public List<AnAction> promote(@NotNull List<AnAction> actions, @NotNull DataContext context) {
+    public List<AnAction> promote(@NotNull List actions, @NotNull DataContext context) {
         final VirtualFile data = context.getData(CommonDataKeys.VIRTUAL_FILE);
         if (!QFileType.is(data)) {
             return null;
         }
 
-        for (AnAction action : actions) {
+        for (Object actionObj : actions) {
+            final AnAction action = (AnAction) actionObj;
             if (action instanceof ExecuteAction || action instanceof ExecuteOnAction) {
                 return List.of(action);
             }

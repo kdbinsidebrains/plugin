@@ -7,9 +7,9 @@ public interface InstanceConnection {
 
     void connect();
 
-    void connectAndWait();
-
     void disconnect();
+
+    InstanceState connectAndWait();
 
 
     boolean isTemporal();
