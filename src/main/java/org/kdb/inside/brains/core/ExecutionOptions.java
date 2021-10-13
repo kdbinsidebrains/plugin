@@ -6,6 +6,7 @@ import org.kdb.inside.brains.settings.SettingsBean;
 import java.util.Objects;
 
 public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
+    private boolean autoReconnect = true;
     private boolean normalizeQuery = true;
     private boolean showConnectionChange = true;
     private int connectionChangeTimeout = 1000;
@@ -20,6 +21,14 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
 
     public void setBindingStrategy(EditorsBindingStrategy bindingStrategy) {
         this.bindingStrategy = bindingStrategy;
+    }
+
+    public boolean isAutoReconnect() {
+        return autoReconnect;
+    }
+
+    public void setAutoReconnect(boolean autoReconnect) {
+        this.autoReconnect = autoReconnect;
     }
 
     public boolean isShowConnectionChange() {
@@ -70,6 +79,7 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
         connectionChangeTimeout = executionOptions.connectionChangeTimeout;
         warningMessageMb = executionOptions.warningMessageMb;
         logQueries = executionOptions.logQueries;
+        autoReconnect = executionOptions.autoReconnect;
     }
 
     @Override
@@ -77,18 +87,19 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExecutionOptions that = (ExecutionOptions) o;
-        return normalizeQuery == that.normalizeQuery && showConnectionChange == that.showConnectionChange && connectionChangeTimeout == that.connectionChangeTimeout && warningMessageMb == that.warningMessageMb && logQueries == that.logQueries && bindingStrategy == that.bindingStrategy;
+        return autoReconnect == that.autoReconnect && normalizeQuery == that.normalizeQuery && showConnectionChange == that.showConnectionChange && connectionChangeTimeout == that.connectionChangeTimeout && warningMessageMb == that.warningMessageMb && logQueries == that.logQueries && bindingStrategy == that.bindingStrategy;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(normalizeQuery, showConnectionChange, connectionChangeTimeout, warningMessageMb, logQueries, bindingStrategy);
+        return Objects.hash(autoReconnect, normalizeQuery, showConnectionChange, connectionChangeTimeout, warningMessageMb, logQueries, bindingStrategy);
     }
 
     @Override
     public String toString() {
         return "ExecutionOptions{" +
-                "normalizeQuery=" + normalizeQuery +
+                "autoReconnect=" + autoReconnect +
+                ", normalizeQuery=" + normalizeQuery +
                 ", showConnectionChange=" + showConnectionChange +
                 ", connectionChangeTimeout=" + connectionChangeTimeout +
                 ", warningMessageMb=" + warningMessageMb +
