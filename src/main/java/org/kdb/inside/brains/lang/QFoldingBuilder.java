@@ -8,10 +8,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.QLambda;
-import org.kdb.inside.brains.psi.QParameters;
-import org.kdb.inside.brains.psi.QTable;
-import org.kdb.inside.brains.psi.QVariable;
+import org.kdb.inside.brains.psi.*;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -24,8 +21,8 @@ public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
     @NotNull
     @Override
     public FoldingDescriptor @NotNull [] buildFoldRegions(@NotNull PsiElement root, @NotNull Document document, boolean quick) {
-        final Collection<QTable> tables = PsiTreeUtil.findChildrenOfType(root, QTable.class);
-        final Collection<QLambda> lambdas = PsiTreeUtil.findChildrenOfType(root, QLambda.class);
+        final Collection<QTableExpr> tables = PsiTreeUtil.findChildrenOfType(root, QTableExpr.class);
+        final Collection<QLambdaExpr> lambdas = PsiTreeUtil.findChildrenOfType(root, QLambdaExpr.class);
         if (lambdas.isEmpty() && tables.isEmpty()) {
             return FoldingDescriptor.EMPTY;
         }
@@ -35,18 +32,19 @@ public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
     @Override
     public String getPlaceholderText(@NotNull ASTNode node) {
         final PsiElement psi = node.getPsi();
-        if (psi instanceof QLambda) {
-            final QLambda lambda = (QLambda) psi;
-            return "{" + Optional.of(lambda).map(QLambda::getParameters).map(QParameters::getVariables).map(Collection::stream).map(v -> "[" + v.map(QVariable::getQualifiedName).collect(Collectors.joining(";")) + "]").orElse("") + "...}";
-        } else if (psi instanceof QTable) {
-            final QTable tbl = (QTable) psi;
-            return "([" +
-                    (tbl.getKeyColumns() != null ? " " + tbl.getKeyColumns().getColumns().size() + " " : "") +
-                    "]" +
-                    (tbl.getValueColumns() != null ? " " + tbl.getValueColumns().getColumns().size() + " " : "") +
-                    ")";
+        if (psi instanceof QLambdaExpr) {
+            final QLambdaExpr lambda = (QLambdaExpr) psi;
+            return "{" + Optional.of(lambda).map(QLambdaExpr::getParameters).map(QParameters::getVariables).map(Collection::stream).map(v -> "[" + v.map(QVariable::getQualifiedName).collect(Collectors.joining(";")) + "]").orElse("") + "...}";
+        } else if (psi instanceof QTableExpr) {
+            final QTableExpr tbl = (QTableExpr) psi;
+            return "([" + getColumnsCount(tbl.getKeys()) + "]" + getColumnsCount(tbl.getValues()) + ")";
         }
         return "...";
+    }
+
+    @NotNull
+    private String getColumnsCount(QTableColumns columns) {
+        return columns == null ? "" : " " + columns.getColumns().size() + " ";
     }
 
     @Override

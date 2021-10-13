@@ -6,9 +6,11 @@ import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
 import org.intellij.lang.annotations.MagicConstant;
 
 public class QCodeStyleSettings extends CustomCodeStyleSettings {
+    // Lambda
     public boolean LAMBDA_SPACE_AFTER_PARAMETERS = true;
     public boolean LAMBDA_SPACE_BEFORE_BRACE_CLOSE = true;
 
+    // Controls
     @MagicConstant(flags = {
             CommonCodeStyleSettings.DO_NOT_WRAP,
             CommonCodeStyleSettings.WRAP_ALWAYS,
@@ -24,7 +26,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean CONTROL_SPACE_AFTER_SEMICOLON = true;
     public boolean CONTROL_SPACE_BEFORE_SEMICOLON = false;
 
-
+    // Conditions
     @MagicConstant(flags = {
             CommonCodeStyleSettings.DO_NOT_WRAP,
             CommonCodeStyleSettings.WRAP_ALWAYS,
@@ -40,6 +42,13 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean CONDITION_SPACE_AFTER_SEMICOLON = true;
     public boolean CONDITION_SPACE_BEFORE_SEMICOLON = false;
 
+    // Tail trim
+    public boolean IMPORT_TRIM_TAIL = true;
+    public boolean CONTEXT_TRIM_TAIL = true;
+
+    // Operators
+    public boolean SPACE_AROUND_ASSIGNMENT_OPERATORS = false;
+    public boolean SPACE_AROUND_ARITHMETIC_OPERATORS = false;
 
     protected QCodeStyleSettings(CodeStyleSettings container) {
         super("QCodeStyleSettings", container);

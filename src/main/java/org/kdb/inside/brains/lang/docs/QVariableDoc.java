@@ -69,24 +69,22 @@ public class QVariableDoc {
         builder.append(HtmlChunk.tag("tr").children(headerCell, contentCell));
     }
 
-    public static QVariableDoc from(QVariableAssignment variable) {
+    public static QVariableDoc from(QAssignmentExpr variable) {
         return from(getDefinition(variable), extractDocs(variable));
     }
 
-    static String getDefinition(QVariableAssignment assignment) {
-        final QVarDeclaration variable = assignment.getVariable();
+    static String getDefinition(QAssignmentExpr assignment) {
+        final QVarDeclaration variable = assignment.getVarDeclaration();
+        if (variable == null) {
+            return null;
+        }
 
         final QExpression expression = assignment.getExpression();
-        if (expression == null) {
+        if (!(expression instanceof QLambdaExpr)) {
             return null;
         }
 
-        final List<QLambda> lambdaList = expression.getLambdaList();
-        if (lambdaList.isEmpty()) {
-            return null;
-        }
-
-        final QLambda lambda = lambdaList.get(0);
+        final QLambdaExpr lambda = (QLambdaExpr) expression;
         final QParameters parameters = lambda.getParameters();
         if (parameters == null) {
             return variable.getQualifiedName() + "[]";
@@ -159,7 +157,7 @@ public class QVariableDoc {
         return res;
     }
 
-    static String extractDocs(QVariableAssignment element) {
+    static String extractDocs(QAssignmentExpr element) {
         final QExpression context = element.getContext(QExpression.class);
 
         StringBuilder b = new StringBuilder();

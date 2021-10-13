@@ -1,8 +1,10 @@
 package org.kdb.inside.brains.psi.index;
 
 import icons.KdbIcons;
-import org.kdb.inside.brains.psi.QAssignment;
+import org.kdb.inside.brains.psi.QAssignmentExpr;
 import org.kdb.inside.brains.psi.QExpression;
+import org.kdb.inside.brains.psi.QLambdaExpr;
+import org.kdb.inside.brains.psi.QTableExpr;
 
 import javax.swing.*;
 
@@ -17,20 +19,14 @@ public enum IdentifierType {
         this.icon = icon;
     }
 
-    public static IdentifierType getType(QAssignment assignment) {
+    public static IdentifierType getType(QAssignmentExpr assignment) {
         final QExpression expression = assignment.getExpression();
-        if (expression == null) {
-            return VARIABLE;
-        }
-
-        if (!expression.getLambdaList().isEmpty()) {
+        if (expression instanceof QLambdaExpr) {
             return LAMBDA;
         }
-
-        if (!expression.getTableList().isEmpty()) {
+        if (expression instanceof QTableExpr) {
             return TABLE;
         }
-
         return VARIABLE;
     }
 

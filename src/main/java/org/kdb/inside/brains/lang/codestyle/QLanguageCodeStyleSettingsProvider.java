@@ -16,7 +16,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
-import static com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable.SpacingOption;
 import static com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable.WrappingOrBraceOption;
 import static com.intellij.psi.codeStyle.CodeStyleSettingsCustomizableOptions.getInstance;
 
@@ -67,11 +66,6 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
         return new QCodeStyleSettings(settings);
     }
 
-    @Override
-    protected void customizeDefaults(@NotNull CommonCodeStyleSettings commonSettings, CommonCodeStyleSettings.@NotNull IndentOptions indentOptions) {
-        commonSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS = false;
-    }
-
     private void customizeWrapping(@NotNull CodeStyleSettingsCustomizable consumer) {
         consumer.showStandardOptions(
                 names(
@@ -106,13 +100,15 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
     }
 
     private void customizeSpacing(@NotNull CodeStyleSettingsCustomizable consumer) {
-        consumer.showStandardOptions(
-                names(
-                        SpacingOption.SPACE_AROUND_ASSIGNMENT_OPERATORS
-                )
-        );
+        final String operatorSpaces = "Around operators";
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_ASSIGNMENT_OPERATORS", "Assignment operators (::, :, ...)", operatorSpaces);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_ARITHMETIC_OPERATORS", "Arithmetic operators (+, -, *, %)", operatorSpaces);
 
-        consumer.renameStandardOption(name(SpacingOption.SPACE_AROUND_ASSIGNMENT_OPERATORS), "Assignment operators (::, :, ...)");
+        final String tailSpaces = "Tail spaces";
+        // Import
+        consumer.showCustomOption(QCodeStyleSettings.class, "IMPORT_TRIM_TAIL", "Trim import command", tailSpaces);
+        // Context
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTEXT_TRIM_TAIL", "Trim context command", tailSpaces);
 
         // Lambda settings
         final String lambdaSection = "Lambda definition";

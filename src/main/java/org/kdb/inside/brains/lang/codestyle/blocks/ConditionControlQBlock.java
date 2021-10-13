@@ -21,7 +21,7 @@ public class ConditionControlQBlock extends AbstractQBlock {
 
     public ConditionControlQBlock(@NotNull ASTNode node, @NotNull QSpacingStrategy spacingStrategy, @NotNull QCodeStyleSettings qSettings, @NotNull CommonCodeStyleSettings settings, @Nullable Wrap wrap, @Nullable Indent indent, @Nullable Alignment alignment, IElementType elementType) {
         super(node, spacingStrategy, qSettings, settings, wrap, indent, alignment);
-        if (elementType != QTypes.CONTROL && elementType != QTypes.CONDITION) {
+        if (elementType != QTypes.CONTROL_EXPR && elementType != QTypes.CONDITION_EXPR) {
             throw new IllegalArgumentException("Unsupported element type: " + elementType);
         }
         this.elementType = elementType;
@@ -35,7 +35,8 @@ public class ConditionControlQBlock extends AbstractQBlock {
     private List<Block> processNode(ASTNode parentNode, List<Block> blocks, Context context) {
         iterateNotEmptyChildren(parentNode, node -> {
             final IElementType elementType = node.getElementType();
-            if (elementType == QTypes.ARGUMENTS || elementType == QTypes.CODE_BLOCK) {
+            if (elementType == QTypes.ARGUMENTS) {
+//            if (elementType == QTypes.ARGUMENTS || elementType == QTypes.STATEMENT) {
                 processNode(node, blocks, context);
             } else {
                 context.swallowNextNode(node);
@@ -84,11 +85,11 @@ public class ConditionControlQBlock extends AbstractQBlock {
         }
 
         private int getWrapOption() {
-            return elementType == QTypes.CONTROL ? qSettings.CONTROL_WRAP_TYPE : qSettings.CONDITION_WRAP_TYPE;
+            return elementType == QTypes.CONTROL_EXPR ? qSettings.CONTROL_WRAP_TYPE : qSettings.CONDITION_WRAP_TYPE;
         }
 
         private boolean getAlignmentOption() {
-            return elementType == QTypes.CONTROL ? qSettings.CONTROL_WRAP_ALIGN : qSettings.CONDITION_WRAP_ALIGN;
+            return elementType == QTypes.CONTROL_EXPR ? qSettings.CONTROL_WRAP_ALIGN : qSettings.CONDITION_WRAP_ALIGN;
         }
     }
 }

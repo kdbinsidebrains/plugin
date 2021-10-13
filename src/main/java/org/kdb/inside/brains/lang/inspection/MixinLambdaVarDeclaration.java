@@ -16,13 +16,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class MixinLambdaVarDeclaration extends ElementInspection<QLambda> {
+public class MixinLambdaVarDeclaration extends ElementInspection<QLambdaExpr> {
     public MixinLambdaVarDeclaration() {
-        super(QLambda.class);
+        super(QLambdaExpr.class);
     }
 
     @Override
-    protected void validate(@NotNull QLambda lambda, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
+    protected void validate(@NotNull QLambdaExpr lambda, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
         final Collection<QVarDeclaration> declarations = PsiTreeUtil.findChildrenOfType(lambda, QVarDeclaration.class);
         if (declarations.isEmpty()) {
             return;

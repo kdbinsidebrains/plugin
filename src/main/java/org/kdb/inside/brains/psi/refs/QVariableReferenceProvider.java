@@ -74,9 +74,7 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
                 if (myElement == otR) {
                     return true;
                 }
-                if (otR != null && myR != null && Objects.equals(otR, myR)) {
-                    return true;
-                }
+                return otR != null && myR != null && Objects.equals(otR, myR);
             }
             return false;
         }
@@ -97,7 +95,7 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
             }
         }
 
-        private ResolveResult[] resolveQuery(QVariable var, QQuery query) {
+        private ResolveResult[] resolveQuery(QVariable var, QQueryExpr query) {
             final QExpression expression = query.getExpression();
             if (expression == null) {
                 return ResolveResult.EMPTY_ARRAY;
@@ -122,25 +120,25 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
                 return resolveVariable(var, queryContext);
             }
 
-            final List<QTable> tables = refs.stream()
+            final List<QTableExpr> tables = refs.stream()
                     .map(r -> resolveVariable(r, queryContext))
                     .flatMap(Stream::of)
                     .map(ResolveResult::getElement)
                     .filter(Objects::nonNull)
                     .map(PsiElement::getParent)
-                    .filter(e -> e instanceof QAssignment)
-                    .map(e -> ((QAssignment) e).getExpression())
-                    .filter(Objects::nonNull)
-                    .flatMap(e -> e.getTableList().stream())
+                    .filter(e -> e instanceof QAssignmentExpr)
+                    .map(e -> ((QAssignmentExpr) e).getExpression())
+                    .filter(e -> e instanceof QTableExpr)
+                    .map(e -> (QTableExpr) e)
                     .collect(Collectors.toList());
 
             final String qualifiedName = var.getQualifiedName();
             List<QVarDeclaration> res = new ArrayList<>();
-            for (QTable table : tables) {
-                Stream.of(table.getKeyColumns(), table.getValueColumns())
+            for (QTableExpr table : tables) {
+                Stream.of(table.getKeys(), table.getValues())
                         .filter(Objects::nonNull)
                         .flatMap(v -> v.getColumns().stream())
-                        .map(QAssignment::getVariable)
+                        .map(QTableColumn::getVarDeclaration)
                         .filter(Objects::nonNull)
                         .filter(v -> v.getQualifiedName().equals(qualifiedName))
                         .forEach(res::add);
@@ -152,7 +150,7 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
             return multi(res);
         }
 
-        private ResolveResult[] resolveLambda(QVariable var, QLambda lambda) {
+        private ResolveResult[] resolveLambda(QVariable var, QLambdaExpr lambda) {
             if (QPsiUtil.isImplicitVariable(var) && lambda.getParameters() == null) {
                 return single(lambda);
             }
@@ -206,7 +204,7 @@ public class QVariableReferenceProvider extends PsiReferenceProvider {
         }
 
         @NotNull
-        private Optional<QVarDeclaration> firstFirstInLambda(String qualifiedName, QLambda lambda) {
+        private Optional<QVarDeclaration> firstFirstInLambda(String qualifiedName, QLambdaExpr lambda) {
             return PsiTreeUtil.findChildrenOfType(lambda, QVarDeclaration.class).stream().
                     filter(v -> v.getQualifiedName().equals(qualifiedName)).
                     filter(v -> ElementContext.of(v).any(ElementScope.LAMBDA, ElementScope.PARAMETERS)).

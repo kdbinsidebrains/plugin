@@ -28,7 +28,7 @@ public class LambdaQBlock extends AbstractQBlock {
     protected @Nullable Indent createChildIndent(ASTNode child) {
         final IElementType elementType = child.getElementType();
 
-        if (elementType == QTypes.CODE_BLOCK) {
+        if (elementType == QTypes.EXPRESSIONS) {
             return Indent.getNormalIndent(false);
         }
 

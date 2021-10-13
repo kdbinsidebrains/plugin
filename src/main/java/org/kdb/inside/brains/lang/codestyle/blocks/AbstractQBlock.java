@@ -103,7 +103,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
         final Indent actualIndent = indent == null ? getDefaultIndent(node) : indent;
         IElementType elementType = node.getElementType();
 
-        if (elementType == QTypes.LAMBDA) {
+        if (elementType == QTypes.LAMBDA_EXPR) {
             return new LambdaQBlock(node, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment);
         }
 
@@ -111,11 +111,11 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new ParametersQBlock(node, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment);
         }
 
-        if (elementType == QTypes.QUERY) {
+        if (elementType == QTypes.QUERY_EXPR) {
             return new QueryQBlock(node, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment);
         }
 
-        if (elementType == QTypes.TABLE) {
+        if (elementType == QTypes.TABLE_EXPR) {
             return new TableQBlock(node, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment);
         }
 
@@ -124,7 +124,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
         }
 
 
-        if (elementType == QTypes.CONTROL || elementType == QTypes.CONDITION) {
+        if (elementType == QTypes.CONTROL_EXPR || elementType == QTypes.CONDITION_EXPR) {
             return new ConditionControlQBlock(node, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment, elementType);
         }
 

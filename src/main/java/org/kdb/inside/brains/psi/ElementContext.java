@@ -37,16 +37,16 @@ public class ElementContext {
         return this.scope == s1 || this.scope == s2;
     }
 
-    public QQuery query() {
-        return scope == ElementScope.QUERY ? (QQuery) element : null;
+    public QQueryExpr query() {
+        return scope == ElementScope.QUERY ? (QQueryExpr) element : null;
     }
 
-    public QTable table() {
-        return scope == ElementScope.TABLE ? (QTable) element : null;
+    public QTableExpr table() {
+        return scope == ElementScope.TABLE ? (QTableExpr) element : null;
     }
 
-    public QLambda lambda() {
-        return scope == ElementScope.LAMBDA ? (QLambda) element : null;
+    public QLambdaExpr lambda() {
+        return scope == ElementScope.LAMBDA ? (QLambdaExpr) element : null;
     }
 
     public QParameters parameters() {
@@ -61,14 +61,14 @@ public class ElementContext {
             if (elementType == QTypes.PARAMETERS) {
                 return QTypes.PARAMETERS;
             }
-            if (elementType == QTypes.LAMBDA) {
-                return QTypes.LAMBDA;
+            if (elementType == QTypes.LAMBDA_EXPR) {
+                return QTypes.LAMBDA_EXPR;
             }
-            if (elementType == QTypes.QUERY) {
-                return QTypes.QUERY;
+            if (elementType == QTypes.QUERY_EXPR) {
+                return QTypes.QUERY_EXPR;
             }
-            if (elementType == QTypes.TABLE) {
-                return QTypes.TABLE;
+            if (elementType == QTypes.TABLE_EXPR) {
+                return QTypes.TABLE_EXPR;
             }
             parent = parent.getTreeParent();
         }
@@ -81,13 +81,13 @@ public class ElementContext {
             if (parent instanceof QParameters) {
                 return new ElementContext(ElementScope.PARAMETERS, parent);
             }
-            if (parent instanceof QLambda) {
+            if (parent instanceof QLambdaExpr) {
                 return new ElementContext(ElementScope.LAMBDA, parent);
             }
-            if (parent instanceof QQuery) {
+            if (parent instanceof QQueryExpr) {
                 return new ElementContext(ElementScope.QUERY, parent);
             }
-            if (parent instanceof QTable) {
+            if (parent instanceof QTableExpr) {
                 return new ElementContext(ElementScope.TABLE, parent);
             }
             parent = parent.getParent();
