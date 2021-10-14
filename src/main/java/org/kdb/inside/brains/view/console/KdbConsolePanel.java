@@ -84,7 +84,13 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         connectionManager.addConnectionListener(connectionListener);
 
         tabs = JBTabsFactory.createTabs(project, this);
-        tabs.setPopupGroup(this::buildTabsPopup, "KdbConsoleTabsMenu", true);
+        // We can't use Supplier here as it's been Getter before and some versions are not compatiable anymore.
+        tabs.setPopupGroup(new ActionGroup() {
+            @Override
+            public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
+                return buildTabsPopupGroup().getChildren(e);
+            }
+        }, "KdbConsoleTabsMenu", true);
 
         tabs.addTabMouseListener(new MouseAdapter() {
             @Override
@@ -105,32 +111,32 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         createConsoleTab();
     }
 
-    @NotNull
-    private ActionGroup buildTabsPopup() {
+    private @NotNull ActionGroup buildTabsPopupGroup() {
         final TabInfo info = tabs.getTargetInfo();
         if (info == null) {
-            return new DefaultActionGroup();
+            return ActionGroup.EMPTY_GROUP;
         }
 
         final boolean resultView = info.getObject() instanceof TableResultView;
-        final DefaultActionGroup group = new DefaultActionGroup();
         if (resultView) {
-            buildResultViewPopup(info, group);
+            return buildResultViewPopup(info);
         } else {
-            buildConsolePopup(group);
+            return buildConsolePopup();
         }
-        return group;
     }
 
-    private void buildConsolePopup(DefaultActionGroup group) {
+    private @NotNull ActionGroup buildConsolePopup() {
+        return ActionGroup.EMPTY_GROUP;
     }
 
-    private void buildResultViewPopup(TabInfo info, DefaultActionGroup group) {
+    private @NotNull ActionGroup buildResultViewPopup(TabInfo info) {
+        final DefaultActionGroup group = new DefaultActionGroup();
         group.add(renameAction);
 
         final TableResultView view = (TableResultView) info.getObject();
         group.addSeparator();
         group.addAll(view.createContextMenu());
+        return group;
     }
 
     private void createConsoleTab() {

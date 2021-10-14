@@ -2,17 +2,10 @@
 
 # KdbInsideBrains Changelog
 
-## [0.13.1]
-
-### Fixed
-
-- Technical release: almost all compatibility issues have been resolved.
-
 ## [0.13.0]
 
 ### Added
 
-- Latest IDE version is supported now (2021.2.2)
 - Auto-Reconnection option has been added: when a query is executed and connection's been lost, it's auto-restoring
   first and notification is raised is it can't be restored. Enabled by default.
 - 'Reconnect Instance' options has been added in connection lost notification. The notification is moved to Warning from
@@ -21,6 +14,7 @@
 ### Fixed
 
 - Linux 'Run Configuration' fixed (thanks to zvenczel-kx)
+- Latest IDE version is supported now (2021.2.2). Many compatibility issues have been fixed as well.
 
 ## [0.12.2]
 

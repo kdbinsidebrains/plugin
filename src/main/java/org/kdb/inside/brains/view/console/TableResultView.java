@@ -154,7 +154,9 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
 
         final ActionGroup contextMenu = createContextMenu();
         PopupHandler.installPopupHandler(myTable, contextMenu, "TableResultView.Context");
+
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Toolbar", contextMenu, false);
+        actionToolbar.setTargetComponent(this);
 
         final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myTable, true);
 //        scrollPane.setRowHeaderView();
