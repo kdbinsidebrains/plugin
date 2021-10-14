@@ -8,7 +8,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
-import com.intellij.util.indexing.IdFilter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.QVarDeclaration;
@@ -82,11 +81,7 @@ public class QIndexService {
     }
 
     public void processAllKeys(@NotNull Processor<? super String> processor, @NotNull GlobalSearchScope scope) {
-        processAllKeys(processor, scope, null);
-    }
-
-    public void processAllKeys(@NotNull Processor<? super String> processor, @NotNull GlobalSearchScope scope, @Nullable IdFilter filter) {
-        index.processAllKeys(QIdentifiersIndex.INDEX_ID, processor, scope, filter);
+        index.processAllKeys(QIdentifiersIndex.INDEX_ID, processor, scope.getProject());
     }
 
     public static QIndexService getInstance(Project project) {

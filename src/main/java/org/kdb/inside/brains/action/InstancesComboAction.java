@@ -15,6 +15,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListItemDescriptor;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.ScrollingUtil;
@@ -55,7 +56,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
 
     private static final String PANEL_EDITOR = "EDITOR";
     private static final String PANEL_BUTTON = "BUTTON";
-    private static final String ACTIVE_INSTANCE = "ActiveKdbInstance";
+    private static final Key<KdbInstance> ACTIVE_INSTANCE = Key.create("ActiveKdbInstance");
 
     public InstancesComboAction() {
         newConnectionAction = (CreateConnectionAction) ActionManager.getInstance().getAction("Kdb.NewConnection");
@@ -226,7 +227,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         });
 
         presentation.addPropertyChangeListener(evt -> {
-            if (ACTIVE_INSTANCE.equals(evt.getPropertyName())) {
+            if (ACTIVE_INSTANCE.toString().equals(evt.getPropertyName())) {
                 updateEditorText(editor, presentation);
 
                 final KdbInstance instance = (KdbInstance) evt.getNewValue();
@@ -246,7 +247,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
     }
 
     private void updateEditorText(JBTextField editor, @NotNull Presentation presentation) {
-        final KdbInstance instance = (KdbInstance) presentation.getClientProperty(ACTIVE_INSTANCE);
+        final KdbInstance instance = presentation.getClientProperty(ACTIVE_INSTANCE);
         editor.setText(instance == null ? "" : instance.toSymbol());
         editor.selectAll();
     }

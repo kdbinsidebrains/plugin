@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.view.treeview.scope;
 
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.DumbAware;
@@ -42,7 +41,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
     public ScopesEditorPanel(Project project) {
         super(new ScopesOrdersState());
         this.project = project;
-        this.scopesManager = ServiceManager.getService(project, KdbScopesManager.class);
+        this.scopesManager = project.getService(KdbScopesManager.class);
         initTree();
     }
 

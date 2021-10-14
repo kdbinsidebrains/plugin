@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [0.13.1]
+
+### Fixed
+
+- Technical release: almost all compatibility issues have been resolved.
+
 ## [0.13.0]
 
 ### Added

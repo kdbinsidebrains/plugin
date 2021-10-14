@@ -3,7 +3,10 @@ package org.kdb.inside.brains.view.treeview;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -51,7 +54,7 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
     public InstancesToolWindow(Project project) {
         this.project = project;
 
-        this.scopesManager = ServiceManager.getService(project, KdbScopesManager.class);
+        this.scopesManager = project.getService(KdbScopesManager.class);
         this.scopesManager.addScopesListener(scopesListener);
     }
 

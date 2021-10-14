@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -30,8 +31,8 @@ public class ButtonInstancesToolbarAction extends ComboBoxAction {
     private ComboBoxButton myButton;
     private final CreateConnectionAction newConnectionAction;
 
-    private static final String BUTTON_MODE = "ButtonMode";
-    private static final String BACKGROUND_COLOR = "BackgroundColor";
+    private static final Key<Boolean> BUTTON_MODE = Key.create("ButtonMode");
+    private static final Key<Color> BACKGROUND_COLOR = Key.create("BackgroundColor");
 
     public ButtonInstancesToolbarAction() {
         newConnectionAction = (CreateConnectionAction) ActionManager.getInstance().getAction("Kdb.NewConnection");
@@ -100,7 +101,7 @@ public class ButtonInstancesToolbarAction extends ComboBoxAction {
 
             @Override
             public void paint(Graphics g) {
-                final Color c = (Color) presentation.getClientProperty(BACKGROUND_COLOR);
+                final Color c = presentation.getClientProperty(BACKGROUND_COLOR);
                 if (c != null) {
                     g.setColor(c);
                 }

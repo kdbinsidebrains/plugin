@@ -1,6 +1,10 @@
 package org.kdb.inside.brains.core;
 
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.annotations.XCollection;
@@ -25,8 +29,8 @@ public class KdbScopesManager implements PersistentStateComponent<KdbScopesManag
     private State state = new State();
 
     public KdbScopesManager(Project project) {
-        this.localScopeHolder = ServiceManager.getService(project, KdbScopeHolder.class);
-        this.sharedScopeHolder = ServiceManager.getService(KdbScopeHolder.class);
+        this.localScopeHolder = project.getService(KdbScopeHolder.class);
+        this.sharedScopeHolder = ApplicationManager.getApplication().getService(KdbScopeHolder.class);
         restoreManager();
     }
 

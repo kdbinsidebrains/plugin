@@ -1,12 +1,9 @@
 package org.kdb.inside.brains.ide.sdk;
 
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.ui.components.labels.ActionLink;
+import com.intellij.ui.components.ActionLink;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,15 +23,12 @@ public class KdbSdkPanel extends JPanel {
     private void initPanel() {
         mySdkComboBox = new KdbSdkComboBox(projectCreation);
 
-        ActionLink myDownloadLink = new ActionLink("Download Kdb binaries", new AnAction() {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    try {
-                        Desktop.getDesktop().browse(new URI("https://kx.com/download/"));
-                    } catch (Exception ignore) {
-                        //
-                    }
+        ActionLink myDownloadLink = new ActionLink("Download Kdb binaries", e -> {
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                try {
+                    Desktop.getDesktop().browse(new URI("https://kx.com/download/"));
+                } catch (Exception ignore) {
+                    //
                 }
             }
         });
