@@ -2,8 +2,8 @@ package org.kdb.inside.brains.settings;
 
 import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.ide.passwordSafe.PasswordSafe;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.Storage;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.ExecutionOptions;
@@ -103,7 +103,7 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
 
     public static KdbSettingsService getInstance() {
         if (instance == null) {
-            instance = ServiceManager.getService(KdbSettingsService.class);
+            instance = ApplicationManager.getApplication().getService(KdbSettingsService.class);
         }
         return instance;
     }

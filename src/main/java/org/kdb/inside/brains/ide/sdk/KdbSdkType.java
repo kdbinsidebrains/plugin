@@ -47,12 +47,7 @@ public class KdbSdkType extends SdkType {
     }
 
     @Override
-    public @NotNull Icon getIconForAddAction() {
-        return getIcon();
-    }
-
-    @Override
-    public @NotNull String suggestSdkName(@Nullable String currentSdkName, String sdkHome) {
+    public @NotNull String suggestSdkName(@Nullable String currentSdkName, @NotNull String sdkHome) {
         final String kdbVersion = getKdbVersion(sdkHome);
         if (kdbVersion == null) {
             return "Unknown KDB";

@@ -1,6 +1,5 @@
 package org.kdb.inside.brains.view.treeview;
 
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -34,7 +33,7 @@ public class InstancesToolWindowFactory implements ToolWindowFactory, DumbAware 
 //            ((ToolWindowEx)toolWindow).setAdditionalGearActions(group);
 
         // Lazy init
-        DumbService.getInstance(project).runWhenSmart(() -> ServiceManager.getService(project, InstancesToolWindow.class).initToolWindow(tw));
+        DumbService.getInstance(project).runWhenSmart(() -> project.getService(InstancesToolWindow.class).initToolWindow(tw));
     }
 
     @Override

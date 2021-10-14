@@ -123,7 +123,9 @@ public class InstancesScopeView extends SimpleToolWindowPanel implements Disposa
         group.add(CommonActionsManager.getInstance().createExpandAllHeaderAction(tree));
         group.add(CommonActionsManager.getInstance().createCollapseAllHeaderAction(tree));
 
-        return ActionManager.getInstance().createActionToolbar(ActionPlaces.INSTANCES_VIEW_TOOLBAR, group, true).getComponent();
+        final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.INSTANCES_VIEW_TOOLBAR, group, true);
+        actionToolbar.setTargetComponent(this);
+        return actionToolbar.getComponent();
     }
 
     public JComponent getPreferredFocusableComponent() {

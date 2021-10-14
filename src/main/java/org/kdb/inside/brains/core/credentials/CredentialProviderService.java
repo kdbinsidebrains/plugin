@@ -6,8 +6,8 @@ import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
@@ -143,7 +143,7 @@ public class CredentialProviderService implements PersistentStateComponent<Eleme
 
     public static CredentialProviderService getInstance() {
         if (instance == null) {
-            instance = ServiceManager.getService(CredentialProviderService.class);
+            instance = ApplicationManager.getApplication().getService(CredentialProviderService.class);
         }
         return instance;
     }

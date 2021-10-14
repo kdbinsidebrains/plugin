@@ -106,7 +106,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     }
 
     @NotNull
-    private DefaultActionGroup buildTabsPopup() {
+    private ActionGroup buildTabsPopup() {
         final TabInfo info = tabs.getTargetInfo();
         if (info == null) {
             return new DefaultActionGroup();
@@ -160,6 +160,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         final AnAction[] consoleActions = createConsoleActions();
         final ActionToolbar kdbConsoleActionToolbar = am.createActionToolbar("KdbConsoleActionToolbar", new DefaultActionGroup(consoleActions), false);
+        kdbConsoleActionToolbar.setTargetComponent(consolePanel);
         consolePanel.setToolbar(kdbConsoleActionToolbar.getComponent());
 
         consoleTab = new TabInfo(consolePanel);
@@ -260,7 +261,9 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             }
         });
 
-        setToolbar(am.createActionToolbar("KdbConsoleMainToolbar", consoleActions, false).getComponent());
+        final ActionToolbar kdbConsoleMainToolbar = am.createActionToolbar("KdbConsoleMainToolbar", consoleActions, false);
+        kdbConsoleMainToolbar.setTargetComponent(this);
+        setToolbar(kdbConsoleMainToolbar.getComponent());
     }
 
     private void loadBinaryFile() {
