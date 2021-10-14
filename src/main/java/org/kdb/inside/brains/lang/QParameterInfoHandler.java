@@ -14,13 +14,17 @@ import org.kdb.inside.brains.psi.*;
 
 import java.util.*;
 
-public class QParameterInfoHandler implements ParameterInfoHandler<QInvoke, QParameterInfoHandler.QParameterInfo> {
+public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, QParameterInfoHandler.QParameterInfo> {
     @Override
-    public @Nullable QInvoke findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
-        final QInvoke invoke = findInvoke(context.getFile(), context.getOffset());
+    public @Nullable QInvokeExpr findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
+        final QInvokeExpr invoke = findInvoke(context.getFile(), context.getOffset());
         if (invoke == null) {
             return null;
         }
+        return null;
+
+/*
+    // TODO: COMMENTED
 
         final QVarReference ref;
         final QLambda rawLambda = invoke.getLambda();
@@ -47,16 +51,17 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvoke, QPar
         }
         context.setItemsToShow(params);
         return invoke;
+*/
     }
 
     @Override
-    public void showParameterInfo(@NotNull QInvoke element, @NotNull CreateParameterInfoContext context) {
+    public void showParameterInfo(@NotNull QInvokeExpr element, @NotNull CreateParameterInfoContext context) {
         context.showHint(element, context.getOffset(), this);
     }
 
     @Override
-    public @Nullable QInvoke findElementForUpdatingParameterInfo(@NotNull UpdateParameterInfoContext context) {
-        final QInvoke invoke = findInvoke(context.getFile(), context.getOffset());
+    public @Nullable QInvokeExpr findElementForUpdatingParameterInfo(@NotNull UpdateParameterInfoContext context) {
+        final QInvokeExpr invoke = findInvoke(context.getFile(), context.getOffset());
         if (invoke != null) {
             final PsiElement currentInvoke = context.getParameterOwner();
             if (currentInvoke == null || currentInvoke == invoke) {
@@ -67,14 +72,14 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvoke, QPar
     }
 
     @Override
-    public void updateParameterInfo(@NotNull QInvoke invoke, @NotNull UpdateParameterInfoContext context) {
+    public void updateParameterInfo(@NotNull QInvokeExpr invoke, @NotNull UpdateParameterInfoContext context) {
         context.setParameterOwner(invoke);
 
         final int param = findCurrentParameter(invoke, context.getOffset());
         context.setCurrentParameter(param);
     }
 
-    private int findCurrentParameter(@NotNull QInvoke invoke, int offset) {
+    private int findCurrentParameter(@NotNull QInvokeExpr invoke, int offset) {
         final boolean[] busy = new boolean[8]; // 8 arguments, not more
 
         final List<QArguments> arguments = invoke.getArgumentsList();
@@ -136,11 +141,11 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvoke, QPar
         context.setupUIComponentPresentation(b.toString(), startOffset, endOffset, false, false, true, context.getDefaultParameterColor());
     }
 
-    private QParameterInfo[] distinctParameters(QVarReference ref, List<QLambda> lambdas) {
+    private QParameterInfo[] distinctParameters(QVarReference ref, List<QLambdaExpr> lambdas) {
         final String name = ref == null ? null : ref.getQualifiedName();
         final LinkedHashSet<QParameterInfo> res = new LinkedHashSet<>();
 
-        for (QLambda lambda : lambdas) {
+        for (QLambdaExpr lambda : lambdas) {
             final QParameters parameters = lambda.getParameters();
             if (parameters == null) {
                 res.add(new QParameterInfo(name, new String[]{"x"}));
@@ -158,7 +163,7 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvoke, QPar
         return res.toArray(QParameterInfo[]::new);
     }
 
-    private QInvoke findInvoke(PsiFile file, int offset) {
+    private QInvokeExpr findInvoke(PsiFile file, int offset) {
         if (!(file instanceof QFile)) {
             return null;
         }
@@ -170,16 +175,16 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvoke, QPar
         element = element.getParent();
 
         while (element != null) {
-            if (element instanceof QInvoke) {
-                return (QInvoke) element;
+            if (element instanceof QInvokeExpr) {
+                return (QInvokeExpr) element;
             }
             element = element.getParent();
         }
         return null;
     }
 
-    private List<QLambda> findLambdasByName(QVarReference ref) {
-        final List<QLambda> lambdas = new ArrayList<>();
+    private List<QLambdaExpr> findLambdasByName(QVarReference ref) {
+        final List<QLambdaExpr> lambdas = new ArrayList<>();
         final PsiReference[] references = ref.getReferences();
         for (PsiReference reference : references) {
             final PsiElement resolve = reference.resolve();
@@ -187,6 +192,8 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvoke, QPar
                 continue;
             }
 
+/*
+TODO: COMMENTED
             final PsiElement parent = resolve.getParent();
             if (parent instanceof QVariableAssignment) {
                 final QVariableAssignment assignment = (QVariableAssignment) parent;
@@ -195,6 +202,7 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvoke, QPar
                     lambdas.addAll(expression.getLambdaList());
                 }
             }
+*/
         }
         return lambdas;
     }

@@ -12,9 +12,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.QWord;
+import org.kdb.inside.brains.psi.QAssignmentExpr;
 import org.kdb.inside.brains.psi.QTypes;
 import org.kdb.inside.brains.psi.QVariable;
-import org.kdb.inside.brains.psi.QVariableAssignment;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -65,7 +65,7 @@ public final class QDocumentationProvider extends AbstractDocumentationProvider 
             return null;
         }
 
-        final QVariableAssignment context = PsiTreeUtil.getContextOfType(resolve, QVariableAssignment.class);
+        final QAssignmentExpr context = PsiTreeUtil.getContextOfType(resolve, QAssignmentExpr.class);
         if (context == null) {
             return null;
         }

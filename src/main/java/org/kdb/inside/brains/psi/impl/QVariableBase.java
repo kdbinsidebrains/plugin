@@ -63,7 +63,7 @@ public class QVariableBase extends QPsiElementImpl implements QVariable {
         }
 
         // no lambda - return full name
-        final QLambda lambda = getContext(QLambda.class);
+        final QLambdaExpr lambda = getContext(QLambdaExpr.class);
         if (lambda != null) {
             // implicit variable or in parameters list - ignore namespace
             if (lambda.getParameters() == null && QVariable.IMPLICIT_VARS.contains(name)) {

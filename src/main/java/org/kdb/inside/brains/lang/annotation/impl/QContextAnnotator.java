@@ -75,7 +75,7 @@ public class QContextAnnotator extends QElementAnnotator<QContext> {
             holder.newAnnotation(HighlightSeverity.ERROR, "Context must be started with a dot").range(range).withFix(new IntentionAction() {
                 @Override
                 public @IntentionName @NotNull String getText() {
-                    return "Instert context prefix";
+                    return "Insert context prefix";
                 }
 
                 @Override

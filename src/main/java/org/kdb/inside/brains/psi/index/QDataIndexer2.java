@@ -2,34 +2,64 @@ package org.kdb.inside.brains.psi.index;
 
 import com.intellij.lang.LighterAST;
 import com.intellij.lang.LighterASTNode;
+import com.intellij.lexer.FlexAdapter;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.impl.source.tree.LightTreeUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.util.indexing.DataIndexer;
 import com.intellij.util.indexing.FileContent;
-import com.intellij.util.indexing.PsiDependentFileContent;
-import com.intellij.util.text.StringSearcher;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.QFileType;
+import org.kdb.inside.brains.QLexer;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.kdb.inside.brains.psi.QTypes.*;
 
-public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 10; // was 9
+public class QDataIndexer2 implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
+    protected static final int VERSION = 14; // was 9
 
     public static final @NotNull TokenSet COLUMNS_TOKEN = TokenSet.create(QUERY_COLUMN);
 
-    private static final Logger log = Logger.getInstance(QDataIndexer.class);
+    private static final Logger log = Logger.getInstance(QDataIndexer2.class);
 
     @Override
     public @NotNull Map<String, List<IdentifierDescriptor>> map(@NotNull FileContent content) {
-        log.info("Start indexing " + content.getPsiFile());
+        final FileType fileType = content.getFileType();
+        if (!(fileType instanceof QFileType)) {
+            return new HashMap<>();
+        }
+        log.info("Start indexing " + content.getFile());
+
+        final CharSequence text = content.getContentAsText();
         final Map<String, List<IdentifierDescriptor>> res = new HashMap<>();
+
+        FlexAdapter lexer = new FlexAdapter(new QLexer());
+        lexer.start(text);
+        while (lexer.getTokenStart() < lexer.getBufferEnd()) {
+            IElementType token = lexer.getTokenType();
+            if (token == VARIABLE_PATTERN) {
+                log.info("  var dec: " + lexer.getTokenText());
+            } else if (token == COLON) {
+                log.info("  assignment found");
+            }
+            lexer.advance();
+        }
+
+/*
+
+        final LighterAST tree = ((PsiDependentFileContent) content).getLighterAST();
+        log.info("  light tree has been created");
+
+        final List<LighterASTNode> children1 = LightTreeUtil.getChildrenOfType(tree, tree.getRoot(), ASSIGNMENT_EXPR);
+        log.info("  found children: " + children1.size());
+*/
+/*
 
         final CharSequence text = content.getContentAsText();
         log.info("  text length: " + text.length());
@@ -39,8 +69,6 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
             return Collections.emptyMap();
         }
 
-        final LighterAST tree = ((PsiDependentFileContent) content).getLighterAST();
-        log.info("  light tree has been created");
 
         AtomicInteger i = new AtomicInteger();
 
@@ -92,13 +120,13 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
             res.computeIfAbsent(qualifiedName, n -> new ArrayList<>()).add(new IdentifierDescriptor(token.type, params, r));
 
             log.info("  offset done");
-        });
+        });*/
         log.info("Indexing finished with " + res.size() + " keywords");
         return res;
     }
 
     @NotNull
-    private QDataIndexer.Token extractToken(LighterAST tree, List<LighterASTNode> children) {
+    private QDataIndexer2.Token extractToken(LighterAST tree, List<LighterASTNode> children) {
         final LighterASTNode expression = children.get(children.size() - 1);
         final List<LighterASTNode> statements = tree.getChildren(expression);
         if (!statements.isEmpty()) {

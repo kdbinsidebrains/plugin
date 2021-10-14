@@ -19,24 +19,24 @@ import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.lang.annotation.QElementAnnotator;
 import org.kdb.inside.brains.psi.QPsiUtil;
-import org.kdb.inside.brains.psi.QTypeCast;
+import org.kdb.inside.brains.psi.QTypeCastExpr;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class QTypeCastAnnotator extends QElementAnnotator<QTypeCast> {
+public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
     private final List<TypeCast> typeCasts;
     private final Set<String> extractors = Set.of("hh", "mm", "ss");
 
     public QTypeCastAnnotator() {
-        super(QTypeCast.class);
+        super(QTypeCastExpr.class);
         typeCasts = Stream.of(KdbType.values()).map(TypeCast::new).collect(Collectors.toList());
     }
 
     @Override
-    public void annotate(@NotNull QTypeCast cast, @NotNull AnnotationHolder holder) {
+    public void annotate(@NotNull QTypeCastExpr cast, @NotNull AnnotationHolder holder) {
         final PsiElement castType = cast.getFirstChild();
 
         final String name = QPsiUtil.getTypeCast(cast);

@@ -1,0 +1,47 @@
+s) var1:20+30; globalVar1::13123+41243;
+    var2    :    var1+10;
+
+var1    :   20  +     30  ;           globalVar1  ::  13123+41243; var2:var1+10;
+
+tbl1:(
+ [key1:`symbol$(); key2:"I"$()]
+ col1:`long$()  ; col2:`float$())        ;
+
+tbl2:tbl1;
+
+select col1,
+     col2
+   		   ,{x*y}'[col1;col2]
+   	 by key1,
+
+           key2
+ from
+   (
+       tbl1
+     ,
+   tbl2)
+   where
+   			cold2>var1,
+   					key1 in `this`is`key, col1 within (var2;globalVar1)
+
+pot:{   $   [   x   ;   `asdas  ;   23123   ]   };
+
+lambdaGlobal:{[parameter1;parameter2;parameter3;parameter4]
+		innerVar:parameter1+    parameter2  *parameter3;
+				justConstant    :   10;
+						innerLambda:{
+			innerVar1:x;
+	innerVar2:y;
+                condition:$[innerVar1 < innerVar2;1b;0b];
+
+                    if      [       condition   ;       :`isLessThen    ]      ;
+
+		   :x^y;
+		};
+      innerLambda[];
+
+          while            [  innerVar < 10;innerVar+:1;   innerVar2        ]       ;
+
+        {x*y+10-12}[parameter1;parameter2]
+
+		}				 ;
