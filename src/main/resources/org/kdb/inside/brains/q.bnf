@@ -151,7 +151,8 @@ var_declaration ::= VARIABLE_PATTERN {
 }
 
 iterator_type ::= ACCUMULATOR? ITERATOR+
-operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPERATOR_WEIGHT | OPERATOR_OTHERS | COMMA
+//operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_WEIGHT | OPERATOR_OTHERS | OPERATOR_COMMA
+operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPERATOR_WEIGHT | OPERATOR_OTHERS | OPERATOR_COMMA
 
 console_handler ::= "0" | "1" | "2" | "-1" | "-2"
 system_function ::= UNARY_FUNCTION | BINARY_FUNCTION | COMPLEX_FUNCTION
@@ -166,7 +167,7 @@ var_assignment_type ::= operator_type COLON | COLON COLON? { extends=assignment_
 column_assignment_type ::= COLON { extends=assignment_type elementType=assignment_type }
 
 private index_assignment ::= var_indexing var_assignment_type expression { pin = 2 }
-private variable_assignment ::= var_declaration var_assignment_type expression { pin = 2 }
+private variable_assignment ::= var_declaration var_assignment_type operator_type? expression { pin = 2 }
 assignment_expr ::= index_assignment | variable_assignment
 
 control_expr ::= CONTROL_KEYWORD arguments { pin = 1 } // if/else/while and so on
@@ -176,21 +177,18 @@ expressions ::= separator* expression (separator+ expression)* separator*
 //private statement_group ::= separator* expression (separator+ expression)* separator*
 //statement ::= statement_group | BRACKET_OPEN [!BRACKET_CLOSE statement_group] BRACKET_CLOSE
 
-
 private vector_atom ::= VECTOR | STRING | symbol symbol+
 private vector_mixed ::= PAREN_OPEN [!PAREN_CLOSE] expression? SEMICOLON+ (expression SEMICOLON+)* expression? PAREN_CLOSE { pin(".*") = 4 }
 //private vector_mixed ::= PAREN_OPEN [expression] (SEMICOLON+ [expression])+ SEMICOLON* PAREN_CLOSE { pin(".*") = 3 }
-vector_expr ::= vector_mixed | vector_atom
+vector_expr ::= vector_atom | vector_mixed
 
 return_expr ::= COLON expression
 
 signal_expr ::= "'" expression
 
 literal_expr ::= NILL | symbol | CHAR | SIGNED_ATOM | UNSIGNED_ATOM
-negative_expr ::= '-'SIGNED_ATOM
 
 parentheses_expr ::= PAREN_OPEN expression PAREN_CLOSE
-
 
 parameters ::= BRACKET_OPEN [ !BRACKET_CLOSE var_declaration (SEMICOLON var_declaration)* ] BRACKET_CLOSE { pin(".*")=1 methods = [variables="var_declaration"] }
 /*
@@ -199,77 +197,64 @@ parameters ::= BRACKET_OPEN [var_declaration (SEMICOLON var_declaration)*] BRACK
 }*/
 lambda_expr ::= BRACE_OPEN parameters? expressions? BRACE_CLOSE
 
-operation_expr ::= left_expression operator_type expression { pin=2 }
+private invoke_prefix ::= operator_type
+private invoke_function ::= BINARY_FUNCTION | COMPLEX_FUNCTION | UNARY_FUNCTION | console_handler | prefix_expr
+private invoke_operation ::= (iterator_type | operator_type)+
 
-iterator_expr ::= PAREN_OPEN unary_invoke_left_expr? iterator_type PAREN_CLOSE {pin(".*")=1}
+fake invoke_expr ::= (invoke_function | operator_type)? arguments_list? invoke_operation? expression?
+prefix_invoke_expr ::= invoke_prefix arguments_list invoke_operation? expression? { pin=2 extends=invoke_expr}
+function_invoke_expr ::= invoke_function ((arguments_list? invoke_operation? expression) | (arguments_list invoke_operation?)) { extends=invoke_expr }
 
-fake invoke_expr ::= arguments_list?
+private invoke_group ::= prefix_invoke_expr | function_invoke_expr
 
-private unary_invoke_left_expr ::= console_handler | system_function | lambda_expr | var_reference | vector_expr | iterator_expr | parentheses_expr | condition_expr | control_expr
-private unary_invoke_left_args ::= unary_invoke_left_expr iterator_type? | operator_type
-private binary_invoke_function ::= BINARY_FUNCTION iterator_type? | (lambda_expr | var_reference) iterator_type | iterator_type
+projection_expr ::= PAREN_OPEN invoke_function invoke_operation PAREN_CLOSE
 
-fake unary_invoke_expr ::= unary_invoke_left_expr? unary_invoke_left_args? arguments_list? expression? {extends=invoke_expr}
-unary_expr_invoke_expr ::= unary_invoke_left_expr expression {extends=unary_invoke_expr elementType=unary_invoke_expr}
-unary_args_invoke_expr ::= unary_invoke_left_args arguments_list {extends=unary_invoke_expr elementType=unary_invoke_expr}
-cascade_invoke_expr ::= unary_invoke_left_args arguments_list expression? {extends=unary_invoke_expr elementType=unary_invoke_expr}
-binary_invoke_expr ::= ((left_expression binary_invoke_function) | UNARY_FUNCTION iterator_type) (arguments_list | expression)? {pin=2 extends=invoke_expr}
-private invoke_group ::= binary_invoke_expr | cascade_invoke_expr | unary_expr_invoke_expr | unary_args_invoke_expr
-
-type_cast_expr ::= TYPE_CAST_PATTERN expression {pin = 1 methods=[typeCast="TYPE_CAST_PATTERN"]}
+type_cast_expr ::= TYPE_CAST_PATTERN expression? {pin = 1 methods=[typeCast="TYPE_CAST_PATTERN"]}
 
 // extends doesn't work in this case - have to do implements and redefine the method for each
-table_column ::= (var_declaration column_assignment_type expression) | expression
-private table_columns_group ::= table_column (SEMICOLON table_column)*
+table_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
+private table_columns_group ::= table_column (SEMICOLON table_column)* {pin(".*")="SEMICOLON"}
 fake table_columns ::= table_columns_group {methods=[columns="table_column"]}
 table_keys ::= table_columns_group {implements=table_columns methods=[columns="table_column"]}
 table_values ::= table_columns_group {implements=table_columns methods=[columns="table_column"]}
 table_expr ::= PAREN_OPEN BRACKET_OPEN [table_keys] BRACKET_CLOSE [table_values] PAREN_CLOSE { pin=2 methods=[keys="table_keys" values="table_values"]}
 
 // But extends works here with no issues
-query_column ::= (var_declaration column_assignment_type expression) | expression
-private query_columns_group ::= query_column (COMMA_SPLITTER query_column)*
+query_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
+private query_columns_group ::= query_column (QUERY_SPLITTER query_column)* {pin(".*")="QUERY_SPLITTER"}
 fake query_columns ::= query_columns_group {methods=[columns="query_column"]}
 query_keys ::= query_columns_group {extends=query_columns}
 query_values ::= query_columns_group {extends=query_columns}
-query_expr ::= QUERY_TYPE [query_values] (QUERY_BY query_keys)? QUERY_FROM expression { pin(".*")=1 methods=[QUERY_TYPE="QUERY_TYPE" keys="query_keys" values="query_values"] }
-
-projection_expr ::= (operator_type | iterator_type | SYMBOL_PATH_PATTERN | COLON | COMMA | literal_expr)+ | system_function | FUNCTION_IMPORT | iterator_type
+query_expr ::= QUERY_TYPE [query_values] (QUERY_BY query_keys)? QUERY_FROM expression {pin=1 methods=[QUERY_TYPE="QUERY_TYPE" keys="query_keys" values="query_values"] }
 
 grouping_expr ::= BRACKET_OPEN expressions BRACKET_CLOSE
 
+k_syntax_expr ::= invoke_operation+ expression
+
+whatever_expr ::= (operator_type | iterator_type | OPERATOR_ARITHMETIC | SYMBOL_PATH_PATTERN | COLON | OPERATOR_COMMA | literal_expr)+ | system_function | FUNCTION_IMPORT
+
 // Only these expressions can be used as a left arguments of invokes
-left_expression ::= vector_expr
-    | unary_args_invoke_expr
+prefix_expr ::=
+    table_expr
+    | vector_expr
     | parentheses_expr
-    | negative_expr
     | literal_expr
     | lambda_expr
     | control_expr
     | condition_expr
+    | projection_expr
     | grouping_expr
     | var_reference
-    { extraRoot=true elementType=expression}
+    { elementType=expression}
 
 expression ::= assignment_expr
-    | operation_expr
-    | invoke_group
-//    | vector_expr
-//    | parentheses_expr
-//    | negative_expr
-//    | lambda_expr
-    | left_expression
-    | return_expr
-    | signal_expr
-//    | control_expr
-//    | condition_expr
     | type_cast_expr
-    | table_expr
     | query_expr
     | import_expr
-//    | var_reference // var_reference is an expression itself
-//    | literal_expr
-//    | left_expression
-    | projection_expr
-//    | grouping_expr
+    | invoke_group
+    | prefix_expr
+    | return_expr
+    | signal_expr
+    | k_syntax_expr
+    | whatever_expr
     { extraRoot=true }

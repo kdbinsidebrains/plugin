@@ -9,7 +9,7 @@ import static org.kdb.inside.brains.psi.QTypes.*;
 %%
 
 %public %class QLexer
-%extends org.kdb.inside.brains.psi.QLexerBase
+%implements com.intellij.lexer.FlexLexer
 %unicode
 %function advance
 %type IElementType
@@ -17,8 +17,49 @@ import static org.kdb.inside.brains.psi.QTypes.*;
 %eof}
 
 %{
+    private int parensCount = 0;
+    private int bracesCount = 0;
+    private boolean queryParsing = false;
+
     public QLexer() {
         this(null);
+    }
+
+    public void beginQuery() {
+        queryParsing = true;
+    }
+
+    public void finishQuery() {
+        queryParsing = false;
+    }
+
+    public void openParen() {
+        parensCount++;
+    }
+
+    public void closeParen() {
+        parensCount--;
+    }
+
+    public void openBrace() {
+        bracesCount++;
+    }
+
+    public void closeBrace() {
+        bracesCount--;
+    }
+
+    public boolean isNegativeSign() {
+        if (getTokenStart() == 0) {
+            return true;
+        }
+        final char ch = yycharat(-1);
+        // Any whitespace before - it's negative sing. If's also negative if it goes aftyer any brakes
+        return Character.isWhitespace(ch) || ch == '[' || ch == '(' || ch == '{';
+    }
+
+    public boolean isQuerySplitter() {
+        return queryParsing && parensCount == 0 && bracesCount == 0;
     }
 
     public static com.intellij.lexer.Lexer newLexer() {
@@ -48,7 +89,7 @@ FilePath=[^|?*<\">+\[\]'\n\r\ \t\f]+
 // Keywords and system commands
 // Changing anything - don't forget update QLanguage
 ControlKeyword=(if|do|while)
-ConditionKeyword=":"|"?"|"$"|"@"|"." // ":" is from k3
+ConditionKeyword=":"|"?"|"$"|"@"|"."|"!" // ":" is from k3
 
 // QSQL supporting
 QueryType=(select|exec|update|delete)
@@ -160,6 +201,8 @@ SignedAtom=
 
 UnsignedAtom={Boolean}|{Byte}|{Null}{GuidCode}|{DateAtom}[dz]?
 
+NegativeAtom="-"{SignedAtom}
+
 Vactor={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
     {TimestampList}|{TimeList}|{MonthList}|{DateList}|{DatetimeList}|{MinuteList}|{SecondList}
 
@@ -171,6 +214,7 @@ Vactor={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 %state COMMENT_ALL_STATE
 %state COMMENT_BLOCK_STATE
 %state DROP_CUT_STATE
+%state NEGATIVE_ATOM_STATE
 
 %%
 
@@ -202,39 +246,53 @@ Vactor={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   .*{LineBreak}?                            { return BLOCK_COMMENT; }
 }
 
+<NEGATIVE_ATOM_STATE> {
+  {NegativeAtom}                           { yybegin(YYINITIAL); return SIGNED_ATOM; }
+}
+
 <YYINITIAL> {
   "("{LineSpace}*")"                         { return VECTOR; }
   "("{LineSpace}*"::"{LineSpace}*")"        { return NILL; }
 
-  "("                                         { return PAREN_OPEN; }
-  ")"                                         { return PAREN_CLOSE; }
+  "("                                         { openParen(); return PAREN_OPEN; }
+  ")"                                         { closeParen(); return PAREN_CLOSE; }
   ";"                                         { return SEMICOLON; }
   "["                                         { return BRACKET_OPEN; }
   "]"                                         { return BRACKET_CLOSE; }
-  "{"                                         { beginLambda(); return BRACE_OPEN; }
-  "}"                                         { finishLambda(); return BRACE_CLOSE; }
+  "{"                                         { openBrace(); return BRACE_OPEN; }
+  "}"                                         { closeBrace(); return BRACE_CLOSE; }
   ":"                                         { return COLON; }
 
   ","/{Iterator}                              { return ACCUMULATOR; }
   // Special case - the comma is a splitter if it's inside a query (not not inside a lambda that's inside the query)
   ","                                         { if(isQuerySplitter()) {return QUERY_SPLITTER; } else {return OPERATOR_COMMA;} }
 
-  {ControlKeyword}/{WhiteSpace}*"["         { return CONTROL_KEYWORD; }
-  {ConditionKeyword}/{WhiteSpace}*"["       { return CONDITION_KEYWORD; }
+  {NegativeAtom}                              { if (isNegativeSign()) { return SIGNED_ATOM; } else { yypushback(yylength() - 1); return OPERATOR_ARITHMETIC; } }
+
+  {ControlKeyword}/{WhiteSpace}*"["           { return CONTROL_KEYWORD; }
+  {ConditionKeyword}/{WhiteSpace}*"["         { return CONDITION_KEYWORD; }
+
+  {Iterator}/{NegativeAtom}                   { yybegin(NEGATIVE_ATOM_STATE); return ITERATOR; }
+  {WhiteSpace}/{NegativeAtom}                 { yybegin(NEGATIVE_ATOM_STATE); return WHITE_SPACE; }
+  {OperatorEquality}/{NegativeAtom}           { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_EQUALITY;}
+  {OperatorOrder}/{NegativeAtom}              { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_ORDER;}
+  {OperatorArithmetic}/{NegativeAtom}         { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_ARITHMETIC;}
+  {OperatorWeight}/{NegativeAtom}             { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_WEIGHT;}
+  {OperatorOthers}/{NegativeAtom}             { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_OTHERS;}
 
   {Operator}/{Iterator}                       { return ACCUMULATOR; }
   {Iterator}                                  { return ITERATOR; }
 
-  {OperatorEquality}                         { return OPERATOR_EQUALITY;}
-  {OperatorOrder}                            { return OPERATOR_ORDER;}
-  {OperatorArithmetic}                       { return OPERATOR_ARITHMETIC;}
-  {OperatorWeight}                           { return OPERATOR_WEIGHT;}
-  {OperatorOthers}                           { return OPERATOR_OTHERS;}
+  {OperatorEquality}                          { return OPERATOR_EQUALITY;}
+  {OperatorOrder}                             { return OPERATOR_ORDER;}
+  {OperatorArithmetic}                        { return OPERATOR_ARITHMETIC;}
+  {OperatorWeight}                            { return OPERATOR_WEIGHT;}
+  {OperatorOthers}                            { return OPERATOR_OTHERS;}
 
-  {WhiteSpace}+"/".*                         { return LINE_COMMENT; }
-  {LineBreak}+/{LineSpace}*"/"              { return WHITE_SPACE; }
-  ^"/"/{LineBreak}                           { yybegin(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
-  ^"\\"/{LineBreak}                          { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
+  {WhiteSpace}+"/".*                          { return LINE_COMMENT; }
+  {LineBreak}+/{LineSpace}*"/"                { return WHITE_SPACE; }
+  ^"/"/{LineBreak}                            { yybegin(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
+  ^"\\"/{LineBreak}                           { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
   ^"/".*                                      { if (zzCurrentPos == 0 || zzBuffer.length() == zzCurrentPos || zzBuffer.charAt(zzCurrentPos - 1) == '\n' || zzBuffer.charAt(zzCurrentPos - 1) == '\r') { return LINE_COMMENT;} return ITERATOR; }
 
   {LineBreak}+                               { finishQuery(); return LINE_BREAK; }

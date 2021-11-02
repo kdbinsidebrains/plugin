@@ -66,6 +66,7 @@ public final class KdbIcons {
         public static final Icon Function = AllIcons.Nodes.Function;
         public static final Icon Keyword = AllIcons.Nodes.Constant;
 
+        public static final Icon Symbol = AllIcons.Nodes.Static;
         public static final Icon Table = AllIcons.Nodes.DataTables;
         public static final Icon TableKeyColumn = load("/org/kdb/inside/brains/icons/nodes/keyColumn.svg");
         public static final Icon TableValueColumn = load("/org/kdb/inside/brains/icons/nodes/valueColumn.svg");

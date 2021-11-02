@@ -10,7 +10,8 @@ import com.intellij.psi.tree.TokenSet;
 import com.intellij.util.indexing.DataIndexer;
 import com.intellij.util.indexing.FileContent;
 import com.intellij.util.indexing.PsiDependentFileContent;
-import com.intellij.util.text.StringSearcher;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -20,20 +21,26 @@ import java.util.stream.Collectors;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 10; // was 9
+    protected static final int VERSION = 10;
 
     public static final @NotNull TokenSet COLUMNS_TOKEN = TokenSet.create(QUERY_COLUMN);
 
     private static final Logger log = Logger.getInstance(QDataIndexer.class);
 
+    private static final Set<IElementType> CONTEXT_SCOPE = Set.of(CONTEXT);
+    private static final Set<IElementType> LOCAL_VARIABLE_SCOPE = Set.of(LAMBDA_EXPR, TABLE_EXPR);
+
     @Override
     public @NotNull Map<String, List<IdentifierDescriptor>> map(@NotNull FileContent content) {
         log.info("Start indexing " + content.getPsiFile());
+        final long startedNanos = System.nanoTime();
+
         final Map<String, List<IdentifierDescriptor>> res = new HashMap<>();
 
         final CharSequence text = content.getContentAsText();
         log.info("  text length: " + text.length());
-        final int[] offsets = new StringSearcher(":", true, true).findAllOccurrences(text);
+
+        final int[] offsets = findAllOffsets(text);
         log.info("  offsets count: " + offsets.length);
         if (offsets.length == 0) {
             return Collections.emptyMap();
@@ -42,59 +49,114 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         final LighterAST tree = ((PsiDependentFileContent) content).getLighterAST();
         log.info("  light tree has been created");
 
-        AtomicInteger i = new AtomicInteger();
+        final AtomicInteger index = new AtomicInteger();
 
-        LightTreeUtil.processLeavesAtOffsets(offsets, tree, (node, offset) -> {
-            log.info("  processing offset " + i.incrementAndGet() + " of " + offsets.length + ": " + offset);
-            final LighterASTNode assign = tree.getParent(node);
-            log.info("      parent taken");
-            if (assign == null) {
+        LightTreeUtil.processLeavesAtOffsets(offsets, tree, (tokenNode, offset) -> {
+            log.info("  processing offset " + index.incrementAndGet() + " of " + offsets.length + ": " + offset);
+            final LighterASTNode node = tree.getParent(tokenNode);
+            if (node == null) {
                 return;
             }
 
-            final IElementType tokenType = assign.getTokenType();
-            log.info("      token type: " + tokenType);
-            if (tokenType != ASSIGNMENT_EXPR) {
-                return;
+            Map.Entry<String, IdentifierDescriptor> item = null;
+            final IElementType tokenType = node.getTokenType();
+            if (tokenType == SYMBOL) {
+                log.info("  processing symbol");
+                item = processSymbol(node, text);
+            } else if (tokenType == ASSIGNMENT_TYPE) {
+                log.info("  processing assignment");
+                item = processAssignment(tree, node, text, offset);
+            } else {
+                log.info("  not indexing type found: " + tokenType);
             }
 
-            final List<LighterASTNode> children = tree.getChildren(assign);
-            log.info("      children count: " + children.size());
-            if (children.size() < 3) {
-                return;
+            if (item != null) {
+                res.computeIfAbsent(item.getKey(), i -> new ArrayList<>()).add(item.getValue());
             }
 
-            final LighterASTNode var = children.get(0);
-            final IElementType varType = var.getTokenType();
-            log.info("      var type: " + varType);
-            if (varType != VAR_DECLARATION) {
-                return;
-            }
-
-            // Ignore not global
-            if (isLocal(tree, var, offset, text)) {
-                log.info("      variable is local");
-                return;
-            }
-
-            log.info("      variable is global. Extracting token...");
-            final Token token = extractToken(tree, children);
-
-            log.info("      variable token: " + token);
-            final List<String> params = token.parameters.stream().map(n -> getVariableName(text, n)).collect(Collectors.toList());
-
-            final TextRange r = new TextRange(var.getStartOffset(), var.getEndOffset());
-            log.info("      text range: " + r);
-
-            final String qualifiedName = getQualifiedName(tree, var, text);
-
-            log.info("      qualified name: " + qualifiedName);
-            res.computeIfAbsent(qualifiedName, n -> new ArrayList<>()).add(new IdentifierDescriptor(token.type, params, r));
-
-            log.info("  offset done");
+            log.info("  offset finished");
         });
-        log.info("Indexing finished with " + res.size() + " keywords");
+        final long finishedNanos = System.nanoTime();
+        log.info("Indexing finished with " + res.size() + " keywords at " + (finishedNanos - startedNanos) + "ns");
         return res;
+    }
+
+    private int[] findAllOffsets(CharSequence text) {
+        // we have only chars - no reason for complex logic, just iterating all chars
+        final int count = text.length();
+        final IntList indexes = new IntArrayList();
+        for (int i = 0; i < count; i++) {
+            final char c = text.charAt(i);
+            if (c == ':' || c == '`') {
+                indexes.add(i);
+            }
+        }
+        return indexes.toIntArray();
+
+/*
+        return ArrayUtil.mergeArrays(
+                new StringSearcher(":", false, true).findAllOccurrences(text),
+                new StringSearcher("`", false, true).findAllOccurrences(text));
+*/
+    }
+
+    private Map.Entry<String, IdentifierDescriptor> processSymbol(LighterASTNode node, CharSequence text) {
+        final TextRange range = new TextRange(node.getStartOffset() + 1, node.getEndOffset());
+        final String symbolValue = range.subSequence(text).toString();
+
+        // We ignore root namespace
+        if (symbolValue.isEmpty() || symbolValue.equals(".")) {
+            log.info("  empty or dot symbol is ignored");
+            return null;
+        }
+
+        // We ignore
+        if (symbolValue.startsWith(":")) {
+            log.info("  filepath is ignored");
+            return null;
+        }
+
+        return new AbstractMap.SimpleEntry<>(symbolValue, new IdentifierDescriptor(IdentifierType.SYMBOL, List.of(), range));
+    }
+
+    private Map.Entry<String, IdentifierDescriptor> processAssignment(LighterAST tree, LighterASTNode node, CharSequence text, Integer offset) {
+        final LighterASTNode parent = tree.getParent(node);
+        if (parent == null) {
+            return null;
+        }
+
+        final List<LighterASTNode> children = tree.getChildren(parent);
+        log.info("      children count: " + children.size());
+        if (children.size() < 3) {
+            return null;
+        }
+
+        final LighterASTNode var = children.get(0);
+        final IElementType varType = var.getTokenType();
+        log.info("      var type: " + varType);
+        if (varType != VAR_DECLARATION) {
+            return null;
+        }
+
+        // Ignore not global
+        if (isLocal(tree, var, offset, text)) {
+            log.info("      variable is local");
+            return null;
+        }
+
+        log.info("      variable is global. Extracting token...");
+        final Token token = extractToken(tree, children);
+
+        log.info("      variable token: " + token);
+        final List<String> params = token.parameters.stream().map(n -> getVariableName(text, n)).collect(Collectors.toList());
+
+        final TextRange r = new TextRange(var.getStartOffset(), var.getEndOffset());
+        log.info("      text range: " + r);
+
+        final String qualifiedName = getQualifiedName(tree, var, text);
+
+        log.info("      qualified name: " + qualifiedName);
+        return new AbstractMap.SimpleEntry<>(qualifiedName, new IdentifierDescriptor(token.type, params, r));
     }
 
     @NotNull
@@ -127,7 +189,7 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
             return name;
         }
 
-        final LighterASTNode context = findParent(tree, var, CONTEXT);
+        final LighterASTNode context = findParent(tree, var, CONTEXT_SCOPE);
         if (context == null) {
             return name;
         }
@@ -155,13 +217,13 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         if (offset < text.length() - 1 && text.charAt(offset) == ':' && text.charAt(offset + 1) == ':') {
             return false;
         }
-        return findParent(tree, var, LAMBDA_EXPR) != null || findParent(tree, var, TABLE_EXPR) != null;
+        return findParent(tree, var, LOCAL_VARIABLE_SCOPE) != null;
     }
 
-    private LighterASTNode findParent(LighterAST tree, LighterASTNode item, IElementType type) {
+    private LighterASTNode findParent(LighterAST tree, LighterASTNode item, Set<IElementType> types) {
         LighterASTNode node = item;
         while (node != null) {
-            if (node.getTokenType() == type) {
+            if (types.contains(node.getTokenType())) {
                 return node;
             }
             node = tree.getParent(node);

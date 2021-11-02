@@ -7,7 +7,6 @@ import com.intellij.lang.parameterInfo.UpdateParameterInfoContext;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.*;
@@ -82,6 +81,8 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
     private int findCurrentParameter(@NotNull QInvokeExpr invoke, int offset) {
         final boolean[] busy = new boolean[8]; // 8 arguments, not more
 
+/*
+TODO: Commented
         final List<QArguments> arguments = invoke.getArgumentsList();
         for (QArguments argument : arguments) {
             int index = findFreeIndex(busy, 0);
@@ -108,6 +109,7 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
                 el = PsiTreeUtil.skipWhitespacesAndCommentsForward(el);
             }
         }
+*/
         return -1;
 
     }

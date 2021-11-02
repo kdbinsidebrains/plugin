@@ -10,6 +10,7 @@ import javax.swing.*;
 
 public enum IdentifierType {
     TABLE(KdbIcons.Node.Table),
+    SYMBOL(KdbIcons.Node.Symbol),
     LAMBDA(KdbIcons.Node.Lambda),
     VARIABLE(KdbIcons.Node.Variable);
 

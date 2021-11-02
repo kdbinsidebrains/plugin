@@ -16,9 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class QIdentifiersIndex extends FileBasedIndexExtension<String, List<IdentifierDescriptor>> {
-    protected static final int VERSION = 1 + QDataIndexer3.VERSION * 1000;
+    protected static final int VERSION = 1 + QDataIndexer.VERSION * 1000;
 
-    public static final ID<String, List<IdentifierDescriptor>> INDEX_ID = ID.create("qIdentifiers");
+    public static final ID<String, List<IdentifierDescriptor>> INDEX_ID = ID.create("KdbInsideBrainsIndex");
 
     @Override
     public @NotNull ID<String, List<IdentifierDescriptor>> getName() {
@@ -27,7 +27,7 @@ public class QIdentifiersIndex extends FileBasedIndexExtension<String, List<Iden
 
     @Override
     public @NotNull DataIndexer<String, List<IdentifierDescriptor>, FileContent> getIndexer() {
-        return new QDataIndexer3();
+        return new QDataIndexer();
     }
 
     @Override
