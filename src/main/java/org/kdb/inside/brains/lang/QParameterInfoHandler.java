@@ -4,9 +4,8 @@ import com.intellij.lang.parameterInfo.CreateParameterInfoContext;
 import com.intellij.lang.parameterInfo.ParameterInfoHandler;
 import com.intellij.lang.parameterInfo.ParameterInfoUIContext;
 import com.intellij.lang.parameterInfo.UpdateParameterInfoContext;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiReference;
+import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.*;
@@ -20,27 +19,19 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
         if (invoke == null) {
             return null;
         }
-        return null;
 
-/*
-    // TODO: COMMENTED
+        QVarReference ref = null;
+        List<QLambdaExpr> lambdas = null;
 
-        final QVarReference ref;
-        final QLambda rawLambda = invoke.getLambda();
-
-        final List<QLambda> lambdas;
-        if (rawLambda != null) {
-            ref = null;
-            lambdas = List.of(rawLambda);
-        } else {
-            ref = invoke.getVarReference();
-            if (ref == null) {
-                return null;
-            }
+        final QExpression expression = invoke.getInvokeObject().getExpression();
+        if (expression instanceof QLambdaExpr) {
+            lambdas = List.of((QLambdaExpr) expression);
+        } else if (expression instanceof QVarReference) {
+            ref = (QVarReference) expression;
             lambdas = findLambdasByName(ref);
         }
 
-        if (lambdas.isEmpty()) {
+        if (lambdas == null || lambdas.isEmpty()) {
             return null;
         }
 
@@ -50,7 +41,6 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
         }
         context.setItemsToShow(params);
         return invoke;
-*/
     }
 
     @Override
@@ -81,8 +71,6 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
     private int findCurrentParameter(@NotNull QInvokeExpr invoke, int offset) {
         final boolean[] busy = new boolean[8]; // 8 arguments, not more
 
-/*
-TODO: Commented
         final List<QArguments> arguments = invoke.getArgumentsList();
         for (QArguments argument : arguments) {
             int index = findFreeIndex(busy, 0);
@@ -109,9 +97,7 @@ TODO: Commented
                 el = PsiTreeUtil.skipWhitespacesAndCommentsForward(el);
             }
         }
-*/
         return -1;
-
     }
 
     private int findFreeIndex(boolean[] busy, int index) {
@@ -169,44 +155,49 @@ TODO: Commented
         if (!(file instanceof QFile)) {
             return null;
         }
-
-        PsiElement element = file.findElementAt(offset);
-        if (element == null) {
-            return null;
-        }
-        element = element.getParent();
-
-        while (element != null) {
-            if (element instanceof QInvokeExpr) {
-                return (QInvokeExpr) element;
-            }
-            element = element.getParent();
-        }
-        return null;
+        return (QInvokeExpr) PsiTreeUtil.findFirstParent(file.findElementAt(offset), c -> c instanceof QInvokeExpr);
     }
 
     private List<QLambdaExpr> findLambdasByName(QVarReference ref) {
         final List<QLambdaExpr> lambdas = new ArrayList<>();
+
         final PsiReference[] references = ref.getReferences();
         for (PsiReference reference : references) {
-            final PsiElement resolve = reference.resolve();
-            if (resolve == null) {
-                continue;
-            }
-
-/*
-TODO: COMMENTED
-            final PsiElement parent = resolve.getParent();
-            if (parent instanceof QVariableAssignment) {
-                final QVariableAssignment assignment = (QVariableAssignment) parent;
-                final QExpression expression = assignment.getExpression();
-                if (expression != null && !expression.getLambdaList().isEmpty()) {
-                    lambdas.addAll(expression.getLambdaList());
+            if (reference instanceof PsiPolyVariantReference) {
+                final ResolveResult[] resolveResults = ((PsiPolyVariantReference) reference).multiResolve(false);
+                for (ResolveResult resolveResult : resolveResults) {
+                    if (resolveResult.isValidResult()) {
+                        final QLambdaExpr qLambdaExpr = resolveLambdaExpr(resolveResult.getElement());
+                        if (qLambdaExpr != null) {
+                            lambdas.add(qLambdaExpr);
+                        }
+                    }
+                }
+            } else {
+                final QLambdaExpr qLambdaExpr = resolveLambdaExpr(reference.resolve());
+                if (qLambdaExpr != null) {
+                    lambdas.add(qLambdaExpr);
                 }
             }
-*/
         }
         return lambdas;
+    }
+
+    private QLambdaExpr resolveLambdaExpr(PsiElement resolve) {
+        if (resolve == null) {
+            return null;
+        }
+
+        final PsiElement parent = resolve.getParent();
+        if (parent instanceof QAssignmentExpr) {
+            final QAssignmentExpr assignment = (QAssignmentExpr) parent;
+
+            final QExpression expression = assignment.getExpression();
+            if (expression instanceof QLambdaExpr) {
+                return (QLambdaExpr) expression;
+            }
+        }
+        return null;
     }
 
     protected static class QParameterInfo {
@@ -233,67 +224,4 @@ TODO: COMMENTED
             return result;
         }
     }
-
-
-
-/*
-    @Override
-    public QArguments @NotNull [] getActualParameters(@NotNull QInvoke o) {
-        return new QArguments[0];
-    }
-
-    @Override
-    public @NotNull IElementType getActualParameterDelimiterType() {
-        return QTypes.SEMICOLON;
-    }
-
-    @Override
-    public @NotNull IElementType getActualParametersRBraceType() {
-        return QTypes.BRACKET_CLOSE;
-    }
-
-    @Override
-    public @NotNull Set<Class<?>> getArgumentListAllowedParentClasses() {
-        return Set.of();
-    }
-
-    @Override
-    public @NotNull Set<? extends Class<?>> getArgListStopSearchClasses() {
-        return Set.of();
-    }
-
-    @Override
-    public boolean isWhitespaceSensitive() {
-        return false;
-    }
-
-    @Override
-    public void showParameterInfo(@NotNull QInvoke element, @NotNull CreateParameterInfoContext context) {
-    }
-
-    @Override
-    public @NotNull Class<QInvoke> getArgumentListClass() {
-        return QInvoke.class;
-    }
-
-    @Override
-    public @Nullable QInvoke findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
-        return null;
-    }
-
-    @Override
-    public @Nullable QInvoke findElementForUpdatingParameterInfo(@NotNull UpdateParameterInfoContext context) {
-        return null;
-    }
-
-    @Override
-    public void updateParameterInfo(@NotNull QInvoke qInvoke, @NotNull UpdateParameterInfoContext context) {
-
-    }
-
-    @Override
-    public void updateUI(Object p, @NotNull ParameterInfoUIContext context) {
-
-    }
-*/
 }

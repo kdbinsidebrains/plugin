@@ -363,7 +363,7 @@
         <lang.findUsagesProvider language="q"
                                  implementationClass="org.kdb.inside.brains.lang.usage.QFindUsagesProvider"/>
 
-        <typedHandler id="QTypedHandler" implementation="org.kdb.inside.brains.lang.completion.QTypedHandler"/>
+        <typedHandler implementation="org.kdb.inside.brains.lang.completion.QTypedHandler"/>
 
         <!-- Documentations -->
         <lang.documentationProvider language="q"

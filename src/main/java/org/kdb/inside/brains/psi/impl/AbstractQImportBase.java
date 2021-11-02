@@ -17,7 +17,7 @@ public abstract class AbstractQImportBase extends QPsiElementImpl implements QIm
         return new ItemPresentation() {
             @Override
             public Icon getIcon(boolean unused) {
-                return KdbIcons.Node.Load;
+                return KdbIcons.Node.Import;
             }
 
             @Override

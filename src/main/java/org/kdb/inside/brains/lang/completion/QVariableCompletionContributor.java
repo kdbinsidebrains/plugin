@@ -31,6 +31,11 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
         }
 
         final QVariable variable = (QVariable) el.getParent();
+        // No suggestion in parameters - it's free-form names
+        if (variable.getParent() instanceof QParameters) {
+            return;
+        }
+
         final String qualifiedName = variable.getQualifiedName();
 
         addGlobal(qualifiedName, el.getProject(), result);

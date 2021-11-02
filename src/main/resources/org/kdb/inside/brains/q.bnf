@@ -197,12 +197,16 @@ parameters ::= BRACKET_OPEN [var_declaration (SEMICOLON var_declaration)*] BRACK
 }*/
 lambda_expr ::= BRACE_OPEN parameters? expressions? BRACE_CLOSE
 
-private invoke_prefix ::= operator_type
-private invoke_function ::= BINARY_FUNCTION | COMPLEX_FUNCTION | UNARY_FUNCTION | console_handler | prefix_expr
-private invoke_operation ::= (iterator_type | operator_type)+
+private invoke_function_group ::= BINARY_FUNCTION | COMPLEX_FUNCTION | UNARY_FUNCTION | console_handler | prefix_expr
 
-fake invoke_expr ::= (invoke_function | operator_type)? arguments_list? invoke_operation? expression?
-prefix_invoke_expr ::= invoke_prefix arguments_list invoke_operation? expression? { pin=2 extends=invoke_expr}
+fake invoke_object ::= operator_type? invoke_function_group?
+invoke_operator ::= operator_type {extends=invoke_object}
+invoke_function ::= invoke_function_group {extends=invoke_object}
+
+invoke_operation ::= (iterator_type | operator_type)+
+
+fake invoke_expr ::= (invoke_operator | invoke_function) arguments_list? invoke_operation? expression?
+prefix_invoke_expr ::= invoke_operator arguments_list invoke_operation? expression? { pin=2 extends=invoke_expr}
 function_invoke_expr ::= invoke_function ((arguments_list? invoke_operation? expression) | (arguments_list invoke_operation?)) { extends=invoke_expr }
 
 private invoke_group ::= prefix_invoke_expr | function_invoke_expr
