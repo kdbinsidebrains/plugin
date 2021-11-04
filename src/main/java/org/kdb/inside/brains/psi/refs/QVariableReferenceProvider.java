@@ -16,14 +16,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class QVariableReferenceProvider extends PsiReferenceProvider {
-    @Override
-    public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext pc) {
-        if (!(element instanceof QVariable)) {
-            return PsiReference.EMPTY_ARRAY;
-        }
+public class QVariableReferenceProvider extends QReferenceProvider<QVariable> {
+    protected QVariableReferenceProvider() {
+        super(QVariable.class);
+    }
 
-        final QVariable var = (QVariable) element;
+    @Override
+    protected PsiReference @NotNull [] getElementReferences(@NotNull QVariable var, @NotNull ProcessingContext context) {
         if (var instanceof QVarReference) {
             return createReference(var);
         }

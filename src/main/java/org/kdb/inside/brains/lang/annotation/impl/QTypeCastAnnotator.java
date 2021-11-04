@@ -46,26 +46,26 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
 
         final TextRange r = castType.getTextRange();
 
-        final int code;
+        final CastType type;
         final TextRange range;
-        if (name.length() == 1) {
+
+        if (cast.getText().charAt(0) == '`') {
+            if (extractors.contains(name) || KdbType.byName(name) != null) {
+                return;
+            }
+            type = CastType.SYMBOL;
+            range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 1);
+        } else {
+            if (name.length() != 1) {
+                return;
+            }
+
             final char ch = name.charAt(0);
             if (KdbType.byCode(Character.toLowerCase(ch)) != null) {
                 return;
             }
-            code = Character.isUpperCase(ch) ? 1 : 2;
+            type = Character.isUpperCase(ch) ? CastType.UPPER : CastType.LOWER;
             range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 2);
-        } else {
-            if (extractors.contains(name)) {
-                return;
-            }
-
-            final KdbType type = KdbType.byName(name);
-            if (type != null) {
-                return;
-            }
-            code = 0;
-            range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 1);
         }
 
         holder.newAnnotation(HighlightSeverity.ERROR, "Unknown cast type: " + name)
@@ -95,15 +95,15 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
                                     protected void customize(TypeCast typeCast) {
                                         this.setLeftText(typeCast.name);
                                         this.setRightForeground(JBColor.GRAY);
-                                        if (code == 1) {
+                                        if (type == CastType.UPPER) {
                                             this.setRightText(typeCast.upperCode);
-                                        } else if (code == 2) {
+                                        } else if (type == CastType.LOWER) {
                                             this.setRightText(typeCast.lowerCode);
                                         }
                                     }
                                 })
                                 .setItemChosenCallback(t -> {
-                                    final String name = code == 0 ? t.name : code == 1 ? t.upperCode : t.lowerCode;
+                                    final String name = type == CastType.SYMBOL ? t.name : type == CastType.UPPER ? t.upperCode : t.lowerCode;
                                     WriteCommandAction.runWriteCommandAction(project, () -> editor.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), name));
                                 })
                                 .createPopup()
@@ -115,6 +115,12 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
                         return false;
                     }
                 }).create();
+    }
+
+    private enum CastType {
+        UPPER,
+        LOWER,
+        SYMBOL
     }
 
     private static class TypeCast {

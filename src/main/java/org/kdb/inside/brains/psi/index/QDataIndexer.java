@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 10;
+    protected static final int VERSION = 12;
 
     public static final @NotNull TokenSet COLUMNS_TOKEN = TokenSet.create(QUERY_COLUMN);
 
@@ -32,27 +32,27 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
 
     @Override
     public @NotNull Map<String, List<IdentifierDescriptor>> map(@NotNull FileContent content) {
-        log.info("Start indexing " + content.getPsiFile());
         final long startedNanos = System.nanoTime();
+        final String fileName = content.getFileName();
+
+        log.info("Start indexing " + content.getFile() + ": " + fileName);
 
         final Map<String, List<IdentifierDescriptor>> res = new HashMap<>();
 
         final CharSequence text = content.getContentAsText();
-        log.info("  text length: " + text.length());
-
         final int[] offsets = findAllOffsets(text);
-        log.info("  offsets count: " + offsets.length);
+
+        log.info(fileName + ": length - " + text.length() + ",  offsets - " + offsets.length);
         if (offsets.length == 0) {
             return Collections.emptyMap();
         }
 
         final LighterAST tree = ((PsiDependentFileContent) content).getLighterAST();
-        log.info("  light tree has been created");
 
         final AtomicInteger index = new AtomicInteger();
 
         LightTreeUtil.processLeavesAtOffsets(offsets, tree, (tokenNode, offset) -> {
-            log.info("  processing offset " + index.incrementAndGet() + " of " + offsets.length + ": " + offset);
+            log.info(fileName + ": processing offset " + index.incrementAndGet() + " of " + offsets.length + " - " + offset);
             final LighterASTNode node = tree.getParent(tokenNode);
             if (node == null) {
                 return;
@@ -61,20 +61,15 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
             Map.Entry<String, IdentifierDescriptor> item = null;
             final IElementType tokenType = node.getTokenType();
             if (tokenType == SYMBOL) {
-                log.info("  processing symbol");
                 item = processSymbol(node, text);
             } else if (tokenType == ASSIGNMENT_TYPE) {
-                log.info("  processing assignment");
                 item = processAssignment(tree, node, text, offset);
-            } else {
-                log.info("  not indexing type found: " + tokenType);
             }
 
             if (item != null) {
+                log.info(fileName + ": index item generated - " + item);
                 res.computeIfAbsent(item.getKey(), i -> new ArrayList<>()).add(item.getValue());
             }
-
-            log.info("  offset finished");
         });
         final long finishedNanos = System.nanoTime();
         log.info("Indexing finished with " + res.size() + " keywords at " + (finishedNanos - startedNanos) + "ns");
@@ -87,7 +82,11 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         final IntList indexes = new IntArrayList();
         for (int i = 0; i < count; i++) {
             final char c = text.charAt(i);
-            if (c == ':' || c == '`') {
+            if (c == '`') {
+                indexes.add(i);
+            }
+            // Ignore double colons - it's the same type, by the fact
+            if (c == ':' && (i > 0 && text.charAt(i - 1) != ':')) {
                 indexes.add(i);
             }
         }
@@ -106,15 +105,15 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
 
         // We ignore root namespace
         if (symbolValue.isEmpty() || symbolValue.equals(".")) {
-            log.info("  empty or dot symbol is ignored");
             return null;
         }
 
         // We ignore
         if (symbolValue.startsWith(":")) {
-            log.info("  filepath is ignored");
             return null;
         }
+
+        // TODO: ignore typecast
 
         return new AbstractMap.SimpleEntry<>(symbolValue, new IdentifierDescriptor(IdentifierType.SYMBOL, List.of(), range));
     }
@@ -126,37 +125,28 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         }
 
         final List<LighterASTNode> children = tree.getChildren(parent);
-        log.info("      children count: " + children.size());
         if (children.size() < 3) {
             return null;
         }
 
         final LighterASTNode var = children.get(0);
         final IElementType varType = var.getTokenType();
-        log.info("      var type: " + varType);
         if (varType != VAR_DECLARATION) {
             return null;
         }
 
         // Ignore not global
         if (isLocal(tree, var, offset, text)) {
-            log.info("      variable is local");
             return null;
         }
 
-        log.info("      variable is global. Extracting token...");
         final Token token = extractToken(tree, children);
-
-        log.info("      variable token: " + token);
         final List<String> params = token.parameters.stream().map(n -> getVariableName(text, n)).collect(Collectors.toList());
 
-        final TextRange r = new TextRange(var.getStartOffset(), var.getEndOffset());
-        log.info("      text range: " + r);
-
         final String qualifiedName = getQualifiedName(tree, var, text);
+        final TextRange range = new TextRange(var.getStartOffset(), var.getEndOffset());
 
-        log.info("      qualified name: " + qualifiedName);
-        return new AbstractMap.SimpleEntry<>(qualifiedName, new IdentifierDescriptor(token.type, params, r));
+        return new AbstractMap.SimpleEntry<>(qualifiedName, new IdentifierDescriptor(token.type, params, range));
     }
 
     @NotNull

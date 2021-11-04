@@ -34,19 +34,31 @@ import static org.kdb.inside.brains.psi.QTypes.*;
     }
 
     public void openParen() {
-        parensCount++;
+        if (queryParsing) {
+            parensCount++;
+        }
     }
 
     public void closeParen() {
-        parensCount--;
+        if (queryParsing) {
+            parensCount--;
+        }
     }
 
     public void openBrace() {
-        bracesCount++;
+        if (queryParsing) {
+            bracesCount++;
+        }
     }
 
     public void closeBrace() {
-        bracesCount--;
+        if (queryParsing) {
+            bracesCount--;
+        }
+    }
+
+    public boolean isQuerySplitter() {
+        return queryParsing && parensCount == 0 && bracesCount == 0;
     }
 
     public boolean isNegativeSign() {
@@ -56,10 +68,6 @@ import static org.kdb.inside.brains.psi.QTypes.*;
         final char ch = yycharat(-1);
         // Any whitespace before - it's negative sing. If's also negative if it goes aftyer any brakes
         return Character.isWhitespace(ch) || ch == '[' || ch == '(' || ch == '{';
-    }
-
-    public boolean isQuerySplitter() {
-        return queryParsing && parensCount == 0 && bracesCount == 0;
     }
 
     public static com.intellij.lexer.Lexer newLexer() {
@@ -105,7 +113,7 @@ UnaryFunction=(abs|all|any|asc|iasc|attr|avg|avgs|ceiling|count|
     mins|neg|next|prev|not|null|parse|prd|prds|rand|rank|ratios|
     raze|read0|read1|reciprocal|reverse|save|rsave|show|signum|sin|
     asin|sqrt|string|sum|sums|system|tables|tan|atan|til|trim|ltrim|rtrim|
-    type|value|var|svar|view|views|where)
+    type|value|var|svar|view|views|where|fills)
 
 // and[x;y] or (x and y)
 BinaryFunction=(and|xasc|asof|mavg|wavg|bin|binr|mcount|xcol|
@@ -320,7 +328,7 @@ Vactor={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   {WhiteSpace}                               { return WHITE_SPACE; }
 
   {QueryType}                                { beginQuery(); return QUERY_TYPE; }
-  {QueryGroup}                                  { return QUERY_BY; }
+  {QueryGroup}                               { return QUERY_BY; }
   {QueryFrom}                                { finishQuery(); return QUERY_FROM; }
 
   {UnaryFunction}                            { return UNARY_FUNCTION; }

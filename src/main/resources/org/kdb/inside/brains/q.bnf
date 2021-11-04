@@ -85,13 +85,12 @@
 }
 
 root ::= top*
-//private top ::= expression | separator
 private top ::= context | mode | top_in_context
 private top_in_context ::= import_command | command | expression | separator
 
+private end_of_line_recover ::= !(LINE_BREAK)
 
 private separator ::= SEMICOLON | LINE_BREAK
-private end_of_line_recover ::= !(LINE_BREAK)
 
 private statement ::= SEMICOLON | expression SEMICOLON?
 
@@ -103,35 +102,16 @@ context ::= COMMAND_CONTEXT var_declaration? (LINE_BREAK context_body)? {
  methods = [variable="var_declaration"]
  }
 
-/*
-command_params ::= command_arguments {recoverWhile = end_of_line}
-command ::= command_system (line_space+ command_params)? {
- pin = 1
- methods = [parameters="command_params"]--
-
-}
-
-*/
 // command - anything with \...
 private command_params ::= COMMAND_ARGUMENTS {recoverWhile = end_of_line_recover}
 command ::= COMMAND_SYSTEM  (LINE_SPACE+ command_params)? { pin = 1 methods = [command="COMMAND_SYSTEM" parameters="COMMAND_ARGUMENTS"] }
-/*
 
-command ::= COMMAND_SYSTEM (LINE_SPACE+ COMMAND_ARGUMENTS)? { pin = 1 methods=[commandName="COMMAND_SYSTEM" commandParameters="COMMAND_ARGUMENTS"] recoverWhile=end_of_line_recover}
-*/
+import_command ::= COMMAND_IMPORT import_command_file { pin = 1 implements="org.kdb.inside.brains.psi.QImport" }
 
-import_file ::= FILE_PATH_PATTERN { recoverWhile = end_of_line_recover }
-import_command ::= COMMAND_IMPORT import_file {
- pin = 1
- implements="org.kdb.inside.brains.psi.QImport"
- mixin="org.kdb.inside.brains.psi.impl.QImportCommandBase"
- }
+import_function ::= FUNCTION_IMPORT import_function_file { pin = 1 extends=expression implements="org.kdb.inside.brains.psi.QImport" }
 
-import_expr ::= FUNCTION_IMPORT STRING {
- pin = 1
- implements="org.kdb.inside.brains.psi.QImport"
- mixin="org.kdb.inside.brains.psi.impl.QImportFunctionBase"
- }
+private import_command_file ::= FILE_PATH_PATTERN {recoverWhile = end_of_line_recover }
+private import_function_file ::= STRING
 
 // In mode we can't use LINE_BREAK as a separator
 private mode_content ::= statement+ { recoverWhile = end_of_line_recover }
@@ -151,7 +131,6 @@ var_declaration ::= VARIABLE_PATTERN {
 }
 
 iterator_type ::= ACCUMULATOR? ITERATOR+
-//operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_WEIGHT | OPERATOR_OTHERS | OPERATOR_COMMA
 operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPERATOR_WEIGHT | OPERATOR_OTHERS | OPERATOR_COMMA
 
 console_handler ::= "0" | "1" | "2" | "-1" | "-2"
@@ -174,44 +153,39 @@ control_expr ::= CONTROL_KEYWORD arguments { pin = 1 } // if/else/while and so o
 condition_expr ::= CONDITION_KEYWORD arguments { pin=1 } // $[...]
 
 expressions ::= separator* expression (separator+ expression)* separator*
-//private statement_group ::= separator* expression (separator+ expression)* separator*
-//statement ::= statement_group | BRACKET_OPEN [!BRACKET_CLOSE statement_group] BRACKET_CLOSE
-
-private vector_atom ::= VECTOR | STRING | symbol symbol+
-private vector_mixed ::= PAREN_OPEN [!PAREN_CLOSE] expression? SEMICOLON+ (expression SEMICOLON+)* expression? PAREN_CLOSE { pin(".*") = 4 }
-//private vector_mixed ::= PAREN_OPEN [expression] (SEMICOLON+ [expression])+ SEMICOLON* PAREN_CLOSE { pin(".*") = 3 }
-vector_expr ::= vector_atom | vector_mixed
 
 return_expr ::= COLON expression
 
 signal_expr ::= "'" expression
 
-literal_expr ::= NILL | symbol | CHAR | SIGNED_ATOM | UNSIGNED_ATOM
+literal_expr ::= NILL | CHAR | SIGNED_ATOM | UNSIGNED_ATOM | VECTOR | STRING | symbol symbol*
 
-parentheses_expr ::= PAREN_OPEN expression PAREN_CLOSE
+parameters ::= BRACKET_OPEN [parameters_body] BRACKET_CLOSE { pin(".*")=1 methods = [variables="var_declaration"] }
+private parameters_body ::= var_declaration (SEMICOLON var_declaration)* {pin(".*")="SEMICOLON" recoverWhile=parameters_recover }
+private parameters_recover ::= !(BRACKET_OPEN | BRACKET_CLOSE)
 
-parameters ::= BRACKET_OPEN [ !BRACKET_CLOSE var_declaration (SEMICOLON var_declaration)* ] BRACKET_CLOSE { pin(".*")=1 methods = [variables="var_declaration"] }
-/*
-parameters ::= BRACKET_OPEN [var_declaration (SEMICOLON var_declaration)*] BRACKET_CLOSE {
-    methods = [variables="var_declaration"]
-}*/
-lambda_expr ::= BRACE_OPEN parameters? expressions? BRACE_CLOSE
+lambda_expr ::= BRACE_OPEN lambda_body BRACE_CLOSE {pin=1}
+private lambda_body ::= parameters? expressions? {recoverWhile=lambda_recover}
+private lambda_recover ::= !(BRACE_OPEN | BRACE_CLOSE)
 
-private invoke_function_group ::= BINARY_FUNCTION | COMPLEX_FUNCTION | UNARY_FUNCTION | console_handler | prefix_expr
+operation ::= (iterator_type | operator_type)+
 
 fake invoke_object ::= operator_type? invoke_function_group?
 invoke_operator ::= operator_type {extends=invoke_object}
+
 invoke_function ::= invoke_function_group {extends=invoke_object}
+private invoke_function_group ::= BINARY_FUNCTION | COMPLEX_FUNCTION | UNARY_FUNCTION | console_handler | prefix_expr
 
-invoke_operation ::= (iterator_type | operator_type)+
+parentheses_expr ::= PAREN_OPEN !BRACKET_OPEN parentheses_body PAREN_CLOSE {pin=2 extends=invoke_object}
+private parentheses_body ::= SEMICOLON* (expression SEMICOLON+)* expression? {pin(".*")=2 recoverWhile=parentheses_recover}
+private parentheses_recover ::= !(PAREN_OPEN | PAREN_CLOSE)
 
-fake invoke_expr ::= (invoke_operator | invoke_function) arguments_list? invoke_operation? expression?
-prefix_invoke_expr ::= invoke_operator arguments_list invoke_operation? expression? { pin=2 extends=invoke_expr}
-function_invoke_expr ::= invoke_function ((arguments_list? invoke_operation? expression) | (arguments_list invoke_operation?)) { extends=invoke_expr }
+fake invoke_expr ::= (invoke_operator | invoke_function | parentheses_expr) arguments_list? operation? expression?
+prefix_invoke_expr ::= invoke_operator arguments_list operation? expression? { pin=2 extends=invoke_expr}
+function_invoke_expr ::= invoke_function ((arguments_list? ((operation? expression) | operation)) | (arguments_list operation?)) { extends=invoke_expr }
+parentheses_invoke_expr ::= parentheses_expr arguments_list? operation? expression? { extends=invoke_expr }
 
-private invoke_group ::= prefix_invoke_expr | function_invoke_expr
-
-projection_expr ::= PAREN_OPEN invoke_function invoke_operation PAREN_CLOSE
+private invoke_group ::= parentheses_invoke_expr | prefix_invoke_expr | function_invoke_expr
 
 type_cast_expr ::= TYPE_CAST_PATTERN expression? {pin = 1 methods=[typeCast="TYPE_CAST_PATTERN"]}
 
@@ -219,9 +193,11 @@ type_cast_expr ::= TYPE_CAST_PATTERN expression? {pin = 1 methods=[typeCast="TYP
 table_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
 private table_columns_group ::= table_column (SEMICOLON table_column)* {pin(".*")="SEMICOLON"}
 fake table_columns ::= table_columns_group {methods=[columns="table_column"]}
-table_keys ::= table_columns_group {implements=table_columns methods=[columns="table_column"]}
-table_values ::= table_columns_group {implements=table_columns methods=[columns="table_column"]}
-table_expr ::= PAREN_OPEN BRACKET_OPEN [table_keys] BRACKET_CLOSE [table_values] PAREN_CLOSE { pin=2 methods=[keys="table_keys" values="table_values"]}
+table_keys ::= table_columns_group {implements=table_columns methods=[columns="table_column"] recoverWhile=table_keys_recover}
+private table_keys_recover ::= !BRACKET_CLOSE
+table_values ::= table_columns_group {implements=table_columns methods=[columns="table_column"] recoverWhile=table_values_recover}
+private table_values_recover ::= !PAREN_CLOSE
+table_expr ::= PAREN_OPEN BRACKET_OPEN [table_keys] BRACKET_CLOSE [SEMICOLON? table_values] PAREN_CLOSE { pin=2 methods=[keys="table_keys" values="table_values"]}
 
 // But extends works here with no issues
 query_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
@@ -229,24 +205,25 @@ private query_columns_group ::= query_column (QUERY_SPLITTER query_column)* {pin
 fake query_columns ::= query_columns_group {methods=[columns="query_column"]}
 query_keys ::= query_columns_group {extends=query_columns}
 query_values ::= query_columns_group {extends=query_columns}
-query_expr ::= QUERY_TYPE [query_values] (QUERY_BY query_keys)? QUERY_FROM expression {pin=1 methods=[QUERY_TYPE="QUERY_TYPE" keys="query_keys" values="query_values"] }
+
+private query_body ::= QUERY_TYPE [query_values] (QUERY_BY query_keys)? { pin=1 methods=[QUERY_TYPE="QUERY_TYPE" keys="query_keys" values="query_values"] recoverWhile=query_body_recover}
+private query_body_recover ::= !QUERY_FROM
+private query_source ::= QUERY_FROM expression {pin=1}
+query_expr ::= query_body query_source
 
 grouping_expr ::= BRACKET_OPEN expressions BRACKET_CLOSE
 
-k_syntax_expr ::= invoke_operation+ expression
+k_syntax_expr ::= operation+ expression
 
-whatever_expr ::= (operator_type | iterator_type | OPERATOR_ARITHMETIC | SYMBOL_PATH_PATTERN | COLON | OPERATOR_COMMA | literal_expr)+ | system_function | FUNCTION_IMPORT
+projection_expr ::= (operator_type | iterator_type | OPERATOR_ARITHMETIC | SYMBOL_PATH_PATTERN | COLON | OPERATOR_COMMA | literal_expr)+ | system_function | FUNCTION_IMPORT
 
 // Only these expressions can be used as a left arguments of invokes
 prefix_expr ::=
     table_expr
-    | vector_expr
-    | parentheses_expr
     | literal_expr
     | lambda_expr
     | control_expr
     | condition_expr
-    | projection_expr
     | grouping_expr
     | var_reference
     { elementType=expression}
@@ -254,11 +231,11 @@ prefix_expr ::=
 expression ::= assignment_expr
     | type_cast_expr
     | query_expr
-    | import_expr
+    | import_function
     | invoke_group
     | prefix_expr
     | return_expr
     | signal_expr
     | k_syntax_expr
-    | whatever_expr
+    | projection_expr
     { extraRoot=true }

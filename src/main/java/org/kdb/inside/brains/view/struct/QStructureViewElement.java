@@ -4,9 +4,12 @@ import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.structureView.impl.common.PsiTreeElementBase;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.*;
+import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.psi.QCommand;
+import org.kdb.inside.brains.psi.QImport;
+import org.kdb.inside.brains.psi.QTableColumns;
+import org.kdb.inside.brains.psi.QTableExpr;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -17,32 +20,55 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
+    private final String text;
     private final PsiElement content;
     private final StructureElementType type;
 
+
     protected QStructureViewElement(PsiFile file) {
-        this(file, StructureElementType.FILE);
+        this(file, StructureElementType.FILE, file.getName(), file);
     }
 
+    private QStructureViewElement(PsiElement element, StructureElementType type, String text) {
+        this(element, type, text, null);
+    }
+
+    private QStructureViewElement(PsiElement element, StructureElementType type, String text, PsiElement content) {
+        super(element);
+        this.type = type;
+        this.text = text;
+        this.content = content;
+    }
+/*
+
+    @Deprecated
     protected QStructureViewElement(PsiElement reference, StructureElementType type) {
         this(reference, reference, type);
     }
 
+    @Deprecated
     protected QStructureViewElement(PsiElement reference, PsiElement content, StructureElementType type) {
         super(reference);
         this.type = type;
         this.content = content;
     }
+*/
 
-    public StructureElementType getType() {
-        return type;
-    }
 
     @Override
     public Icon getIcon(boolean open) {
         return type.getIcon();
     }
 
+    @Override
+    public @Nullable String getPresentableText() {
+        return text;
+    }
+
+    public StructureElementType getType() {
+        return type;
+    }
+/*
     @Override
     public String getPresentableText() {
         final PsiElement element = getElement();
@@ -59,8 +85,8 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
         if (content instanceof QCommand) {
             return content.getText();
         }
-        if (content instanceof QContext) {
-            final QVarDeclaration variable = ((QContext) content).getVariable();
+        if (content instanceof QContextBody) {
+            final QVarDeclaration variable = ((QContext) content.getParent()).getVariable();
             return variable != null ? variable.getText() : "\\d";
         }
         if (content instanceof QTableExpr || content instanceof QVariable) {
@@ -80,19 +106,20 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
         }
 
         return element.getClass().getSimpleName();
-    }
+    }*/
+/*
 
     private String getVariableType(QExpression expression) {
         final PsiElement firstChild = expression.getFirstChild();
         final PsiElement lastChild = expression.getLastChild();
 
-        if (firstChild instanceof QTypeCastExpr && lastChild instanceof QVectorExpr) {
+        if (firstChild instanceof QTypeCastExpr) {
             return QPsiUtil.getTypeCast((QTypeCastExpr) firstChild);
         }
 
         if (firstChild == lastChild) {
-            if (firstChild instanceof QVectorExpr) {
-                return "list";
+            if (firstChild instanceof QLiteralExpr) {
+                return "atom";
             }
             if (firstChild instanceof QQueryExpr) {
                 return "query";
@@ -110,13 +137,21 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
         }
         return "expression";
     }
+*/
 
     @Override
     public @NotNull Collection<StructureViewTreeElement> getChildrenBase() {
-        if (type == StructureElementType.LOAD || type == StructureElementType.COMMAND || type == StructureElementType.VARIABLE) {
+        if (content == null || type == StructureElementType.LOAD || type == StructureElementType.COMMAND || type == StructureElementType.VARIABLE) {
             return List.of();
         }
 
+        if (content instanceof QTableExpr) {
+            return getTableElements((QTableExpr) content);
+        }
+
+        return processChildren(content);
+
+/*
         if (type == StructureElementType.TABLE) {
             return getTableElements((QTableExpr) content);
         } else {
@@ -127,7 +162,8 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
                 } else if (child instanceof QCommand) {
                     res.add(new QStructureViewElement(child, StructureElementType.COMMAND));
                 } else if (child instanceof QContext) {
-                    res.add(new QStructureViewElement(child, StructureElementType.CONTEXT));
+                    final QContext context = (QContext) child;
+                    res.add(new QStructureViewElement(context.getVariable(), context.getContextBody(), StructureElementType.CONTEXT));
                 } else if (child instanceof QAssignmentExpr) {
                     final QAssignmentExpr assignment = (QAssignmentExpr) child;
                     final QVarDeclaration variable = assignment.getVarDeclaration();
@@ -141,7 +177,7 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
                     }
 
                     if (expression instanceof QLambdaExpr) {
-                        res.add(new QStructureViewElement(variable, expression, StructureElementType.LAMBDA));
+                        res.add(new QStructureViewElement(variable, ((QLambdaExpr) expression).getExpressions(), StructureElementType.LAMBDA));
                     } else if (expression instanceof QTableExpr) {
                         res.add(new QStructureViewElement(variable, expression, StructureElementType.TABLE));
                     } else {
@@ -151,16 +187,36 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
             }
             return res;
         }
+*/
+    }
+
+    @NotNull
+    private Collection<StructureViewTreeElement> processChildren(PsiElement content) {
+        final Collection<StructureViewTreeElement> res = new ArrayList<>();
+        for (PsiElement child : content.getChildren()) {
+            if (child instanceof QImport) {
+                final QImport qImport = (QImport) child;
+                res.add(new QStructureViewElement(child, StructureElementType.LOAD, qImport.getFilePath()));
+            } else if (child instanceof QCommand) {
+//                res.add(new QStructureViewElement(child, StructureElementType.COMMAND));
+            }
+        }
+        return res;
     }
 
     private @NotNull Collection<StructureViewTreeElement> getTableElements(QTableExpr tbl) {
-        final QTableColumns keys = tbl.getKeys();
-        final QTableColumns values = tbl.getValues();
-        return Stream.of(keys, values)
+        return Stream.concat(
+                collectColumns(tbl.getKeys(), StructureElementType.TABLE_KEY_COLUMN),
+                collectColumns(tbl.getValues(), StructureElementType.TABLE_VALUE_COLUMN)
+        ).collect(Collectors.toList());
+    }
+
+    @NotNull
+    private Stream<StructureViewTreeElement> collectColumns(QTableColumns columns, StructureElementType type) {
+        return Stream.of(columns)
                 .filter(Objects::nonNull)
                 .flatMap(v -> v.getColumns().stream())
                 .filter(v -> v.getVarDeclaration() != null)
-                .map(v -> new QStructureViewElement(v.getVarDeclaration(), v.getExpression(), StructureElementType.TABLE_KEY_COLUMN))
-                .collect(Collectors.toList());
+                .map(v -> new QStructureViewElement(v.getVarDeclaration(), type, v.getVarDeclaration().getName()));
     }
 }
