@@ -125,7 +125,7 @@ BinaryFunction=(and|xasc|asof|mavg|wavg|bin|binr|mcount|xcol|
 ComplexFunction=(aj|aj0|ajf|ajf0|ej|ssr|wj|wj1)
 
 CommandName="\\"(\w+|[12\\])
-CommandArguments=\w+
+CommandArguments=[^\r\n]+
 
 TypeCast=(("`"\w*)|("\""\w*"\""))"$"
 
@@ -234,15 +234,14 @@ Vactor={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 
 <COMMAND_CONTEXT_STATE> {
   {LineSpace}+                               { return WHITE_SPACE; }
-  {Variable}                          { return VARIABLE_PATTERN;}
+  {Variable}                                 { return VARIABLE_PATTERN;}
   {LineBreak}                                { yybegin(YYINITIAL); return LINE_BREAK; }
 }
 
 <COMMAND_SYSTEM_STATE> {
   {LineBreak}                                { yybegin(YYINITIAL); return LINE_BREAK; }
   {WhiteSpace}+"/".*                         { yybegin(YYINITIAL); return LINE_COMMENT; }
-  {WhiteSpace}                               { return WHITE_SPACE; }
-  {CommandArguments}                      { return COMMAND_ARGUMENTS;}
+  {CommandArguments}                         { return COMMAND_ARGUMENTS;}
 }
 
 <COMMENT_ALL_STATE> {
@@ -250,17 +249,17 @@ Vactor={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 }
 
 <COMMENT_BLOCK_STATE> {
-  ^"\\"/{LineBreak}+                        { yybegin(YYINITIAL); return BLOCK_COMMENT; }
-  .*{LineBreak}?                            { return BLOCK_COMMENT; }
+  ^"\\"/{LineBreak}+                         { yybegin(YYINITIAL); return BLOCK_COMMENT; }
+  .*{LineBreak}?                             { return BLOCK_COMMENT; }
 }
 
 <NEGATIVE_ATOM_STATE> {
-  {NegativeAtom}                           { yybegin(YYINITIAL); return SIGNED_ATOM; }
+  {NegativeAtom}                              { yybegin(YYINITIAL); return SIGNED_ATOM; }
 }
 
 <YYINITIAL> {
-  "("{LineSpace}*")"                         { return VECTOR; }
-  "("{LineSpace}*"::"{LineSpace}*")"        { return NILL; }
+  "("{LineSpace}*")"                          { return VECTOR; }
+  "("{LineSpace}*"::"{LineSpace}*")"          { return NILL; }
 
   "("                                         { openParen(); return PAREN_OPEN; }
   ")"                                         { closeParen(); return PAREN_CLOSE; }
@@ -303,45 +302,45 @@ Vactor={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   ^"\\"/{LineBreak}                           { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
   ^"/".*                                      { if (zzCurrentPos == 0 || zzBuffer.length() == zzCurrentPos || zzBuffer.charAt(zzCurrentPos - 1) == '\n' || zzBuffer.charAt(zzCurrentPos - 1) == '\r') { return LINE_COMMENT;} return ITERATOR; }
 
-  {LineBreak}+                               { finishQuery(); return LINE_BREAK; }
+  {LineBreak}+                                { finishQuery(); return LINE_BREAK; }
 
-  ^"\\l"/{LineSpace}+!{LineBreak}           { yybegin(COMMAND_IMPORT_STATE);  return COMMAND_IMPORT; }
-  "system"/{WhiteSpace}*"\"l "               { return FUNCTION_IMPORT; }
+  ^"\\l"/{LineSpace}+!{LineBreak}             { yybegin(COMMAND_IMPORT_STATE);  return COMMAND_IMPORT; }
+  "system"/{WhiteSpace}*"\"l "                { return FUNCTION_IMPORT; }
 
-  ^"\\d"/{LineSpace}+!{LineBreak}           { yybegin(COMMAND_CONTEXT_STATE); return COMMAND_CONTEXT; }
-  ^"\\d"/{LineBreak}                         { return COMMAND_CONTEXT; }
-  ^"\\d"/{WhiteSpace}                        { return COMMAND_CONTEXT; }
+  ^"\\d"/{LineSpace}+!{LineBreak}             { yybegin(COMMAND_CONTEXT_STATE); return COMMAND_CONTEXT; }
+  ^"\\d"/{LineBreak}                          { return COMMAND_CONTEXT; }
+  ^"\\d"/{WhiteSpace}                         { return COMMAND_CONTEXT; }
 
-  ^{CommandName}/{LineSpace}+!{LineBreak} { yybegin(COMMAND_SYSTEM_STATE); return COMMAND_SYSTEM; }
-  ^{CommandName}/{LineBreak}               { return COMMAND_SYSTEM; }
-  ^{CommandName}/{WhiteSpace}              { return COMMAND_SYSTEM; }
+  ^{CommandName}/{LineSpace}+!{LineBreak}     { yybegin(COMMAND_SYSTEM_STATE); return COMMAND_SYSTEM; }
+  ^{CommandName}/{LineBreak}                  { return COMMAND_SYSTEM; }
+  ^{CommandName}/{WhiteSpace}                 { return COMMAND_SYSTEM; }
 
-  ^{ModePrefix}                             { return MODE_PATTERN; }
+  ^{ModePrefix}                               { return MODE_PATTERN; }
 
-  {TypeCast}                         { return TYPE_CAST_PATTERN; }
+  {TypeCast}                                  { return TYPE_CAST_PATTERN; }
 
   "-"[0-9]+"!"                                { return UNARY_FUNCTION; }
   [0-6]":"/{Iterator}                         { return BINARY_FUNCTION; }
   [0-6]":"/[^\[]                              { return BINARY_FUNCTION; }
 
-  {Symbol}                                   { return SYMBOL_PATTERN; }
-  {WhiteSpace}                               { return WHITE_SPACE; }
+  {Symbol}                                    { return SYMBOL_PATTERN; }
+  {WhiteSpace}                                { return WHITE_SPACE; }
 
-  {QueryType}                                { beginQuery(); return QUERY_TYPE; }
-  {QueryGroup}                               { return QUERY_BY; }
-  {QueryFrom}                                { finishQuery(); return QUERY_FROM; }
+  {QueryType}                                 { beginQuery(); return QUERY_TYPE; }
+  {QueryGroup}                                { return QUERY_BY; }
+  {QueryFrom}                                 { finishQuery(); return QUERY_FROM; }
 
-  {UnaryFunction}                            { return UNARY_FUNCTION; }
-  {BinaryFunction}                           { return BINARY_FUNCTION; }
-  {ComplexFunction}                          { return COMPLEX_FUNCTION; }
+  {UnaryFunction}                             { return UNARY_FUNCTION; }
+  {BinaryFunction}                            { return BINARY_FUNCTION; }
+  {ComplexFunction}                           { return COMPLEX_FUNCTION; }
 
-  {SignedAtom}                               { return SIGNED_ATOM; }
-  {UnsignedAtom}                             { return UNSIGNED_ATOM; }
+  {SignedAtom}                                { return SIGNED_ATOM; }
+  {UnsignedAtom}                              { return UNSIGNED_ATOM; }
   {Vactor}                                    { return VECTOR; }
-  {Char}                                { return CHAR; }
-  {Variable}                            { return VARIABLE_PATTERN; }
-  {String}                              |
-  {UnclosedString}                      { return STRING; }
+  {Char}                                      { return CHAR; }
+  {Variable}                                  { return VARIABLE_PATTERN; }
+  {String}                                    |
+  {UnclosedString}                            { return STRING; }
 }
 
 [^] { return BAD_CHARACTER; }

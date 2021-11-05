@@ -91,12 +91,6 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
             }
         }
         return indexes.toIntArray();
-
-/*
-        return ArrayUtil.mergeArrays(
-                new StringSearcher(":", false, true).findAllOccurrences(text),
-                new StringSearcher("`", false, true).findAllOccurrences(text));
-*/
     }
 
     private Map.Entry<String, IdentifierDescriptor> processSymbol(LighterASTNode node, CharSequence text) {

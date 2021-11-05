@@ -46,11 +46,7 @@ public final class QPsiUtil {
                     return true;
                 }
                 final PsiElement el1 = PsiTreeUtil.skipWhitespacesAndCommentsForward(declaration);
-                if (el1 != null) {
-                    final PsiElement el2 = PsiTreeUtil.skipWhitespacesAndCommentsForward(el1);
-                    return QPsiUtil.isColon(el1) && QPsiUtil.isColon(el2);
-                }
-                return false;
+                return el1 instanceof QAssignmentType && "::".equals(el1.getText());
         }
         return false;
     }

@@ -30,7 +30,7 @@ public class SystemFunctionsMarkerProvider extends RelatedItemLineMarkerProvider
             final NavigationGutterIconBuilder<PsiElement> builder =
                     NavigationGutterIconBuilder.create(AllIcons.Gutter.OverridenMethod)
                             .setTargets(variable)
-                            .setTooltipText("System function is overriden");
+                            .setTooltipText("System function is overridden");
             result.add(builder.createLineMarkerInfo(variable.getFirstChild()));
         }
     }

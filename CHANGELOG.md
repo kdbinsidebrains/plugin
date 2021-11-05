@@ -2,6 +2,25 @@
 
 # KdbInsideBrains Changelog
 
+## [0.14.0]
+
+### Changed
+
+- Grammar has been fully redesigned and performance has been significantly improved for nested expressions
+- StructureView has been updated as well: a variable type is show based on assignment expression
+- Files importing has been redesigned and improved. The 'system l' construction supports files refactoring now.
+- Supporting version upgraded to 2021.2.3
+
+### Fixed
+
+- Auto-Reconnection logic executes the query, not just does reconnection
+- auto-completion has been disabled for parameter names
+
+### Added
+
+- Symbols indexing has been added but not injected in dependency logic yet
+- Auto-popup has been added for importing files for both, '\l ' and 'system l' constructions
+
 ## [0.13.0]
 
 ### Added
