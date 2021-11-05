@@ -4,36 +4,36 @@ import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.structureView.impl.common.PsiTreeElementBase;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.*;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
+    private final String text;
     private final PsiElement content;
     private final StructureElementType type;
 
+
     protected QStructureViewElement(PsiFile file) {
-        this(file, StructureElementType.FILE);
+        this(file, StructureElementType.FILE, file.getName(), file);
     }
 
-    protected QStructureViewElement(PsiElement reference, StructureElementType type) {
-        this(reference, reference, type);
+    private QStructureViewElement(PsiElement element, StructureElementType type, String text) {
+        this(element, type, text, null);
     }
 
-    protected QStructureViewElement(PsiElement reference, PsiElement content, StructureElementType type) {
-        super(reference);
+    private QStructureViewElement(PsiElement element, StructureElementType type, String text, PsiElement content) {
+        super(element);
         this.type = type;
+        this.text = text;
         this.content = content;
-    }
-
-    public StructureElementType getType() {
-        return type;
     }
 
     @Override
@@ -42,133 +42,105 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
     }
 
     @Override
-    public String getPresentableText() {
-        final PsiElement element = getElement();
-        if (content == null || element == null) {
-            return null;
-        }
-
-        if (content instanceof QFile) {
-            return ((QFile) content).getName();
-        }
-        if (content instanceof QImport) {
-            return content.getText();
-        }
-        if (content instanceof QCommand) {
-            return content.getText();
-        }
-        if (content instanceof QContext) {
-            final QVarDeclaration variable = ((QContext) content).getVariable();
-            return variable != null ? variable.getText() : "\\d";
-        }
-        if (content instanceof QTable || content instanceof QVariable) {
-            return ((QVariable) element).getQualifiedName();
-        }
-        if (content instanceof QLambda) {
-            final QParameters parameters = ((QLambda) content).getParameters();
-            if (parameters == null) {
-                return ((QVariable) element).getQualifiedName() + "[]";
-            }
-
-            final String collect = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
-            return ((QVariable) element).getQualifiedName() + "[" + collect + "]";
-        }
-        if (content instanceof QExpression) {
-            return ((QVariable) element).getQualifiedName() + ": " + getVariableType((QExpression) content);
-        }
-
-        return element.getClass().getSimpleName();
+    public @Nullable String getPresentableText() {
+        return text;
     }
 
-    private String getVariableType(QExpression expression) {
-        final PsiElement firstChild = expression.getFirstChild();
-        final PsiElement lastChild = expression.getLastChild();
-
-        if (firstChild instanceof QTypeCast && lastChild instanceof QList) {
-            return QPsiUtil.getTypeCast((QTypeCast) firstChild);
-        }
-
-        if (firstChild == lastChild) {
-            if (firstChild instanceof QList) {
-                return "list";
-            }
-            if (firstChild instanceof QQuery) {
-                return "query";
-            }
-            if (firstChild instanceof QInvoke) {
-                return "invoke";
-            }
-            if (firstChild instanceof LeafPsiElement) {
-                return ((LeafPsiElement) firstChild).getElementType().toString();
-            }
-            if (firstChild instanceof QPsiElement) {
-                return firstChild.getClass().getSimpleName().toLowerCase();
-            }
-            return "undefined";
-        }
-        return "expression";
+    public StructureElementType getType() {
+        return type;
     }
 
     @Override
     public @NotNull Collection<StructureViewTreeElement> getChildrenBase() {
-        if (type == StructureElementType.LOAD || type == StructureElementType.COMMAND || type == StructureElementType.VARIABLE) {
+        if (content == null || type == StructureElementType.LOAD || type == StructureElementType.COMMAND || type == StructureElementType.VARIABLE) {
             return List.of();
         }
 
-        if (type == StructureElementType.TABLE) {
-            return getTableElements((QTable) content);
-        } else {
-            Collection<StructureViewTreeElement> res = new ArrayList<>();
-            for (PsiElement child : content.getChildren()) {
-                if (child instanceof QImport) {
-                    res.add(new QStructureViewElement(child, StructureElementType.LOAD));
-                } else if (child instanceof QCommand) {
-                    res.add(new QStructureViewElement(child, StructureElementType.COMMAND));
-                } else if (child instanceof QContext) {
-                    res.add(new QStructureViewElement(child, StructureElementType.CONTEXT));
-                } else if (child instanceof QExpression) {
-                    final QExpression ex = (QExpression) child;
-                    final List<QVariableAssignment> assignments = ex.getVariableAssignmentList();
-                    for (QVariableAssignment assignment : assignments) {
-                        final QVarDeclaration variable = assignment.getVariable();
-                        if (!QPsiUtil.isGlobalDeclaration(variable)) {
-                            continue;
-                        }
-
-                        final QExpression expression = assignment.getExpression();
-                        if (expression == null) {
-                            continue;
-                        }
-
-                        if (!expression.getLambdaList().isEmpty()) {
-                            res.add(new QStructureViewElement(variable, expression.getLambdaList().get(0), StructureElementType.LAMBDA));
-                        } else if (!expression.getTableList().isEmpty()) {
-                            res.add(new QStructureViewElement(variable, expression.getTableList().get(0), StructureElementType.TABLE));
-                        } else {
-                            res.add(new QStructureViewElement(variable, expression, StructureElementType.VARIABLE));
-                        }
-                    }
-                }
-            }
-            return res;
+        if (content instanceof QTableExpr) {
+            return getTableElements((QTableExpr) content);
         }
+        return processChildren(content);
     }
 
-    private @NotNull Collection<StructureViewTreeElement> getTableElements(QTable tbl) {
-        final QKeyColumns keys = tbl.getKeyColumns();
-        final QValueColumns values = tbl.getValueColumns();
+    private @NotNull Collection<StructureViewTreeElement> processChildren(PsiElement content) {
+        return Stream.of(content.getChildren()).map(this::createChildElement).filter(Objects::nonNull).collect(Collectors.toList());
+    }
 
-        Collection<StructureViewTreeElement> res = new ArrayList<>();
-        if (keys != null) {
-            for (QTableColumn column : keys.getColumns()) {
-                res.add(new QStructureViewElement(column.getVariable(), column.getExpression(), StructureElementType.TABLE_KEY_COLUMN));
+    private @Nullable QStructureViewElement createChildElement(PsiElement child) {
+        if (child instanceof QImport) {
+            final QImport qImport = (QImport) child;
+            return new QStructureViewElement(child, StructureElementType.LOAD, qImport.getFilePath());
+        } else if (child instanceof QCommand) {
+            return new QStructureViewElement(child, StructureElementType.COMMAND, child.getText());
+        } else if (child instanceof QContext) {
+            final QContext context = (QContext) child;
+            final QContextBody body = context.getContextBody();
+            final QVarDeclaration nameVar = context.getVariable();
+            if (nameVar != null) {
+                return new QStructureViewElement(nameVar, StructureElementType.CONTEXT, nameVar.getName(), body);
+            } else {
+                return new QStructureViewElement(context, StructureElementType.CONTEXT, ".", body);
+            }
+        } else if (child instanceof QAssignmentExpr) {
+            final QAssignmentExpr assignment = (QAssignmentExpr) child;
+            final QVarDeclaration variable = assignment.getVarDeclaration();
+            if (variable == null || !QPsiUtil.isGlobalDeclaration(variable)) {
+                return null;
+            }
+
+            final QExpression expression = assignment.getExpression();
+            if (expression == null) {
+                return null;
+            }
+
+            String name = variable.getQualifiedName();
+            if (expression instanceof QLambdaExpr) {
+                final QLambdaExpr lambda = (QLambdaExpr) expression;
+                final QParameters parameters = lambda.getParameters();
+                if (parameters == null) {
+                    name += "[]";
+                } else {
+                    final String collect = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
+                    name += "[" + collect + "]";
+                }
+                return new QStructureViewElement(variable, StructureElementType.LAMBDA, name, lambda.getExpressions());
+            } else if (expression instanceof QTableExpr) {
+                return new QStructureViewElement(variable, StructureElementType.TABLE, name, expression);
+            } else {
+                name += ": " + getVariableType(expression);
+                return new QStructureViewElement(variable, StructureElementType.VARIABLE, name);
             }
         }
-        if (values != null) {
-            for (QTableColumn column : values.getColumns()) {
-                res.add(new QStructureViewElement(column.getVariable(), column.getExpression(), StructureElementType.TABLE_VALUE_COLUMN));
-            }
+        return null;
+    }
+
+    private String getVariableType(QExpression expression) {
+        if (expression instanceof QTypeCastExpr) {
+            return QPsiUtil.getTypeCast((QTypeCastExpr) expression);
         }
-        return res;
+
+        if (expression instanceof QLiteralExpr) {
+            return "literal";
+        }
+        if (expression instanceof QQueryExpr) {
+            return "query";
+        }
+        return "expression";
+    }
+
+    private @NotNull Collection<StructureViewTreeElement> getTableElements(QTableExpr tbl) {
+        return Stream.concat(
+                collectColumns(tbl.getKeys(), StructureElementType.TABLE_KEY_COLUMN),
+                collectColumns(tbl.getValues(), StructureElementType.TABLE_VALUE_COLUMN)
+        ).collect(Collectors.toList());
+    }
+
+    @NotNull
+    private Stream<StructureViewTreeElement> collectColumns(QTableColumns columns, StructureElementType type) {
+        return Stream.of(columns)
+                .filter(Objects::nonNull)
+                .flatMap(v -> v.getColumns().stream())
+                .filter(v -> v.getVarDeclaration() != null)
+                .map(v -> new QStructureViewElement(v.getVarDeclaration(), type, v.getVarDeclaration().getName()));
     }
 }

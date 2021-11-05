@@ -67,7 +67,7 @@ public final class QFindUsagesProvider implements FindUsagesProvider {
     @Deprecated
     public static String getDescriptiveName(@NotNull QVariable element) {
         final String fqnOrName = element.getQualifiedName();
-        return getFunctionDefinition(element).map((QLambda lambda) -> {
+        return getFunctionDefinition(element).map((QLambdaExpr lambda) -> {
             final QParameters lambdaParams = lambda.getParameters();
             final String paramsText = Optional.ofNullable(lambdaParams)
                     .map(QParameters::getVariables)
@@ -78,10 +78,10 @@ public final class QFindUsagesProvider implements FindUsagesProvider {
     }
 
     @Deprecated
-    public static Optional<QLambda> getFunctionDefinition(@NotNull QVariable element) {
+    public static Optional<QLambdaExpr> getFunctionDefinition(@NotNull QVariable element) {
         final QExpression expression = PsiTreeUtil.getNextSiblingOfType(element, QExpression.class);
-        if (expression != null && expression.getFirstChild() instanceof QLambda) {
-            return Optional.of((QLambda) expression.getFirstChild());
+        if (expression != null && expression.getFirstChild() instanceof QLambdaExpr) {
+            return Optional.of((QLambdaExpr) expression.getFirstChild());
         }
         return Optional.empty();
     }

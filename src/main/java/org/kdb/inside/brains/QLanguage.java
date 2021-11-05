@@ -1,6 +1,7 @@
 package org.kdb.inside.brains;
 
 import com.intellij.lang.Language;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,6 +35,11 @@ public final class QLanguage extends Language {
         systemFunctions.put("\\", loadCompletionItems("commands", QWord.Type.COMMAND));
 
         concat(keywords.stream(), systemFunctions.values().stream().flatMap(Collection::stream)).forEach(w -> words.put(w.getName(), w));
+    }
+
+    @Override
+    public @NotNull String getDisplayName() {
+        return "KDB+ Q";
     }
 
     public static QWord getWord(String name) {

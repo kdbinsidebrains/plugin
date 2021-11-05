@@ -39,8 +39,8 @@ public final class KdbColorSettingsPage implements RainbowColorSettingsPage, Col
     }
 
     @Override
-    public String getDisplayName() {
-        return "KDB+ Q";
+    public @NotNull String getDisplayName() {
+        return QLanguage.INSTANCE.getDisplayName();
     }
 
     @Override
@@ -49,12 +49,12 @@ public final class KdbColorSettingsPage implements RainbowColorSettingsPage, Col
     }
 
     @Override
-    public SyntaxHighlighter getHighlighter() {
+    public @NotNull SyntaxHighlighter getHighlighter() {
         return new QSyntaxHighlighter();
     }
 
     @Override
-    public String getDemoText() {
+    public @NotNull String getDemoText() {
         // @formatter:off
         return "\\c 100 200\n" +
                 "\\l file.q\n" +

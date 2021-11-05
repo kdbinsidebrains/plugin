@@ -102,7 +102,6 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
     @Override
     public @NotNull Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
         if (DataFlavor.stringFlavor.equals(flavor)) {
-            // TODO: return full URI here
             return toTransferableSymbol();
         }
         return super.getTransferData(flavor);

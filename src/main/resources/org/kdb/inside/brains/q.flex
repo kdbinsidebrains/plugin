@@ -17,8 +17,57 @@ import static org.kdb.inside.brains.psi.QTypes.*;
 %eof}
 
 %{
+    private int parensCount = 0;
+    private int bracesCount = 0;
+    private boolean queryParsing = false;
+
     public QLexer() {
         this(null);
+    }
+
+    public void beginQuery() {
+        queryParsing = true;
+    }
+
+    public void finishQuery() {
+        queryParsing = false;
+    }
+
+    public void openParen() {
+        if (queryParsing) {
+            parensCount++;
+        }
+    }
+
+    public void closeParen() {
+        if (queryParsing) {
+            parensCount--;
+        }
+    }
+
+    public void openBrace() {
+        if (queryParsing) {
+            bracesCount++;
+        }
+    }
+
+    public void closeBrace() {
+        if (queryParsing) {
+            bracesCount--;
+        }
+    }
+
+    public boolean isQuerySplitter() {
+        return queryParsing && parensCount == 0 && bracesCount == 0;
+    }
+
+    public boolean isNegativeSign() {
+        if (getTokenStart() == 0) {
+            return true;
+        }
+        final char ch = yycharat(-1);
+        // Any whitespace before - it's negative sing. If's also negative if it goes aftyer any brakes
+        return Character.isWhitespace(ch) || ch == '[' || ch == '(' || ch == '{';
     }
 
     public static com.intellij.lexer.Lexer newLexer() {
@@ -27,30 +76,36 @@ import static org.kdb.inside.brains.psi.QTypes.*;
 %}
 
 // Patterns
-LINE_SPACE=[\ \t\f]
-LINE_BREAK=\r\n|\r|\n|<<eof>>
-WHITE_SPACE=({LINE_SPACE}|{LINE_BREAK})*{LINE_SPACE}+
+LineSpace=[\ \t\f]
+LineBreak=\r\n|\r|\n|<<eof>>
+WhiteSpace=({LineSpace}|{LineBreak})*{LineSpace}+
 
 // Changing anything - don't forget update QLanguage
-OPERATOR=[!%&#<=>@_~\?\.\*\+\^\|\$\-]
-ITERATOR=("/": | \\: | ': | "/" | \\ | ' )
+Iterator=("/": | \\: | ': | "/" | \\ | ' )
 
-MODE_PATTERN=[a-zA-Z]")"
-FILE_PATH_PATTERN=[^|?*<\">+\[\]'\n\r\ \t\f]+
-VARIABLE_PATTERN=[\.a-zA-Z][\._a-zA-Z0-9]*
-COMMAND_ARGS_PATTERN=[^\ \t\f\r\n][^\r\n]*
+OperatorEquality=(\~ | = | <>)
+OperatorOrder=(<= | >= | < | >)
+OperatorArithmetic=[\+\-\*%]
+OperatorWeight=[&\|]
+OperatorOthers=[!#@_\?\.\^\$]
+Operator={OperatorEquality}|{OperatorOrder}|{OperatorArithmetic}|{OperatorWeight}|{OperatorOthers}
+
+ModePrefix=[a-zA-Z]")"
+Variable=[\.a-zA-Z][\._a-zA-Z0-9]*
+FilePath=[^|?*<\">+\[\]'\n\r\ \t\f]+
 
 // Keywords and system commands
 // Changing anything - don't forget update QLanguage
-CONTROL_PATTERN=(if|do|while)
-CONDITION_PATTERN=":"|"?"|"$"|"@"|"." // ":" is from k3
+ControlKeyword=(if|do|while)
+ConditionKeyword=":"|"?"|"$"|"@"|"."|"!" // ":" is from k3
+
 // QSQL supporting
-QUERY_TYPE=(select|exec|update|delete)
-QUERY_BY=(by)
-QUERY_FROM=(from)
+QueryType=(select|exec|update|delete)
+QueryGroup=(by)
+QueryFrom=(from)
 
 // (abs x) or abs[x]
-UNARY_FUNCTION=(abs|all|any|asc|iasc|attr|avg|avgs|ceiling|count|
+UnaryFunction=(abs|all|any|asc|iasc|attr|avg|avgs|ceiling|count|
     cols|cos|acos|deltas|desc|idesc|dev|sdev|differ|distinct|
     enlist|eval|reval|exit|exp|first|last|fkeys|flip|floor|
     get|getenv|group|gtime|ltime|hcount|hdel|hopen|hclose|hsym|
@@ -58,94 +113,106 @@ UNARY_FUNCTION=(abs|all|any|asc|iasc|attr|avg|avgs|ceiling|count|
     mins|neg|next|prev|not|null|parse|prd|prds|rand|rank|ratios|
     raze|read0|read1|reciprocal|reverse|save|rsave|show|signum|sin|
     asin|sqrt|string|sum|sums|system|tables|tan|atan|til|trim|ltrim|rtrim|
-    type|value|var|svar|view|views|where)
+    type|value|var|svar|view|views|where|fills)
 
 // and[x;y] or (x and y)
-BINARY_FUNCTION=(and|xasc|asof|mavg|wavg|bin|binr|mcount|xcol|
+BinaryFunction=(and|xasc|asof|mavg|wavg|bin|binr|mcount|xcol|
     xcols|cor|cov|scov|cross|csv|xdesc|mdev|div|dsave|each|peach|ema|except|xexp|fby|set|setenv|
     ij|ijf|in|insert|inter|xkey|like|lj|ljf|xlog|lsq|mmax|mmin|mmu|mod|xprev|or|over|scan|pj|prior|
     rotate|ss|sublist|msum|wsum|sv|uj|ujf|union|ungroup|upsert|vs|within|xbar|xgroup|xrank)
 
 // ej[c;t1;t2]
-COMPLEX_FUNCTION=(aj|aj0|ajf|ajf0|ej|ssr|wj|wj1)
+ComplexFunction=(aj|aj0|ajf|ajf0|ej|ssr|wj|wj1)
 
-COMMAND_PATTERN="\\"(\w+|[12\\])
-//COMMAND_PATTERN="\\"([abBcCdeEfglopPrsStTuvwWxz12_\\]|ts|cd|\w+)
+CommandName="\\"(\w+|[12\\])
+CommandArguments=[^\r\n]+
 
-TYPE_CAST_PATTERN=(("`"\w*)|("\""\w*"\""))"$"
+TypeCast=(("`"\w*)|("\""\w*"\""))"$"
 
-INT_CODE=[ihjfepnuvt]
-FLOAT_CODE=[fe]
-TIME_CODE=[uvt]
-DATETIME_CODE=[mdz]
-TIMESTAMP_CODE=[pn]
-GUID_CODE="g"
+IntCode=[ihjfepnuvt]
+FloatCode=[fe]
+TimeCode=[uvt]
+DatetimeCode=[mdz]
+TimestampCode=[pn]
+GuidCode="g"
 
-NULL=0[Nn]
-INFINITY=-?0[iIwW]
+Null=0[Nn]
+Infinity=-?0[iIwW]
 
-BYTE_CHAR=[[:digit:]A-Fa-f]
-BYTE="0x"{BYTE_CHAR}{BYTE_CHAR}?
-BYTE_LIST=("0x"{BYTE_CHAR}{2}{BYTE_CHAR}+)
+ByteLetter=[[:digit:]A-Fa-f]
+Byte="0x"{ByteLetter}{ByteLetter}?
+ByteList=("0x"{ByteLetter}{2}{ByteLetter}+)
 
-BOOLEAN=[01]"b"
-BOOLEAN_LIST=([01][01]+"b")
+Boolean=[01]"b"
+BooleanList=([01][01]+"b")
 
-INTEGER=-?(0|[1-9][0-9]*)
-INTEGER_ITEM=({INTEGER}|{NULL}|{INFINITY})
-INTEGER_LIST=({INTEGER_ITEM}({WHITE_SPACE}{INTEGER_ITEM})+{INT_CODE}?)
+IntegerAtom=(0|[1-9][0-9]*)
+//INTEGER=-?(0|[1-9][0-9]*)
+Integer=-?({IntegerAtom}|{Null}|{Infinity})
+IntegerList=({Integer}({WhiteSpace}{Integer})+{IntCode}?)
 
-FLOAT_ALL={INTEGER}(\.[0-9]*)|(\.[0-9]+)
-FLOAT_EXP={INTEGER}(\.[0-9]+)?([eE][+-]?[0-9]*)
-FLOAT_ITEM={INTEGER}|{FLOAT_ALL}|{FLOAT_EXP}|{NULL}|{INFINITY}
-FLOAT_LIST=({FLOAT_ITEM}({WHITE_SPACE}{FLOAT_ITEM})+{FLOAT_CODE}?)
+FloatDigAtom={IntegerAtom}(\.[0-9]*)|(\.[0-9]+)
+FloatExpAtom={IntegerAtom}(\.[0-9]+)?([eE][+-]?[0-9]*)
+Float=-?({IntegerAtom}|{FloatDigAtom}|{FloatExpAtom}|{Null}|{Infinity})
+FloatList=({Float}({WhiteSpace}{Float})+{FloatCode}?)
 
-MONTH=[:digit:]{4}\.[:digit:]{2}
-MONTH_ITEM={MONTH}|{NULL}|{INFINITY}
-MONTH_LIST=({MONTH_ITEM}({WHITE_SPACE}{MONTH_ITEM})+"m"?)
+MonthAtom=[:digit:]{4}\.[:digit:]{2}
+//MONTH=-?[:digit:]{4}\.[:digit:]{2}
+Month=-?({MonthAtom}|{Null}|{Infinity})
+MonthList=({Month}({WhiteSpace}{Month})+"m"?)
 
-TIME=[:digit:]+(\:[:digit:]{2}(\:[0-5][:digit:](\.[:digit:]+)?)?)?
-TIME_ITEM={INTEGER}|{NULL}|{MINUTE}|{SECOND}|{TIME}|{INFINITY}
-TIME_LIST=({TIME_ITEM}({WHITE_SPACE}{TIME_ITEM})+{TIME_CODE}?)
+TimeAtom=[:digit:]+(\:[:digit:]{2}(\:[0-5][:digit:](\.[:digit:]+)?)?)?
+//TIME=-?[:digit:]+(\:[:digit:]{2}(\:[0-5][:digit:](\.[:digit:]+)?)?)?
+Time=-?({IntegerAtom}|{Null}|{MinuteAtom}|{SecondAtom}|{TimeAtom}|{Infinity})
+TimeList=({Time}({WhiteSpace}{Time})+{TimeCode}?)
 
-DATE={MONTH}\.[:digit:]{2}
-DATE_ITEM={DATE}|{NULL}|{INFINITY}
-DATE_LIST=({DATE_ITEM}({WHITE_SPACE}{DATE_ITEM})+"d"?)
+DateAtom={MonthAtom}\.[:digit:]{2}
+Date={DateAtom}|{Null}|{Infinity}
+DateList=({Date}({WhiteSpace}{Date})+"d"?)
 
-DATETIME={DATE}"T"{TIME}
-DATETIME_ITEM={DATETIME}|{DATE}|{NULL}|{INFINITY}
-DATETIME_LIST=({DATETIME_ITEM}({WHITE_SPACE}{DATETIME_ITEM})+"z"?)
+DatetimeAtom={DateAtom}"T"{TimeAtom}
+Datetime=-?({DatetimeAtom}|{DateAtom}|{Null}|{Infinity})
+DatetimeList=({Datetime}({WhiteSpace}{Datetime})+"z"?)
 
-TIMESTAMP=-?{DATE}("D"{TIME})?
-TIMESPAN={INTEGER}"D"({TIME})?
-TIMESTAMP_ITEM={TIMESTAMP}|{TIMESPAN}|{FLOAT_ALL}|{TIME_ITEM}
-TIMESTAMP_LIST=({TIMESTAMP_ITEM}({WHITE_SPACE}{TIMESTAMP_ITEM})+{TIMESTAMP_CODE}?)
+//TIMESTAMP=-?{DATE}("D"{TIME})?
+TimestampAtom={DateAtom}("D"{TimeAtom})?
+TimespanAtom={IntegerAtom}"D"({TimeAtom})?
+Timestamp=-?({TimestampAtom}|{TimespanAtom}|{FloatDigAtom}|{Time})
+TimestampList=({Timestamp}({WhiteSpace}{Timestamp})+{TimestampCode}?)
 
-MINUTE=[:digit:]{2,3}\:[0-5][:digit:]
-MINUTE_LIST=({MINUTE}({WHITE_SPACE}{MINUTE})+)
+MinuteAtom=[:digit:]{2,3}\:[0-5][:digit:]
+//MINUTE=-?[:digit:]{2,3}\:[0-5][:digit:]
+Minute=-?{MinuteAtom}
+MinuteList={Minute}({WhiteSpace}{Minute})+
 
-SECOND={MINUTE}\:[0-5][:digit:]
-SECOND_LIST=({SECOND}({WHITE_SPACE}{SECOND})+)
+//SECOND=-?{MINUTE}\:[0-5][:digit:]
+SecondAtom={MinuteAtom}\:[0-5][:digit:]
+Second=-?{SecondAtom}
+SecondList=({Second}({WhiteSpace}{Second})+)
 
-CH=([^\\\"]|\\[^\ \t])
-CHAR=\"{CH}\"
-STRING=(\"\"|\"{CH}{CH}+\")
+CharAtom=([^\\\"]|\\[^\ \t])
+Char=\"{CharAtom}\"
+UnclosedString        = \"[^\"]*
+String                = {UnclosedString}\"
+//String=(\"\"|\"{CharAtom}{CharAtom}+\")
 
-SYMBOL_PATTERN="`"([.:/_a-zA-Z0-9]+)?
+Symbol="`"[.:/_a-zA-Z0-9]*
 
-ATOM={BOOLEAN}|{BYTE}|
-    {INTEGER}{INT_CODE}?|
-    ({FLOAT_ALL}|{FLOAT_EXP}){FLOAT_CODE}?|
-    ({INFINITY}|{NULL})({INT_CODE}|{DATETIME_CODE})?|
-    {NULL}{GUID_CODE}|
-    ({TIMESTAMP}|{TIMESPAN}|{FLOAT_ALL}){TIMESTAMP_CODE}?|
-    ({MINUTE}|{SECOND}|{TIME}){TIME_CODE}?|
-    {DATE}[dz]?|
-    {DATETIME}"z"?|
-    {MONTH}"m"?
+SignedAtom=
+    {IntegerAtom}{IntCode}?|
+    ({FloatDigAtom}|{FloatExpAtom}){FloatCode}?|
+    {DatetimeAtom}"z"?|
+    {MonthAtom}"m"?|
+    ({TimestampAtom}|{TimespanAtom}|{FloatDigAtom}){TimestampCode}?|
+    ({MinuteAtom}|{SecondAtom}|{TimeAtom}){TimeCode}?|
+    ({Infinity}|{Null})({IntCode}|{DatetimeCode})?
 
-VECTOR={BOOLEAN_LIST}|{BYTE_LIST}|{INTEGER_LIST}|{FLOAT_LIST}|
-    {TIMESTAMP_LIST}|{TIME_LIST}|{MONTH_LIST}|{DATE_LIST}|{DATETIME_LIST}|{MINUTE_LIST}|{SECOND_LIST}
+UnsignedAtom={Boolean}|{Byte}|{Null}{GuidCode}|{DateAtom}[dz]?
+
+NegativeAtom="-"{SignedAtom}
+
+Vactor={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
+    {TimestampList}|{TimeList}|{MonthList}|{DateList}|{DatetimeList}|{MinuteList}|{SecondList}
 
 %state MODE_STATE
 %state ITERATOR_STATE
@@ -155,100 +222,125 @@ VECTOR={BOOLEAN_LIST}|{BYTE_LIST}|{INTEGER_LIST}|{FLOAT_LIST}|
 %state COMMENT_ALL_STATE
 %state COMMENT_BLOCK_STATE
 %state DROP_CUT_STATE
+%state NEGATIVE_ATOM_STATE
 
 %%
 
 <COMMAND_IMPORT_STATE> {
-  {LINE_SPACE}                                { return LINE_SPACE; }
-  {FILE_PATH_PATTERN}                         { return FILE_PATH_PATTERN; }
-  {LINE_BREAK}                                { yybegin(YYINITIAL); return LINE_BREAK; }
+  {LineSpace}+                               { return WHITE_SPACE; }
+  {FilePath}                                 { return FILE_PATH_PATTERN; }
+  {LineBreak}                                { yybegin(YYINITIAL); return LINE_BREAK; }
 }
 
 <COMMAND_CONTEXT_STATE> {
-  {LINE_SPACE}                                { return LINE_SPACE; }
-  {VARIABLE_PATTERN}                          { return VARIABLE_PATTERN;}
-  {LINE_BREAK}                                { yybegin(YYINITIAL); return LINE_BREAK; }
+  {LineSpace}+                               { return WHITE_SPACE; }
+  {Variable}                                 { return VARIABLE_PATTERN;}
+  {LineBreak}                                { yybegin(YYINITIAL); return LINE_BREAK; }
 }
 
 <COMMAND_SYSTEM_STATE> {
-  {LINE_SPACE}                                { return LINE_SPACE; }
-  {COMMAND_ARGS_PATTERN}                      { return COMMAND_ARGUMENTS;}
-  {LINE_BREAK}                                { yybegin(YYINITIAL); return LINE_BREAK; }
+  {LineBreak}                                { yybegin(YYINITIAL); return LINE_BREAK; }
+  {WhiteSpace}+"/".*                         { yybegin(YYINITIAL); return LINE_COMMENT; }
+  {CommandArguments}                         { return COMMAND_ARGUMENTS;}
 }
 
 <COMMENT_ALL_STATE> {
-  .*{LINE_BREAK}?                             { return BLOCK_COMMENT; }
+  .*{LineBreak}?                             { return BLOCK_COMMENT; }
 }
 
 <COMMENT_BLOCK_STATE> {
-  ^"\\"/{LINE_BREAK}+                        { yybegin(YYINITIAL); return BLOCK_COMMENT; }
-  .*{LINE_BREAK}?                            { return BLOCK_COMMENT; }
+  ^"\\"/{LineBreak}+                         { yybegin(YYINITIAL); return BLOCK_COMMENT; }
+  .*{LineBreak}?                             { return BLOCK_COMMENT; }
+}
+
+<NEGATIVE_ATOM_STATE> {
+  {NegativeAtom}                              { yybegin(YYINITIAL); return SIGNED_ATOM; }
 }
 
 <YYINITIAL> {
-  "("{LINE_SPACE}*")"                         { return VECTOR; }
-  "("{LINE_SPACE}*"::"{LINE_SPACE}*")"        { return NILL; }
+  "("{LineSpace}*")"                          { return VECTOR; }
+  "("{LineSpace}*"::"{LineSpace}*")"          { return NILL; }
 
-  "("                                         { return PAREN_OPEN; }
-  ")"                                         { return PAREN_CLOSE; }
+  "("                                         { openParen(); return PAREN_OPEN; }
+  ")"                                         { closeParen(); return PAREN_CLOSE; }
   ";"                                         { return SEMICOLON; }
   "["                                         { return BRACKET_OPEN; }
   "]"                                         { return BRACKET_CLOSE; }
-  "{"                                         { return BRACE_OPEN; }
-  "}"                                         { return BRACE_CLOSE; }
+  "{"                                         { openBrace(); return BRACE_OPEN; }
+  "}"                                         { closeBrace(); return BRACE_CLOSE; }
   ":"                                         { return COLON; }
-  ","                                         { return COMMA; }
 
-  {OPERATOR}                                  { return OPERATOR;}
-  {ITERATOR}                                  { return ITERATOR; }
+  ","/{Iterator}                              { return ACCUMULATOR; }
+  // Special case - the comma is a splitter if it's inside a query (not not inside a lambda that's inside the query)
+  ","                                         { if(isQuerySplitter()) {return QUERY_SPLITTER; } else {return OPERATOR_COMMA;} }
 
-  {WHITE_SPACE}+"/".*                         { return LINE_COMMENT; }
-  {LINE_BREAK}+/{LINE_SPACE}*"/"              { return WHITE_SPACE; }
-  ^"/"/{LINE_BREAK}                           { yybegin(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
-  ^"\\"/{LINE_BREAK}                          { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
+  {NegativeAtom}                              { if (isNegativeSign()) { return SIGNED_ATOM; } else { yypushback(yylength() - 1); return OPERATOR_ARITHMETIC; } }
+
+  {ControlKeyword}/{WhiteSpace}*"["           { return CONTROL_KEYWORD; }
+  {ConditionKeyword}/{WhiteSpace}*"["         { return CONDITION_KEYWORD; }
+
+  {Iterator}/{NegativeAtom}                   { yybegin(NEGATIVE_ATOM_STATE); return ITERATOR; }
+  {WhiteSpace}/{NegativeAtom}                 { yybegin(NEGATIVE_ATOM_STATE); return WHITE_SPACE; }
+  {OperatorEquality}/{NegativeAtom}           { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_EQUALITY;}
+  {OperatorOrder}/{NegativeAtom}              { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_ORDER;}
+  {OperatorArithmetic}/{NegativeAtom}         { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_ARITHMETIC;}
+  {OperatorWeight}/{NegativeAtom}             { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_WEIGHT;}
+  {OperatorOthers}/{NegativeAtom}             { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_OTHERS;}
+
+  {Operator}/{Iterator}                       { return ACCUMULATOR; }
+  {Iterator}                                  { return ITERATOR; }
+
+  {OperatorEquality}                          { return OPERATOR_EQUALITY;}
+  {OperatorOrder}                             { return OPERATOR_ORDER;}
+  {OperatorArithmetic}                        { return OPERATOR_ARITHMETIC;}
+  {OperatorWeight}                            { return OPERATOR_WEIGHT;}
+  {OperatorOthers}                            { return OPERATOR_OTHERS;}
+
+  {WhiteSpace}+"/".*                          { return LINE_COMMENT; }
+  {LineBreak}+/{LineSpace}*"/"                { return WHITE_SPACE; }
+  ^"/"/{LineBreak}                            { yybegin(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
+  ^"\\"/{LineBreak}                           { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
   ^"/".*                                      { if (zzCurrentPos == 0 || zzBuffer.length() == zzCurrentPos || zzBuffer.charAt(zzCurrentPos - 1) == '\n' || zzBuffer.charAt(zzCurrentPos - 1) == '\r') { return LINE_COMMENT;} return ITERATOR; }
 
-  {LINE_BREAK}+                               { return LINE_BREAK; }
+  {LineBreak}+                                { finishQuery(); return LINE_BREAK; }
 
-  "-"/-[0-9]                                  { return OPERATOR;} // --6 -> 6
+  ^"\\l"/{LineSpace}+!{LineBreak}             { yybegin(COMMAND_IMPORT_STATE);  return COMMAND_IMPORT; }
+  "system"/{WhiteSpace}*"\"l "                { return FUNCTION_IMPORT; }
 
-  ^"\\l"/{LINE_SPACE}+!{LINE_BREAK}           { yybegin(COMMAND_IMPORT_STATE);  return COMMAND_IMPORT; }
-  "system"/{WHITE_SPACE}*"\"l "               { return FUNCTION_IMPORT; }
+  ^"\\d"/{LineSpace}+!{LineBreak}             { yybegin(COMMAND_CONTEXT_STATE); return COMMAND_CONTEXT; }
+  ^"\\d"/{LineBreak}                          { return COMMAND_CONTEXT; }
+  ^"\\d"/{WhiteSpace}                         { return COMMAND_CONTEXT; }
 
-  ^"\\d"/{LINE_SPACE}+!{LINE_BREAK}           { yybegin(COMMAND_CONTEXT_STATE); return COMMAND_CONTEXT; }
-  ^"\\d"/{LINE_BREAK}                         { return COMMAND_CONTEXT; }
-  ^"\\d"/{WHITE_SPACE}                        { return COMMAND_CONTEXT; }
+  ^{CommandName}/{LineSpace}+!{LineBreak}     { yybegin(COMMAND_SYSTEM_STATE); return COMMAND_SYSTEM; }
+  ^{CommandName}/{LineBreak}                  { return COMMAND_SYSTEM; }
+  ^{CommandName}/{WhiteSpace}                 { return COMMAND_SYSTEM; }
 
-  ^{COMMAND_PATTERN}/{LINE_SPACE}+!{LINE_BREAK} { yybegin(COMMAND_SYSTEM_STATE); return COMMAND_SYSTEM; }
-  ^{COMMAND_PATTERN}/{LINE_BREAK}               { return COMMAND_SYSTEM; }
-  ^{COMMAND_PATTERN}/{WHITE_SPACE}              { return COMMAND_SYSTEM; }
+  ^{ModePrefix}                               { return MODE_PATTERN; }
 
-  ^{MODE_PATTERN}                             { return MODE_PATTERN; }
+  {TypeCast}                                  { return TYPE_CAST_PATTERN; }
 
-  {TYPE_CAST_PATTERN}                         { return TYPE_CAST_PATTERN; }
+  "-"[0-9]+"!"                                { return UNARY_FUNCTION; }
+  [0-6]":"/{Iterator}                         { return BINARY_FUNCTION; }
+  [0-6]":"/[^\[]                              { return BINARY_FUNCTION; }
 
-  [0-6]":"/{ITERATOR}                         { return OPERATOR; }
-  [0-6]":"/[^\[]                              { return OPERATOR; }
+  {Symbol}                                    { return SYMBOL_PATTERN; }
+  {WhiteSpace}                                { return WHITE_SPACE; }
 
-  {CONTROL_PATTERN}/{WHITE_SPACE}*"["         { return CONTROL_PATTERN; }
-  {CONDITION_PATTERN}/{WHITE_SPACE}*"["       { return CONDITION_PATTERN; }
+  {QueryType}                                 { beginQuery(); return QUERY_TYPE; }
+  {QueryGroup}                                { return QUERY_BY; }
+  {QueryFrom}                                 { finishQuery(); return QUERY_FROM; }
 
-  {SYMBOL_PATTERN}                            { return SYMBOL_PATTERN; }
-  {WHITE_SPACE}                               { return WHITE_SPACE; }
+  {UnaryFunction}                             { return UNARY_FUNCTION; }
+  {BinaryFunction}                            { return BINARY_FUNCTION; }
+  {ComplexFunction}                           { return COMPLEX_FUNCTION; }
 
-  {QUERY_TYPE}                                { return QUERY_TYPE; }
-  {QUERY_BY}                                  { return QUERY_BY; }
-  {QUERY_FROM}                                { return QUERY_FROM; }
-
-  {UNARY_FUNCTION}                            { return UNARY_FUNCTION; }
-  {BINARY_FUNCTION}                           { return BINARY_FUNCTION; }
-  {COMPLEX_FUNCTION}                          { return COMPLEX_FUNCTION; }
-
-  {ATOM}                                      { return ATOM; }
-  {VECTOR}                                    { return VECTOR; }
-  {CHAR}                                      { return CHAR; }
-  {STRING}                                    { return STRING; }
-  {VARIABLE_PATTERN}                          { return VARIABLE_PATTERN; }
+  {SignedAtom}                                { return SIGNED_ATOM; }
+  {UnsignedAtom}                              { return UNSIGNED_ATOM; }
+  {Vactor}                                    { return VECTOR; }
+  {Char}                                      { return CHAR; }
+  {Variable}                                  { return VARIABLE_PATTERN; }
+  {String}                                    |
+  {UnclosedString}                            { return STRING; }
 }
 
 [^] { return BAD_CHARACTER; }

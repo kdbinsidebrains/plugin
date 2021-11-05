@@ -157,6 +157,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         b.gutterContentProvider(gutterProvider);
 
         console = b.build(project, QLanguage.INSTANCE);
+
         printToConsole("Kdb console for instance: " + connection.getName() + ".\n", ConsoleViewContentType.SYSTEM_OUTPUT);
 
         final SimpleToolWindowPanel consolePanel = new SimpleToolWindowPanel(false);

@@ -8,8 +8,8 @@ import com.intellij.psi.ResolveResult;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.QPsiUtil;
-import org.kdb.inside.brains.psi.QQuery;
-import org.kdb.inside.brains.psi.QTable;
+import org.kdb.inside.brains.psi.QQueryExpr;
+import org.kdb.inside.brains.psi.QTableExpr;
 import org.kdb.inside.brains.psi.QVarReference;
 
 public class UndefinedVariableInspection extends ElementInspection<QVarReference> {
@@ -28,11 +28,11 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
             return;
         }
 
-        if (variable.getContext(QQuery.class) != null) {
+        if (variable.getContext(QQueryExpr.class) != null) {
             return; // ignore every non-resolved variable as it may be referencing a column name
         }
 
-        if (variable.getContext(QTable.class) != null) {
+        if (variable.getContext(QTableExpr.class) != null) {
             return; // ignore every non-resolved variable as it may be referencing a column name
         }
 

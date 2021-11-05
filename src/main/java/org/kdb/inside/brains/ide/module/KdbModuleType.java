@@ -6,6 +6,7 @@ import com.intellij.openapi.module.ModuleTypeManager;
 import icons.KdbIcons;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.QLanguage;
 
 import javax.swing.*;
 
@@ -28,7 +29,7 @@ public class KdbModuleType extends ModuleType<KdbModuleBuilder> {
 
     @Override
     public @NotNull @Nls(capitalization = Nls.Capitalization.Title) String getName() {
-        return "KDB+ Q";
+        return QLanguage.INSTANCE.getDisplayName();
     }
 
     @Override

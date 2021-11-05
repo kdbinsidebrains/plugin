@@ -10,8 +10,8 @@ public final class QPsiUtil {
     private QPsiUtil() {
     }
 
-    public static String getTypeCast(QTypeCast cast) {
-        final String text = cast.getFirstChild().getText();
+    public static String getTypeCast(QTypeCastExpr cast) {
+        final String text = cast.getTypeCast().getText();
         final String name = text.charAt(0) == '`' ? text.substring(1, text.length() - 1) : text.substring(1, text.length() - 2);
         if (name.isEmpty()) {
             return "symbol";
@@ -26,7 +26,7 @@ public final class QPsiUtil {
     public static boolean isImplicitVariable(QVariable variable) {
         final String qualifiedName = variable.getQualifiedName();
         if (QVariable.IMPLICIT_VARS.contains(qualifiedName)) {
-            final QLambda enclosingLambda = variable.getContext(QLambda.class);
+            final QLambdaExpr enclosingLambda = variable.getContext(QLambdaExpr.class);
             return enclosingLambda != null && enclosingLambda.getParameters() == null;
         }
         return false;
@@ -46,11 +46,7 @@ public final class QPsiUtil {
                     return true;
                 }
                 final PsiElement el1 = PsiTreeUtil.skipWhitespacesAndCommentsForward(declaration);
-                if (el1 != null) {
-                    final PsiElement el2 = PsiTreeUtil.skipWhitespacesAndCommentsForward(el1);
-                    return QPsiUtil.isColon(el1) && QPsiUtil.isColon(el2);
-                }
-                return false;
+                return el1 instanceof QAssignmentType && "::".equals(el1.getText());
         }
         return false;
     }

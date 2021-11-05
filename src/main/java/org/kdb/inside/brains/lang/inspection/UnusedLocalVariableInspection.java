@@ -32,7 +32,7 @@ public class UnusedLocalVariableInspection extends ElementInspection<QVarDeclara
             return;
         }
 
-        final QLambda lambda = context.lambda();
+        final QLambdaExpr lambda = context.lambda();
 
         // TODO: What about QSymbol?
         final Collection<QVarReference> variables = PsiTreeUtil.findChildrenOfType(lambda, QVarReference.class);

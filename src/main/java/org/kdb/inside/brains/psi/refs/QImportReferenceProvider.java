@@ -1,7 +1,9 @@
 package org.kdb.inside.brains.psi.refs;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileSystemItem;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferenceSet;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
@@ -11,23 +13,19 @@ import java.util.Collection;
 
 import static java.util.Collections.emptyList;
 
-public class QImportReferenceProvider extends PsiReferenceProvider {
+public class QImportReferenceProvider extends QReferenceProvider<QImport> {
+    protected QImportReferenceProvider() {
+        super(QImport.class);
+    }
+
     @Override
-    public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context) {
-        if (!(element instanceof QImport)) {
+    protected PsiReference @NotNull [] getElementReferences(@NotNull QImport element, @NotNull ProcessingContext context) {
+        final TextRange range = element.getFilePathRange();
+        if (range.isEmpty()) {
             return PsiReference.EMPTY_ARRAY;
         }
 
-        final QImport imp = (QImport) element;
-        final TextRange range = imp.getFilepathRange();
-        if (range == null) {
-            return PsiReference.EMPTY_ARRAY;
-        }
-
-        final int startOffset = range.getStartOffset();
-        final String text = range.substring(element.getText()).trim();
-
-        return new FileReferenceSet(text, element, startOffset, null, true, false) {
+        return new FileReferenceSet(element.getFilePath(), element, range.getStartOffset(), null, true, false) {
             @Override
             public @NotNull Collection<PsiFileSystemItem> computeDefaultContexts() {
                 final PsiFile file = getContainingFile();

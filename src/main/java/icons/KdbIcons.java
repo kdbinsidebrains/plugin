@@ -58,9 +58,10 @@ public final class KdbIcons {
 
 
         public static final Icon File = Main.File;
-        public static final Icon Load = load("/org/kdb/inside/brains/icons/nodes/load.svg");
+        public static final Icon Import = load("/org/kdb/inside/brains/icons/nodes/import.svg");
         public static final Icon Command = load("/org/kdb/inside/brains/icons/nodes/command.svg");
         public static final Icon Context = load("/org/kdb/inside/brains/icons/nodes/context.svg");
+        public static final Icon Symbol = AllIcons.Nodes.Static;
         public static final Icon Lambda = AllIcons.Nodes.Lambda;
         public static final Icon Variable = AllIcons.Nodes.Variable;
         public static final Icon Function = AllIcons.Nodes.Function;

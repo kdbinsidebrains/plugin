@@ -31,6 +31,11 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
         }
 
         final QVariable variable = (QVariable) el.getParent();
+        // No suggestion in parameters - it's free-form names
+        if (variable.getParent() instanceof QParameters) {
+            return;
+        }
+
         final String qualifiedName = variable.getQualifiedName();
 
         addGlobal(qualifiedName, el.getProject(), result);
@@ -92,11 +97,11 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
         }
 
         final PsiElement element = context.getElement();
-        final Collection<QAssignment> childrenOfType = PsiTreeUtil.findChildrenOfType(element, QAssignment.class);
+        final Collection<QAssignmentExpr> childrenOfType = PsiTreeUtil.findChildrenOfType(element, QAssignmentExpr.class);
 
         final Set<String> names = new HashSet<>();
-        for (QAssignment assignment : childrenOfType) {
-            final QVarDeclaration variable = assignment.getVariable();
+        for (QAssignmentExpr assignment : childrenOfType) {
+            final QVarDeclaration variable = assignment.getVarDeclaration();
             if (variable == null) {
                 continue;
             }
@@ -107,11 +112,14 @@ public class QVariableCompletionContributor extends CompletionProvider<Completio
             }
 
             final IdentifierType type = IdentifierType.getType(assignment);
+            if (type == null) {
+                continue;
+            }
 
             final LookupElementBuilder b = LookupElementBuilder
                     .create(variable)
                     .withIcon(type.getIcon())
-                    .withTypeText("Local variable", true);
+                    .withTypeText("Local " + type.name().toLowerCase(), true);
             result.addElement(b);
         }
     }

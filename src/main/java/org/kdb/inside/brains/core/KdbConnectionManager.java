@@ -20,6 +20,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import kx.KxConnection;
+import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.action.InstancesComboAction;
@@ -174,12 +175,6 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                         if (error == null) {
                             NOTIFICATION_GROUP.createNotification("Instance has been disconnected: " + name, NotificationType.INFORMATION).notify(project);
                         } else {
-                            if (oldState == CONNECTED && getOptions().isAutoReconnect()) {
-                                if (conn.connectAndWait() == CONNECTED) {
-                                    return;
-                                }
-                            }
-
                             NOTIFICATION_GROUP.createNotification("Instance can't be connected: " + name + " - " + error.getMessage(), NotificationType.WARNING)
                                     .addAction(new AnAction("Check Instance Details") {
                                         @Override
@@ -283,32 +278,49 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         public void run(@NotNull ProgressIndicator indicator) {
             this.indicator = indicator;
 
+            final Object query = this.query.toQueryObject(getOptions().isNormalizeQuery());
+
+            safeQuery(query, indicator, getOptions().isAutoReconnect());
+        }
+
+        private boolean safeQuery(@NotNull Object query, @NotNull ProgressIndicator indicator, boolean retry) {
             try {
                 validate(indicator);
 
-                final boolean normalizeQuery = getOptions().isNormalizeQuery();
-                final KxConnection c = myConnection.safeConnection();
-                final Object object = c.query(
-                        query.toQueryObject(normalizeQuery),
-                        () -> checkCancelled(indicator),
-                        this::validateMessageSize,
-                        phase -> {
-                            indicator.setText(phase.getDescription());
-                        }
-                );
-                complete(object);
+                performQuery(query, indicator);
+
                 indicator.checkCanceled();
-            } catch (InterruptedException ignore) {
-                indicator.cancel();
-                // nothing to do here - the task has been done
+
+                return true;
             } catch (IOException ex) {
+                if (retry) {
+                    myConnection.close(ex);
+                    if (myConnection.connectAndWait() == CONNECTED) {
+                        return safeQuery(query, indicator, false);
+                    }
+                }
                 indicator.cancel();
                 complete(ex);
                 myConnection.close(ex);
+            } catch (InterruptedException ignore) {
+                indicator.cancel();
+                // nothing to do here - the task has been done
             } catch (Throwable ex) {
                 indicator.cancel();
                 complete(ex);
             }
+            return false;
+        }
+
+        private void performQuery(@NotNull Object query, @NotNull ProgressIndicator indicator) throws IOException, c.KException {
+            final KxConnection c = myConnection.safeConnection();
+
+            final Object object = c.query(query,
+                    () -> checkCancelled(indicator),
+                    this::validateMessageSize,
+                    phase -> indicator.setText(phase.getDescription())
+            );
+            complete(object);
         }
 
         private void checkCancelled(ProgressIndicator indicator) throws CancellationException {

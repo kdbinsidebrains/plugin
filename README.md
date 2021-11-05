@@ -9,4 +9,5 @@ as grammar.
 
 ## Usage Instruction
 
-TBD
+Add new 'KDB+ Q Language' framework to a module with your .q files to enable plugin. 'Kdb Instances' and 'Kdb Console'
+tabs will be activated if a project has 'KDB+ Q Language'.
