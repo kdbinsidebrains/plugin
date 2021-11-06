@@ -86,13 +86,13 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
         consumer.renameStandardOption(WrappingOrBraceOption.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE.name(),
                 "Place ']' on new line");
 
-        final String controlWrapTitle = "Control arguments (if, do, while, ...)";
+        final String controlWrapTitle = "Control statement (if, do, while, ...)";
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_WRAP_TYPE", controlWrapTitle, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_WRAP_ALIGN", "Align when multiline", controlWrapTitle);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_OBRACKET_ON_NEXT_LINE", "New line after '['", controlWrapTitle);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_CBRACKET_ON_NEXT_LINE", "Place ']' on new line", controlWrapTitle);
 
-        final String conditionWrapTitle = "Condition arguments (if, do, while, ...)";
+        final String conditionWrapTitle = "Condition statement (?[], $[], @[], .[], ![], ...)";
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_WRAP_TYPE", conditionWrapTitle, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_WRAP_ALIGN", "Align when multiline", conditionWrapTitle);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_OBRACKET_ON_NEXT_LINE", "New line after '['", conditionWrapTitle);
@@ -102,13 +102,12 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
     private void customizeSpacing(@NotNull CodeStyleSettingsCustomizable consumer) {
         final String operatorSpaces = "Around operators";
         consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_ASSIGNMENT_OPERATORS", "Assignment operators (::, :, ...)", operatorSpaces);
-        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_ARITHMETIC_OPERATORS", "Arithmetic operators (+, -, *, %)", operatorSpaces);
 
-        final String tailSpaces = "Tail spaces";
-        // Import
-        consumer.showCustomOption(QCodeStyleSettings.class, "IMPORT_TRIM_TAIL", "Trim import command", tailSpaces);
-        // Context
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONTEXT_TRIM_TAIL", "Trim context command", tailSpaces);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_ARITHMETIC", "Arithmetic operators (+, -, * , %)", operatorSpaces);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_ORDER", "Order operators (<= , >= , < , >)", operatorSpaces);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_EQUALITY", "Equality operators (~ , = , <>)", operatorSpaces);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_WEIGHT", "Weight operators (&, |)", operatorSpaces);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_OTHERS", "Mixed operators (!, #, @, _ , ? , ., ^, $)", operatorSpaces);
 
         // Lambda settings
         final String lambdaSection = "Lambda definition";
@@ -128,6 +127,11 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_WITHIN_BRACES", "Within braces", conditionStatement);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_AFTER_SEMICOLON", "After semicolon", conditionStatement);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_BEFORE_SEMICOLON", "Before semicolon", conditionStatement);
+
+        // Tail spaces
+        final String tailSpaces = "Tail spaces";
+        consumer.showCustomOption(QCodeStyleSettings.class, "IMPORT_TRIM_TAIL", "Trim import command", tailSpaces);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTEXT_TRIM_TAIL", "Trim context command", tailSpaces);
     }
 
     @Override

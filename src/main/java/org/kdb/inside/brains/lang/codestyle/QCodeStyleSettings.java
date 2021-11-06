@@ -46,9 +46,15 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean IMPORT_TRIM_TAIL = true;
     public boolean CONTEXT_TRIM_TAIL = true;
 
-    // Operators
+    // Assignment
     public boolean SPACE_AROUND_ASSIGNMENT_OPERATORS = false;
-    public boolean SPACE_AROUND_ARITHMETIC_OPERATORS = false;
+
+    // Operators
+    public boolean SPACE_AROUND_OPERATOR_ORDER = false;
+    public boolean SPACE_AROUND_OPERATOR_EQUALITY = false;
+    public boolean SPACE_AROUND_OPERATOR_ARITHMETIC = false;
+    public boolean SPACE_AROUND_OPERATOR_WEIGHT = false;
+    public boolean SPACE_AROUND_OPERATOR_OTHERS = false;
 
     protected QCodeStyleSettings(CodeStyleSettings container) {
         super("QCodeStyleSettings", container);

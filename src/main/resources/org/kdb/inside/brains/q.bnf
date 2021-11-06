@@ -131,15 +131,17 @@ var_declaration ::= VARIABLE_PATTERN {
 }
 
 iterator_type ::= ACCUMULATOR? ITERATOR+
+
 operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPERATOR_WEIGHT | OPERATOR_OTHERS | OPERATOR_COMMA
 
 console_handler ::= "0" | "1" | "2" | "-1" | "-2"
 system_function ::= UNARY_FUNCTION | BINARY_FUNCTION | COMPLEX_FUNCTION
 
-arguments ::= BRACKET_OPEN [!BRACKET_CLOSE statement*] BRACKET_CLOSE {pin(".*")=1}
+private arguments_def ::= BRACKET_OPEN [!BRACKET_CLOSE statement*] BRACKET_CLOSE {pin(".*")=1}
+arguments ::= arguments_def {methods=[expressions="expression"]}
 private arguments_list ::= arguments+
 
-var_indexing ::= var_reference arguments_list {pin=2 methods=[variable="var_reference" arguments="arguments"]}
+var_indexing ::= var_reference arguments_list {pin=2 methods=[variable="var_reference" arguments_group="arguments"]}
 
 fake assignment_type ::= COLON {}
 var_assignment_type ::= operator_type COLON | COLON COLON? { extends=assignment_type elementType=assignment_type }
@@ -149,8 +151,8 @@ private index_assignment ::= var_indexing var_assignment_type expression { pin =
 private variable_assignment ::= var_declaration var_assignment_type operator_type? expression { pin = 2 }
 assignment_expr ::= index_assignment | variable_assignment
 
-control_expr ::= CONTROL_KEYWORD arguments { pin = 1 } // if/else/while and so on
-condition_expr ::= CONDITION_KEYWORD arguments { pin=1 } // $[...]
+control_expr ::= CONTROL_KEYWORD arguments_def { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
+condition_expr ::= CONDITION_KEYWORD arguments_def { pin=1 methods=[expressions="expression"] } // $[...]
 
 expressions ::= separator* expression (separator+ expression)* separator*
 

@@ -123,6 +123,18 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new ModeQBlock(node, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment);
         }
 
+        if (elementType == QTypes.OPERATION) {
+            final ASTNode firstChildNode = getFirstNotEmptyChild(node);
+            if (firstChildNode != null) {
+                if (firstChildNode.getElementType() == QTypes.OPERATOR_TYPE) {
+                    final ASTNode cnd = getFirstNotEmptyChild(firstChildNode);
+                    if (cnd != null) {
+                        return new SimpleQBlock(cnd, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment);
+                    }
+                }
+                return new SimpleQBlock(firstChildNode, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment);
+            }
+        }
 
         if (elementType == QTypes.CONTROL_EXPR || elementType == QTypes.CONDITION_EXPR) {
             return new ConditionControlQBlock(node, spacingStrategy, qSettings, settings, wrap, actualIndent, alignment, elementType);
@@ -154,7 +166,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
     @Nullable
     protected ASTNode getFirstNotEmptyChild(@NotNull ASTNode node) {
         ASTNode res = node.getFirstChildNode();
-        while (res != null && !isNotEmptyNode(res)) {
+        while (res != null && isEmptyNode(res)) {
             res = res.getTreeNext();
         }
         return res;
@@ -162,13 +174,13 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
     protected ASTNode getNextNotEmptySubling(@NotNull ASTNode node) {
         ASTNode res = node.getTreeNext();
-        while (res != null && !isNotEmptyNode(res)) {
+        while (res != null && isEmptyNode(res)) {
             res = res.getTreeNext();
         }
         return res;
     }
 
-    protected boolean isNotEmptyNode(@NotNull ASTNode child) {
-        return !FormatterUtil.containsWhiteSpacesOnly(child) && child.getTextLength() > 0;
+    protected boolean isEmptyNode(@NotNull ASTNode child) {
+        return FormatterUtil.containsWhiteSpacesOnly(child) || child.getTextLength() <= 0;
     }
 }

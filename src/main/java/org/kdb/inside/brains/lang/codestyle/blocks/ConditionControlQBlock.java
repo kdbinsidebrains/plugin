@@ -33,33 +33,24 @@ public class ConditionControlQBlock extends AbstractQBlock {
     }
 
     private List<Block> processNode(ASTNode parentNode, List<Block> blocks, Context context) {
-        iterateNotEmptyChildren(parentNode, node -> {
-            final IElementType elementType = node.getElementType();
-            if (elementType == QTypes.ARGUMENTS) {
-//            if (elementType == QTypes.ARGUMENTS || elementType == QTypes.STATEMENT) {
-                processNode(node, blocks, context);
-            } else {
-                context.swallowNextNode(node);
-
-                blocks.add(createBlock(node, context.wrap, context.indent, context.alignment));
-            }
-        });
+        iterateNotEmptyChildren(parentNode, node -> blocks.add(context.createBlock(node)));
         return blocks;
     }
 
     private class Context {
-        private Wrap wrap;
         private Indent indent;
-        private Alignment alignment;
 
         private Indent defaultIndent = null;
+        private boolean firstExpression = true;
 
         private final Alignment bracket = Alignment.createAlignment();
         private final Alignment expression = getAlignmentOption() ? Alignment.createChildAlignment(bracket) : null;
 
         private final Wrap expressionsWrap = Wrap.createWrap(getWrapOption(), false);
 
-        void swallowNextNode(ASTNode node) {
+        Block createBlock(ASTNode node) {
+            final IElementType type = node.getElementType();
+
             // If no default indent - it's first element so we use it's length + 1 for bracket
             if (defaultIndent == null) {
                 defaultIndent = Indent.getNormalIndent(false);
@@ -68,20 +59,34 @@ public class ConditionControlQBlock extends AbstractQBlock {
                 indent = defaultIndent;
             }
 
-            final IElementType type = node.getElementType();
-            if (type == QTypes.EXPRESSION) {
-                wrap = expressionsWrap;
-            } else {
-                wrap = null;
+            final Wrap wrap = getWrap(type);
+            final Alignment alignment = getAlignment(type);
+
+            return ConditionControlQBlock.this.createBlock(node, wrap, indent, alignment);
+        }
+
+        private Alignment getAlignment(IElementType type) {
+            if (indent == null) {
+                return null;
             }
 
-            if (indent == null) {
-                alignment = null;
-            } else if (type == QTypes.BRACKET_OPEN || type == QTypes.BRACKET_CLOSE) {
-                alignment = bracket;
-            } else {
-                alignment = expression;
+            if (type == QTypes.BRACKET_OPEN || type == QTypes.BRACKET_CLOSE) {
+                return bracket;
             }
+            return expression;
+        }
+
+        @Nullable
+        private Wrap getWrap(IElementType type) {
+            if (type == QTypes.CONTROL_EXPR || type == QTypes.CONDITION_EXPR || type == QTypes.BRACKET_OPEN || type == QTypes.BRACKET_CLOSE || type == QTypes.SEMICOLON) {
+                return null;
+            }
+
+            if (firstExpression) {
+                firstExpression = false;
+                return null;
+            }
+            return expressionsWrap;
         }
 
         private int getWrapOption() {

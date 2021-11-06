@@ -1,3 +1,7 @@
+\l file.q
+\d .this.is.context
+\c 10 200
+
 s) var1:20+30; globalVar1::13123+41243;
     var2    :    var1+10;
 
