@@ -1,11 +1,8 @@
-import org.jetbrains.grammarkit.tasks.GenerateLexer
-import org.jetbrains.grammarkit.tasks.GenerateParser
-
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '1.1.3'
-    id 'org.jetbrains.changelog' version '1.2.0'
-    id "org.jetbrains.grammarkit" version "2021.1.3"
+    id 'org.jetbrains.intellij' version '1.3.0'
+    id 'org.jetbrains.changelog' version '1.3.1'
+    id "org.jetbrains.grammarkit" version "2021.2.1"
 }
 
 Properties versionProps = new Properties()
@@ -46,15 +43,29 @@ intellij {
 apply plugin: 'org.jetbrains.changelog'
 
 apply plugin: 'org.jetbrains.grammarkit'
+generateLexer {
+    source = "src/main/resources/org/kdb/inside/brains/q.flex"
+    targetDir = "src/main/gen/org/kdb/inside/brains"
+    targetClass = "QLexer"
+    purgeOldFiles = true
+}
+
+generateParser {
+    source = "src/main/resources/org/kdb/inside/brains/q.bnf"
+    targetRoot = 'src/main/gen'
+    pathToParser = 'org/kdb/inside/brains/parser/QParser.java'
+    pathToPsiRoot = 'org/kdb/inside/brains/psi'
+    purgeOldFiles = true
+}
 
 dependencies {
     compile 'org.apache.poi:poi:5.0.0'
 
-    testCompile 'org.mockito:mockito-core:3.7.7'
+    testCompile 'org.mockito:mockito-core:4.1.0'
 
-    testCompile 'org.junit.jupiter:junit-jupiter-params:5.7.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+    testCompile 'org.junit.jupiter:junit-jupiter-params:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
 }
 
 sourceSets {
@@ -69,21 +80,6 @@ sourceSets {
 
 test {
     useJUnitPlatform()
-}
-
-task generateLexer(type: GenerateLexer) {
-    source = "src/main/resources/org/kdb/inside/brains/q.flex"
-    targetDir = "src/main/gen/org/kdb/inside/brains"
-    targetClass = "QLexer"
-    purgeOldFiles = true
-}
-
-task generateParser(type: GenerateParser) {
-    source = "src/main/resources/org/kdb/inside/brains/q.bnf"
-    targetRoot = 'src/main/gen'
-    pathToParser = 'org/kdb/inside/brains/parser/QParser.java'
-    pathToPsiRoot = 'org/kdb/inside/brains/psi'
-    purgeOldFiles = true
 }
 
 task generateCode() {
