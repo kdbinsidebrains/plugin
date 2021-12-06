@@ -2,6 +2,13 @@
 
 # KdbInsideBrains Changelog
 
+## [0.15]
+
+### Changed
+
+- Supporting of Idea 2021.3 (build 213.*) has been added
+- GrammaKit upgraded to 2021.2.1, IdeaPlugin to 1.3.0, Changelog to 1.3.1
+
 ## [0.14.0]
 
 ### Changed
