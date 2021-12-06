@@ -97,6 +97,24 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_WRAP_ALIGN", "Align when multiline", conditionWrapTitle);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_OBRACKET_ON_NEXT_LINE", "New line after '['", conditionWrapTitle);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_CBRACKET_ON_NEXT_LINE", "Place ']' on new line", conditionWrapTitle);
+
+        final String tableWrapTitle = "Table definition";
+        consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_WRAP_TYPE", tableWrapTitle, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_WRAP_ALIGN", "Align when multiline", tableWrapTitle);
+        consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_KEYS_EMPTY_LINE", "Place '[' and ']' on new lines, if wrapped", tableWrapTitle);
+        consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_CPAREN_EMPTY_LINE", "Place ')' on new line, if wrapped", tableWrapTitle);
+
+//        consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_KEYS_EMPTY_LINE", "Place keys bracket on new line", tableWrapTitle);
+/*
+        consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_OPAREN_ON_NEXT_LINE", "New line after '('", tableWrapTitle);
+        consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_CPAREN_ON_NEXT_LINE", "Place ')' on new line", tableWrapTitle);
+        consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_OBRACKET_ON_NEXT_LINE", "New line after '[', if not empty", tableWrapTitle);
+        consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_CBRACKET_ON_NEXT_LINE", "Place ']' on new line, if not empty", tableWrapTitle);
+*/
+
+        // Expressions
+        final String semicolonSpaces = "Expressions";
+        consumer.showCustomOption(QCodeStyleSettings.class, "EXPRESSION_SEMICOLON_ON_NEW_LINE", "Allow semicolon on new line", semicolonSpaces);
     }
 
     private void customizeSpacing(@NotNull CodeStyleSettingsCustomizable consumer) {
@@ -114,6 +132,11 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_BEFORE_BRACE_CLOSE", "Before close brace", lambdaSection);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_AFTER_PARAMETERS", "After parameter semicolon", lambdaSection);
 
+        // Tables
+        final String tableSpaces = "Table definition";
+        consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_SPACE_AFTER_KEY_COLUMNS", "After keys group", tableSpaces);
+//        consumer.showCustomOption(QCodeStyleSettings.class, "CONTEXT_TRIM_TAIL", "Trim spaces after context command", tableSpaces);
+
         // Control settings
         final String controlSection = "Control statement (if, do, while, ...)";
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_AFTER_OPERATOR", "After operator", controlSection);
@@ -128,10 +151,10 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_AFTER_SEMICOLON", "After semicolon", conditionStatement);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_BEFORE_SEMICOLON", "Before semicolon", conditionStatement);
 
-        // Tail spaces
-        final String tailSpaces = "Tail spaces";
-        consumer.showCustomOption(QCodeStyleSettings.class, "IMPORT_TRIM_TAIL", "Trim import command", tailSpaces);
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONTEXT_TRIM_TAIL", "Trim context command", tailSpaces);
+        // Commands
+        final String tailSpaces = "Commands";
+        consumer.showCustomOption(QCodeStyleSettings.class, "IMPORT_TRIM_TAIL", "Trim spaces after import command", tailSpaces);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTEXT_TRIM_TAIL", "Trim spaces after context command", tailSpaces);
     }
 
     @Override

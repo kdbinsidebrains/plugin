@@ -7,11 +7,18 @@ s) var1:20+30; globalVar1::13123+41243;
 
 var1    :   20  +     30  ;           globalVar1  ::  13123+41243; var2:var1+10;
 
-tbl1:(
- [key1:`symbol$(); key2:"I"$()]
- col1:`long$()  ; col2:`float$())        ;
+tbl0:([] a:1; b:2);
 
-tbl2:tbl1;
+tbl1:(  [      ]     col1:`long$()  ; col2:`float$());
+
+tbl2:([key1:`symbol$(); key2:"I"$()] col1:`long$()  ; col2:`float$());
+
+tbl3:(
+ [key1:`symbol$(); key2:"I"$()]
+ col1:`long$()  ; col2:`float$())
+
+    ;
+
 
 select col1,
      col2

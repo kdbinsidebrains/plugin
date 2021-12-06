@@ -6,6 +6,7 @@ import com.intellij.formatting.Spacing;
 import com.intellij.formatting.SpacingBuilder;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
+import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.QTypes;
@@ -51,6 +52,14 @@ public class QSpacingStrategy {
         // Operators
         builder.around(QTypes.ASSIGNMENT_TYPE).spaceIf(qSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
 
+        // Tables
+        builder.betweenInside(QTypes.PAREN_OPEN, QTypes.BRACKET_OPEN, QTypes.TABLE_EXPR).spaces(0);
+        builder.betweenInside(QTypes.BRACKET_OPEN, QTypes.BRACKET_CLOSE, QTypes.TABLE_EXPR).spaces(0);
+        builder.afterInside(QTypes.BRACKET_OPEN, QTypes.TABLE_EXPR).spaces(0);
+        builder.betweenInside(QTypes.BRACKET_CLOSE, QTypes.SEMICOLON, QTypes.TABLE_EXPR).spaces(0); // no spaces before semicolon
+        builder.afterInside(QTypes.BRACKET_CLOSE, QTypes.TABLE_EXPR).spaceIf(qSettings.TABLE_SPACE_AFTER_KEY_COLUMNS);
+        builder.around(TokenSet.create(QTypes.TABLE_KEYS, QTypes.TABLE_VALUES, QTypes.TABLE_COLUMN)).spacing(0, 1, 0, true, 0);
+
         // Operations
         builder.around(QTypes.OPERATOR_ARITHMETIC).spaceIf(qSettings.SPACE_AROUND_OPERATOR_ARITHMETIC);
         builder.around(QTypes.OPERATOR_ORDER).spaceIf(qSettings.SPACE_AROUND_OPERATOR_ORDER);
@@ -59,8 +68,7 @@ public class QSpacingStrategy {
         builder.around(QTypes.OPERATOR_COMMA).spaceIf(qSettings.SPACE_AROUND_OPERATOR_OTHERS);
         builder.around(QTypes.OPERATOR_OTHERS).spaceIf(qSettings.SPACE_AROUND_OPERATOR_OTHERS);
 
-        // Remove spaces before last semicolon in all others cases
-        builder.before(QTypes.SEMICOLON).spaceIf(false);
+        builder.before(QTypes.SEMICOLON).spacing(0, 0, 0, qSettings.EXPRESSION_SEMICOLON_ON_NEW_LINE, 0);
     }
 
     public Spacing getSpacing(Block parent, Block child1, Block child2) {

@@ -14,7 +14,6 @@ import org.kdb.inside.brains.psi.QTypes;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class AbstractQBlock extends AbstractBlock {
@@ -40,32 +39,28 @@ public abstract class AbstractQBlock extends AbstractBlock {
     @Override
     protected List<Block> buildChildren() {
         final Alignment childrenAlignment = createChildrenAlignment();
-        return buildChildren(myNode, child -> {
+        return iterateNotEmptyChildren(myNode, child -> {
             final Wrap wrap = createChildWrap(child);
             final Indent indent = createChildIndent(child);
             return createBlock(child, wrap, indent, childrenAlignment);
         });
     }
 
-    protected final List<Block> buildChildren(ASTNode node, Function<ASTNode, Block> function) {
-        final List<Block> result = new ArrayList<>();
-
-        iterateNotEmptyChildren(node, child -> {
-            final Block apply = function.apply(child);
-            if (apply != null) {
-                result.add(apply);
-            }
-        });
-
-        return result;
+    protected final List<Block> iterateNotEmptyChildren(ASTNode node, Function<ASTNode, Block> consumer) {
+        return iterateNotEmptyListChildren(node, child -> List.of(consumer.apply(child)));
     }
 
-    protected final void iterateNotEmptyChildren(ASTNode node, Consumer<ASTNode> consumer) {
+    protected final List<Block> iterateNotEmptyListChildren(ASTNode node, Function<ASTNode, List<Block>> consumer) {
+        final List<Block> result = new ArrayList<>();
         ASTNode child = getFirstNotEmptyChild(node);
         while (child != null) {
-            consumer.accept(child);
+            final List<Block> apply = consumer.apply(child);
+            if (apply != null && !apply.isEmpty()) {
+                result.addAll(apply);
+            }
             child = getNextNotEmptySubling(child);
         }
+        return result;
     }
 
     @Override
@@ -81,17 +76,6 @@ public abstract class AbstractQBlock extends AbstractBlock {
     @Override
     public @Nullable Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
         return spacingStrategy.getSpacing(this, child1, child2);
-    }
-
-    @Nullable
-    @Deprecated
-    protected ASTNode processChild(@NotNull final List<Block> result,
-                                   @NotNull final ASTNode child,
-                                   @Nullable final Wrap wrap,
-                                   @Nullable final Indent indent,
-                                   @Nullable Alignment alignment) {
-        result.add(createBlock(child, wrap, indent, alignment));
-        return child;
     }
 
     @NotNull

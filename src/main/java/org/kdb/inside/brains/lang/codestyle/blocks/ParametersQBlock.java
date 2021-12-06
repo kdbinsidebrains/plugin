@@ -33,7 +33,7 @@ public class ParametersQBlock extends AbstractQBlock {
         final boolean align = settings.ALIGN_MULTILINE_PARAMETERS;
         final Wrap wrap = Wrap.createWrap(settings.METHOD_PARAMETERS_WRAP, false);
 
-        return buildChildren(myNode, new Function<>() {
+        return iterateNotEmptyChildren(myNode, new Function<>() {
             Alignment params = null;
             Alignment bracket = null;
 

@@ -13,7 +13,6 @@ import org.kdb.inside.brains.lang.codestyle.QCodeStyleSettings;
 import org.kdb.inside.brains.lang.codestyle.QSpacingStrategy;
 import org.kdb.inside.brains.psi.QTypes;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ConditionControlQBlock extends AbstractQBlock {
@@ -29,12 +28,7 @@ public class ConditionControlQBlock extends AbstractQBlock {
 
     @Override
     protected List<Block> buildChildren() {
-        return processNode(myNode, new ArrayList<>(), new Context());
-    }
-
-    private List<Block> processNode(ASTNode parentNode, List<Block> blocks, Context context) {
-        iterateNotEmptyChildren(parentNode, node -> blocks.add(context.createBlock(node)));
-        return blocks;
+        return iterateNotEmptyChildren(myNode, new Context()::createBlock);
     }
 
     private class Context {
