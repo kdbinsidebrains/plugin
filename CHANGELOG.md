@@ -2,7 +2,7 @@
 
 # KdbInsideBrains Changelog
 
-## [0.15]
+## [0.15.0]
 
 ### Changed
 
