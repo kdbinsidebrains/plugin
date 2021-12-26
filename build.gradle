@@ -59,9 +59,10 @@ generateParser {
 }
 
 dependencies {
-    compile 'org.apache.poi:poi:5.0.0'
+    compile 'org.apache.poi:poi:5.1.0'
+    compile 'org.apache.poi:poi-ooxml:5.1.0'
 
-    testCompile 'org.mockito:mockito-core:4.1.0'
+    testCompile 'org.mockito:mockito-core:4.2.0'
 
     testCompile 'org.junit.jupiter:junit-jupiter-params:5.8.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'

@@ -107,11 +107,9 @@ command ::= COMMAND_SYSTEM  command_params? { pin = 1 methods = [command="COMMAN
 private command_params ::= COMMAND_ARGUMENTS {recoverWhile = end_of_line_recover}
 
 import_command ::= COMMAND_IMPORT import_command_file { pin = 1 implements="org.kdb.inside.brains.psi.QImport" }
-
-import_function ::= FUNCTION_IMPORT import_function_file { pin = 1 extends=expression implements="org.kdb.inside.brains.psi.QImport" }
-
 private import_command_file ::= FILE_PATH_PATTERN {recoverWhile = end_of_line_recover }
-private import_function_file ::= STRING
+
+import_function ::= FUNCTION_IMPORT expression { pin = 1 extends=expression implements="org.kdb.inside.brains.psi.QImport" }
 
 // In mode we can't use LINE_BREAK as a separator
 private mode_content ::= statement+ { recoverWhile = end_of_line_recover }

@@ -1,10 +1,12 @@
 package org.kdb.inside.brains.view.console.export;
 
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
 import org.jdesktop.swingx.plaf.basic.core.BasicTransferable;
+import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
@@ -16,7 +18,7 @@ import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
 
-public final class ClipboardExportAction extends AnExportAction {
+public final class ClipboardExportAction extends AnExportAction<CopyPasteManager> {
     public ClipboardExportAction(String text, ExportingType type, TableResultView resultView) {
         super(text, type, resultView);
     }
@@ -30,7 +32,12 @@ public final class ClipboardExportAction extends AnExportAction {
     }
 
     @Override
-    protected void performAction(Project project, TableResultView view, ExportingType type) {
+    protected CopyPasteManager getExportConfig(Project project, TableResultView view) {
+        return CopyPasteManager.getInstance();
+    }
+
+    @Override
+    protected void exportResultView(Project project, ExportingType type, TableResultView view, CopyPasteManager copyPasteManager, @NotNull ProgressIndicator indicator) {
         final JBTable table = view.getTable();
 
         final StringBuilder htmlStr = new StringBuilder();
@@ -79,20 +86,28 @@ public final class ClipboardExportAction extends AnExportAction {
             htmlStr.append("</tr>\n");
         }
 
-        for (int r = ri.reset(); r != -1; r = ri.next()) {
+        int count = 0;
+        double totalCount = ri.count() * ci.count();
+        indicator.setIndeterminate(false);
+        for (int r = ri.reset(); r != -1 && !indicator.isCanceled(); r = ri.next()) {
             String t = r % 2 == 0 ? "o" : "e";
             htmlStr.append("<tr>\n");
             ci.reset();
-            for (int c = ci.reset(); c != -1; c = ci.next()) {
+            for (int c = ci.reset(); c != -1 && !indicator.isCanceled(); c = ci.next()) {
                 Object obj = table.getValueAt(r, c);
                 String val = view.convertValue(obj);
                 plainStr.append(val).append('\t');
 
                 htmlStr.append("  <td class=\"").append(t).append(c).append("\">").append(val).append("</td>\n");
+                indicator.setFraction(count++ / totalCount);
             }
             // we want a newline at the end of each line and not a tab
             plainStr.deleteCharAt(plainStr.length() - 1).append('\n');
             htmlStr.append("</tr>\n");
+        }
+
+        if (indicator.isCanceled()) {
+            return;
         }
 
         // remove the last newline
@@ -100,7 +115,7 @@ public final class ClipboardExportAction extends AnExportAction {
         htmlStr.append("</table>\n</body>\n</html>");
 
         final Transferable transferable = new BasicTransferable(plainStr.toString(), htmlStr.toString());
-        CopyPasteManager.getInstance().setContents(transferable);
+        copyPasteManager.setContents(transferable);
     }
 
     private Colors getHeader(JBTable table) {

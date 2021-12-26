@@ -2,6 +2,16 @@
 
 # KdbInsideBrains Changelog
 
+## [0.16.0]
+
+### Changed
+
+- Excel exporting format changed to xlsx (Excel 2007) instead of xls (Excel 95)
+  - 1,048,576 rows instead of 65,536 and 16,384 cols instead of 256
+  - Streams worksheet is used to reduce memory footprint
+
+- Export actions run as a background task to reduce UI freeze
+
 ## [0.15.0]
 
 ### Changed
