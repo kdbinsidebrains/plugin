@@ -2,6 +2,17 @@
 
 # KdbInsideBrains Changelog
 
+## [0.17.0]
+
+### Added
+
+- Line Charting has been added to the Table View
+
+### Changed
+
+- Icon colors changed for dark theme
+- Restart is not required anymore for the plugin
+
 ## [0.16.0]
 
 ### Changed

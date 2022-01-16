@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+	 viewBox="0 0 40 40" style="enable-background:new 0 0 40 40;" xml:space="preserve">
+<rect x="35" y="1" style="fill:#C74343;" width="1" height="22"/>
+	<g>
+	<rect x="32.5" y="4.5" style="fill:#F78F8F;" width="6" height="15"/>
+		<g>
+		<path style="fill:#C74343;" d="M38,5v14h-5V5H38 M39,4h-7v16h7V4L39,4z"/>
+	</g>
+</g>
+	<rect x="14" y="6" style="fill:#C74343;" width="1" height="24"/>
+	<g>
+	<rect x="11.5" y="9.5" style="fill:#F78F8F;" width="6" height="17"/>
+		<g>
+		<path style="fill:#C74343;" d="M17,10v16h-5V10H17 M18,9h-7v18h7V9L18,9z"/>
+	</g>
+</g>
+	<rect x="25" y="17" style="fill:#5E9C76;" width="1" height="18"/>
+	<g>
+	<rect x="22.5" y="20.5" style="fill:#BAE0BD;" width="6" height="11"/>
+		<g>
+		<path style="fill:#5E9C76;" d="M28,21v10h-5V21H28 M29,20h-7v12h7V20L29,20z"/>
+	</g>
+</g>
+	<rect x="4" y="19" style="fill:#5E9C76;" width="1" height="20"/>
+	<g>
+	<rect x="1.5" y="22.5" style="fill:#BAE0BD;" width="6" height="13"/>
+		<g>
+		<path style="fill:#5E9C76;" d="M7,23v12H2V23H7 M8,22H1v14h7V22L8,22z"/>
+	</g>
+</g>
+</svg>

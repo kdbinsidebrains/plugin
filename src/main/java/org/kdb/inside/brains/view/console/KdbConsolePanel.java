@@ -66,6 +66,8 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     private final TheScopeListener scopeListener = new TheScopeListener();
     private final TheKdbConnectionListener connectionListener = new TheKdbConnectionListener();
 
+    public static final DataKey<TabInfo> TAB_INFO_DATA_KEY = DataKey.create("KdbConsole.TabInfo");
+
     public KdbConsolePanel(Project project, InstanceConnection connection, Consumer<KdbConsolePanel> panelKillerConsumer) {
         super(false);
         this.project = project;
@@ -466,6 +468,9 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
     @Override
     public @Nullable Object getData(@NotNull @NonNls String dataId) {
+        if (TAB_INFO_DATA_KEY.getName().equals(dataId)) {
+            return tabs.getSelectedInfo();
+        }
         if (TableResultView.DATA_KEY.getName().equals(dataId)) {
             final TabInfo selectedInfo = tabs.getSelectedInfo();
             if (selectedInfo != null && selectedInfo.getComponent() instanceof TableResultView) {

@@ -214,13 +214,13 @@ public class TableResult {
         }
 
         @Override
-        public @Nullable Comparator<Object> getComparator() {
-            return comparator;
+        public @Nullable Object valueOf(Object o) {
+            return o;
         }
 
         @Override
-        public @Nullable Object valueOf(Object o) {
-            return o;
+        public @Nullable Comparator<Object> getComparator() {
+            return comparator;
         }
 
         static QColumnInfo[] of(c.Dict dict) {

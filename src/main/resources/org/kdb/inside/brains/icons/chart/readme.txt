@@ -1,0 +1,1 @@
+The chart icons taken from https://www.visualpharm.com/free-icons/line%20chart-595b40b65ba036ed117d2f17

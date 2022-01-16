@@ -1,4 +1,4 @@
-<idea-plugin require-restart="true">
+<idea-plugin require-restart="false">
     <id>org.kdb.inside.brains.KdbInsideBrains</id>
     <name>KdbInsideBrains</name>
     <vendor email="support@kdbinsidebrains.dev" url="https://www.kdbinsidebrains.dev">KdbInsideBrains</vendor>
@@ -281,7 +281,7 @@
                           factoryClass="org.kdb.inside.brains.view.treeview.InstancesToolWindowFactory"/>
 
         <!-- KDB Console -->
-        <facet.toolWindow id="KDB Console" icon="KdbIcons.Main.ToolWindow"
+        <facet.toolWindow id="KDB Console" icon="KdbIcons.Main.ConsoleWindow"
                           facetIdList="KDB_FACET_TYPE"
                           anchor="bottom" canCloseContents="true"
                           factoryClass="org.kdb.inside.brains.view.console.KdbConsoleToolWindowFactory"/>

@@ -33,8 +33,6 @@ public class ExcelExportAction extends AnExportAction<File> {
     public ExcelExportAction(String text, ExportingType type, TableResultView resultView, String description, boolean saveOnDisk, Icon icon) {
         super(text, type, resultView, description, icon);
         this.saveOnDisk = saveOnDisk;
-
-
     }
 
     @Override

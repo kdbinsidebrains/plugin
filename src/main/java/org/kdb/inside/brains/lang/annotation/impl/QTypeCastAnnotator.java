@@ -16,23 +16,21 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWithRightAlignedComponent;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.lang.annotation.QElementAnnotator;
 import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QTypeCastExpr;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
-    private final List<TypeCast> typeCasts;
-    private final Set<String> extractors = Set.of("hh", "mm", "ss");
+    private static final Set<String> EXTRACTORS = Set.of("hh", "mm", "ss");
 
     public QTypeCastAnnotator() {
         super(QTypeCastExpr.class);
-        typeCasts = Stream.of(KdbType.values()).map(TypeCast::new).collect(Collectors.toList());
     }
 
     @Override
@@ -46,14 +44,14 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
 
         final TextRange r = castType.getTextRange();
 
-        final CastType type;
+        final CastSource type;
         final TextRange range;
 
         if (cast.getText().charAt(0) == '`') {
-            if (extractors.contains(name) || KdbType.byName(name) != null) {
+            if (EXTRACTORS.contains(name) || CastType.byName(name) != null) {
                 return;
             }
-            type = CastType.SYMBOL;
+            type = CastSource.SYMBOL;
             range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 1);
         } else {
             if (name.length() != 1) {
@@ -61,10 +59,10 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
             }
 
             final char ch = name.charAt(0);
-            if (KdbType.byCode(Character.toLowerCase(ch)) != null) {
+            if (CastType.byCode(Character.toLowerCase(ch)) != null) {
                 return;
             }
-            type = Character.isUpperCase(ch) ? CastType.UPPER : CastType.LOWER;
+            type = Character.isUpperCase(ch) ? CastSource.UPPER : CastSource.LOWER;
             range = new TextRange(r.getStartOffset() + 1, r.getEndOffset() - 2);
         }
 
@@ -89,21 +87,21 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
                     @Override
                     public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
                         JBPopupFactory.getInstance()
-                                .createPopupChooserBuilder(typeCasts)
+                                .createPopupChooserBuilder(List.of(CastType.values()))
                                 .setRenderer(new ListCellRendererWithRightAlignedComponent<>() {
                                     @Override
-                                    protected void customize(TypeCast typeCast) {
+                                    protected void customize(CastType typeCast) {
                                         this.setLeftText(typeCast.name);
                                         this.setRightForeground(JBColor.GRAY);
-                                        if (type == CastType.UPPER) {
+                                        if (type == CastSource.UPPER) {
                                             this.setRightText(typeCast.upperCode);
-                                        } else if (type == CastType.LOWER) {
+                                        } else if (type == CastSource.LOWER) {
                                             this.setRightText(typeCast.lowerCode);
                                         }
                                     }
                                 })
                                 .setItemChosenCallback(t -> {
-                                    final String name = type == CastType.SYMBOL ? t.name : type == CastType.UPPER ? t.upperCode : t.lowerCode;
+                                    final String name = type == CastSource.SYMBOL ? t.name : type == CastSource.UPPER ? t.upperCode : t.lowerCode;
                                     WriteCommandAction.runWriteCommandAction(project, () -> editor.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), name));
                                 })
                                 .createPopup()
@@ -117,25 +115,61 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
                 }).create();
     }
 
-    private enum CastType {
-        UPPER,
+    private enum CastSource {
+        SYMBOL,
         LOWER,
-        SYMBOL
+        UPPER
     }
 
-    private static class TypeCast {
+    private enum CastType {
+        BOOLEAN('b', "boolean"),
+        GUID('g', "guid"),
+        BYTE('x', "byte"),
+        SHORT('h', "short"),
+        INT('i', "int"),
+        LONG('j', "long"),
+        REAL('e', "real"),
+        FLOAT('f', "float"),
+        CHAR('c', "char"),
+        SYMBOL('s', "symbol"),
+        TIMESTAMP('p', "timestamp"),
+        MONTH('m', "month"),
+        DATE('d', "date"),
+        DATETIME('z', "datetime"),
+        TIMESPAN('n', "timespan"),
+        MINUTE('u', "minute"),
+        SECOND('v', "second"),
+        TIME('t', "time"),
+        YEAR(' ', "year");
+
+        private final char code;
         private final String name;
         private final String lowerCode;
         private final String upperCode;
 
-        public TypeCast(KdbType type) {
-            this(type.getName(), type.getCode());
+        private static final Map<String, CastType> byName = new HashMap<>();
+        private static final Map<Character, CastType> byCode = new HashMap<>();
+
+        static {
+            Stream.of(CastType.values()).forEach(value -> {
+                byName.put(value.name, value);
+                byCode.put(value.code, value);
+            });
         }
 
-        public TypeCast(String name, char code) {
+        CastType(char code, String name) {
+            this.code = code;
             this.name = name;
             this.lowerCode = String.valueOf(Character.toLowerCase(code));
             this.upperCode = String.valueOf(Character.toUpperCase(code));
+        }
+
+        public static CastType byName(String name) {
+            return byName.get(name);
+        }
+
+        public static CastType byCode(char code) {
+            return byCode.get(code);
         }
     }
 }
