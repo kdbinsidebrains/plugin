@@ -59,6 +59,8 @@ generateParser {
 }
 
 dependencies {
+    compile 'org.jfree:jfreechart:1.5.3'
+    compile 'org.jfree:jfreesvg:3.4.2'
     compile 'org.apache.poi:poi:5.1.0'
     compile 'org.apache.poi:poi-ooxml:5.1.0'
 

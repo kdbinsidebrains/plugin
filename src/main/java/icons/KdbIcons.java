@@ -14,18 +14,28 @@ public final class KdbIcons {
     }
 
     public static final class Main {
-        public static final Icon File = load("/org/kdb/inside/brains/icons/q.svg");
+        public static final Icon File = load("/org/kdb/inside/brains/icons/qFile.svg");
         public static final Icon Module = load("/org/kdb/inside/brains/icons/q.svg");
         public static final Icon Application = load("/org/kdb/inside/brains/icons/q.svg");
         public static final Icon Notification = load("/org/kdb/inside/brains/icons/q.svg");
 
-        public static final Icon ToolWindow = load("/org/kdb/inside/brains/icons/kdbInstancesTool.svg");
+        public static final Icon ToolWindow = load("/org/kdb/inside/brains/icons/windows/instances.svg");
+        public static final Icon ConsoleWindow = load("/org/kdb/inside/brains/icons/windows/console.svg");
     }
 
     public static final class Scope {
         public static final Icon Icon = AllIcons.Ide.LocalScope;
         public static final Icon Local = AllIcons.Ide.LocalScope;
         public static final Icon Shared = IconManager.getInstance().createLayered(AllIcons.Ide.LocalScope, AllIcons.Nodes.Shared);
+    }
+
+    public static final class Chart {
+        public static final Icon Icon = load("/org/kdb/inside/brains/icons/charting.svg");
+        public static final Icon Line = load("/org/kdb/inside/brains/icons/chart/line.svg");
+
+        public static final Icon StyleLine = load("/org/kdb/inside/brains/icons/chart/style_line.svg");
+        public static final Icon StyleShape = load("/org/kdb/inside/brains/icons/chart/style_shape.svg");
+        public static final Icon StyleFull = load("/org/kdb/inside/brains/icons/chart/style_full.svg");
     }
 
     public static final class Console {

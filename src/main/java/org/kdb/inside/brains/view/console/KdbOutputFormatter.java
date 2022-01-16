@@ -3,6 +3,7 @@ package org.kdb.inside.brains.view.console;
 import kx.KxConnection;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 
@@ -552,7 +553,7 @@ public final class KdbOutputFormatter {
             b.append(name);
             b.append(":");
 
-            final String str = getTypeName(val.getClass().getComponentType());
+            final String str = getKdbTypeName(val.getClass().getComponentType());
             if (str != null) {
                 b.append("`").append(str).append("$");
             }
@@ -573,7 +574,7 @@ public final class KdbOutputFormatter {
 
     @NotNull
     private String emptyArray(Class<?> type) {
-        return "`" + getTypeName(type) + "$()";
+        return "`" + getKdbTypeName(type) + "$()";
     }
 
     private String oneItemArrayPrefix() {
@@ -644,58 +645,8 @@ public final class KdbOutputFormatter {
         return c.qn(v);
     }
 
-    private String getTypeName(Class<?> aClass) {
-        if (String.class.equals(aClass)) {
-            return "symbol";
-        }
-        if (boolean.class.equals(aClass)) {
-            return "boolean";
-        }
-        if (byte.class.equals(aClass)) {
-            return "byte";
-        }
-        if (short.class.equals(aClass)) {
-            return "short";
-        }
-        if (int.class.equals(aClass)) {
-            return "int";
-        }
-        if (long.class.equals(aClass)) {
-            return "long";
-        }
-        if (float.class.equals(aClass)) {
-            return "real";
-        }
-        if (double.class.equals(aClass)) {
-            return "float";
-        }
-        if (Timestamp.class.equals(aClass)) {
-            return "timestamp";
-        }
-        if (Date.class.equals(aClass)) {
-            return "date";
-        }
-        if (Time.class.equals(aClass)) {
-            return "time";
-        }
-        if (java.util.Date.class.equals(aClass)) {
-            return "datetime";
-        }
-        if (c.Timespan.class.equals(aClass)) {
-            return "timespan";
-        }
-        if (c.Month.class.equals(aClass)) {
-            return "month";
-        }
-        if (c.Minute.class.equals(aClass)) {
-            return "minute";
-        }
-        if (c.Second.class.equals(aClass)) {
-            return "second";
-        }
-        if (UUID.class.equals(aClass)) {
-            return "guid";
-        }
-        return null;
+    private String getKdbTypeName(Class<?> aClass) {
+        final KdbType kdbType = KdbType.typeOf(aClass);
+        return kdbType == null ? null : kdbType.getTypeName();
     }
 }
