@@ -647,6 +647,6 @@ public final class KdbOutputFormatter {
 
     private String getKdbTypeName(Class<?> aClass) {
         final KdbType kdbType = KdbType.typeOf(aClass);
-        return kdbType == null ? null : kdbType.getTypeName();
+        return kdbType == null || kdbType == KdbType.ANY ? null : kdbType.getTypeName();
     }
 }
