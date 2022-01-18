@@ -3,4 +3,5 @@ build/
 .idea/
 .gradle/
 .sandbox/
+.kdbinb/
 src/main/gen/
