@@ -2,6 +2,14 @@
 
 # KdbInsideBrains Changelog
 
+## [0.17.1]
+
+### Fixed
+
+- KdbInstances color selection doesn't work in 2021.3.x versions
+- Connection state notifications are not shown after the plugin update without restart
+- Line Chart can't draw not double numbers
+
 ## [0.17.0]
 
 ### Added
