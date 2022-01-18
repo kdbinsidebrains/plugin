@@ -25,6 +25,7 @@ public enum LineStyle {
         return label;
     }
 
+
     public boolean isLineVisible() {
         return this == LINE || this == FULL;
     }

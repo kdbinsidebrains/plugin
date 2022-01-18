@@ -9,19 +9,22 @@ import com.intellij.util.ui.FormBuilder;
 import icons.KdbIcons;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.view.console.chart.line.LineChartBuilder;
+import org.kdb.inside.brains.view.console.chart.ohlc.OHLCChartBuilder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.List;
 
-public class ChartFrame extends FrameWrapper {
+// TODO: to be removed
+@Deprecated
+public class ComboChartFrame extends FrameWrapper {
     private final JPanel chartPanel = new JPanel(new BorderLayout());
     private final JPanel configPanel = new JPanel(new BorderLayout());
 
     private final ComboBox<ChartBuilder> buildersBox = new ComboBox<>();
 
-    protected ChartFrame(@Nullable Project project, String title, ChartDataProvider dataProvider) {
+    protected ComboChartFrame(@Nullable Project project, String title, ChartDataProvider dataProvider) {
         super(project, "KdbInsideBrains-ChartFrameDimension", false, title);
 
         final JPanel rootPanel = new JPanel(new BorderLayout());
@@ -58,7 +61,8 @@ public class ChartFrame extends FrameWrapper {
 
     private List<ChartBuilder> createBuilders(ChartDataProvider dataProvider) {
         return List.of(
-                new LineChartBuilder(dataProvider)
+                new LineChartBuilder(dataProvider),
+                new OHLCChartBuilder(dataProvider)
         );
     }
 

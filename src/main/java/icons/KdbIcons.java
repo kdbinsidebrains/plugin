@@ -32,6 +32,7 @@ public final class KdbIcons {
     public static final class Chart {
         public static final Icon Icon = load("/org/kdb/inside/brains/icons/charting.svg");
         public static final Icon Line = load("/org/kdb/inside/brains/icons/chart/line.svg");
+        public static final Icon Candlestick = load("/org/kdb/inside/brains/icons/chart/candlestick.svg");
 
         public static final Icon StyleLine = load("/org/kdb/inside/brains/icons/chart/style_line.svg");
         public static final Icon StyleShape = load("/org/kdb/inside/brains/icons/chart/style_shape.svg");

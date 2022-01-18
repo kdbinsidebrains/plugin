@@ -17,6 +17,7 @@ import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.console.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.console.chart.ChartBuilder;
 import org.kdb.inside.brains.view.console.chart.ChartDataProvider;
+import org.kdb.inside.brains.view.console.chart.ColumnConfig;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -32,32 +33,33 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class LineChartBuilder extends ChartBuilder {
-    private final JPanel configPanel;
+    private JPanel configPanel;
 
-    private final ComboBox<ColumnConfig> domainComponent = new ComboBox<>();
-    private final TableView<ColumnConfig> rangesComponent = new TableView<>();
+    private final ComboBox<AxisConfig> domainComponent = new ComboBox<>();
+    private final TableView<AxisConfig> rangesComponent = new TableView<>();
 
     public LineChartBuilder(ChartDataProvider dataProvider) {
         super("Line Chart", KdbIcons.Chart.Line, dataProvider);
-
-        final FormBuilder formBuilder = FormBuilder.createFormBuilder();
-        formBuilder.setFormLeftIndent(0);
-        formBuilder.addComponent(new JLabel("Domain axis: "));
-        formBuilder.setFormLeftIndent(10);
-        formBuilder.addComponent(domainComponent);
-        formBuilder.setFormLeftIndent(0);
-        formBuilder.addComponent(new JLabel("Range axes: "));
-        formBuilder.setFormLeftIndent(10);
-        formBuilder.addComponent(ScrollPaneFactory.createScrollPane(rangesComponent));
-
-        initializeDomainComponent();
-        initializeRangeValuesTable();
-
-        configPanel = formBuilder.getPanel();
     }
 
     @Override
     public JPanel getConfigPanel() {
+        if (configPanel == null) {
+            final FormBuilder formBuilder = FormBuilder.createFormBuilder();
+            formBuilder.setFormLeftIndent(0);
+            formBuilder.addComponent(new JLabel("Domain axis: "));
+            formBuilder.setFormLeftIndent(10);
+            formBuilder.addComponent(domainComponent);
+            formBuilder.setFormLeftIndent(0);
+            formBuilder.addComponent(new JLabel("Range axes: "));
+            formBuilder.setFormLeftIndent(10);
+            formBuilder.addComponent(ScrollPaneFactory.createScrollPane(rangesComponent));
+
+            initializeDomainComponent();
+            initializeRangeValuesTable();
+
+            configPanel = formBuilder.getPanel();
+        }
         return configPanel;
     }
 
@@ -68,18 +70,18 @@ public class LineChartBuilder extends ChartBuilder {
     }
 
     private ChartConfig createChartConfig() {
-        final List<ColumnConfig> list = rangesComponent.getItems().stream().filter(c -> c.getGroup() != null && !c.getGroup().isBlank()).collect(Collectors.toList());
+        final List<AxisConfig> list = rangesComponent.getItems().stream().filter(c -> c.getGroup() != null && !c.getGroup().isBlank()).collect(Collectors.toList());
         return new ChartConfig(domainComponent.getItem(), list);
     }
 
-    private List<ColumnConfig> createColumnConfigs(boolean range) {
+    private List<AxisConfig> createColumnConfigs(boolean range) {
         final int columnCount = dataProvider.getColumnCount();
-        final List<ColumnConfig> res = new ArrayList<>(columnCount);
+        final List<AxisConfig> res = new ArrayList<>(columnCount);
         for (int i = 0, c = 0; i < columnCount; i++) {
             final String name = dataProvider.getColumnName(i);
             final KdbType type = dataProvider.getColumnType(i);
-            if ((range && ColumnConfig.isRangeAllowed(type)) || (!range && ColumnConfig.isDomainAllowed(type))) {
-                res.add(new ColumnConfig(i, name, type, ChartConfig.getDefaultColor(c++)));
+            if ((range && AxisConfig.isRangeAllowed(type)) || (!range && AxisConfig.isDomainAllowed(type))) {
+                res.add(new AxisConfig(i, name, type, ColumnConfig.getDefaultColor(c++)));
             }
         }
         return res;
@@ -100,13 +102,13 @@ public class LineChartBuilder extends ChartBuilder {
     }
 
     private void initializeRangeValuesTable() {
-        final List<ColumnConfig> columnConfigs = createColumnConfigs(true);
-        final Optional<String> maxLabelName = columnConfigs.stream().map(ColumnConfig::getLabelWidth).reduce((s, s2) -> s.length() > s2.length() ? s : s2);
-        final ListTableModel<ColumnConfig> model = new ListTableModel<>(
-                new ConfigColumnInfo<>("Axis", true, ColumnConfig::getGroup, ColumnConfig::setGroup).withMaxStringValue("Range Axis Name"),
-                new ConfigColumnInfo<>("Column", false, ColumnConfig::getLabel).withMaxStringValue(maxLabelName.orElse("")),
-                new ConfigColumnInfo<>("Color", true, ColumnConfig::getColor, ColumnConfig::setColor).withMaxStringValue("COL"),
-                new ConfigColumnInfo<>("Style", true, ColumnConfig::getLineStyle, ColumnConfig::setLineStyle)
+        final List<AxisConfig> columnConfigs = createColumnConfigs(true);
+        final Optional<String> maxLabelName = columnConfigs.stream().map(AxisConfig::getLabelWidth).reduce((s, s2) -> s.length() > s2.length() ? s : s2);
+        final ListTableModel<AxisConfig> model = new ListTableModel<>(
+                new ConfigColumnInfo<>("Axis", true, AxisConfig::getGroup, AxisConfig::setGroup).withMaxStringValue("Range Axis Name"),
+                new ConfigColumnInfo<>("Column", false, AxisConfig::getLabel).withMaxStringValue(maxLabelName.orElse("")),
+                new ConfigColumnInfo<>("Color", true, AxisConfig::getColor, AxisConfig::setColor).withMaxStringValue("COL"),
+                new ConfigColumnInfo<>("Style", true, AxisConfig::getLineStyle, AxisConfig::setLineStyle)
         );
         model.addRows(columnConfigs);
         model.addTableModelListener(e -> processConfigChanged());
@@ -230,7 +232,7 @@ public class LineChartBuilder extends ChartBuilder {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             final JLabel label = (JLabel) renderer.getTableCellRendererComponent(table, null, isSelected, hasFocus, row, column);
-            label.setIcon(ColumnConfig.creaColorIcon((Color) value));
+            label.setIcon(AxisConfig.creaColorIcon((Color) value));
             return label;
         }
 

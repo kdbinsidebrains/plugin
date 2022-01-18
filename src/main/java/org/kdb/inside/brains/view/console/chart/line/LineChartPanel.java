@@ -1,22 +1,14 @@
 package org.kdb.inside.brains.view.console.chart.line;
 
-import com.intellij.ui.JBColor;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.*;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
-import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.block.BlockBorder;
-import org.jfree.chart.labels.StandardCrosshairLabelGenerator;
-import org.jfree.chart.panel.CrosshairOverlay;
-import org.jfree.chart.plot.Crosshair;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.chart.ui.RectangleAnchor;
-import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.time.*;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -25,64 +17,58 @@ import org.kdb.inside.brains.view.console.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.console.chart.ChartDataProvider;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
-import java.text.NumberFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 public class LineChartPanel extends BaseChartPanel {
-    public static final JBColor CROSSHAIR_PAINT = new JBColor(new Color(0xa4a4a5), new Color(0xa4a4a5));
-    public static final JBColor CROSSHAIR_LABEL = new JBColor(new Color(0x595959), new Color(0x595959));
-    public static final JBColor CROSSHAIR_OUTLINE = new JBColor(new Color(0xe0e0e0), new Color(0xe0e0e0));
-    public static final JBColor CROSSHAIR_BACKGROUND = new JBColor(new Color(0xc4c4c4), new Color(0xc4c4c4));
-
     public LineChartPanel(ChartConfig config, ChartDataProvider dataProvider) {
         super(createChart(config, dataProvider));
-        XYCrosshairOverlay.register(this);
     }
 
     private static JFreeChart createChart(ChartConfig config, ChartDataProvider dataProvider) {
-        final ColumnConfig domain = config.getDomainValues();
-        final Map<String, List<ColumnConfig>> ranges = config.dataset();
+        final AxisConfig domain = config.getDomainValues();
+        final Map<String, List<AxisConfig>> ranges = config.dataset();
 
-        final XYDataset[] datasets = ColumnConfig.isTemporalType(domain.getType()) ? createTimeDatasets(domain, ranges, dataProvider) : createNumberDatasets(domain, ranges, dataProvider);
+        final XYDataset[] datasets = AxisConfig.isTemporalType(domain.getType()) ? createTimeDatasets(domain, ranges, dataProvider) : createNumberDatasets(domain, ranges, dataProvider);
+
         final JFreeChart chart = ChartFactory.createTimeSeriesChart(null, domain.getName(), "", null, true, true, false);
 
         int i = 0;
         final XYPlot plot = chart.getXYPlot();
-        for (Map.Entry<String, List<ColumnConfig>> entry : ranges.entrySet()) {
-            int c = 0;
-            final List<ColumnConfig> value = entry.getValue();
-            final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, false);
-            for (ColumnConfig column : value) {
-                renderer.setSeriesPaint(c, column.getColor());
-                renderer.setSeriesStroke(c, new BasicStroke(2.0f));
-                renderer.setSeriesLinesVisible(c, column.getLineStyle().isLineVisible());
-                renderer.setSeriesShapesVisible(c, column.getLineStyle().isShapeVisible());
-                c++;
-            }
 
+        for (Map.Entry<String, List<AxisConfig>> entry : ranges.entrySet()) {
             plot.setDataset(i, datasets[i]);
-            plot.setRenderer(i, renderer);
+            plot.setRenderer(i, createRenderer(entry.getValue()));
             plot.setRangeAxis(i, applyAxisColorSchema(new NumberAxis(entry.getKey())));
             plot.setRangeAxisLocation(i, i % 2 == 0 ? AxisLocation.BOTTOM_OR_LEFT : AxisLocation.BOTTOM_OR_RIGHT);
             plot.mapDatasetToRangeAxis(i, i);
-
             i++;
         }
-
-        applyColorSchema(chart);
         return chart;
     }
 
-    private static XYDataset[] createNumberDatasets(ColumnConfig domainCfg, Map<String, List<ColumnConfig>> datasets, ChartDataProvider dataProvider) {
+    @NotNull
+    private static XYItemRenderer createRenderer(List<AxisConfig> configs) {
+        int c = 0;
+        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        for (AxisConfig column : configs) {
+            renderer.setSeriesPaint(c, column.getColor());
+            renderer.setSeriesStroke(c, new BasicStroke(2.0f));
+            renderer.setSeriesLinesVisible(c, column.getLineStyle().isLineVisible());
+            renderer.setSeriesShapesVisible(c, column.getLineStyle().isShapeVisible());
+            c++;
+        }
+        return renderer;
+    }
+
+    private static XYDataset[] createNumberDatasets(AxisConfig domainCfg, Map<String, List<AxisConfig>> datasets, ChartDataProvider dataProvider) {
         int i = 0;
         final Number[] domain = createNumberDomain(domainCfg, dataProvider);
         final XYDataset[] res = new XYDataset[datasets.size()];
-        for (Map.Entry<String, List<ColumnConfig>> entry : datasets.entrySet()) {
+        for (Map.Entry<String, List<AxisConfig>> entry : datasets.entrySet()) {
             final XYSeriesCollection series = new XYSeriesCollection();
-            for (ColumnConfig column : entry.getValue()) {
+            for (AxisConfig column : entry.getValue()) {
                 final XYSeries s = new XYSeries(column.getName());
                 for (int j = 0; j < domain.length; j++) {
                     s.addOrUpdate(domain[j], (Number) dataProvider.getValueAt(j, column.getIndex()));
@@ -94,13 +80,13 @@ public class LineChartPanel extends BaseChartPanel {
         return res;
     }
 
-    private static XYDataset[] createTimeDatasets(ColumnConfig domainCfg, Map<String, List<ColumnConfig>> datasets, ChartDataProvider dataProvider) {
+    private static XYDataset[] createTimeDatasets(AxisConfig domainCfg, Map<String, List<AxisConfig>> datasets, ChartDataProvider dataProvider) {
         int i = 0;
         final RegularTimePeriod[] domain = createTimeDomain(domainCfg, dataProvider);
         final XYDataset[] res = new XYDataset[datasets.size()];
-        for (Map.Entry<String, List<ColumnConfig>> entry : datasets.entrySet()) {
+        for (Map.Entry<String, List<AxisConfig>> entry : datasets.entrySet()) {
             final TimeSeriesCollection series = new TimeSeriesCollection();
-            for (ColumnConfig column : entry.getValue()) {
+            for (AxisConfig column : entry.getValue()) {
                 final TimeSeries s = new TimeSeries(column.getName());
                 for (int j = 0; j < domain.length; j++) {
                     s.addOrUpdate(domain[j], (Number) dataProvider.getValueAt(j, column.getIndex()));
@@ -112,7 +98,7 @@ public class LineChartPanel extends BaseChartPanel {
         return res;
     }
 
-    private static Number[] createNumberDomain(ColumnConfig domain, ChartDataProvider dataProvider) {
+    private static Number[] createNumberDomain(AxisConfig domain, ChartDataProvider dataProvider) {
         final int index = domain.getIndex();
         final int rowsCount = dataProvider.getRowCount();
         final Number[] res = new Number[rowsCount];
@@ -122,7 +108,7 @@ public class LineChartPanel extends BaseChartPanel {
         return res;
     }
 
-    private static RegularTimePeriod[] createTimeDomain(ColumnConfig domain, ChartDataProvider dataProvider) {
+    private static RegularTimePeriod[] createTimeDomain(AxisConfig domain, ChartDataProvider dataProvider) {
         final int index = domain.getIndex();
         final int rowsCount = dataProvider.getRowCount();
         final RegularTimePeriod[] res = new RegularTimePeriod[rowsCount];
@@ -150,110 +136,5 @@ public class LineChartPanel extends BaseChartPanel {
             return new Millisecond(new Date(v.j / 1_000_000L));
         }
         throw new IllegalArgumentException("Invalid value type: " + value.getClass());
-    }
-
-    private static void applyColorSchema(JFreeChart chart) {
-        chart.setBorderPaint(JBColor.foreground());
-        chart.setBackgroundPaint(JBColor.background());
-
-        final LegendTitle legend = chart.getLegend();
-        legend.setFrame(BlockBorder.NONE);
-        legend.setItemPaint(JBColor.foreground());
-        legend.setBackgroundPaint(JBColor.background());
-
-        final XYPlot plot = chart.getXYPlot();
-        plot.setRangePannable(true);
-        plot.setDomainPannable(true);
-        plot.setBackgroundPaint(JBColor.background());
-
-        plot.setRangeGridlinesVisible(true);
-        plot.setRangeGridlinePaint(new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4)));
-
-        plot.setDomainGridlinesVisible(true);
-        plot.setDomainGridlinePaint(new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4)));
-
-        final int domainAxisCount = plot.getDomainAxisCount();
-        for (int i = 0; i < domainAxisCount; i++) {
-            applyAxisColorSchema(plot.getDomainAxis(i));
-        }
-    }
-
-    private static ValueAxis applyAxisColorSchema(ValueAxis axis) {
-        axis.setLabelPaint(JBColor.foreground());
-        axis.setAxisLinePaint(JBColor.foreground());
-        axis.setTickLabelPaint(JBColor.foreground());
-
-        if (axis instanceof NumberAxis) {
-            ((NumberAxis) axis).setAutoRangeIncludesZero(false);
-        }
-        return axis;
-    }
-
-    static class XYCrosshairOverlay implements ChartMouseListener {
-        private final ChartPanel panel;
-
-        private final Crosshair xCrosshair;
-        private final Crosshair yCrosshair;
-
-        public XYCrosshairOverlay(ChartPanel panel) {
-            this.panel = panel;
-
-            xCrosshair = createCrosshair(false);
-            yCrosshair = createCrosshair(true);
-
-            final CrosshairOverlay crosshairOverlay = new CrosshairOverlay();
-            crosshairOverlay.addDomainCrosshair(this.xCrosshair);
-            crosshairOverlay.addRangeCrosshair(this.yCrosshair);
-
-            panel.addOverlay(crosshairOverlay);
-            panel.addChartMouseListener(this);
-        }
-
-        @Override
-        public void chartMouseClicked(ChartMouseEvent event) {
-        }
-
-        @Override
-        public void chartMouseMoved(ChartMouseEvent event) {
-            Rectangle2D dataArea = panel.getScreenDataArea();
-            JFreeChart chart = event.getChart();
-            XYPlot plot = (XYPlot) chart.getPlot();
-            ValueAxis xAxis = plot.getDomainAxis();
-            ValueAxis yAxis = plot.getRangeAxis();
-            double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, RectangleEdge.BOTTOM);
-            if (!xAxis.getRange().contains(x)) {
-                x = Double.NaN;
-            }
-            double y = yAxis.java2DToValue(event.getTrigger().getY(), dataArea, RectangleEdge.LEFT);
-            if (!yAxis.getRange().contains(y)) {
-                y = Double.NaN;
-            }
-            //            double y = DatasetUtils.findYValue(plot.getDataset(), 0, x);
-            xCrosshair.setValue(x);
-            yCrosshair.setValue(y);
-        }
-
-        @NotNull
-        private Crosshair createCrosshair(boolean vertical) {
-            final Crosshair crosshair = new Crosshair(Double.NaN, CROSSHAIR_PAINT, new BasicStroke(0.5F));
-            crosshair.setLabelVisible(true);
-            crosshair.setLabelAnchor(vertical ? RectangleAnchor.LEFT : RectangleAnchor.BOTTOM);
-            crosshair.setLabelPaint(CROSSHAIR_LABEL);
-            crosshair.setLabelOutlinePaint(CROSSHAIR_OUTLINE);
-            crosshair.setLabelBackgroundPaint(CROSSHAIR_BACKGROUND);
-            final ValueAxis domainAxis = ((XYPlot) panel.getChart().getPlot()).getDomainAxis();
-            if (!vertical && domainAxis instanceof DateAxis) {
-                final DateAxis dateAxis = (DateAxis) domainAxis;
-                crosshair.setLabelGenerator(g -> dateAxis.getTickUnit().valueToString(g.getValue()));
-            } else {
-                crosshair.setLabelGenerator(new StandardCrosshairLabelGenerator("  {0}  ", NumberFormat.getNumberInstance()));
-            }
-
-            return crosshair;
-        }
-
-        static void register(ChartPanel panel) {
-            new XYCrosshairOverlay(panel);
-        }
     }
 }
