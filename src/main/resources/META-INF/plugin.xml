@@ -10,7 +10,7 @@
         with full supporting <a href="https://code.kx.com/q/">KDB+ Q</a> programming language.
         </p>
         <p>
-        Contains tool windows for managing KDB instances, interactive KDB consoles with a table result view,
+        Contains tool windows for managing KDB instances, interactive KDB consoles with a table result view and charting,
         interactive connection toolbar as well as ability to run and manager local KDB processes.
         </p>
         <p>
