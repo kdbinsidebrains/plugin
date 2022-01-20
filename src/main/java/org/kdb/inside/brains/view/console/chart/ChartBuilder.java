@@ -7,6 +7,8 @@ import java.util.List;
 public abstract class ChartBuilder {
     private final Icon icon;
     private final String name;
+
+    protected JPanel configPanel;
     protected final ChartDataProvider dataProvider;
 
     private final List<Runnable> configListeners = new ArrayList<>();
@@ -38,9 +40,17 @@ public abstract class ChartBuilder {
     }
 
 
-    public abstract JPanel getConfigPanel();
+    public JPanel getConfigPanel() {
+        if (configPanel == null) {
+            configPanel = createConfigPanel();
+        }
+        return configPanel;
+    }
 
     public abstract BaseChartPanel createChartPanel();
+
+
+    protected abstract JPanel createConfigPanel();
 
 
     protected void processConfigChanged() {

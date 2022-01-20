@@ -2,6 +2,17 @@
 
 # KdbInsideBrains Changelog
 
+## [0.18.0]
+
+### Added
+
+- Charting configuration has been redesigned
+- Candlestick chart has been added
+- Line charts have been updated:
+  - Spline, Steps, Bar, Area, Diff and Scatter line charts have been added
+  - Ability to change line width and show shapes added
+  - Transparent colors and axes orders added
+
 ## [0.17.1]
 
 ### Fixed

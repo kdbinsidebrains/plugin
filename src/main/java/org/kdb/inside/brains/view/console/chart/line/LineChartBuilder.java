@@ -4,61 +4,69 @@ import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComboBoxTableRenderer;
 import com.intellij.ui.ColorChooser;
+import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.ToolbarDecorator;
+import com.intellij.ui.components.JBViewport;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.ComboBoxCellEditor;
+import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.ListTableModel;
+import com.intellij.util.ui.UIUtil;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.KdbType;
-import org.kdb.inside.brains.view.console.chart.BaseChartPanel;
-import org.kdb.inside.brains.view.console.chart.ChartBuilder;
-import org.kdb.inside.brains.view.console.chart.ChartDataProvider;
+import org.kdb.inside.brains.view.console.chart.*;
 
 import javax.swing.*;
 import javax.swing.table.*;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class LineChartBuilder extends ChartBuilder {
-    private final JPanel configPanel;
-
-    private final ComboBox<ColumnConfig> domainComponent = new ComboBox<>();
-    private final TableView<ColumnConfig> rangesComponent = new TableView<>();
+    private final ComboBox<AxisConfig> domainComponent = new ComboBox<>();
+    private final TableView<AxisConfig> rangesComponent = new TableView<>();
+    private final TableView<SeriesConfig> seriesComponent = new TableView<>();
+    private final JCheckBox shapesCheckbox = new JCheckBox("Draw shapes where possible", false);
 
     public LineChartBuilder(ChartDataProvider dataProvider) {
         super("Line Chart", KdbIcons.Chart.Line, dataProvider);
+    }
+
+    @Override
+    public JPanel createConfigPanel() {
+        initOptions();
+        initializeSeriesComponent();
+        initializeDomainComponent();
+        initializeRangeValuesTable();
 
         final FormBuilder formBuilder = FormBuilder.createFormBuilder();
         formBuilder.setFormLeftIndent(0);
         formBuilder.addComponent(new JLabel("Domain axis: "));
         formBuilder.setFormLeftIndent(10);
         formBuilder.addComponent(domainComponent);
+
+        formBuilder.setFormLeftIndent(0);
+        formBuilder.addComponent(new JLabel("Series definition: "));
+        formBuilder.setFormLeftIndent(10);
+        formBuilder.addComponent(ScrollPaneFactory.createScrollPane(seriesComponent));
+
         formBuilder.setFormLeftIndent(0);
         formBuilder.addComponent(new JLabel("Range axes: "));
         formBuilder.setFormLeftIndent(10);
-        formBuilder.addComponent(ScrollPaneFactory.createScrollPane(rangesComponent));
+        formBuilder.addComponent(ToolbarDecorator.createDecorator(rangesComponent).disableAddAction().disableRemoveAction().createPanel());
 
-        initializeDomainComponent();
-        initializeRangeValuesTable();
+        formBuilder.setFormLeftIndent(0);
+        formBuilder.addComponent(new JLabel("Options: "));
+        formBuilder.setFormLeftIndent(10);
+        formBuilder.addComponent(shapesCheckbox);
 
-        configPanel = formBuilder.getPanel();
-    }
-
-    @Override
-    public JPanel getConfigPanel() {
-        return configPanel;
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(formBuilder.getPanel(), BorderLayout.PAGE_START);
+        return p;
     }
 
     @Override
@@ -68,158 +76,204 @@ public class LineChartBuilder extends ChartBuilder {
     }
 
     private ChartConfig createChartConfig() {
-        final List<ColumnConfig> list = rangesComponent.getItems().stream().filter(c -> c.getGroup() != null && !c.getGroup().isBlank()).collect(Collectors.toList());
-        return new ChartConfig(domainComponent.getItem(), list);
-    }
-
-    private List<ColumnConfig> createColumnConfigs(boolean range) {
-        final int columnCount = dataProvider.getColumnCount();
-        final List<ColumnConfig> res = new ArrayList<>(columnCount);
-        for (int i = 0, c = 0; i < columnCount; i++) {
-            final String name = dataProvider.getColumnName(i);
-            final KdbType type = dataProvider.getColumnType(i);
-            if ((range && ColumnConfig.isRangeAllowed(type)) || (!range && ColumnConfig.isDomainAllowed(type))) {
-                res.add(new ColumnConfig(i, name, type, ChartConfig.getDefaultColor(c++)));
-            }
-        }
-        return res;
+        final List<AxisConfig> list = rangesComponent.getItems().stream().filter(c -> c.getSeries() != null && !c.getSeries().getName().isBlank()).collect(Collectors.toList());
+        return new ChartConfig(domainComponent.getItem(), list, shapesCheckbox.isSelected());
     }
 
     private void initializeDomainComponent() {
         createColumnConfigs(false).forEach(domainComponent::addItem);
 
         domainComponent.addActionListener(e -> processConfigChanged());
-        domainComponent.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                setText(((ColumnConfig) value).getLabel());
-                return this;
-            }
-        });
+        domainComponent.setRenderer(ColumnConfig.createListCellRenderer());
     }
 
-    private void initializeRangeValuesTable() {
-        final List<ColumnConfig> columnConfigs = createColumnConfigs(true);
-        final Optional<String> maxLabelName = columnConfigs.stream().map(ColumnConfig::getLabelWidth).reduce((s, s2) -> s.length() > s2.length() ? s : s2);
-        final ListTableModel<ColumnConfig> model = new ListTableModel<>(
-                new ConfigColumnInfo<>("Axis", true, ColumnConfig::getGroup, ColumnConfig::setGroup).withMaxStringValue("Range Axis Name"),
-                new ConfigColumnInfo<>("Column", false, ColumnConfig::getLabel).withMaxStringValue(maxLabelName.orElse("")),
-                new ConfigColumnInfo<>("Color", true, ColumnConfig::getColor, ColumnConfig::setColor).withMaxStringValue("COL"),
-                new ConfigColumnInfo<>("Style", true, ColumnConfig::getLineStyle, ColumnConfig::setLineStyle)
+    private void initOptions() {
+        shapesCheckbox.addActionListener(l -> processConfigChanged());
+    }
+
+    private void initializeSeriesComponent() {
+        final ListTableModel<SeriesConfig> model = new ListTableModel<>(
+                new GSColumnInfo<>("Name", SeriesConfig::getName, SeriesConfig::setName),
+                new GSColumnInfo<>("Style", SeriesConfig::getType, SeriesConfig::setType),
+                new GSColumnInfo<>("Lower Margin", SeriesConfig::getLowerMargin, SeriesConfig::setLowerMargin),
+                new GSColumnInfo<>("Upper Margin", SeriesConfig::getUpperMargin, SeriesConfig::setUpperMargin)
         );
-        model.addRows(columnConfigs);
-        model.addTableModelListener(e -> processConfigChanged());
+        model.addRow(new SeriesConfig("Value", SeriesType.LINE));
+        model.addRow(new SeriesConfig("", SeriesType.LINE));
+        model.addTableModelListener(e -> {
+            final int firstRow = e.getFirstRow();
+            final int lastRowIndex = model.getRowCount() - 1;
+            if (model.getItem(firstRow).getName().isEmpty() && firstRow != lastRowIndex) {
+                model.removeRow(e.getFirstRow());
+            } else if (!model.getItem(lastRowIndex).getName().isEmpty()) {
+                model.addRow(new SeriesConfig("", SeriesType.LINE));
+            }
+            rangesComponent.repaint();
+            processConfigChanged();
+        });
 
-        rangesComponent.setModelAndUpdateColumns(model);
+        seriesComponent.setVisibleRowCount(5);
+        UIUtil.putClientProperty(seriesComponent, JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
 
-        final TableColumnModel columnModel = rangesComponent.getColumnModel();
+        seriesComponent.setModelAndUpdateColumns(model);
+        seriesComponent.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        final TableColumn groupCol = columnModel.getColumn(0);
-        groupCol.setCellEditor(new ConfigComboBoxCellEditor());
+        final TableColumnModel columnModel = seriesComponent.getColumnModel();
 
-        final TableColumn colorCol = columnModel.getColumn(2);
-        colorCol.setCellEditor(new ColorTableCellEditor());
-        colorCol.setCellRenderer(new ColorTableCellEditor());
-
-        final TableColumn style = columnModel.getColumn(3);
-        final ComboBoxTableRenderer<LineStyle> cellEditor = new ComboBoxTableRenderer<>(LineStyle.values()) {
+        final TableColumn style = columnModel.getColumn(1);
+        final ComboBoxTableRenderer<SeriesType> cellEditor = new ComboBoxTableRenderer<>(SeriesType.values()) {
             @Override
-            protected String getTextFor(@NotNull LineStyle value) {
+            protected String getTextFor(@NotNull SeriesType value) {
                 return value.getLabel();
             }
 
             @Override
-            protected Icon getIconFor(@NotNull LineStyle value) {
+            protected Icon getIconFor(@NotNull SeriesType value) {
                 return value.getIcon();
             }
         }.withClickCount(1);
         style.setCellEditor(cellEditor);
         style.setCellRenderer(cellEditor);
+
+        columnModel.getColumn(2).setCellEditor(new IntSpinnerCellEditor());
+        columnModel.getColumn(3).setCellEditor(new IntSpinnerCellEditor());
     }
 
-    private static class ConfigColumnInfo<T, V> extends ColumnInfo<T, V> {
-        private final boolean editable;
-        private final Function<T, V> getter;
-        private final BiConsumer<T, V> setter;
+    private void initializeRangeValuesTable() {
+        final List<AxisConfig> columnConfigs = createColumnConfigs(true);
+        final Optional<String> maxLabelName = columnConfigs.stream().map(AxisConfig::getLabelWidth).reduce((s, s2) -> s.length() > s2.length() ? s : s2);
+        final ListTableModel<AxisConfig> model = new ListTableModel<>(
+                new GSColumnInfo<>("Axis", AxisConfig::getSeries, AxisConfig::setSeries, "Range Axis Name"),
+                new GSColumnInfo<>("Column", AxisConfig::getLabel, null, maxLabelName.orElse("")),
+                new GSColumnInfo<>("Color", AxisConfig::getColor, AxisConfig::setColor),
+                new GSColumnInfo<>("Width", AxisConfig::getWidth, AxisConfig::setWidth)
+        );
+        model.addRows(columnConfigs);
+        model.addTableModelListener(e -> processConfigChanged());
 
-        private String maxStringValue;
+        rangesComponent.setModelAndUpdateColumns(model);
+        rangesComponent.setVisibleRowCount(columnConfigs.size());
+        UIUtil.putClientProperty(rangesComponent, JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
 
-        public ConfigColumnInfo(String name, boolean editable, Function<T, V> getter) {
-            this(name, editable, getter, null);
-        }
+        final TableColumnModel columnModel = rangesComponent.getColumnModel();
 
-        public ConfigColumnInfo(String name, boolean editable, Function<T, V> getter, BiConsumer<T, V> setter) {
-            super(name);
-            this.getter = getter;
-            this.setter = setter;
-            this.editable = editable;
-        }
+        final ComboBox<SeriesConfig> seriesBox = new ComboBox<>(new SeriesComboboxModel(seriesComponent));
+        seriesBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                final SeriesConfig sc = (SeriesConfig) value;
+                return super.getListCellRendererComponent(list, sc == null ? "" : sc.getLabel(), index, isSelected, cellHasFocus);
+            }
+        });
 
-        @Override
-        public @Nullable V valueOf(T cc) {
-            return getter.apply(cc);
-        }
+        final TableColumn groupCol = columnModel.getColumn(0);
+        groupCol.setCellEditor(new DefaultCellEditor(seriesBox));
+        groupCol.setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                final SeriesConfig sc = (SeriesConfig) value;
+                return super.getTableCellRendererComponent(table, sc == null ? "" : sc.getLabel(), isSelected, hasFocus, row, column);
+            }
+        });
 
-        @Override
-        public void setValue(T config, V value) {
-            if (setter != null) {
-                setter.accept(config, value);
+        final TableColumn colorCol = columnModel.getColumn(2);
+        colorCol.setCellEditor(new ColorTableCellEditor());
+        colorCol.setCellRenderer(new ColorTableCellEditor());
+
+        final TableColumn width = columnModel.getColumn(3);
+        final DefaultCellEditor widthEditor = new DefaultCellEditor(new JFormattedTextField(0.0D)) {
+            @Override
+            public Object getCellEditorValue() {
+                return textField().getValue();
+            }
+
+            @Override
+            public boolean stopCellEditing() {
+                try {
+                    textField().commitEdit();
+                    return super.stopCellEditing();
+                } catch (Exception ex) {
+                    return false;
+                }
+            }
+
+            private JFormattedTextField textField() {
+                return (JFormattedTextField) editorComponent;
+            }
+        };
+        widthEditor.setClickCountToStart(1);
+        width.setCellEditor(widthEditor);
+    }
+
+    private List<AxisConfig> createColumnConfigs(boolean range) {
+        final int columnCount = dataProvider.getColumnCount();
+        final List<AxisConfig> res = new ArrayList<>(columnCount);
+        for (int i = 0, c = 0; i < columnCount; i++) {
+            final String name = dataProvider.getColumnName(i);
+            final KdbType type = dataProvider.getColumnType(i);
+            if ((range && AxisConfig.isRangeAllowed(type)) || (!range && AxisConfig.isDomainAllowed(type))) {
+                res.add(new AxisConfig(i, name, type, ColumnConfig.getDefaultColor(c++)));
             }
         }
+        return res;
+    }
 
-        @Override
-        public boolean isCellEditable(T cc) {
-            return editable;
+    private static class SeriesComboboxModel extends AbstractListModel<SeriesConfig> implements ComboBoxModel<SeriesConfig> {
+        private Object selected;
+        private final TableView<SeriesConfig> table;
+
+        public SeriesComboboxModel(TableView<SeriesConfig> table) {
+            this.table = table;
         }
 
         @Override
-        public @Nullable String getMaxStringValue() {
-            return maxStringValue;
+        public void setSelectedItem(Object anItem) {
+            selected = anItem;
         }
 
-        public ConfigColumnInfo<T, V> withMaxStringValue(String str) {
-            maxStringValue = str;
-            return this;
+        @Override
+        public Object getSelectedItem() {
+            return selected;
+        }
+
+        @Override
+        public int getSize() {
+            return table.getRowCount();
+        }
+
+        @Override
+        public SeriesConfig getElementAt(int index) {
+            return table.getRow(index);
         }
     }
 
-    private class ConfigComboBoxCellEditor extends ComboBoxCellEditor {
-        public ConfigComboBoxCellEditor() {
-            setClickCountToStart(1);
+    private static class IntSpinnerCellEditor extends AbstractTableCellEditor {
+        private final JBIntSpinner intSpinner = new JBIntSpinner(5, 0, 1000, 5);
 
-            final JComboBox<?> c = (JComboBox<?>) editorComponent;
-            final JTextComponent editor = (JTextComponent) c.getEditor().getEditorComponent();
-            editor.addFocusListener(new FocusAdapter() {
-                @Override
-                public void focusGained(FocusEvent e) {
-                    c.setPopupVisible(true);
-                    editor.setSelectionStart(0);
-                    editor.setSelectionEnd(editor.getText().length());
-                }
-            });
+        public IntSpinnerCellEditor() {
+            final JSpinner.NumberEditor editor = (JSpinner.NumberEditor) intSpinner.getEditor();
+            editor.getTextField().addActionListener(e -> stopCellEditing());
         }
 
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            // Don't select the item in the list but set the value
-            final JComboBox<?> box = (JComboBox<?>) super.getTableCellEditorComponent(table, null, isSelected, row, column);
-            box.getEditor().setItem(value);
-            return box;
+            intSpinner.setValue(value);
+            return intSpinner;
         }
 
         @Override
-        protected List<String> getComboBoxItems() {
-            final ChartConfig chartConfig = createChartConfig();
-            if (chartConfig.isEmpty()) {
-                return List.of("Value");
+        public boolean stopCellEditing() {
+            try {
+                intSpinner.commitEdit();
+            } catch (Exception ignore) {
+                // do nothing - just revert it back
             }
-            return new ArrayList<>(chartConfig.dataset().keySet());
+            return super.stopCellEditing();
         }
 
         @Override
-        protected boolean isComboboxEditable() {
-            return true;
+        public Object getCellEditorValue() {
+            return intSpinner.getValue();
         }
     }
 
@@ -230,7 +284,7 @@ public class LineChartBuilder extends ChartBuilder {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             final JLabel label = (JLabel) renderer.getTableCellRendererComponent(table, null, isSelected, hasFocus, row, column);
-            label.setIcon(ColumnConfig.creaColorIcon((Color) value));
+            label.setIcon(AxisConfig.createIcon((Color) value));
             return label;
         }
 
@@ -240,7 +294,7 @@ public class LineChartBuilder extends ChartBuilder {
 
             editingColor = (Color) value;
             SwingUtilities.invokeLater(() -> {
-                final Color c = ColorChooser.chooseColor(table, IdeBundle.message("dialog.title.choose.color"), editingColor);
+                final Color c = ColorChooser.chooseColor(table, IdeBundle.message("dialog.title.choose.color"), editingColor, true);
                 if (c == null) {
                     cancelCellEditing();
                 } else {
