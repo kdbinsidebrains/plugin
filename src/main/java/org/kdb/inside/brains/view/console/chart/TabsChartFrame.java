@@ -55,6 +55,7 @@ public class TabsChartFrame extends FrameWrapper {
         setComponent(rootPanel);
         setImage(IconLoader.toImage(KdbIcons.Chart.Icon));
         closeOnEsc();
+        configChanged();
     }
 
     private List<ChartBuilder> createBuilders(ChartDataProvider dataProvider) {

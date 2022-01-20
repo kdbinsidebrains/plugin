@@ -6,10 +6,13 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.*;
+import org.jfree.data.xy.IntervalXYDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -28,19 +31,33 @@ public class LineChartPanel extends BaseChartPanel {
 
     private static JFreeChart createChart(ChartConfig config, ChartDataProvider dataProvider) {
         final AxisConfig domain = config.getDomainValues();
-        final Map<String, List<AxisConfig>> ranges = config.dataset();
+        final Map<SeriesConfig, List<AxisConfig>> ranges = config.dataset();
 
         final XYDataset[] datasets = AxisConfig.isTemporalType(domain.getType()) ? createTimeDatasets(domain, ranges, dataProvider) : createNumberDatasets(domain, ranges, dataProvider);
-
         final JFreeChart chart = ChartFactory.createTimeSeriesChart(null, domain.getName(), "", null, true, true, false);
 
         int i = 0;
         final XYPlot plot = chart.getXYPlot();
+        plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
+        plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+        for (Map.Entry<SeriesConfig, List<AxisConfig>> entry : ranges.entrySet()) {
+            final SeriesConfig series = entry.getKey();
+            final List<AxisConfig> axes = entry.getValue();
 
-        for (Map.Entry<String, List<AxisConfig>> entry : ranges.entrySet()) {
+            final ValueAxis axis = applyAxisColorSchema(new NumberAxis(series.getName()));
+            axis.setLowerMargin(series.getLowerMargin() / 100d);
+            axis.setUpperMargin(series.getUpperMargin() / 100d);
+
+            final XYItemRenderer renderer = createRenderer(config, series, axes);
+            for (int j = 0; j < axes.size(); j++) {
+                final AxisConfig ac = axes.get(j);
+                renderer.setSeriesPaint(j, ac.getColor());
+                renderer.setSeriesStroke(j, new BasicStroke(ac.getWidth().floatValue()));
+            }
+
             plot.setDataset(i, datasets[i]);
-            plot.setRenderer(i, createRenderer(entry.getValue()));
-            plot.setRangeAxis(i, applyAxisColorSchema(new NumberAxis(entry.getKey())));
+            plot.setRenderer(i, renderer);
+            plot.setRangeAxis(i, axis);
             plot.setRangeAxisLocation(i, i % 2 == 0 ? AxisLocation.BOTTOM_OR_LEFT : AxisLocation.BOTTOM_OR_RIGHT);
             plot.mapDatasetToRangeAxis(i, i);
             i++;
@@ -49,24 +66,19 @@ public class LineChartPanel extends BaseChartPanel {
     }
 
     @NotNull
-    private static XYItemRenderer createRenderer(List<AxisConfig> configs) {
-        int c = 0;
-        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        for (AxisConfig column : configs) {
-            renderer.setSeriesPaint(c, column.getColor());
-            renderer.setSeriesStroke(c, new BasicStroke(2.0f));
-            renderer.setSeriesLinesVisible(c, column.getLineStyle().isLineVisible());
-            renderer.setSeriesShapesVisible(c, column.getLineStyle().isShapeVisible());
-            c++;
+    private static XYItemRenderer createRenderer(ChartConfig config, SeriesConfig series, List<AxisConfig> axes) {
+        final SeriesType type = series.getType();
+        if (type == null) {
+            throw new UnsupportedOperationException("No renderer for type " + series.getType());
         }
-        return renderer;
+        return type.createRenderer(config, axes);
     }
 
-    private static XYDataset[] createNumberDatasets(AxisConfig domainCfg, Map<String, List<AxisConfig>> datasets, ChartDataProvider dataProvider) {
+    private static IntervalXYDataset[] createNumberDatasets(AxisConfig domainCfg, Map<SeriesConfig, List<AxisConfig>> datasets, ChartDataProvider dataProvider) {
         int i = 0;
         final Number[] domain = createNumberDomain(domainCfg, dataProvider);
-        final XYDataset[] res = new XYDataset[datasets.size()];
-        for (Map.Entry<String, List<AxisConfig>> entry : datasets.entrySet()) {
+        final XYSeriesCollection[] res = new XYSeriesCollection[datasets.size()];
+        for (Map.Entry<SeriesConfig, List<AxisConfig>> entry : datasets.entrySet()) {
             final XYSeriesCollection series = new XYSeriesCollection();
             for (AxisConfig column : entry.getValue()) {
                 final XYSeries s = new XYSeries(column.getName());
@@ -80,11 +92,11 @@ public class LineChartPanel extends BaseChartPanel {
         return res;
     }
 
-    private static XYDataset[] createTimeDatasets(AxisConfig domainCfg, Map<String, List<AxisConfig>> datasets, ChartDataProvider dataProvider) {
+    private static IntervalXYDataset[] createTimeDatasets(AxisConfig domainCfg, Map<SeriesConfig, List<AxisConfig>> datasets, ChartDataProvider dataProvider) {
         int i = 0;
         final RegularTimePeriod[] domain = createTimeDomain(domainCfg, dataProvider);
-        final XYDataset[] res = new XYDataset[datasets.size()];
-        for (Map.Entry<String, List<AxisConfig>> entry : datasets.entrySet()) {
+        final IntervalXYDataset[] res = new IntervalXYDataset[datasets.size()];
+        for (Map.Entry<SeriesConfig, List<AxisConfig>> entry : datasets.entrySet()) {
             final TimeSeriesCollection series = new TimeSeriesCollection();
             for (AxisConfig column : entry.getValue()) {
                 final TimeSeries s = new TimeSeries(column.getName());

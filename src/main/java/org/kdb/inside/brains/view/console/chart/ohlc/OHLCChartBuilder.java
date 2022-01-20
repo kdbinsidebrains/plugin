@@ -1,7 +1,11 @@
 package org.kdb.inside.brains.view.console.chart.ohlc;
 
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.components.JBViewport;
+import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.FormBuilder;
+import com.intellij.util.ui.UIUtil;
 import icons.KdbIcons;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.console.chart.BaseChartPanel;
@@ -10,59 +14,119 @@ import org.kdb.inside.brains.view.console.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.console.chart.ColumnConfig;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.util.List;
 
 public class OHLCChartBuilder extends ChartBuilder {
-    private JPanel configPanel;
-
-    private final ComboBox<ColumnConfig> dateComponent = new ComboBox<>();
-    private final ComboBox<ColumnConfig> openComponent = new ComboBox<>();
-    private final ComboBox<ColumnConfig> highComponent = new ComboBox<>();
-    private final ComboBox<ColumnConfig> lowComponent = new ComboBox<>();
-    private final ComboBox<ColumnConfig> closeComponent = new ComboBox<>();
-    private final ComboBox<ColumnConfig> volumeComponent = new ComboBox<>();
-
-    private final List<ComboBox<ColumnConfig>> rangeComponents = List.of(openComponent, highComponent, lowComponent, closeComponent, volumeComponent);
+    private final JBTable rangesComponent = new JBTable();
+    private final ComboBox<ColumnConfig> domainComponent = new ComboBox<>();
 
     public OHLCChartBuilder(ChartDataProvider dataProvider) {
         super("Candlestick", KdbIcons.Chart.Candlestick, dataProvider);
     }
 
     @Override
-    public JPanel getConfigPanel() {
-        if (configPanel == null) {
-            final int columnCount = dataProvider.getColumnCount();
-            for (int i = 0; i < columnCount; i++) {
-                final String name = dataProvider.getColumnName(i);
-                final KdbType type = dataProvider.getColumnType(i);
+    protected JPanel createConfigPanel() {
+        initComponents();
 
-                final ColumnConfig cc = new ColumnConfig(i, name, type);
-                if (ColumnConfig.isTemporalType(type)) {
-                    dateComponent.addItem(cc);
-                } else if (ColumnConfig.isNumberType(type)) {
-                    rangeComponents.forEach(c -> c.addItem(cc));
+        final FormBuilder formBuilder = FormBuilder.createFormBuilder();
+        formBuilder.setFormLeftIndent(0);
+        formBuilder.addComponent(new JLabel("Domain axis: "));
+        formBuilder.setFormLeftIndent(10);
+        formBuilder.addComponent(domainComponent);
+
+        formBuilder.setFormLeftIndent(0);
+        formBuilder.addComponent(new JLabel("Series definition: "));
+        formBuilder.setFormLeftIndent(10);
+        formBuilder.addComponent(ScrollPaneFactory.createScrollPane(rangesComponent));
+
+        final JPanel p = new JPanel(new BorderLayout());
+        p.add(formBuilder.getPanel(), BorderLayout.PAGE_START);
+        return p;
+    }
+
+    private void initComponents() {
+        final int columnCount = dataProvider.getColumnCount();
+
+        final DefaultTableModel model = new DefaultTableModel(new Object[]{"Column", "Open", "High", "Low", "Close", "Volume"}, 0) {
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 0) {
+                    return ColumnConfig.class;
                 }
+                return Boolean.class;
             }
+        };
+        for (int i = 0; i < columnCount; i++) {
+            final String name = dataProvider.getColumnName(i);
+            final KdbType type = dataProvider.getColumnType(i);
 
-            final FormBuilder formBuilder = FormBuilder.createFormBuilder();
-            addComponent("Time: ", initializeComponent(dateComponent), formBuilder);
-            addComponent("Open: ", initializeComponent(openComponent), formBuilder);
-            addComponent("High: ", initializeComponent(highComponent), formBuilder);
-            addComponent("Low: ", initializeComponent(lowComponent), formBuilder);
-            addComponent("Close: ", initializeComponent(closeComponent), formBuilder);
-            addComponent("Volume: ", initializeComponent(volumeComponent), formBuilder);
-            formBuilder.addComponentFillVertically(new JPanel(), 0);
-
-            rangeComponents.forEach(e -> {
-                e.setItem(null);
-                e.addItemListener(this::processRangeItemChanged);
-            });
-
-            configPanel = formBuilder.getPanel();
+            final ColumnConfig cc = new ColumnConfig(i, name, type);
+            if (ColumnConfig.isTemporalType(type)) {
+                domainComponent.addItem(cc);
+            } else if (ColumnConfig.isNumberType(type)) {
+                model.addRow(new Object[]{cc, false, false, false, false, false});
+            }
         }
-        return configPanel;
+
+        domainComponent.setRenderer(ColumnConfig.createListCellRenderer());
+        domainComponent.addActionListener(e -> processConfigChanged());
+
+        rangesComponent.setModel(model);
+        rangesComponent.setVisibleRowCount(columnCount);
+        rangesComponent.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        UIUtil.putClientProperty(rangesComponent, JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
+
+        final TableColumnModel columnModel = rangesComponent.getColumnModel();
+        final TableColumn col = columnModel.getColumn(0);
+        col.setResizable(false);
+        col.setCellRenderer(ColumnConfig.createTableCellRenderer());
+
+        final int width = 5 + rangesComponent.getIntercellSpacing().width;
+        final TableCellRenderer headerRenderer = rangesComponent.getTableHeader().getDefaultRenderer();
+        for (int i = 1; i < 6; i++) {
+            final TableColumn column = columnModel.getColumn(i);
+            column.setResizable(false);
+
+            final Component c = headerRenderer.getTableCellRendererComponent(null, column.getHeaderValue(), false, false, 0, 0);
+            column.setWidth(column.getPreferredWidth() + width);
+            column.setMinWidth(c.getMinimumSize().width + width);
+            column.setMaxWidth(c.getMaximumSize().width + width);
+            column.setPreferredWidth(c.getPreferredSize().width + width);
+        }
+
+        model.addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                final int column = e.getColumn();
+                if (column != 0) {
+                    final int row = e.getFirstRow();
+
+                    model.removeTableModelListener(this);
+                    for (int c = 1; c < rangesComponent.getColumnCount(); c++) {
+                        if (c == column) {
+                            continue;
+                        }
+                        model.setValueAt(false, row, c);
+                    }
+
+                    for (int r = 0; r < rangesComponent.getRowCount(); r++) {
+                        if (r == row) {
+                            continue;
+                        }
+                        model.setValueAt(false, r, column);
+                    }
+
+                    model.addTableModelListener(this);
+                }
+                processConfigChanged();
+            }
+        });
     }
 
     @Override
@@ -72,51 +136,22 @@ public class OHLCChartBuilder extends ChartBuilder {
     }
 
     private ChartConfig createChartConfig() {
-        return new ChartConfig(
-                dateComponent.getItem(),
-                openComponent.getItem(),
-                highComponent.getItem(),
-                lowComponent.getItem(),
-                closeComponent.getItem(),
-                volumeComponent.getItem()
-        );
+        final ColumnConfig open = getColumnConfig(1);
+        final ColumnConfig high = getColumnConfig(2);
+        final ColumnConfig low = getColumnConfig(3);
+        final ColumnConfig close = getColumnConfig(4);
+        final ColumnConfig volume = getColumnConfig(5);
+        return new ChartConfig(domainComponent.getItem(), open, high, low, close, volume);
     }
 
-    private void processRangeItemChanged(ItemEvent e) {
-        final Object item = e.getItem();
-        if (item == null || e.getStateChange() != ItemEvent.SELECTED) {
-            return;
-        }
-
-        final Object source = e.getSource();
-        for (ComboBox<ColumnConfig> component : rangeComponents) {
-            if (component.getItem() == null || source == component) {
-                continue;
-            }
-            if (component.getItem() == item) {
-                component.setSelectedItem(null);
+    private ColumnConfig getColumnConfig(int column) {
+        final int rowCount = rangesComponent.getRowCount();
+        for (int row = 0; row < rowCount; row++) {
+            final Object valueAt = rangesComponent.getValueAt(row, column);
+            if (Boolean.TRUE.equals(valueAt)) {
+                return (ColumnConfig) rangesComponent.getValueAt(row, 0);
             }
         }
-    }
-
-    private ComboBox<ColumnConfig> initializeComponent(ComboBox<ColumnConfig> cmp) {
-        cmp.addActionListener(e -> processConfigChanged());
-        cmp.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value == null) {
-                    setText("<no selection>");
-                } else {
-                    setText(((ColumnConfig) value).getLabel());
-                }
-                return this;
-            }
-        });
-        return cmp;
-    }
-
-    private void addComponent(String name, ComboBox<?> cmp, FormBuilder formBuilder) {
-        formBuilder.addLabeledComponent(name, cmp);
+        return null;
     }
 }

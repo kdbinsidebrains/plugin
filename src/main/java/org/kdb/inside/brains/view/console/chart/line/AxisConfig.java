@@ -8,56 +8,55 @@ import javax.swing.*;
 import java.awt.*;
 
 public class AxisConfig extends ColumnConfig {
-    private String group;
-    private ColorIcon colorIcon;
-    private LineStyle lineStyle = LineStyle.LINE;
+    private ColorIcon icon;
+    private SeriesConfig series;
+    private Number width = 2.0;
 
     public AxisConfig(int index, String name, KdbType type, Color color) {
         super(index, name, type);
-        this.colorIcon = creaColorIcon(color);
+        this.icon = createIcon(color);
     }
 
     public Color getColor() {
-        return colorIcon == null ? null : colorIcon.getIconColor();
+        return icon == null ? null : icon.getIconColor();
     }
 
-    public Icon getColorIcon() {
-        return colorIcon;
+    public Icon getIcon() {
+        return icon;
     }
 
     public void setColor(Color color) {
-        this.colorIcon = creaColorIcon(color);
+        this.icon = createIcon(color);
     }
 
-    public static ColorIcon creaColorIcon(Color color) {
+    public SeriesConfig getSeries() {
+        return series;
+    }
+
+    public void setSeries(SeriesConfig group) {
+        this.series = group == null || group.isEmpty() ? null : group;
+    }
+
+    public Number getWidth() {
+        return width;
+    }
+
+    public void setWidth(Number width) {
+        this.width = width;
+    }
+
+    public static boolean isRangeAllowed(KdbType type) {
+        return isNumberType(type);
+    }
+
+    public static boolean isDomainAllowed(KdbType type) {
+        return isNumberType(type) || isTemporalType(type);
+    }
+
+    public static ColorIcon createIcon(Color color) {
         if (color == null) {
             return null;
         }
         return new ColorIcon(25, 15, 20, 10, color, true);
     }
-
-    public String getGroup() {
-        return group;
-    }
-
-    public void setGroup(String group) {
-        this.group = group;
-    }
-
-    public LineStyle getLineStyle() {
-        return lineStyle;
-    }
-
-    public void setLineStyle(LineStyle lineStyle) {
-        this.lineStyle = lineStyle;
-    }
-
-    public static boolean isRangeAllowed(KdbType type) {
-        return type != null && isNumberType(type);
-    }
-
-    public static boolean isDomainAllowed(KdbType type) {
-        return type != null && (isNumberType(type) || isTemporalType(type));
-    }
-
 }

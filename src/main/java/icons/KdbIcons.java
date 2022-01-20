@@ -34,9 +34,13 @@ public final class KdbIcons {
         public static final Icon Line = load("/org/kdb/inside/brains/icons/chart/line.svg");
         public static final Icon Candlestick = load("/org/kdb/inside/brains/icons/chart/candlestick.svg");
 
-        public static final Icon StyleLine = load("/org/kdb/inside/brains/icons/chart/style_line.svg");
-        public static final Icon StyleShape = load("/org/kdb/inside/brains/icons/chart/style_shape.svg");
-        public static final Icon StyleFull = load("/org/kdb/inside/brains/icons/chart/style_full.svg");
+        public static final Icon TypeLine = load("/org/kdb/inside/brains/icons/chart/type_line.svg");
+        public static final Icon TypeSpline = load("/org/kdb/inside/brains/icons/chart/type_spline.svg");
+        public static final Icon TypeSteps = load("/org/kdb/inside/brains/icons/chart/type_steps.svg");
+        public static final Icon TypeArea = load("/org/kdb/inside/brains/icons/chart/type_area.svg");
+        public static final Icon TypeScatter = load("/org/kdb/inside/brains/icons/chart/type_scatter.svg");
+        public static final Icon TypeBar = load("/org/kdb/inside/brains/icons/chart/type_bar.svg");
+        public static final Icon TypeDiff = load("/org/kdb/inside/brains/icons/chart/type_diff.svg");
     }
 
     public static final class Console {

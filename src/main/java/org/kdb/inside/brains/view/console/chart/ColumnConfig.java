@@ -2,6 +2,9 @@ package org.kdb.inside.brains.view.console.chart;
 
 import org.kdb.inside.brains.KdbType;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.Set;
 
@@ -97,6 +100,25 @@ public class ColumnConfig {
 
     public static boolean isTemporalType(KdbType type) {
         return TEMPORAL_TYPES.contains(type);
+    }
+
+    public static TableCellRenderer createTableCellRenderer() {
+        return new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                final ColumnConfig cc = (ColumnConfig) value;
+                return super.getTableCellRendererComponent(table, cc.getLabel(), isSelected, hasFocus, row, column);
+            }
+        };
+    }
+
+    public static ListCellRenderer<Object> createListCellRenderer() {
+        return new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                return super.getListCellRendererComponent(list, ((ColumnConfig) value).getLabel(), index, isSelected, cellHasFocus);
+            }
+        };
     }
 
     // Cycled color wheel by index
