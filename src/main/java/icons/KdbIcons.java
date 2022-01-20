@@ -14,18 +14,33 @@ public final class KdbIcons {
     }
 
     public static final class Main {
-        public static final Icon File = load("/org/kdb/inside/brains/icons/q.svg");
+        public static final Icon File = load("/org/kdb/inside/brains/icons/qFile.svg");
         public static final Icon Module = load("/org/kdb/inside/brains/icons/q.svg");
         public static final Icon Application = load("/org/kdb/inside/brains/icons/q.svg");
         public static final Icon Notification = load("/org/kdb/inside/brains/icons/q.svg");
 
-        public static final Icon ToolWindow = load("/org/kdb/inside/brains/icons/kdbInstancesTool.svg");
+        public static final Icon ToolWindow = load("/org/kdb/inside/brains/icons/windows/instances.svg");
+        public static final Icon ConsoleWindow = load("/org/kdb/inside/brains/icons/windows/console.svg");
     }
 
     public static final class Scope {
         public static final Icon Icon = AllIcons.Ide.LocalScope;
         public static final Icon Local = AllIcons.Ide.LocalScope;
         public static final Icon Shared = IconManager.getInstance().createLayered(AllIcons.Ide.LocalScope, AllIcons.Nodes.Shared);
+    }
+
+    public static final class Chart {
+        public static final Icon Icon = load("/org/kdb/inside/brains/icons/charting.svg");
+        public static final Icon Line = load("/org/kdb/inside/brains/icons/chart/line.svg");
+        public static final Icon Candlestick = load("/org/kdb/inside/brains/icons/chart/candlestick.svg");
+
+        public static final Icon TypeLine = load("/org/kdb/inside/brains/icons/chart/type_line.svg");
+        public static final Icon TypeSpline = load("/org/kdb/inside/brains/icons/chart/type_spline.svg");
+        public static final Icon TypeSteps = load("/org/kdb/inside/brains/icons/chart/type_steps.svg");
+        public static final Icon TypeArea = load("/org/kdb/inside/brains/icons/chart/type_area.svg");
+        public static final Icon TypeScatter = load("/org/kdb/inside/brains/icons/chart/type_scatter.svg");
+        public static final Icon TypeBar = load("/org/kdb/inside/brains/icons/chart/type_bar.svg");
+        public static final Icon TypeDiff = load("/org/kdb/inside/brains/icons/chart/type_diff.svg");
     }
 
     public static final class Console {

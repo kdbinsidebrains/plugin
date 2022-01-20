@@ -28,7 +28,7 @@ public interface QImport extends QPsiElement, NavigatablePsiElement {
         while (Character.isWhitespace(text.charAt(e))) {
             e--;
         }
-        if (e == l) {
+        if (e == l || e + 1 <= s) {
             return TextRange.EMPTY_RANGE;
         }
         return new TextRange(s, e + 1);

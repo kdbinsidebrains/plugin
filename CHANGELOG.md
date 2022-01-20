@@ -2,6 +2,46 @@
 
 # KdbInsideBrains Changelog
 
+## [0.18.0]
+
+### Added
+
+- Charting configuration has been redesigned
+- Candlestick chart has been added
+- Line charts have been updated:
+  - Spline, Steps, Bar, Area, Diff and Scatter line charts have been added
+  - Ability to change line width and show shapes added
+  - Transparent colors and axes orders added
+
+## [0.17.1]
+
+### Fixed
+
+- KdbInstances color selection doesn't work in 2021.3.x versions
+- Connection state notifications are not shown after the plugin update without restart
+- Line Chart can't draw not double numbers
+
+## [0.17.0]
+
+### Added
+
+- Line Charting has been added to the Table View
+
+### Changed
+
+- Icon colors changed for dark theme
+- Restart is not required anymore for the plugin
+
+## [0.16.0]
+
+### Changed
+
+- Excel exporting format changed to xlsx (Excel 2007) instead of xls (Excel 95)
+  - 1,048,576 rows instead of 65,536 and 16,384 cols instead of 256
+  - Streams worksheet is used to reduce memory footprint
+
+- Export actions run as a background task to reduce UI freeze
+
 ## [0.15.0]
 
 ### Changed

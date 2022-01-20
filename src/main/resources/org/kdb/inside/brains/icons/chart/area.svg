@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+     viewBox="0 0 40 40" style="enable-background:new 0 0 40 40;" xml:space="preserve">
+<g>
+	<polygon style="fill:#8BB7F0;"
+             points="2.5,27.808 2.5,18.792 13.181,5.572 27.079,9.542 37.5,2.911 37.5,27.808 	"/>
+    <g>
+		<path style="fill:#4E7AB5;" d="M37,3.822v23.486H3v-8.339L13.362,6.143l13.363,3.818l0.432,0.124l0.379-0.241L37,3.822 M38,2L27,9
+			L13,5L2,18.615v9.692h36V2L38,2z"/>
+	</g>
+</g>
+    <g>
+	<polygon style="fill:#BAE0BD;" points="2.5,37.5 2.5,25.802 13.089,18.545 27.035,22.53 37.5,17.993 37.5,37.5 	"/>
+        <path style="fill:#5E9C76;" d="M37,18.754V37H3V26.065l10.177-6.975l13.548,3.871l0.344,0.098l0.328-0.142L37,18.754 M38,17.231
+		L27,22l-14-4L2,25.538V38h36V17.231L38,17.231z"/>
+</g>
+</svg>

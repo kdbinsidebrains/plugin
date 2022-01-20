@@ -1,7 +1,7 @@
 package org.kdb.inside.brains.core;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
@@ -53,7 +53,6 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
     private static final int PROGRESS_TICK_MILLIS = 100;
 
-    private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Kdb.ConnectionState");
     private final ScheduledExecutorService connectionProgressExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "KdbConnectionManager-ProgressUpdater"));
 
     public KdbConnectionManager(Project project) {
@@ -169,13 +168,13 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
                     final String name = conn.getName();
                     if (state == CONNECTED) {
-                        NOTIFICATION_GROUP.createNotification("Instance has been connected: " + name, NotificationType.INFORMATION).notify(project);
+                        createNotification("Instance has been connected: " + name, NotificationType.INFORMATION).notify(project);
                     } else if (state == DISCONNECTED) {
                         final Exception error = conn.getDisconnectError();
                         if (error == null) {
-                            NOTIFICATION_GROUP.createNotification("Instance has been disconnected: " + name, NotificationType.INFORMATION).notify(project);
+                            createNotification("Instance has been disconnected: " + name, NotificationType.INFORMATION).notify(project);
                         } else {
-                            NOTIFICATION_GROUP.createNotification("Instance can't be connected: " + name + " - " + error.getMessage(), NotificationType.WARNING)
+                            createNotification("Instance can't be connected: " + name + " - " + error.getMessage(), NotificationType.WARNING)
                                     .addAction(new AnAction("Check Instance Details") {
                                         @Override
                                         public void actionPerformed(@NotNull AnActionEvent e) {
@@ -198,7 +197,6 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                 }
         );
     }
-
     private void processQueryStarted(InstanceConnection conn, KdbQuery query) {
         if (getOptions().isLogQueries()) {
             queryLogger.logQueryStarted(conn, query);
@@ -221,7 +219,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
         if (connection != null) {
             final String content = "Active connection changed to: " + connection.getName();
-            NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).notify(project);
+            createNotification(content, NotificationType.INFORMATION).notify(project);
 
             final ExecutionOptions commonOptions = getOptions();
             if (commonOptions.isShowConnectionChange()) {
@@ -375,6 +373,10 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
     private ExecutionOptions getOptions() {
         return KdbSettingsService.getInstance().getConnectionOptions();
+    }
+
+    private Notification createNotification(String content, NotificationType type) {
+        return NotificationGroupManager.getInstance().getNotificationGroup("Kdb.ConnectionState").createNotification(content, type);
     }
 
     private class ConnectionProgressive implements Progressive {

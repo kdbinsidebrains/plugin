@@ -87,6 +87,11 @@ public enum ExportingType {
                 maxIndex = iterateAllIndexes ? totalMax : selectionModel.getMaxSelectionIndex();
                 return next();
             }
+
+            @Override
+            public int count() {
+                return totalMax;
+            }
         };
     }
 
@@ -94,5 +99,7 @@ public enum ExportingType {
         int next();
 
         int reset();
+
+        int count();
     }
 }

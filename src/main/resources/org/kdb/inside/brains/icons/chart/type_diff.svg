@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+     viewBox="0 0 40 40" style="enable-background:new 0 0 40 40;" xml:space="preserve">
+<g>
+    <polyline style="fill:none;stroke:#5E9C76;stroke-miterlimit:10;"
+              points="2.955 26.273 11.955 18.273 19.955 22.273 26.955 14.273 37.404 17.453"/>
+
+    <path style="fill: none; stroke-miterlimit: 10; stroke: #4E7AB5;"
+          d="M 3 20.968 L 11.731 26.122 L 20 16.968 L 29.167 28.252 L 37 8.968"/>
+
+    <polygon style="fill: #4E7AB5;" points="17.194 20.521 19.843 17.239 21.818 19.412 19.977 21.863"/>
+    <polygon style="fill: #4E7AB5;" points="34.254 15.998 37.423 9.175 37.507 16.992"/>
+    <polygon style="fill: #4E7AB5;" points="2.739 20.202 2.649 25.859 6.554 22.626"/>
+    <path style="fill: #5E9C76;"
+          d="M 7.228 22.896 L 11.672 25.5 L 16.072 20.562 C 15.799 19.878 12.166 18.496 12.166 18.496 L 7.228 22.896 Z"/>
+    <polygon style="fill: #5E9C76;" points="22.806 19.619 29.046 27.385 33.363 16.649 27.116 14.59"/>
+</g>
+</svg>

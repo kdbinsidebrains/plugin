@@ -29,6 +29,10 @@ public class KdbResult {
         return this;
     }
 
+    public static KdbResult with(Object result) {
+        return new KdbResult().complete(result);
+    }
+
     public LocalDateTime getTime() {
         return time;
     }

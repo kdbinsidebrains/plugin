@@ -16,6 +16,8 @@ import org.kdb.inside.brains.core.KdbConnectionManager;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.settings.KdbSettingsService;
+import org.kdb.inside.brains.view.console.chart.ChartDataProvider;
+import org.kdb.inside.brains.view.console.chart.ShowChartAction;
 import org.kdb.inside.brains.view.console.export.*;
 
 import javax.swing.*;
@@ -205,6 +207,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         group.addSeparator();
 
         group.add(new ExcelExportAction("Open in _Excel", ExportingType.ALL_WITH_HEADER, this, "Open current table in Excel or compatible application", false));
+
+        group.addSeparator();
+
+        group.add(new ShowChartAction("Show chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.tableCopy(myTable)));
 
         group.addSeparator();
 

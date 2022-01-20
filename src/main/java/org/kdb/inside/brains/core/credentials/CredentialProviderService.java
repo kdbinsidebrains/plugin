@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.core.credentials;
 
 import com.google.common.collect.Lists;
-import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -31,8 +30,6 @@ public class CredentialProviderService implements PersistentStateComponent<Eleme
     private final Map<URL, CredentialPlugin> loadedCredentialPlugins = new HashMap<>();
 
     private static CredentialProviderService instance = null;
-
-    private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Kdb.CredentialsService");
 
     private CredentialProviderService() {
         providers.add(UsernameCredentialProvider.INSTANCE);
@@ -129,16 +126,20 @@ public class CredentialProviderService implements PersistentStateComponent<Eleme
     }
 
     private void notifyPluginFailedPlugin(URL url, Throwable ex) {
-        NOTIFICATION_GROUP.createNotification("Credentials plugin can't be loaded from " + url.toString() + ": " + ex.getMessage(), NotificationType.ERROR).addAction(new AnAction("Change Settings") {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                final Project project = e.getProject();
-                if (project != null) {
-                    ShowSettingsUtil.getInstance().showSettingsDialog(project, KdbSettingsConfigurable.class);
-                }
+        NotificationGroupManager
+                .getInstance()
+                .getNotificationGroup("Kdb.CredentialsService")
+                .createNotification("Credentials plugin can't be loaded from " + url.toString() + ": " + ex.getMessage(), NotificationType.ERROR)
+                .addAction(new AnAction("Change Settings") {
+                    @Override
+                    public void actionPerformed(@NotNull AnActionEvent e) {
+                        final Project project = e.getProject();
+                        if (project != null) {
+                            ShowSettingsUtil.getInstance().showSettingsDialog(project, KdbSettingsConfigurable.class);
+                        }
 //                ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowSettingsUtilImpl.getConfigurableGroups(project, true));
-            }
-        }).notify(null);
+                    }
+                }).notify(null);
     }
 
     public static CredentialProviderService getInstance() {
