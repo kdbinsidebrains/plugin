@@ -93,10 +93,10 @@ public class LineChartBuilder extends ChartBuilder {
 
     private void initializeSeriesComponent() {
         final ListTableModel<SeriesConfig> model = new ListTableModel<>(
-                new GSColumnInfo<>("Name", SeriesConfig::getName, SeriesConfig::setName),
-                new GSColumnInfo<>("Style", SeriesConfig::getType, SeriesConfig::setType),
-                new GSColumnInfo<>("Lower Margin", SeriesConfig::getLowerMargin, SeriesConfig::setLowerMargin),
-                new GSColumnInfo<>("Upper Margin", SeriesConfig::getUpperMargin, SeriesConfig::setUpperMargin)
+                new ChartColumnInfo<>("Name", SeriesConfig::getName, SeriesConfig::setName),
+                new ChartColumnInfo<>("Style", SeriesConfig::getType, SeriesConfig::setType),
+                new ChartColumnInfo<>("Lower Margin", SeriesConfig::getLowerMargin, SeriesConfig::setLowerMargin),
+                new ChartColumnInfo<>("Upper Margin", SeriesConfig::getUpperMargin, SeriesConfig::setUpperMargin)
         );
         model.addRow(new SeriesConfig("Value", SeriesType.LINE));
         model.addRow(new SeriesConfig("", SeriesType.LINE));
@@ -143,10 +143,10 @@ public class LineChartBuilder extends ChartBuilder {
         final List<AxisConfig> columnConfigs = createColumnConfigs(true);
         final Optional<String> maxLabelName = columnConfigs.stream().map(AxisConfig::getLabelWidth).reduce((s, s2) -> s.length() > s2.length() ? s : s2);
         final ListTableModel<AxisConfig> model = new ListTableModel<>(
-                new GSColumnInfo<>("Axis", AxisConfig::getSeries, AxisConfig::setSeries, "Range Axis Name"),
-                new GSColumnInfo<>("Column", AxisConfig::getLabel, null, maxLabelName.orElse("")),
-                new GSColumnInfo<>("Color", AxisConfig::getColor, AxisConfig::setColor),
-                new GSColumnInfo<>("Width", AxisConfig::getWidth, AxisConfig::setWidth)
+                new ChartColumnInfo<>("Axis", AxisConfig::getSeries, AxisConfig::setSeries, "Range Axis Name"),
+                new ChartColumnInfo<>("Column", AxisConfig::getLabel, null, maxLabelName.orElse("")),
+                new ChartColumnInfo<>("Color", AxisConfig::getColor, AxisConfig::setColor),
+                new ChartColumnInfo<>("Width", AxisConfig::getWidth, AxisConfig::setWidth)
         );
         model.addRows(columnConfigs);
         model.addTableModelListener(e -> processConfigChanged());
@@ -212,7 +212,7 @@ public class LineChartBuilder extends ChartBuilder {
             final String name = dataProvider.getColumnName(i);
             final KdbType type = dataProvider.getColumnType(i);
             if ((range && AxisConfig.isRangeAllowed(type)) || (!range && AxisConfig.isDomainAllowed(type))) {
-                res.add(new AxisConfig(i, name, type, ColumnConfig.getDefaultColor(c++)));
+                res.add(new AxisConfig(i, name, type, ChartColors.getDefaultColor(c++)));
             }
         }
         return res;

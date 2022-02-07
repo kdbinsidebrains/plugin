@@ -6,16 +6,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class GSColumnInfo<T, V> extends ColumnInfo<T, V> {
+public class ChartColumnInfo<T, V> extends ColumnInfo<T, V> {
     private final String maxStringValue;
     private final Function<T, V> getter;
     private final BiConsumer<T, V> setter;
 
-    public GSColumnInfo(String name, Function<T, V> getter, BiConsumer<T, V> setter) {
+    public ChartColumnInfo(String name, Function<T, V> getter, BiConsumer<T, V> setter) {
         this(name, getter, setter, null);
     }
 
-    public GSColumnInfo(String name, Function<T, V> getter, BiConsumer<T, V> setter, String maxStringValue) {
+    public ChartColumnInfo(String name, Function<T, V> getter, BiConsumer<T, V> setter, String maxStringValue) {
         super(name);
         this.getter = getter;
         this.setter = setter;

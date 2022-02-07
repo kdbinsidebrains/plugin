@@ -1,6 +1,5 @@
 package org.kdb.inside.brains.view.console.chart.ohlc;
 
-import com.intellij.ui.JBColor;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
@@ -11,6 +10,7 @@ import org.jfree.chart.renderer.xy.CandlestickRenderer;
 import org.jfree.data.xy.DefaultHighLowDataset;
 import org.jfree.data.xy.OHLCDataset;
 import org.kdb.inside.brains.view.console.chart.BaseChartPanel;
+import org.kdb.inside.brains.view.console.chart.ChartColors;
 import org.kdb.inside.brains.view.console.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.console.chart.ColumnConfig;
 
@@ -28,8 +28,8 @@ public class OHLCCharPanel extends BaseChartPanel {
         final JFreeChart chart = ChartFactory.createCandlestickChart(null, config.getDateColumn().getName(), "", dataset, false);
 
         final MyCandlestickRenderer renderer = new MyCandlestickRenderer();
-        renderer.setUpPaint(new JBColor(Color.decode("0x1c6b3b"), Color.decode("0x49754d")));
-        renderer.setDownPaint(new JBColor(Color.decode("0xea0d3f"), Color.decode("0xe3415d")));
+        renderer.setUpPaint(ChartColors.POSITIVE);
+        renderer.setDownPaint(ChartColors.NEGATIVE);
 
         final XYPlot plot = chart.getXYPlot();
         plot.setRenderer(renderer);
