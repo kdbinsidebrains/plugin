@@ -160,7 +160,7 @@ public class QVariableDoc {
     static String extractDocs(QAssignmentExpr element) {
         StringBuilder b = new StringBuilder();
         PsiElement e = element.getPrevSibling();
-        while (e instanceof PsiComment || e instanceof PsiWhiteSpace || e instanceof QLineBreak) {
+        while (e instanceof PsiComment || e instanceof PsiWhiteSpace) {
             if (e instanceof PsiComment) {
                 b.insert(0, e.getText());
             } else {
