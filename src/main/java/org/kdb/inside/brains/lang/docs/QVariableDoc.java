@@ -158,11 +158,9 @@ public class QVariableDoc {
     }
 
     static String extractDocs(QAssignmentExpr element) {
-        final QExpression context = element.getContext(QExpression.class);
-
         StringBuilder b = new StringBuilder();
-        PsiElement e = context.getPrevSibling();
-        while (e instanceof PsiComment || e instanceof PsiWhiteSpace || QPsiUtil.isLineBreak(e)) {
+        PsiElement e = element.getPrevSibling();
+        while (e instanceof PsiComment || e instanceof PsiWhiteSpace || e instanceof QLineBreak) {
             if (e instanceof PsiComment) {
                 b.insert(0, e.getText());
             } else {

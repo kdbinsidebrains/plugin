@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [0.18.1]
+
+### Fixed
+
+- resolved #20: QDocs doesn't work for variables
+
 ## [0.18.0]
 
 ### Added
