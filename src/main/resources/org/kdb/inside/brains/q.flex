@@ -76,9 +76,9 @@ import static org.kdb.inside.brains.psi.QTypes.*;
 %}
 
 // Patterns
+NewLine=\r\n|\r|\n|<<eof>>
 LineSpace=[\ \t\f]
-LineBreak=\r\n|\r|\n|<<eof>>
-WhiteSpace=({LineSpace}|{LineBreak})*{LineSpace}+
+WhiteSpace=({LineSpace}|{NewLine})*{LineSpace}+
 
 // Changing anything - don't forget update QLanguage
 Iterator=("/": | \\: | ': | "/" | \\ | ' )
@@ -229,28 +229,28 @@ Vactor={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 <COMMAND_IMPORT_STATE> {
   {LineSpace}+                               { return WHITE_SPACE; }
   {FilePath}                                 { return FILE_PATH_PATTERN; }
-  {LineBreak}                                { yybegin(YYINITIAL); return LINE_BREAK; }
+  {NewLine}                                { yybegin(YYINITIAL); return NEW_LINE; }
 }
 
 <COMMAND_CONTEXT_STATE> {
   {LineSpace}+                               { return WHITE_SPACE; }
   {Variable}                                 { return VARIABLE_PATTERN;}
-  {LineBreak}                                { yybegin(YYINITIAL); return LINE_BREAK; }
+  {NewLine}                                { yybegin(YYINITIAL); return NEW_LINE; }
 }
 
 <COMMAND_SYSTEM_STATE> {
-  {LineBreak}                                { yybegin(YYINITIAL); return LINE_BREAK; }
+  {NewLine}                                { yybegin(YYINITIAL); return NEW_LINE; }
   {WhiteSpace}+"/".*                         { yybegin(YYINITIAL); return LINE_COMMENT; }
   {CommandArguments}                         { return COMMAND_ARGUMENTS;}
 }
 
 <COMMENT_ALL_STATE> {
-  .*{LineBreak}?                             { return BLOCK_COMMENT; }
+  .*{NewLine}?                             { return BLOCK_COMMENT; }
 }
 
 <COMMENT_BLOCK_STATE> {
-  ^"\\"/{LineBreak}+                         { yybegin(YYINITIAL); return BLOCK_COMMENT; }
-  .*{LineBreak}?                             { return BLOCK_COMMENT; }
+  ^"\\"/{NewLine}+                         { yybegin(YYINITIAL); return BLOCK_COMMENT; }
+  .*{NewLine}?                             { return BLOCK_COMMENT; }
 }
 
 <NEGATIVE_ATOM_STATE> {
@@ -297,22 +297,22 @@ Vactor={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   {OperatorOthers}                            { return OPERATOR_OTHERS;}
 
   {WhiteSpace}+"/".*                          { return LINE_COMMENT; }
-  {LineBreak}+/{LineSpace}*"/"                { return WHITE_SPACE; }
-  ^"/"/{LineBreak}                            { yybegin(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
-  ^"\\"/{LineBreak}                           { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
+  {NewLine}+/{LineSpace}*"/"                { return WHITE_SPACE; }
+  ^"/"/{NewLine}                            { yybegin(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
+  ^"\\"/{NewLine}                           { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
   ^"/".*                                      { if (zzCurrentPos == 0 || zzBuffer.length() == zzCurrentPos || zzBuffer.charAt(zzCurrentPos - 1) == '\n' || zzBuffer.charAt(zzCurrentPos - 1) == '\r') { return LINE_COMMENT;} return ITERATOR; }
 
-  {LineBreak}+                                { finishQuery(); return LINE_BREAK; }
+  {NewLine}+                                { finishQuery(); return NEW_LINE; }
 
-  ^"\\l"/{LineSpace}+!{LineBreak}             { yybegin(COMMAND_IMPORT_STATE);  return COMMAND_IMPORT; }
+  ^"\\l"/{LineSpace}+!{NewLine}             { yybegin(COMMAND_IMPORT_STATE);  return COMMAND_IMPORT; }
   "system"/{WhiteSpace}*"\"l "                { return FUNCTION_IMPORT; }
 
-  ^"\\d"/{LineSpace}+!{LineBreak}             { yybegin(COMMAND_CONTEXT_STATE); return COMMAND_CONTEXT; }
-  ^"\\d"/{LineBreak}                          { return COMMAND_CONTEXT; }
+  ^"\\d"/{LineSpace}+!{NewLine}             { yybegin(COMMAND_CONTEXT_STATE); return COMMAND_CONTEXT; }
+  ^"\\d"/{NewLine}                          { return COMMAND_CONTEXT; }
   ^"\\d"/{WhiteSpace}                         { return COMMAND_CONTEXT; }
 
-  ^{CommandName}/{LineSpace}+!{LineBreak}     { yybegin(COMMAND_SYSTEM_STATE); return COMMAND_SYSTEM; }
-  ^{CommandName}/{LineBreak}                  { return COMMAND_SYSTEM; }
+  ^{CommandName}/{LineSpace}+!{NewLine}     { yybegin(COMMAND_SYSTEM_STATE); return COMMAND_SYSTEM; }
+  ^{CommandName}/{NewLine}                  { return COMMAND_SYSTEM; }
   ^{CommandName}/{WhiteSpace}                 { return COMMAND_SYSTEM; }
 
   ^{ModePrefix}                               { return MODE_PATTERN; }

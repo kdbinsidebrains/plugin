@@ -65,10 +65,6 @@ public final class QPsiUtil {
         return isLeafText(el, ";");
     }
 
-    public static boolean isLineBreak(PsiElement el) {
-        return el != null && el.getNode().getElementType() == QTypes.LINE_BREAK;
-    }
-
     public static boolean isLeafText(PsiElement el, String text) {
         return el instanceof LeafPsiElement && text.equals(el.getText());
     }
