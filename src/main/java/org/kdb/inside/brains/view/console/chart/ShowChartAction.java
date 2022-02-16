@@ -20,6 +20,6 @@ public class ShowChartAction extends AnAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
         final TabInfo data = e.getData(KdbConsolePanel.TAB_INFO_DATA_KEY);
         final String title = data != null ? data.getText() : "KdbInsideBrain Chart";
-        new TabsChartFrame(e.getProject(), title, tableResult.get()).show();
+        new ChartFrame(e.getProject(), title, tableResult.get()).show();
     }
 }

@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.console.chart.overlay;
+package org.kdb.inside.brains.view.console.chart.tools;
 
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -19,29 +19,43 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 
-public class MovingCrosshairOverlay implements ChartMouseListener {
-    private final ChartPanel panel;
+public class CrosshairTool extends CrosshairOverlay implements ChartMouseListener {
+    private ChartPanel myPanel;
+    private boolean enabled = true;
 
-    private final Crosshair xCrosshair;
-    private final Crosshair yCrosshair;
+    private Crosshair xCrosshair;
+    private Crosshair yCrosshair;
 
     public static final JBColor CROSSHAIR_PAINT = new JBColor(new Color(0xa4a4a5), new Color(0xa4a4a5));
     public static final JBColor CROSSHAIR_LABEL = new JBColor(new Color(0x595959), new Color(0x595959));
     public static final JBColor CROSSHAIR_OUTLINE = new JBColor(new Color(0xe0e0e0), new Color(0xe0e0e0));
     public static final JBColor CROSSHAIR_BACKGROUND = new JBColor(new Color(0xc4c4c4), new Color(0xc4c4c4));
 
-    public MovingCrosshairOverlay(ChartPanel panel) {
-        this.panel = panel;
+    public CrosshairTool() {
+    }
 
-        xCrosshair = createCrosshair(false);
-        yCrosshair = createCrosshair(true);
+    public void setChartPanel(ChartPanel panel) {
+        if (myPanel != null) {
+            myPanel.removeOverlay(this);
+            myPanel.removeChartMouseListener(this);
+        }
 
-        final CrosshairOverlay crosshairOverlay = new CrosshairOverlay();
-        crosshairOverlay.addDomainCrosshair(this.xCrosshair);
-        crosshairOverlay.addRangeCrosshair(this.yCrosshair);
+        myPanel = panel;
 
-        panel.addOverlay(crosshairOverlay);
-        panel.addChartMouseListener(this);
+        clearRangeCrosshairs();
+        clearDomainCrosshairs();
+
+        if (myPanel != null) {
+            myPanel.addOverlay(this);
+            myPanel.addChartMouseListener(this);
+
+            xCrosshair = createCrosshair(false);
+            yCrosshair = createCrosshair(true);
+
+            addDomainCrosshair(this.xCrosshair);
+            addRangeCrosshair(this.yCrosshair);
+        }
+        fireOverlayChanged();
     }
 
     @Override
@@ -50,7 +64,7 @@ public class MovingCrosshairOverlay implements ChartMouseListener {
 
     @Override
     public void chartMouseMoved(ChartMouseEvent event) {
-        final Rectangle2D dataArea = panel.getScreenDataArea();
+        final Rectangle2D dataArea = myPanel.getScreenDataArea();
         final JFreeChart chart = event.getChart();
         final XYPlot plot = (XYPlot) chart.getPlot();
         final ValueAxis xAxis = plot.getDomainAxis();
@@ -76,7 +90,7 @@ public class MovingCrosshairOverlay implements ChartMouseListener {
         crosshair.setLabelPaint(CROSSHAIR_LABEL);
         crosshair.setLabelOutlinePaint(CROSSHAIR_OUTLINE);
         crosshair.setLabelBackgroundPaint(CROSSHAIR_BACKGROUND);
-        final ValueAxis domainAxis = ((XYPlot) panel.getChart().getPlot()).getDomainAxis();
+        final ValueAxis domainAxis = ((XYPlot) myPanel.getChart().getPlot()).getDomainAxis();
         if (!vertical && domainAxis instanceof DateAxis) {
             final DateAxis dateAxis = (DateAxis) domainAxis;
             crosshair.setLabelGenerator(g -> dateAxis.getTickUnit().valueToString(g.getValue()));
@@ -85,5 +99,21 @@ public class MovingCrosshairOverlay implements ChartMouseListener {
         }
 
         return crosshair;
+    }
+
+    @Override
+    public void paintOverlay(Graphics2D g2, ChartPanel chartPanel) {
+        if (enabled) {
+            super.paintOverlay(g2, chartPanel);
+        }
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        fireOverlayChanged();
     }
 }

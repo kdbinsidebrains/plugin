@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.console.chart.overlay;
+package org.kdb.inside.brains.view.console.chart.tools;
 
 import com.intellij.ui.JBColor;
 import org.jfree.chart.ChartMouseEvent;
@@ -14,34 +14,59 @@ import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.TextAnchor;
 import org.kdb.inside.brains.view.console.chart.ChartColors;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MeasureOverlay extends AbstractOverlay implements Overlay, ChartMouseListener {
-    private MeasureArea activeArea;
+public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseListener {
+    private boolean enabled;
+    private ChartPanel myPanel;
 
-    private final ChartPanel panel;
+    private MeasureArea activeArea;
     private final List<MeasureArea> pinnedAreas = new ArrayList<>();
 
     private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#0.00");
+    private static final KeyStroke KEYSTROKE_ESC = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
     static {
         NUMBER_FORMAT.setPositivePrefix("+");
         NUMBER_FORMAT.setNegativePrefix("-");
     }
 
-    public MeasureOverlay(ChartPanel panel) {
-        this.panel = panel;
-        panel.addOverlay(this);
-        panel.addChartMouseListener(this);
+    public MeasureTool() {
+    }
+
+    public void setChartPanel(ChartPanel panel) {
+        if (myPanel != null) {
+            panel.removeOverlay(this);
+            panel.removeChartMouseListener(this);
+            panel.unregisterKeyboardAction(KEYSTROKE_ESC);
+        }
+
+        activeArea = null;
+        pinnedAreas.clear();
+
+        this.myPanel = panel;
+
+        if (myPanel != null) {
+            panel.addOverlay(this);
+            panel.addChartMouseListener(this);
+            panel.registerKeyboardAction(e -> cancel(), KEYSTROKE_ESC, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        }
+        fireOverlayChanged();
     }
 
     @Override
     public void chartMouseClicked(ChartMouseEvent event) {
+        if (!enabled) {
+            return;
+        }
+
         if (activeArea == null) {
             activeArea = new MeasureArea(calculateValuesPoint(event));
         } else {
@@ -54,6 +79,9 @@ public class MeasureOverlay extends AbstractOverlay implements Overlay, ChartMou
 
     @Override
     public void chartMouseMoved(ChartMouseEvent event) {
+        if (!enabled) {
+            return;
+        }
         if (activeArea != null) {
             activeArea.finish = calculateValuesPoint(event);
         }
@@ -65,16 +93,12 @@ public class MeasureOverlay extends AbstractOverlay implements Overlay, ChartMou
         final XYPlot plot = (XYPlot) chart.getPlot();
         final ValueAxis xAxis = plot.getDomainAxis();
         final ValueAxis yAxis = plot.getRangeAxis();
-        final Rectangle2D dataArea = panel.getScreenDataArea();
+        final Rectangle2D dataArea = myPanel.getScreenDataArea();
 
         final double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, RectangleEdge.BOTTOM);
         final double y = yAxis.java2DToValue(event.getTrigger().getY(), dataArea, RectangleEdge.LEFT);
 
         return new Point2D.Double(x, y);
-    }
-
-    private boolean isEmpty(Point2D point) {
-        return point.getX() < 0;
     }
 
     @Override
@@ -107,6 +131,19 @@ public class MeasureOverlay extends AbstractOverlay implements Overlay, ChartMou
             activeArea = null;
             fireOverlayChanged();
         }
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+
+        if (!enabled) {
+            cancel();
+        }
+        fireOverlayChanged();
     }
 
     private static class MeasureArea {

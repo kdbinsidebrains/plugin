@@ -9,28 +9,26 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
-import org.kdb.inside.brains.view.console.chart.overlay.MeasureOverlay;
-import org.kdb.inside.brains.view.console.chart.overlay.MovingCrosshairOverlay;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 
 public class BaseChartPanel extends ChartPanel {
-    private final MeasureOverlay measureOverlay;
-    private final MovingCrosshairOverlay crosshairOverlay;
-
     private static final JBColor COLOR_GRID = new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4));
 
     public BaseChartPanel(JFreeChart chart) {
         super(chart, false, true, true, true, true);
-        fixPanMask();
 
+        setFocusable(true);
         setMouseZoomable(true);
         setMouseWheelEnabled(true);
 
+        fixPanMask();
+        fixChartColors(chart);
+    }
+
+    private void fixChartColors(JFreeChart chart) {
         chart.setBorderPaint(JBColor.foreground());
         chart.setBackgroundPaint(JBColor.background());
 
@@ -45,13 +43,6 @@ public class BaseChartPanel extends ChartPanel {
         if (plot instanceof XYPlot) {
             applyColorSchema((XYPlot) plot);
         }
-
-        this.measureOverlay = new MeasureOverlay(this);
-        this.crosshairOverlay = new MovingCrosshairOverlay(this);
-
-        registerKeyboardAction(e -> {
-            measureOverlay.cancel();
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
 
     @SuppressWarnings("deprecation")

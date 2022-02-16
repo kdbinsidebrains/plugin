@@ -8,6 +8,7 @@ import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -33,8 +34,15 @@ public class LineChartPanel extends BaseChartPanel {
         final AxisConfig domain = config.getDomainValues();
         final Map<SeriesConfig, List<AxisConfig>> ranges = config.dataset();
 
-        final XYDataset[] datasets = AxisConfig.isTemporalType(domain.getType()) ? createTimeDatasets(domain, ranges, dataProvider) : createNumberDatasets(domain, ranges, dataProvider);
-        final JFreeChart chart = ChartFactory.createTimeSeriesChart(null, domain.getName(), "", null, true, true, false);
+        final XYDataset[] datasets;
+        final JFreeChart chart;
+        if (AxisConfig.isTemporalType(domain.getType())) {
+            datasets = createTimeDatasets(domain, ranges, dataProvider);
+            chart = ChartFactory.createTimeSeriesChart(null, domain.getName(), "", null, true, true, false);
+        } else {
+            datasets = createNumberDatasets(domain, ranges, dataProvider);
+            chart = ChartFactory.createXYLineChart(null, domain.getName(), "", null, PlotOrientation.VERTICAL, true, false, false);
+        }
 
         int i = 0;
         final XYPlot plot = chart.getXYPlot();
