@@ -26,8 +26,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Vector;
 
-import static java.awt.event.InputEvent.*;
-
 public class ValuesTool implements ChartMouseListener {
     private ChartPanel myPanel;
     private boolean enabled = false;
@@ -44,6 +42,7 @@ public class ValuesTool implements ChartMouseListener {
     private final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd'T'HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
     public ValuesTool() {
+        pointsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     }
 
     public void setChartPanel(ChartPanel panel) {
@@ -160,26 +159,34 @@ public class ValuesTool implements ChartMouseListener {
         ((DefaultTableModel) pointsTable.getModel()).insertRow(0, values);
     }
 
-    private String getKeyValue(MouseEvent trigger) {
+    private String getKeyValue(MouseEvent event) {
         final StringBuilder buf = new StringBuilder();
-        final int modifiers = trigger.getModifiersEx();
-        if ((modifiers & META_DOWN_MASK) != 0) {
+/*
+JVM issue:
+        if (event.isMetaDown()) {
             buf.append('M');
         }
-        if ((modifiers & CTRL_DOWN_MASK) != 0) {
-            buf.append('C');
-        }
-        if ((modifiers & ALT_DOWN_MASK) != 0) {
+        if (event.isAltDown()) {
             buf.append('A');
         }
-        if ((modifiers & SHIFT_DOWN_MASK) != 0) {
+*/
+        if (event.isControlDown()) {
+            buf.append('C');
+        }
+        if (event.isShiftDown()) {
             buf.append('S');
         }
-        if ((modifiers & ALT_GRAPH_DOWN_MASK) != 0) {
+        if (event.isAltGraphDown()) {
             buf.append('G');
         }
 
-        buf.append(trigger.getButton());
+        if (SwingUtilities.isLeftMouseButton(event)) {
+            buf.append("L");
+        } else if (SwingUtilities.isMiddleMouseButton(event)) {
+            buf.append("M");
+        } else if (SwingUtilities.isRightMouseButton(event)) {
+            buf.append("R");
+        }
 
         return buf.toString();
     }

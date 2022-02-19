@@ -1,9 +1,7 @@
 package org.kdb.inside.brains.view.console.chart;
 
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.openapi.ui.Splitter;
@@ -11,8 +9,11 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.tabs.*;
 import icons.KdbIcons;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.ChartPanel;
 import org.kdb.inside.brains.action.ActionPlaces;
+import org.kdb.inside.brains.ide.PopupActionGroup;
 import org.kdb.inside.brains.view.console.chart.line.LineChartBuilder;
 import org.kdb.inside.brains.view.console.chart.ohlc.OHLCChartBuilder;
 import org.kdb.inside.brains.view.console.chart.tools.CrosshairTool;
@@ -21,17 +22,31 @@ import org.kdb.inside.brains.view.console.chart.tools.ValuesTool;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.List;
 
 import static com.intellij.util.ui.JBUI.Borders;
 
 public class ChartFrame extends FrameWrapper {
+    private BaseChartPanel baseChartPanel;
+
     private final JBTabs tabs;
     private final JPanel chartPanel = new JPanel(new BorderLayout());
 
     private final ValuesTool valuesTool = new ValuesTool();
     private final MeasureTool measureTool = new MeasureTool();
     private final CrosshairTool crosshairTool = new CrosshairTool();
+
+    private final AnAction copyAsPng = new AnAction() {
+        @Override
+        public void update(@NotNull AnActionEvent e) {
+            e.getPresentation().setEnabled(baseChartPanel != null);
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+        }
+    };
 
     private final Splitter splitter = new Splitter(true, 0.75f);
 
@@ -114,13 +129,13 @@ public class ChartFrame extends FrameWrapper {
     private void configChanged() {
         final TabInfo selectedInfo = tabs.getSelectedInfo();
 
-        final BaseChartPanel panel = selectedInfo == null ? null : ((ChartBuilder) selectedInfo.getObject()).createChartPanel();
-        measureTool.setChartPanel(panel);
-        valuesTool.setChartPanel(panel);
-        crosshairTool.setChartPanel(panel);
+        baseChartPanel = selectedInfo == null ? null : ((ChartBuilder) selectedInfo.getObject()).createChartPanel();
+        measureTool.setChartPanel(baseChartPanel);
+        valuesTool.setChartPanel(baseChartPanel);
+        crosshairTool.setChartPanel(baseChartPanel);
 
         chartPanel.removeAll();
-        chartPanel.add(panel == null ? createEmptyPanel() : panel);
+        chartPanel.add(baseChartPanel == null ? createEmptyPanel() : baseChartPanel);
         chartPanel.revalidate();
     }
 
@@ -149,24 +164,85 @@ public class ChartFrame extends FrameWrapper {
     }
 
     private JComponent createToolbar() {
-        final DynamicToggleAction crosshairAction = new DynamicToggleAction("Crosshair", "Show crosshair lines", KdbIcons.Chart.ToolCrosshair, crosshairTool::isEnabled, crosshairTool::setEnabled);
-        final ToggleAction measureAction = new DynamicToggleAction("Measure", "Measuring tool", KdbIcons.Chart.ToolMeasure, measureTool::isEnabled, this::measureSelected);
-        final ToggleAction pointsAction = new DynamicToggleAction("Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints, valuesTool::isEnabled, this::pointsSelected);
-
         final DefaultActionGroup group = new DefaultActionGroup();
 
+        final DynamicToggleAction crosshairAction = new DynamicToggleAction("Crosshair", "Show crosshair lines", KdbIcons.Chart.ToolCrosshair, crosshairTool::isEnabled, crosshairTool::setEnabled);
+
         group.add(crosshairAction);
+
         group.addSeparator();
+
+        final ToggleAction measureAction = new DynamicToggleAction("Measure", "Measuring tool", KdbIcons.Chart.ToolMeasure, measureTool::isEnabled, this::measureSelected);
+        final ToggleAction pointsAction = new DynamicToggleAction("Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints, valuesTool::isEnabled, this::pointsSelected);
         group.add(measureAction);
-        group.addSeparator();
         group.add(pointsAction);
+
+        group.addSeparator();
+        group.addAll(createChartPanelMenu());
 
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.CHARTS_PANEL_TOOLBAR, group, false);
         actionToolbar.setTargetComponent(chartPanel);
 
         final JComponent actionComponent = actionToolbar.getComponent();
-        actionComponent.setBorder(Borders.compound(Borders.customLineLeft(JBColor.LIGHT_GRAY), Borders.empty(0, 3)));
+        actionComponent.setBorder(Borders.compound(Borders.customLineLeft(JBColor.LIGHT_GRAY), Borders.empty(5, 3)));
 
         return actionComponent;
+    }
+
+    private DefaultActionGroup createChartPanelMenu() {
+        final DefaultActionGroup group = new DefaultActionGroup();
+        group.add(new ChartAction(ChartPanel.COPY_COMMAND, "_Copy", "Copy the chart", AllIcons.Actions.Copy));
+
+        final PopupActionGroup saveAs = new PopupActionGroup("_Save As", AllIcons.Actions.MenuSaveall);
+        saveAs.add(new ChartAction("SAVE_AS_PNG", "PNG...", "Save as PNG image"));
+        saveAs.add(new ChartAction("SAVE_AS_SVG", "SVG...", "Save as SVG image"));
+        group.add(saveAs);
+
+        group.addSeparator();
+
+        final DefaultActionGroup zoomIn = new PopupActionGroup("Zoom _In", AllIcons.Graph.ZoomIn);
+        zoomIn.add(new ChartAction(ChartPanel.ZOOM_IN_BOTH_COMMAND, "_Both Axes", "Zoom in both axes"));
+        zoomIn.addSeparator();
+        zoomIn.add(new ChartAction(ChartPanel.ZOOM_IN_RANGE_COMMAND, "_Range Axis", "Zoom in only range axis"));
+        zoomIn.add(new ChartAction(ChartPanel.ZOOM_IN_DOMAIN_COMMAND, "_Domain Axis", "Zoom in only domain axis"));
+        group.add(zoomIn);
+
+        final DefaultActionGroup zoomOut = new PopupActionGroup("Zoom _Out", AllIcons.Graph.ZoomOut);
+        zoomOut.add(new ChartAction(ChartPanel.ZOOM_OUT_BOTH_COMMAND, "_Both Axes", "Zoom out both axes"));
+        zoomOut.addSeparator();
+        zoomOut.add(new ChartAction(ChartPanel.ZOOM_OUT_RANGE_COMMAND, "_Range Axis", "Zoom out only range axis"));
+        zoomOut.add(new ChartAction(ChartPanel.ZOOM_OUT_DOMAIN_COMMAND, "_Domain Axis", "Zoom out only domain axis"));
+        group.add(zoomOut);
+
+        final DefaultActionGroup zoomReset = new PopupActionGroup("Zoom _Reset", AllIcons.Graph.ActualZoom);
+        zoomReset.add(new ChartAction(ChartPanel.ZOOM_RESET_BOTH_COMMAND, "_Both Axes", "Reset the chart zoom"));
+        zoomReset.addSeparator();
+        zoomReset.add(new ChartAction(ChartPanel.ZOOM_RESET_RANGE_COMMAND, "_Range Axis", "Reset zoom for range axis only"));
+        zoomReset.add(new ChartAction(ChartPanel.ZOOM_RESET_DOMAIN_COMMAND, "_Domain Axis", "Reset zoom for domain axis only"));
+        group.add(zoomReset);
+        return group;
+    }
+
+    private class ChartAction extends AnAction {
+        private final String command;
+
+        public ChartAction(String command, String text, String description) {
+            this(command, text, description, null);
+        }
+
+        public ChartAction(String command, String text, String description, Icon icon) {
+            super(text, description, icon);
+            this.command = command;
+        }
+
+        @Override
+        public void update(@NotNull AnActionEvent e) {
+            e.getPresentation().setEnabled(baseChartPanel != null);
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+            baseChartPanel.actionPerformed(new ActionEvent(this, -1, command));
+        }
     }
 }

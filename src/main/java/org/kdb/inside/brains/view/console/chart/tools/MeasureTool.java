@@ -43,9 +43,9 @@ public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseL
 
     public void setChartPanel(ChartPanel panel) {
         if (myPanel != null) {
-            panel.removeOverlay(this);
-            panel.removeChartMouseListener(this);
-            panel.unregisterKeyboardAction(KEYSTROKE_ESC);
+            myPanel.removeOverlay(this);
+            myPanel.removeChartMouseListener(this);
+            myPanel.unregisterKeyboardAction(KEYSTROKE_ESC);
         }
 
         activeArea = null;
@@ -54,9 +54,9 @@ public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseL
         this.myPanel = panel;
 
         if (myPanel != null) {
-            panel.addOverlay(this);
-            panel.addChartMouseListener(this);
-            panel.registerKeyboardAction(e -> cancel(), KEYSTROKE_ESC, JComponent.WHEN_IN_FOCUSED_WINDOW);
+            myPanel.addOverlay(this);
+            myPanel.addChartMouseListener(this);
+            myPanel.registerKeyboardAction(e -> cancel(), KEYSTROKE_ESC, JComponent.WHEN_IN_FOCUSED_WINDOW);
         }
         fireOverlayChanged();
     }

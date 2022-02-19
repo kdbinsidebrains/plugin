@@ -18,7 +18,10 @@ public class BaseChartPanel extends ChartPanel {
     private static final JBColor COLOR_GRID = new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4));
 
     public BaseChartPanel(JFreeChart chart) {
-        super(chart, false, true, true, true, true);
+        super(chart, false, false, false, false, false);
+
+        // We don't need it. Have own
+        setPopupMenu(null);
 
         setFocusable(true);
         setMouseZoomable(true);

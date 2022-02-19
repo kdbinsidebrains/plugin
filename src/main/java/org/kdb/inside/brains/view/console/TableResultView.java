@@ -15,6 +15,7 @@ import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.core.KdbConnectionManager;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
+import org.kdb.inside.brains.ide.PopupActionGroup;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.console.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.console.chart.ShowChartAction;
@@ -194,8 +195,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         copy_values.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
         group.add(copy_values);
 
-        final DefaultActionGroup copyGroup = new DefaultActionGroup("Copy _Special", true);
-        copyGroup.getTemplatePresentation().setIcon(KdbIcons.Console.CopySpecial);
+        final PopupActionGroup copyGroup = new PopupActionGroup("Copy _Special", KdbIcons.Console.CopySpecial);
         copyGroup.add(new ClipboardExportAction("Copy Only Rows", ExportingType.ROWS, this, "Copy the whole row values"));
 
         copyGroup.add(new ClipboardExportAction("Copy Rows with Header", ExportingType.ROWS_WITH_HEADER, this, "Copy the whole row values including column names"));
@@ -214,9 +214,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
 
         group.addSeparator();
 
-        final DefaultActionGroup exportGroup = new DefaultActionGroup("Export Data _Into ...", true);
-        exportGroup.getTemplatePresentation().setIcon(KdbIcons.Console.Export);
-
+        final DefaultActionGroup exportGroup = new PopupActionGroup("Export Data _Into ...", KdbIcons.Console.Export);
         exportGroup.add(new CsvExportAction("CSV format", ExportingType.ALL_WITH_HEADER, this, "Export current table into Comma Separated File format"));
         exportGroup.add(new ExcelExportAction("Excel xls format", ExportingType.ALL_WITH_HEADER, this, "Export current table into Excel XLS format", true, null));
         exportGroup.add(new BinaryExportAction("KDB binary format", ExportingType.ALL_WITH_HEADER, this, "Binary KDB IPC file format. Can be imported directly into KDB."));
@@ -224,13 +222,12 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
 
         group.addSeparator();
 
-        final ActionGroup sendTo = new ActionGroup("_Send Data Into ...", true) {
+        final ActionGroup sendTo = new PopupActionGroup("_Send Data Into ...", KdbIcons.Console.SendInto) {
             @Override
             public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
                 return KdbConnectionManager.getManager(project).getConnections().stream().map(c -> new SendIntoAction(TableResultView.this, c)).toArray(AnAction[]::new);
             }
         };
-        sendTo.getTemplatePresentation().setIcon(KdbIcons.Console.SendInto);
         group.add(sendTo);
         return group;
     }
