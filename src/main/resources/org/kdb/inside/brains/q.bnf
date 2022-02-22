@@ -84,7 +84,9 @@
 }
 
 root ::= top*
-line_break ::= NEW_LINE
+line_break ::= NEW_LINE {
+ implements="com.intellij.psi.PsiWhiteSpace"
+ }
 
 private top ::= context | mode | top_in_context
 private top_in_context ::= import_command | command | expression | separator

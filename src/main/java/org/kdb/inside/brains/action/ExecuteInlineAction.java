@@ -14,7 +14,7 @@ import com.intellij.ui.LightweightHint;
 import com.intellij.ui.components.JBScrollPane;
 import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.KdbQuery;
-import org.kdb.inside.brains.view.console.KdbOutputFormatter;
+import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.console.TableResult;
 import org.kdb.inside.brains.view.console.TableResultView;
 
@@ -102,7 +102,7 @@ public class ExecuteInlineAction extends ExecuteAction implements DumbAware {
                     if (tableResult != null) {
                         showTypedHint(createTableHint(project, formatter, tableResult), editor);
                     } else {
-                        showTypedHint(createTextHint(formatter.convertResult(res), false), editor);
+                        showTypedHint(createTextHint(formatter.resultToString(res), false), editor);
                     }
                 }
             });

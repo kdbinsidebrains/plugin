@@ -2,7 +2,10 @@ package org.kdb.inside.brains.lang.docs;
 
 import com.intellij.lang.documentation.AbstractDocumentationProvider;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.io.IOUtils;
@@ -11,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.QWord;
 import org.kdb.inside.brains.psi.QAssignmentExpr;
-import org.kdb.inside.brains.psi.QLineBreak;
 import org.kdb.inside.brains.psi.QTypes;
 import org.kdb.inside.brains.psi.QVariable;
 
@@ -105,10 +107,7 @@ public final class QDocumentationProvider extends AbstractDocumentationProvider 
     }
 
     private PsiElement getCommentedVariable(PsiElement element) {
-        PsiElement e = element;
-        while (e instanceof PsiComment || e instanceof PsiWhiteSpace || e instanceof QLineBreak) {
-            e = e.getNextSibling();
-        }
+        final PsiElement e = PsiTreeUtil.skipWhitespacesAndCommentsForward(element);
         if (e instanceof QAssignmentExpr) {
             return ((QAssignmentExpr) e).getVarDeclaration();
         }
