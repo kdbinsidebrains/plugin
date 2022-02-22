@@ -2,6 +2,23 @@
 
 # KdbInsideBrains Changelog
 
+## [-]
+
+### Fixed
+
+- Table Result search's been fixed and can process strings now.
+
+### Added
+
+- Table Result supports search by words and regex with or without case match
+- Right side toolbar in charts view has been added instead of context menu
+- Charting tools have been introduced:
+  - **Crosshair tool** - to show current values for the mouse position
+  - **Measure tool** - draw measuring rectangles on the chart with values diff: left mouse click to start, move, left
+    mouse click to finish. Esc to cancel current drawing.
+  - **Points collector** - save any chart clicked values into the points collector table with ability to export or send
+    into another KDB instance.
+
 ## [0.18.1]
 
 ### Fixed
