@@ -37,7 +37,18 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
     private final JBTable pointsTable;
 
     public ValuesTool(Project project) {
-        final DefaultTableCellRenderer cellRenderer = KdbOutputFormatter.getInstance().createCellRenderer(false);
+        final KdbOutputFormatter instance = KdbOutputFormatter.getInstance();
+
+        final DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
+            @Override
+            protected void setValue(Object value) {
+                if (value instanceof String) {
+                    setText((String) value);
+                } else {
+                    setText(instance.objectToString(value));
+                }
+            }
+        };
 
         pointsTable = new JBTable() {
             @Override

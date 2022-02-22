@@ -1,10 +1,12 @@
 package org.kdb.inside.brains.view.chart.tools;
 
 import com.intellij.ui.JBColor;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.panel.AbstractOverlay;
 import org.jfree.chart.panel.Overlay;
@@ -161,8 +163,8 @@ public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseL
 
             final double sy = start.getY();
             final double fy = finish.getY();
-            final double diffVal = fy - sy;
-            final double diffPrc = diffVal * 100d / Math.max(sy, fy);
+            final double diffYV = fy - sy;
+            final double diffYP = diffYV * 100d / Math.max(sy, fy);
             final Color foreground = sy < fy ? ChartColors.POSITIVE : ChartColors.NEGATIVE;
             final Color background = sy < fy ? ChartColors.POSITIVE_40 : ChartColors.NEGATIVE_40;
             final Color border = background.darker();
@@ -173,12 +175,32 @@ public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseL
             g2.setPaint(border);
             g2.draw(area);
 
-            g2.setPaint(foreground);
-//            g2.setFont(g2.getFont().deriveFont(Font.BOLD));
-            final float y = (float) (area.getY() + area.getHeight() / 2);
-            TextUtils.drawAlignedString(NUMBER_FORMAT.format(diffVal), g2, (float) (area.getX() + area.getWidth()) + 5, y, TextAnchor.CENTER_LEFT);
+            drawRangeLabel(g2, diffYV, diffYP, foreground);
+            drawDomainLabel(g2, plot, screenArea);
+        }
+
+        private void drawDomainLabel(Graphics2D g2, XYPlot plot, Rectangle2D screenArea) {
+            final double diff = Math.abs(finish.getX() - start.getX());
+
+            String label;
+            final ValueAxis domain = plot.getDomainAxis();
+            if (domain instanceof DateAxis) {
+                label = DurationFormatUtils.formatDurationHMS((long) diff);
+            } else {
+                label = NUMBER_FORMAT.format(diff);
+            }
+
             g2.setPaint(JBColor.foreground());
-            TextUtils.drawAlignedString(NUMBER_FORMAT.format(diffPrc) + "%", g2, (float) (area.getX() + area.getWidth()) + 5, y + 15, TextAnchor.CENTER_LEFT);
+            final float x = (float) (area.getX() + area.getWidth() / 2);
+            TextUtils.drawAlignedString(label, g2, x, (float) (area.getY() + area.getHeight()) + 15, TextAnchor.BOTTOM_CENTER);
+        }
+
+        private void drawRangeLabel(Graphics2D g2, double diffYV, double diffYP, Color foreground) {
+            g2.setPaint(foreground);
+            final float y = (float) (area.getY() + area.getHeight() / 2);
+            TextUtils.drawAlignedString(NUMBER_FORMAT.format(diffYV), g2, (float) (area.getX() + area.getWidth()) + 5, y, TextAnchor.CENTER_LEFT);
+            g2.setPaint(JBColor.foreground());
+            TextUtils.drawAlignedString(NUMBER_FORMAT.format(diffYP) + "%", g2, (float) (area.getX() + area.getWidth()) + 5, y + 15, TextAnchor.CENTER_LEFT);
         }
 
         private void updateDrawingArea(XYPlot plot, Rectangle2D screenArea) {

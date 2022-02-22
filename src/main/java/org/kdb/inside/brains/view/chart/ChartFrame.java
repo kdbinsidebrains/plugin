@@ -22,6 +22,7 @@ import org.kdb.inside.brains.view.chart.tools.ValuesTool;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -53,7 +54,7 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         close.addActionListener(e -> close());
 
         final JPanel buttonPanel = new JPanel(new BorderLayout());
-        buttonPanel.setBorder(Borders.customLineTop(JBColor.LIGHT_GRAY));
+        buttonPanel.setBorder(Borders.customLine(JBColor.LIGHT_GRAY, 1, 0, 0, 0));
         buttonPanel.add(close, BorderLayout.EAST);
 
         final JComponent tabsComponent = tabs.getComponent();
@@ -61,7 +62,7 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         final JPanel configPanel = new JPanel(new BorderLayout());
         configPanel.add(tabsComponent, BorderLayout.EAST);
         configPanel.add(buttonPanel, BorderLayout.SOUTH);
-        configPanel.setBorder(Borders.customLineLeft(JBColor.LIGHT_GRAY));
+        configPanel.setBorder(Borders.customLine(JBColor.LIGHT_GRAY, 0, 1, 0, 0));
 
         final JPanel eastPanel = new JPanel(new BorderLayout());
         eastPanel.add(configPanel, BorderLayout.EAST);
@@ -75,7 +76,7 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         final JPanel rootPanel = new JPanel(new BorderLayout());
         rootPanel.add(eastPanel, BorderLayout.EAST);
         rootPanel.add(splitter, BorderLayout.CENTER);
-        rootPanel.setBorder(Borders.compound(Borders.empty(0, 10, 10, 10), Borders.customLine(JBColor.LIGHT_GRAY)));
+        rootPanel.setBorder(new CompoundBorder(Borders.empty(0, 10, 10, 10), Borders.customLine(JBColor.LIGHT_GRAY)));
 
         setComponent(rootPanel);
         setImage(IconLoader.toImage(KdbIcons.Chart.Icon));
@@ -178,7 +179,12 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         actionToolbar.setTargetComponent(chartPanel);
 
         final JComponent actionComponent = actionToolbar.getComponent();
-        actionComponent.setBorder(Borders.compound(Borders.customLineLeft(JBColor.LIGHT_GRAY), Borders.empty(5, 3)));
+        actionComponent.setBorder(
+                new CompoundBorder(
+                        Borders.customLine(JBColor.LIGHT_GRAY, 0, 1, 0, 0),
+                        Borders.empty(5, 3)
+                )
+        );
 
         return actionComponent;
     }
