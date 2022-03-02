@@ -2,6 +2,20 @@
 
 # KdbInsideBrains Changelog
 
+## [0.20.0]
+
+### Added
+
+- If a TableResult has more than 200K rows*cols - a 300ms timeout for filtering update has been added after the search
+  field change. That allows to write the full search text before do the real search work to reduce freezes for huge
+  table result. Can be disabled in the search toolbar for the current search session.
+
+### Changed
+
+- Console behaviours changed:
+  - Closing a console tab also closes the connection as well now
+  - Changing active console tab changes active connection, so it's the same as select active connection from the toolbar
+
 ## [0.19.0]
 
 ### Fixed

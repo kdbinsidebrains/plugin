@@ -63,6 +63,8 @@ public final class KdbIcons {
         public static final Icon Export = AllIcons.ToolbarDecorator.Export;
         public static final Icon ImportBinary = load("/org/kdb/inside/brains/icons/importBinary.svg");
         public static final Icon ExportExcel = load("/org/kdb/inside/brains/icons/exportExcel.svg");
+
+        public static final Icon DelaySearchUpdate = load("/org/kdb/inside/brains/icons/delaySearch.svg");
     }
 
     public static final class Node {

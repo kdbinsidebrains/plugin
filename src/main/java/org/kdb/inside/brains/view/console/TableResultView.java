@@ -38,9 +38,6 @@ import java.util.regex.Pattern;
 import static java.lang.Math.max;
 
 public class TableResultView extends NonOpaquePanel implements DataProvider, ExportDataProvider {
-    private final JBTable myTable;
-    private final TableResultSearchSession searchSession;
-
     private TableResult tableResult;
     private ToggleAction searchAction;
 
@@ -49,18 +46,19 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private final JLabel statusQuery = new JLabel();
 
     private final Project project;
-    private final ConsoleOptions options;
     private final KdbOutputFormatter formatter;
     private final BiConsumer<KdbQuery, TableResultView> repeater;
 
+    private final JBTable myTable;
+    private final TableResultSearchSession searchSession;
 
     public TableResultView(Project project, KdbOutputFormatter formatter, BiConsumer<KdbQuery, TableResultView> repeater) {
         this.project = project;
         this.formatter = formatter;
         this.repeater = repeater;
-        this.options = KdbSettingsService.getInstance().getConsoleOptions();
 
-        final DefaultTableCellRenderer valueColumnRenderer = formatter.createCellRenderer();
+        final var options = KdbSettingsService.getInstance().getConsoleOptions();
+        final var valueColumnRenderer = formatter.createCellRenderer();
 
         myTable = new JBTable(TableResult.EMPTY_MODEL) {
             @Override
@@ -154,7 +152,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         });
 
         searchSession = new TableResultSearchSession(myTable, project, new FindModel());
-        searchSession.getFindModel().addObserver(model -> resorting());
+        searchSession.getFindModel().addObserver(this::modelBeenUpdated);
 
         final JPanel rightStatus = new JPanel(new FlowLayout(FlowLayout.LEFT));
         rightStatus.add(statusTime);
@@ -180,24 +178,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         add(scrollPane, BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
         add(actionToolbar.getComponent(), BorderLayout.WEST);
-    }
-
-    private static boolean containsIgnoreCase(String str, String searchStr, boolean ignoreCase) {
-        if (str == null || searchStr == null) {
-            return false;
-        }
-
-        final int length = searchStr.length();
-        if (length == 0) {
-            return true;
-        }
-
-        for (int i = str.length() - length; i >= 0; i--) {
-            if (str.regionMatches(ignoreCase, i, searchStr, 0, length)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public ActionGroup createContextMenu() {
@@ -233,28 +213,12 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         return myTable;
     }
 
-    public void showResult(TableResult tableResult) {
-        this.tableResult = tableResult;
-
-        if (tableResult == null) {
-            myTable.setModel(TableResult.EMPTY_MODEL);
-            statusTime.setText("");
-            statusSize.setText("Empty");
-            statusQuery.setText("");
-        } else {
-            myTable.setModel(tableResult.getTableModel());
-
-            final KdbResult result = tableResult.getResult();
-
-            final double v = result.getRoundtripMillis() / 1000d;
-            final double v1 = ((int) (v * 100)) / 100d;
-            statusTime.setText(formatter.formatTimestamp(new Timestamp(result.getFinishedMillis())) + " (" + v1 + "sec)");
-            statusQuery.setText(tableResult.getQuery().getExpression());
-
-            resorting();
-            updateSizeStatus();
-            updateHeaderWidth();
+    static TableRowFilter createFilter(FindModel model) {
+        final String text = model.getStringToFind();
+        if (text.isBlank()) {
+            return null;
         }
+        return createSimpleFilter(model);
     }
 
     @Override
@@ -281,30 +245,20 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         searchAction.registerCustomShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK)), myTable);
     }
 
-    private void resorting() {
-        final FindModel findModel = searchSession.getFindModel();
-
-        final String text = findModel.getStringToFind();
-        final TableRowSorter<? extends TableModel> rowSorter = (TableRowSorter<? extends TableModel>) myTable.getRowSorter();
-
-        final RowFilter<TableModel, Integer> filter;
-        if (text.isBlank()) {
-            filter = null;
+    @NotNull
+    static TableRowFilter createSimpleFilter(FindModel model) {
+        final String text = model.getStringToFind();
+        if (model.isRegularExpressions()) {
+            final Matcher matcher = model.compileRegExp().matcher("");
+            return new TableRowFilter(v -> matcher.reset(v).find());
+        } else if (model.isWholeWordsOnly()) {
+            final int flags = model.isCaseSensitive() ? 0 : Pattern.CASE_INSENSITIVE;
+            final Pattern compile = Pattern.compile(".*\\b" + text + "\\b.*", flags);
+            final Matcher matcher = compile.matcher("");
+            return new TableRowFilter(v -> matcher.reset(v).find());
         } else {
-            if (findModel.isRegularExpressions()) {
-                final Matcher matcher = findModel.compileRegExp().matcher("");
-                filter = new TableRowFilter(v -> matcher.reset(v).find());
-            } else if (findModel.isWholeWordsOnly()) {
-                final int flags = findModel.isCaseSensitive() ? 0 : Pattern.CASE_INSENSITIVE;
-                final Pattern compile = Pattern.compile(".*\\b" + text + "\\b.*", flags);
-                final Matcher matcher = compile.matcher("");
-                filter = new TableRowFilter(v -> matcher.reset(v).find());
-            } else {
-                filter = new TableRowFilter(v -> containsIgnoreCase(v, text, !findModel.isCaseSensitive()));
-            }
+            return new TableRowFilter(v -> containsIgnoreCase(v, text, !model.isCaseSensitive()));
         }
-        rowSorter.setRowFilter(filter);
-        updateSizeStatus();
     }
 
     private void updateSizeStatus() {
@@ -339,6 +293,52 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         return tableResult.getResult().getObject();
     }
 
+    private static boolean containsIgnoreCase(String str, String searchStr, boolean ignoreCase) {
+        if (str == null || searchStr == null) {
+            return false;
+        }
+
+        final int length = searchStr.length();
+        if (length == 0) {
+            return true;
+        }
+
+        for (int i = str.length() - length; i >= 0; i--) {
+            if (str.regionMatches(ignoreCase, i, searchStr, 0, length)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void showResult(TableResult tableResult) {
+        this.tableResult = tableResult;
+
+        if (tableResult == null) {
+            myTable.setModel(TableResult.EMPTY_MODEL);
+            statusTime.setText("");
+            statusSize.setText("Empty");
+            statusQuery.setText("");
+            searchSession.setDelaySearchEnabled(false);
+        } else {
+            final TableResult.QTableModel tableModel = tableResult.getTableModel();
+            myTable.setModel(tableModel);
+
+            final KdbResult result = tableResult.getResult();
+
+            final double v = result.getRoundtripMillis() / 1000d;
+            final double v1 = ((int) (v * 100)) / 100d;
+            statusTime.setText(formatter.formatTimestamp(new Timestamp(result.getFinishedMillis())) + " (" + v1 + "sec)");
+            statusQuery.setText(tableResult.getQuery().getExpression());
+            // 10_000 rows by 20 columns can be sorted fast. No reason for delay
+            searchSession.setDelaySearchEnabled(tableModel.getRowCount() * tableModel.getColumnCount() > 200_000);
+
+            updateSizeStatus();
+            updateHeaderWidth();
+            modelBeenUpdated(searchSession.getFindModel());
+        }
+    }
+
     private void updateHeaderWidth() {
         final TableCellRenderer renderer = myTable.getTableHeader().getDefaultRenderer();
         final TableColumnModel columnModel = myTable.getColumnModel();
@@ -352,7 +352,13 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         boolean check(String value);
     }
 
-    private static class TableRowFilter extends RowFilter<TableModel, Integer> {
+    private void modelBeenUpdated(FindModel findModel) {
+        final RowFilter<TableModel, Integer> filter = createFilter(findModel);
+        ((TableRowSorter<? extends TableModel>) myTable.getRowSorter()).setRowFilter(filter);
+        updateSizeStatus();
+    }
+
+    static class TableRowFilter extends RowFilter<TableModel, Integer> {
         private final ValueFilter filter;
 
         public TableRowFilter(ValueFilter filter) {
@@ -361,6 +367,9 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
         @Override
         public boolean include(Entry<? extends TableModel, ? extends Integer> value) {
+            final TableModel model = value.getModel();
+//            final String columnName = model.getColumnName();
+
             int index = value.getValueCount();
             while (--index >= 0) {
                 final String stringValue = value.getStringValue(index);
