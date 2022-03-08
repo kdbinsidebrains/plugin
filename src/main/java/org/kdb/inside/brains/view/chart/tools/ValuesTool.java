@@ -10,7 +10,6 @@ import com.intellij.ui.table.JBTable;
 import kx.c;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -19,6 +18,7 @@ import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
+import org.kdb.inside.brains.view.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 
 import javax.swing.*;
@@ -30,13 +30,15 @@ import java.sql.Timestamp;
 import java.util.Vector;
 
 public class ValuesTool implements ExportDataProvider, ChartMouseListener {
-    private ChartPanel myPanel;
     private boolean enabled = false;
 
     private final JPanel component;
     private final JBTable pointsTable;
+    private final BaseChartPanel myPanel;
 
-    public ValuesTool(Project project) {
+    public ValuesTool(Project project, BaseChartPanel panel) {
+        myPanel = panel;
+
         final KdbOutputFormatter instance = KdbOutputFormatter.getInstance();
 
         final DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
@@ -62,6 +64,8 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
             }
         };
 
+        panel.addChartMouseListener(this);
+
         pointsTable.setShowColumns(true);
         pointsTable.setColumnSelectionAllowed(true);
 
@@ -76,6 +80,15 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
         component.add(BorderLayout.CENTER, ScrollPaneFactory.createScrollPane(pointsTable));
     }
 
+    public void setChart(JFreeChart chart) {
+        if (chart != null) {
+            pointsTable.setModel(createTableModel(chart));
+            initializeColumnModel();
+        } else {
+            pointsTable.setModel(new DefaultTableModel());
+        }
+    }
+/*
     public void setChartPanel(ChartPanel panel) {
         if (myPanel != null) {
             myPanel.removeChartMouseListener(this);
@@ -90,7 +103,7 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
         } else {
             pointsTable.setModel(new DefaultTableModel());
         }
-    }
+    }*/
 
     private void initializeColumnModel() {
         final TableColumnModel columnModel = pointsTable.getColumnModel();
@@ -104,9 +117,7 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
         domain.setPreferredWidth(200);
     }
 
-    private DefaultTableModel createTableModel(ChartPanel panel) {
-        final JFreeChart chart = panel.getChart();
-
+    private DefaultTableModel createTableModel(JFreeChart chart) {
         final XYPlot plot = chart.getXYPlot();
         final ValueAxis domainAxis = plot.getDomainAxis();
         final Vector<String> columns = new Vector<>();

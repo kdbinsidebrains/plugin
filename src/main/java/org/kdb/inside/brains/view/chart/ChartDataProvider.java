@@ -1,38 +1,16 @@
 package org.kdb.inside.brains.view.chart;
 
-import org.kdb.inside.brains.KdbType;
-
 import javax.swing.*;
 
 public interface ChartDataProvider {
-    int getColumnCount();
-
-    String getColumnName(int col);
-
-    Class<?> getColumnClass(int col);
-
-
-    int getRowCount();
-
-    Object getValueAt(int row, int col);
-
-
-    default KdbType getColumnType(int col) {
-        return KdbType.typeOf(getColumnClass(col));
-    }
-
-    static ChartDataProvider tableCopy(JTable table) {
+    static ChartDataProvider copy(JTable table) {
         final int rowsCount = table.getRowCount();
         final int columnCount = table.getColumnCount();
 
-        final String[] columnNames = new String[columnCount];
-        final Class<?>[] columnTypes = new Class<?>[columnCount];
-
+        final ColumnConfig[] configs = new ColumnConfig[columnCount];
         final Object[][] data = new Object[columnCount][rowsCount];
         for (int col = 0; col < columnCount; col++) {
-            columnNames[col] = table.getColumnName(col);
-            columnTypes[col] = table.getColumnClass(col);
-
+            configs[col] = new ColumnConfig(col, table.getColumnName(col), table.getColumnClass(col));
             for (int row = 0; row < rowsCount; row++) {
                 data[col][row] = table.getValueAt(row, col);
             }
@@ -40,22 +18,12 @@ public interface ChartDataProvider {
 
         return new ChartDataProvider() {
             @Override
-            public int getColumnCount() {
-                return columnCount;
+            public ColumnConfig[] getColumns() {
+                return configs;
             }
 
             @Override
-            public String getColumnName(int col) {
-                return columnNames[col];
-            }
-
-            @Override
-            public Class<?> getColumnClass(int col) {
-                return columnTypes[col];
-            }
-
-            @Override
-            public int getRowCount() {
+            public int getRowsCount() {
                 return rowsCount;
             }
 
@@ -66,6 +34,13 @@ public interface ChartDataProvider {
         };
     }
 
+    ColumnConfig[] getColumns();
+
+    Object getValueAt(int row, int col);
+
+    int getRowsCount();
+
+/*
     static ChartDataProvider tableWrap(JTable table) {
         return new ChartDataProvider() {
             @Override
@@ -84,7 +59,7 @@ public interface ChartDataProvider {
             }
 
             @Override
-            public int getRowCount() {
+            public int getRowsCount() {
                 return table.getRowCount();
             }
 
@@ -94,4 +69,5 @@ public interface ChartDataProvider {
             }
         };
     }
+*/
 }

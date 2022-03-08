@@ -14,6 +14,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.text.TextUtils;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.TextAnchor;
+import org.kdb.inside.brains.view.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.chart.ChartColors;
 
 import javax.swing.*;
@@ -27,9 +28,9 @@ import java.util.List;
 
 public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseListener {
     private boolean enabled;
-    private ChartPanel myPanel;
-
     private MeasureArea activeArea;
+
+    private final ChartPanel myPanel;
     private final List<MeasureArea> pinnedAreas = new ArrayList<>();
 
     private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#0.00");
@@ -40,26 +41,18 @@ public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseL
         NUMBER_FORMAT.setNegativePrefix("-");
     }
 
-    public MeasureTool() {
+    public MeasureTool(BaseChartPanel panel) {
+        myPanel = panel;
+
+        myPanel.addOverlay(this);
+        myPanel.addChartMouseListener(this);
+        myPanel.registerKeyboardAction(e -> cancel(), KEYSTROKE_ESC, JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
 
-    public void setChartPanel(ChartPanel panel) {
-        if (myPanel != null) {
-            myPanel.removeOverlay(this);
-            myPanel.removeChartMouseListener(this);
-            myPanel.unregisterKeyboardAction(KEYSTROKE_ESC);
-        }
-
+    public void setChart(JFreeChart chart) {
         activeArea = null;
         pinnedAreas.clear();
 
-        this.myPanel = panel;
-
-        if (myPanel != null) {
-            myPanel.addOverlay(this);
-            myPanel.addChartMouseListener(this);
-            myPanel.registerKeyboardAction(e -> cancel(), KEYSTROKE_ESC, JComponent.WHEN_IN_FOCUSED_WINDOW);
-        }
         fireOverlayChanged();
     }
 

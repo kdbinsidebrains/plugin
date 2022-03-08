@@ -200,7 +200,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
         group.addSeparator();
 
-        group.add(new ShowChartAction("Show chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.tableCopy(myTable)));
+        group.add(new ShowChartAction("Show chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.copy(myTable)));
 
         return group;
     }

@@ -17,6 +17,10 @@ import java.lang.reflect.Field;
 public class BaseChartPanel extends ChartPanel {
     private static final JBColor COLOR_GRID = new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4));
 
+    public BaseChartPanel() {
+        this(null);
+    }
+
     public BaseChartPanel(JFreeChart chart) {
         super(chart, false, false, false, false, false);
 
@@ -24,39 +28,9 @@ public class BaseChartPanel extends ChartPanel {
         setPopupMenu(null);
 
         setFocusable(true);
-        setMouseZoomable(true);
         setMouseWheelEnabled(true);
 
         fixPanMask();
-        fixChartColors(chart);
-    }
-
-    private void fixChartColors(JFreeChart chart) {
-        chart.setBorderPaint(JBColor.foreground());
-        chart.setBackgroundPaint(JBColor.background());
-
-        final LegendTitle legend = chart.getLegend();
-        if (legend != null) {
-            legend.setFrame(BlockBorder.NONE);
-            legend.setItemPaint(JBColor.foreground());
-            legend.setBackgroundPaint(JBColor.background());
-        }
-
-        final Plot plot = chart.getPlot();
-        if (plot instanceof XYPlot) {
-            applyColorSchema((XYPlot) plot);
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private void fixPanMask() {
-        try {
-            final Field panMask = ChartPanel.class.getDeclaredField("panMask");
-            panMask.setAccessible(true);
-            panMask.set(this, InputEvent.BUTTON1_MASK);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
     }
 
     protected static void applyColorSchema(XYPlot plot) {
@@ -71,6 +45,49 @@ public class BaseChartPanel extends ChartPanel {
         final int domainAxisCount = plot.getDomainAxisCount();
         for (int i = 0; i < domainAxisCount; i++) {
             applyAxisColorSchema(plot.getDomainAxis(i));
+        }
+
+        final int rangeAxisCount = plot.getRangeAxisCount();
+        for (int i = 0; i < rangeAxisCount; i++) {
+            applyAxisColorSchema(plot.getRangeAxis(i));
+        }
+    }
+
+    @Override
+    public void setChart(JFreeChart chart) {
+        super.setChart(chart);
+
+        if (chart != null) {
+            setMouseZoomable(true);
+            applyCharSchema(chart);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void fixPanMask() {
+        try {
+            final Field panMask = ChartPanel.class.getDeclaredField("panMask");
+            panMask.setAccessible(true);
+            panMask.set(this, InputEvent.BUTTON1_MASK);
+        } catch (Exception ignore) {
+            // not required
+        }
+    }
+
+    private void applyCharSchema(JFreeChart chart) {
+        chart.setBorderPaint(JBColor.foreground());
+        chart.setBackgroundPaint(JBColor.background());
+
+        final LegendTitle legend = chart.getLegend();
+        if (legend != null) {
+            legend.setFrame(BlockBorder.NONE);
+            legend.setItemPaint(JBColor.foreground());
+            legend.setBackgroundPaint(JBColor.background());
+        }
+
+        final Plot plot = chart.getPlot();
+        if (plot instanceof XYPlot) {
+            applyColorSchema((XYPlot) plot);
         }
     }
 

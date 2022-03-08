@@ -54,7 +54,7 @@ public final class ChartColors {
             transparent(Color.decode("0xe3415d"), 40)
     );
 
-    public static Color transparent(Color c, int alpha) {
+    private static Color transparent(Color c, int alpha) {
         return new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
     }
 
