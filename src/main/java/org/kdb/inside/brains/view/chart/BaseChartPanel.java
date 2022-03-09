@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.view.chart;
 
 import com.intellij.ui.JBColor;
+import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -9,12 +10,17 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.ui.RectangleEdge;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Field;
 
 public class BaseChartPanel extends ChartPanel {
+    private boolean defaultCursor = false;
+
     private static final JBColor COLOR_GRID = new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4));
 
     public BaseChartPanel() {
@@ -63,6 +69,21 @@ public class BaseChartPanel extends ChartPanel {
         }
     }
 
+    @Override
+    public void setCursor(Cursor cursor) {
+        if (defaultCursor) {
+            if (cursor != Cursor.getDefaultCursor()) {
+                super.setCursor(Cursor.getDefaultCursor());
+            }
+        } else {
+            super.setCursor(cursor);
+        }
+    }
+
+    public void setDefaultCursor(boolean defaultCursor) {
+        this.defaultCursor = defaultCursor;
+    }
+
     @SuppressWarnings("deprecation")
     private void fixPanMask() {
         try {
@@ -100,5 +121,19 @@ public class BaseChartPanel extends ChartPanel {
             ((NumberAxis) axis).setAutoRangeIncludesZero(false);
         }
         return axis;
+    }
+
+    public Point2D calculateValuesPoint(ChartMouseEvent event) {
+        final JFreeChart chart = event.getChart();
+
+        final XYPlot plot = (XYPlot) chart.getPlot();
+        final ValueAxis xAxis = plot.getDomainAxis();
+        final ValueAxis yAxis = plot.getRangeAxis();
+        final Rectangle2D dataArea = getScreenDataArea();
+
+        final double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, RectangleEdge.BOTTOM);
+        final double y = yAxis.java2DToValue(event.getTrigger().getY(), dataArea, RectangleEdge.LEFT);
+
+        return new Point2D.Double(x, y);
     }
 }

@@ -16,6 +16,7 @@ import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.TextAnchor;
 import org.kdb.inside.brains.view.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.chart.ChartColors;
+import org.kdb.inside.brains.view.chart.ChartTool;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,11 +27,11 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseListener {
+public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, ChartMouseListener {
     private boolean enabled;
     private MeasureArea activeArea;
 
-    private final ChartPanel myPanel;
+    private final BaseChartPanel myPanel;
     private final List<MeasureArea> pinnedAreas = new ArrayList<>();
 
     private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#0.00");
@@ -49,6 +50,7 @@ public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseL
         myPanel.registerKeyboardAction(e -> cancel(), KEYSTROKE_ESC, JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
 
+    @Override
     public void setChart(JFreeChart chart) {
         activeArea = null;
         pinnedAreas.clear();
@@ -63,9 +65,9 @@ public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseL
         }
 
         if (activeArea == null) {
-            activeArea = new MeasureArea(calculateValuesPoint(event));
+            activeArea = new MeasureArea(myPanel.calculateValuesPoint(event));
         } else {
-            activeArea.finish = calculateValuesPoint(event);
+            activeArea.finish = myPanel.calculateValuesPoint(event);
             pinnedAreas.add(activeArea);
             activeArea = null;
         }
@@ -78,22 +80,8 @@ public class MeasureTool extends AbstractOverlay implements Overlay, ChartMouseL
             return;
         }
         if (activeArea != null) {
-            activeArea.finish = calculateValuesPoint(event);
+            activeArea.finish = myPanel.calculateValuesPoint(event);
         }
-    }
-
-    private Point2D calculateValuesPoint(ChartMouseEvent event) {
-        final JFreeChart chart = event.getChart();
-
-        final XYPlot plot = (XYPlot) chart.getPlot();
-        final ValueAxis xAxis = plot.getDomainAxis();
-        final ValueAxis yAxis = plot.getRangeAxis();
-        final Rectangle2D dataArea = myPanel.getScreenDataArea();
-
-        final double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, RectangleEdge.BOTTOM);
-        final double y = yAxis.java2DToValue(event.getTrigger().getY(), dataArea, RectangleEdge.LEFT);
-
-        return new Point2D.Double(x, y);
     }
 
     @Override
