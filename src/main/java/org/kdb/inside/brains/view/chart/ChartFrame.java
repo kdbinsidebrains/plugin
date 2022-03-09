@@ -31,16 +31,18 @@ import java.util.List;
 import static com.intellij.util.ui.JBUI.Borders;
 
 public class ChartFrame extends FrameWrapper implements DataProvider {
+    public static final String EMPTY_PANEL = "EMPTY";
+    public static final String CHART_PANEL = "CHART";
     private final JBTabs tabs;
 
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel chartLayoutPanel = new JPanel(cardLayout);
 
-    private final BaseChartPanel chartPanel = new BaseChartPanel();
-
     private final ValuesTool valuesTool;
     private final MeasureTool measureTool;
     private final CrosshairTool crosshairTool;
+
+    private final BaseChartPanel chartPanel = new BaseChartPanel(this::createPopupMenu);
 
     private final Splitter splitter = new Splitter(true, 0.75f);
 
@@ -71,8 +73,8 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         eastPanel.add(configPanel, BorderLayout.EAST);
         eastPanel.add(createToolbar(), BorderLayout.WEST);
 
-        chartLayoutPanel.add(chartPanel, "CHART");
-        chartLayoutPanel.add(createEmptyPanel(), "EMPTY");
+        chartLayoutPanel.add(chartPanel, CHART_PANEL);
+        chartLayoutPanel.add(createEmptyPanel(), EMPTY_PANEL);
 
         splitter.setFirstComponent(chartLayoutPanel);
         if (valuesTool.isEnabled()) {
@@ -88,6 +90,27 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         setImage(IconLoader.toImage(KdbIcons.Chart.Icon));
         closeOnEsc();
         configChanged();
+    }
+
+    private ActionGroup createPopupMenu() {
+        final DefaultActionGroup g = new DefaultActionGroup();
+
+        final List<ChartTool> crosshairTool = List.of(this.crosshairTool, measureTool, valuesTool);
+        for (ChartTool tool : crosshairTool) {
+            if (!tool.isEnabled()) {
+                continue;
+            }
+
+            final ActionGroup popupActions = tool.getPopupActions();
+            if (popupActions.getChildren(null).length != 0) {
+                final String templateText = popupActions.getTemplateText();
+                if (templateText != null) {
+                    g.addSeparator(templateText);
+                }
+                g.addAll(popupActions);
+            }
+        }
+        return g;
     }
 
     private JBTabs createTabs(Project project, ChartDataProvider dataProvider) {
@@ -130,7 +153,7 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
     private void configChanged() {
         final TabInfo selectedInfo = tabs.getSelectedInfo();
         if (selectedInfo == null) {
-            cardLayout.show(chartLayoutPanel, "EMPTY");
+            cardLayout.show(chartLayoutPanel, EMPTY_PANEL);
             return;
         }
 
@@ -138,22 +161,9 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
 
         final JFreeChart chart = provider.getJFreeChart();
         chartPanel.setChart(chart);
+        List.of(valuesTool, measureTool, crosshairTool).forEach(s -> s.setChart(chart));
 
-        valuesTool.setChart(chart);
-        measureTool.setChart(chart);
-        crosshairTool.setChart(chart);
-
-/*
-        valuesTool.setChartPanel(baseChartPanel);
-        measureTool.setChartPanel(baseChartPanel);
-        crosshairTool.setChartPanel(baseChartPanel);
-*/
-
-        cardLayout.show(chartLayoutPanel, chart == null ? "EMPTY" : "CHART");
-
-//        chartLayoutPanel.removeAll();
-//        chartLayoutPanel.add(baseChartPanel == null ? createEmptyPanel() : baseChartPanel);
-//        chartLayoutPanel.revalidate();
+        cardLayout.show(chartLayoutPanel, chart == null ? EMPTY_PANEL : CHART_PANEL);
     }
 
     private static JPanel createEmptyPanel() {
@@ -164,13 +174,21 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
     }
 
     private void measureSelected(boolean state) {
+        if (measureTool.isEnabled() == state) {
+            return;
+        }
+
         measureTool.setEnabled(state);
         if (state) {
-            pointsSelected(false);
+            valuesSelected(false);
         }
+        chartPanel.setDefaultCursor(state);
     }
 
-    private void pointsSelected(boolean state) {
+    private void valuesSelected(boolean state) {
+        if (valuesTool.isEnabled() == state) {
+            return;
+        }
         valuesTool.setEnabled(state);
         if (state) {
             splitter.setSecondComponent(valuesTool.getComponent());
@@ -178,6 +196,7 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         } else {
             splitter.setSecondComponent(null);
         }
+        chartPanel.setDefaultCursor(state);
     }
 
     private JComponent createToolbar() {
@@ -190,7 +209,7 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         group.addSeparator();
 
         final ToggleAction measureAction = new DynamicToggleAction("Measure", "Measuring tool", KdbIcons.Chart.ToolMeasure, measureTool::isEnabled, this::measureSelected);
-        final ToggleAction pointsAction = new DynamicToggleAction("Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints, valuesTool::isEnabled, this::pointsSelected);
+        final ToggleAction pointsAction = new DynamicToggleAction("Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints, valuesTool::isEnabled, this::valuesSelected);
         group.add(measureAction);
         group.add(pointsAction);
 

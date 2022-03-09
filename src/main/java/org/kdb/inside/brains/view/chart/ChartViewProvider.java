@@ -52,7 +52,6 @@ public abstract class ChartViewProvider<CP extends JComponent> {
 
     protected abstract CP createConfigPanel(ChartDataProvider provider);
 
-    @Deprecated
     protected void processConfigChanged() {
         chartViewListeners.forEach(ChartViewListener::configChanged);
     }

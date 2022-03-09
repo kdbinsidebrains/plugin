@@ -1,6 +1,11 @@
 package org.kdb.inside.brains.view.chart;
 
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.ui.JBColor;
+import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -10,25 +15,34 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Field;
+import java.util.function.Supplier;
 
 public class BaseChartPanel extends ChartPanel {
+    private boolean defaultCursor = false;
+
+    private final Supplier<ActionGroup> popupActionsProvider;
+
     private static final JBColor COLOR_GRID = new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4));
 
-    public BaseChartPanel() {
-        this(null);
+    public BaseChartPanel(Supplier<ActionGroup> popupActionsProvider) {
+        this(null, popupActionsProvider);
     }
 
-    public BaseChartPanel(JFreeChart chart) {
+    public BaseChartPanel(JFreeChart chart, Supplier<ActionGroup> popupActionsProvider) {
         super(chart, false, false, false, false, false);
-
-        // We don't need it. Have own
-        setPopupMenu(null);
+        this.popupActionsProvider = popupActionsProvider;
 
         setFocusable(true);
         setMouseWheelEnabled(true);
+
+        // Set mock menu to process displayPopupMenu
+        setPopupMenu(new JPopupMenu());
 
         fixPanMask();
     }
@@ -63,6 +77,21 @@ public class BaseChartPanel extends ChartPanel {
         }
     }
 
+    @Override
+    public void setCursor(Cursor cursor) {
+        if (defaultCursor) {
+            if (cursor != Cursor.getDefaultCursor()) {
+                super.setCursor(Cursor.getDefaultCursor());
+            }
+        } else {
+            super.setCursor(cursor);
+        }
+    }
+
+    public void setDefaultCursor(boolean defaultCursor) {
+        this.defaultCursor = defaultCursor;
+    }
+
     @SuppressWarnings("deprecation")
     private void fixPanMask() {
         try {
@@ -71,6 +100,16 @@ public class BaseChartPanel extends ChartPanel {
             panMask.set(this, InputEvent.BUTTON1_MASK);
         } catch (Exception ignore) {
             // not required
+        }
+    }
+
+    protected static void applyAxisColorSchema(ValueAxis axis) {
+        axis.setLabelPaint(JBColor.foreground());
+        axis.setAxisLinePaint(JBColor.foreground());
+        axis.setTickLabelPaint(JBColor.foreground());
+
+        if (axis instanceof NumberAxis) {
+            ((NumberAxis) axis).setAutoRangeIncludesZero(false);
         }
     }
 
@@ -91,14 +130,30 @@ public class BaseChartPanel extends ChartPanel {
         }
     }
 
-    protected static ValueAxis applyAxisColorSchema(ValueAxis axis) {
-        axis.setLabelPaint(JBColor.foreground());
-        axis.setAxisLinePaint(JBColor.foreground());
-        axis.setTickLabelPaint(JBColor.foreground());
-
-        if (axis instanceof NumberAxis) {
-            ((NumberAxis) axis).setAutoRangeIncludesZero(false);
+    @Override
+    protected void displayPopupMenu(int x, int y) {
+        final ActionGroup group = popupActionsProvider.get();
+        if (group == null || group.getChildren(null).length == 0) {
+            return;
         }
-        return axis;
+
+        final ListPopup popup = JBPopupFactory.getInstance().createActionGroupPopup(null, group, DataManager.getInstance().getDataContext(this), JBPopupFactory.ActionSelectionAid.MNEMONICS, true);
+        final Point p = new Point(x, y);
+        SwingUtilities.convertPointToScreen(p, this);
+        popup.showInScreenCoordinates(this, p);
+    }
+
+    public Point2D calculateValuesPoint(ChartMouseEvent event) {
+        final JFreeChart chart = event.getChart();
+        final XYPlot plot = (XYPlot) chart.getPlot();
+
+        final ValueAxis xAxis = plot.getDomainAxis();
+        final ValueAxis yAxis = plot.getRangeAxis();
+        final Rectangle2D dataArea = getScreenDataArea();
+
+        final double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, plot.getDomainAxisEdge());
+        final double y = yAxis.java2DToValue(event.getTrigger().getY(), dataArea, plot.getRangeAxisEdge());
+
+        return new Point2D.Double(x, y);
     }
 }

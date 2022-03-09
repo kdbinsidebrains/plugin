@@ -1,13 +1,17 @@
 package org.kdb.inside.brains.view.chart.tools;
 
-import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
 import kx.c;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.JFreeChart;
@@ -19,6 +23,7 @@ import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.chart.BaseChartPanel;
+import org.kdb.inside.brains.view.chart.ChartTool;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 
 import javax.swing.*;
@@ -27,9 +32,11 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
-public class ValuesTool implements ExportDataProvider, ChartMouseListener {
+public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseListener {
     private boolean enabled = false;
 
     private final JPanel component;
@@ -69,7 +76,22 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
         pointsTable.setShowColumns(true);
         pointsTable.setColumnSelectionAllowed(true);
 
-        final ActionGroup contextMenu = ExportDataProvider.createActionGroup(project, this);
+        final DefaultActionGroup contextMenu = new DefaultActionGroup();
+        contextMenu.addAll(ExportDataProvider.createActionGroup(project, this));
+        contextMenu.addSeparator();
+        contextMenu.add(new DumbAwareAction("Clear All", "Clear all stored point", AllIcons.Actions.GC) {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(!pointsTable.isEmpty());
+            }
+
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                final DefaultTableModel model = (DefaultTableModel) pointsTable.getModel();
+                model.getDataVector().clear();
+                model.fireTableDataChanged();
+            }
+        });
         PopupHandler.installPopupHandler(pointsTable, contextMenu, "ChartValuesTool.Context");
 
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("ChartValuesTool.Toolbar", contextMenu, false);
@@ -82,28 +104,27 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
 
     public void setChart(JFreeChart chart) {
         if (chart != null) {
-            pointsTable.setModel(createTableModel(chart));
-            initializeColumnModel();
+            final DefaultTableModel tableModel = createTableModel(chart);
+
+            final List<String> curNames = getColumnNames(pointsTable.getModel());
+            final List<String> newNames = getColumnNames(tableModel);
+            if (!curNames.equals(newNames)) {
+                pointsTable.setModel(tableModel);
+                initializeColumnModel();
+            }
         } else {
             pointsTable.setModel(new DefaultTableModel());
         }
     }
-/*
-    public void setChartPanel(ChartPanel panel) {
-        if (myPanel != null) {
-            myPanel.removeChartMouseListener(this);
-        }
 
-        myPanel = panel;
-
-        if (myPanel != null) {
-            myPanel.addChartMouseListener(this);
-            pointsTable.setModel(createTableModel(panel));
-            initializeColumnModel();
-        } else {
-            pointsTable.setModel(new DefaultTableModel());
+    private List<String> getColumnNames(TableModel model) {
+        final int columnCount = model.getColumnCount();
+        final List<String> res = new ArrayList<>(columnCount);
+        for (int i = 0; i < columnCount; i++) {
+            res.add(model.getColumnName(i));
         }
-    }*/
+        return res;
+    }
 
     private void initializeColumnModel() {
         final TableColumnModel columnModel = pointsTable.getColumnModel();
