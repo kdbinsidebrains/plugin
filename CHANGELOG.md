@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [0.20.1]
+
+### Changed
+
+- Charting improvements and context menu (for measure tool) added
+
 ## [0.20.0]
 
 ### Added
