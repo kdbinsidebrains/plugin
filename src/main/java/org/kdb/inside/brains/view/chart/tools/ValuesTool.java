@@ -18,7 +18,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
@@ -30,6 +29,7 @@ import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -144,12 +144,14 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
         final Vector<String> columns = new Vector<>();
         columns.add("Key");
         columns.add(domainAxis.getLabel());
+/*
 
         final int rangeAxisCount = plot.getRangeAxisCount();
         for (int i = 0; i < rangeAxisCount; i++) {
             final ValueAxis rangeAxis = plot.getRangeAxis(i);
             columns.add(rangeAxis.getLabel());
         }
+*/
 
         final int dsCount = plot.getDatasetCount();
         for (int i = 0; i < dsCount; i++) {
@@ -191,17 +193,20 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
         final MouseEvent trigger = event.getTrigger();
         final Rectangle2D dataArea = myPanel.getScreenDataArea();
 
-        final double x = domain.java2DToValue(trigger.getX(), dataArea, RectangleEdge.BOTTOM);
+        final Point2D p = myPanel.calculateValuesPoint(event);
+        final double x = p.getX();
         final Object val = domain instanceof DateAxis ? new Timestamp((long) x) : Double.valueOf(x);
 
         final Vector<Object> values = new Vector<>();
         values.add(getKeyValue(trigger));
         values.add(val);
+/*
 
         final int rangeCount = plot.getRangeAxisCount();
         for (int i = 0; i < rangeCount; i++) {
             values.add(plot.getRangeAxis(i).java2DToValue(trigger.getY(), dataArea, RectangleEdge.LEFT));
         }
+*/
 
         final int dsCount = plot.getDatasetCount();
         for (int i = 0; i < dsCount; i++) {

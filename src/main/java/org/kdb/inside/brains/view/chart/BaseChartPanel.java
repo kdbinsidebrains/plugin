@@ -14,6 +14,8 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
+import org.jfree.data.general.DatasetUtils;
+import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,6 +26,7 @@ import java.lang.reflect.Field;
 import java.util.function.Supplier;
 
 public class BaseChartPanel extends ChartPanel {
+    private SnapType snapType = SnapType.NO;
     private boolean defaultCursor = false;
 
     private final Supplier<ActionGroup> popupActionsProvider;
@@ -103,6 +106,14 @@ public class BaseChartPanel extends ChartPanel {
         }
     }
 
+    public SnapType getSnapType() {
+        return snapType;
+    }
+
+    public void setSnapType(SnapType snapType) {
+        this.snapType = snapType;
+    }
+
     protected static void applyAxisColorSchema(ValueAxis axis) {
         axis.setLabelPaint(JBColor.foreground());
         axis.setAxisLinePaint(JBColor.foreground());
@@ -146,14 +157,28 @@ public class BaseChartPanel extends ChartPanel {
     public Point2D calculateValuesPoint(ChartMouseEvent event) {
         final JFreeChart chart = event.getChart();
         final XYPlot plot = (XYPlot) chart.getPlot();
-
+        final XYDataset dataset = plot.getDataset();
         final ValueAxis xAxis = plot.getDomainAxis();
         final ValueAxis yAxis = plot.getRangeAxis();
         final Rectangle2D dataArea = getScreenDataArea();
 
-        final double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, plot.getDomainAxisEdge());
-        final double y = yAxis.java2DToValue(event.getTrigger().getY(), dataArea, plot.getRangeAxisEdge());
+        double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, plot.getDomainAxisEdge());
+        if (snapType == SnapType.VERTEX) {
+            final int[] ids = DatasetUtils.findItemIndicesForX(dataset, 0, x);
+            if (ids[0] >= 0 && ids[1] >= 0) {
+                final double x1 = dataset.getX(0, ids[0]).doubleValue();
+                final double x2 = dataset.getX(0, ids[1]).doubleValue();
+                final double med = (x1 + x2) / 2;
+                x = x < med ? x1 : x2;
+            } else {
+                x = Double.NaN;
+            }
+        }
 
+        double y = yAxis.java2DToValue(event.getTrigger().getY(), dataArea, plot.getRangeAxisEdge());
+        if (snapType != SnapType.NO) {
+            y = DatasetUtils.findYValue(dataset, 0, x);
+        }
         return new Point2D.Double(x, y);
     }
 }

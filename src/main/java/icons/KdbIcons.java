@@ -42,6 +42,8 @@ public final class KdbIcons {
         public static final Icon TypeBar = load("/org/kdb/inside/brains/icons/chart/type_bar.svg");
         public static final Icon TypeDiff = load("/org/kdb/inside/brains/icons/chart/type_diff.svg");
 
+        public static final Icon ToolMagnet = load("/org/kdb/inside/brains/icons/chart/magnet.svg");
+
         public static final Icon ToolCrosshair = load("/org/kdb/inside/brains/icons/chart/tool_crosshair.svg");
         public static final Icon ToolPoints = load("/org/kdb/inside/brains/icons/chart/tool_points.svg");
         public static final Icon ToolMeasure = load("/org/kdb/inside/brains/icons/chart/tool_measure.svg");

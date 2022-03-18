@@ -100,7 +100,7 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
                         new AnAction("Clear Measures") {
                             @Override
                             public void update(@NotNull AnActionEvent e) {
-                                e.getPresentation().setEnabled(highlighted != null);
+                                e.getPresentation().setEnabled(!pinnedAreas.isEmpty());
                             }
 
                             @Override

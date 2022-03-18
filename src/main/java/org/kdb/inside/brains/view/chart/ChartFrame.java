@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.chart;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.openapi.ui.Splitter;
@@ -31,8 +32,6 @@ import java.util.List;
 import static com.intellij.util.ui.JBUI.Borders;
 
 public class ChartFrame extends FrameWrapper implements DataProvider {
-    public static final String EMPTY_PANEL = "EMPTY";
-    public static final String CHART_PANEL = "CHART";
     private final JBTabs tabs;
 
     private final CardLayout cardLayout = new CardLayout();
@@ -43,6 +42,9 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
     private final CrosshairTool crosshairTool;
 
     private final BaseChartPanel chartPanel = new BaseChartPanel(this::createPopupMenu);
+
+    private static final String EMPTY_PANEL = "EMPTY";
+    private static final String CHART_PANEL = "CHART";
 
     private final Splitter splitter = new Splitter(true, 0.75f);
 
@@ -94,7 +96,6 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
 
     private ActionGroup createPopupMenu() {
         final DefaultActionGroup g = new DefaultActionGroup();
-
         final List<ChartTool> crosshairTool = List.of(this.crosshairTool, measureTool, valuesTool);
         for (ChartTool tool : crosshairTool) {
             if (!tool.isEnabled()) {
@@ -214,6 +215,15 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         group.add(pointsAction);
 
         group.addSeparator();
+
+        final DefaultActionGroup snapping = new PopupActionGroup("Snapping", KdbIcons.Chart.ToolMagnet);
+        snapping.add(new SpanAction("_Disable Snapping", SnapType.NO));
+        snapping.add(new SpanAction("Snap to _Line", SnapType.LINE));
+        snapping.add(new SpanAction("Snap to _Vertex", SnapType.VERTEX));
+
+        group.add(snapping);
+
+        group.addSeparator();
         group.addAll(createChartPanelMenu());
 
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.CHARTS_PANEL_TOOLBAR, group, false);
@@ -262,6 +272,29 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         zoomReset.add(new ChartAction(ChartPanel.ZOOM_RESET_DOMAIN_COMMAND, "_Domain Axis", "Reset zoom for domain axis only"));
         group.add(zoomReset);
         return group;
+    }
+
+    private class SpanAction extends CheckboxAction {
+        private final SnapType snapType;
+
+        private SpanAction(String name, SnapType snapType) {
+            super(name);
+            this.snapType = snapType;
+        }
+
+        @Override
+        public boolean isSelected(@NotNull AnActionEvent e) {
+            return chartPanel.getSnapType() == snapType;
+        }
+
+        @Override
+        public void setSelected(@NotNull AnActionEvent e, boolean state) {
+            if (state) {
+                chartPanel.setSnapType(snapType);
+            } else {
+                chartPanel.setSnapType(SnapType.NO);
+            }
+        }
     }
 
     private class ChartAction extends AnAction {
