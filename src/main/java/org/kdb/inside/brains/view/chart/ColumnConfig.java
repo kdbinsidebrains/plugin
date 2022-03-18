@@ -6,6 +6,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+import java.util.Objects;
 import java.util.Set;
 
 public class ColumnConfig {
@@ -33,10 +34,14 @@ public class ColumnConfig {
             KdbType.TIMESTAMP
     );
 
+    public ColumnConfig(int index, String name, Class<?> type) {
+        this(index, name, KdbType.typeOf(type));
+    }
+
     public ColumnConfig(int index, String name, KdbType type) {
         this.index = index;
-        this.name = name;
-        this.type = type;
+        this.name = Objects.requireNonNull(name);
+        this.type = Objects.requireNonNull(type);
     }
 
 
@@ -60,12 +65,42 @@ public class ColumnConfig {
         return "  " + name + " (" + type.getTypeName().toLowerCase() + ")  ";
     }
 
+    public static boolean isTemporal(KdbType type) {
+        return TEMPORAL_TYPES.contains(type);
+    }
+
+    public boolean isNumber() {
+        return isNumberType(type);
+    }
+
+    public boolean isTemporal() {
+        return isTemporal(type);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ColumnConfig that = (ColumnConfig) o;
+        return index == that.index && Objects.equals(name, that.name) && type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(index, name, type);
+    }
+
     public static boolean isNumberType(KdbType type) {
         return NUMBER_TYPES.contains(type);
     }
 
-    public static boolean isTemporalType(KdbType type) {
-        return TEMPORAL_TYPES.contains(type);
+    @Override
+    public String toString() {
+        return "ColumnConfig{" +
+                "index=" + index +
+                ", name='" + name + '\'' +
+                ", type=" + type +
+                '}';
     }
 
     public static TableCellRenderer createTableCellRenderer() {

@@ -2,6 +2,16 @@
 
 # KdbInsideBrains Changelog
 
+## [0.21.0]
+
+### Added
+
+- Dark icons set added with IntelliJ Idea colors
+- Charting is ready now:
+  - New Magnet/Snap tool has been added with ability to snap to line, vertex or disable the tool (default)
+  - Values Tool shows only series values and no range values anymore
+  - Measure Tool has context menu with remove/clear ability
+
 ## [0.20.0]
 
 ### Added

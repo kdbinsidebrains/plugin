@@ -1,42 +1,51 @@
 package org.kdb.inside.brains.view.chart.tools;
 
-import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
 import kx.c;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
+import org.kdb.inside.brains.view.chart.BaseChartPanel;
+import org.kdb.inside.brains.view.chart.ChartTool;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
-public class ValuesTool implements ExportDataProvider, ChartMouseListener {
-    private ChartPanel myPanel;
+public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseListener {
     private boolean enabled = false;
 
     private final JPanel component;
     private final JBTable pointsTable;
+    private final BaseChartPanel myPanel;
 
-    public ValuesTool(Project project) {
+    public ValuesTool(Project project, BaseChartPanel panel) {
+        myPanel = panel;
+
         final KdbOutputFormatter instance = KdbOutputFormatter.getInstance();
 
         final DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
@@ -62,10 +71,27 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
             }
         };
 
+        panel.addChartMouseListener(this);
+
         pointsTable.setShowColumns(true);
         pointsTable.setColumnSelectionAllowed(true);
 
-        final ActionGroup contextMenu = ExportDataProvider.createActionGroup(project, this);
+        final DefaultActionGroup contextMenu = new DefaultActionGroup();
+        contextMenu.addAll(ExportDataProvider.createActionGroup(project, this));
+        contextMenu.addSeparator();
+        contextMenu.add(new DumbAwareAction("Clear All", "Clear all stored point", AllIcons.Actions.GC) {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(!pointsTable.isEmpty());
+            }
+
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                final DefaultTableModel model = (DefaultTableModel) pointsTable.getModel();
+                model.getDataVector().clear();
+                model.fireTableDataChanged();
+            }
+        });
         PopupHandler.installPopupHandler(pointsTable, contextMenu, "ChartValuesTool.Context");
 
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("ChartValuesTool.Toolbar", contextMenu, false);
@@ -76,20 +102,28 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
         component.add(BorderLayout.CENTER, ScrollPaneFactory.createScrollPane(pointsTable));
     }
 
-    public void setChartPanel(ChartPanel panel) {
-        if (myPanel != null) {
-            myPanel.removeChartMouseListener(this);
-        }
+    public void setChart(JFreeChart chart) {
+        if (chart != null) {
+            final DefaultTableModel tableModel = createTableModel(chart);
 
-        myPanel = panel;
-
-        if (myPanel != null) {
-            myPanel.addChartMouseListener(this);
-            pointsTable.setModel(createTableModel(panel));
-            initializeColumnModel();
+            final List<String> curNames = getColumnNames(pointsTable.getModel());
+            final List<String> newNames = getColumnNames(tableModel);
+            if (!curNames.equals(newNames)) {
+                pointsTable.setModel(tableModel);
+                initializeColumnModel();
+            }
         } else {
             pointsTable.setModel(new DefaultTableModel());
         }
+    }
+
+    private List<String> getColumnNames(TableModel model) {
+        final int columnCount = model.getColumnCount();
+        final List<String> res = new ArrayList<>(columnCount);
+        for (int i = 0; i < columnCount; i++) {
+            res.add(model.getColumnName(i));
+        }
+        return res;
     }
 
     private void initializeColumnModel() {
@@ -104,20 +138,20 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
         domain.setPreferredWidth(200);
     }
 
-    private DefaultTableModel createTableModel(ChartPanel panel) {
-        final JFreeChart chart = panel.getChart();
-
+    private DefaultTableModel createTableModel(JFreeChart chart) {
         final XYPlot plot = chart.getXYPlot();
         final ValueAxis domainAxis = plot.getDomainAxis();
         final Vector<String> columns = new Vector<>();
         columns.add("Key");
         columns.add(domainAxis.getLabel());
+/*
 
         final int rangeAxisCount = plot.getRangeAxisCount();
         for (int i = 0; i < rangeAxisCount; i++) {
             final ValueAxis rangeAxis = plot.getRangeAxis(i);
             columns.add(rangeAxis.getLabel());
         }
+*/
 
         final int dsCount = plot.getDatasetCount();
         for (int i = 0; i < dsCount; i++) {
@@ -159,17 +193,20 @@ public class ValuesTool implements ExportDataProvider, ChartMouseListener {
         final MouseEvent trigger = event.getTrigger();
         final Rectangle2D dataArea = myPanel.getScreenDataArea();
 
-        final double x = domain.java2DToValue(trigger.getX(), dataArea, RectangleEdge.BOTTOM);
+        final Point2D p = myPanel.calculateValuesPoint(event);
+        final double x = p.getX();
         final Object val = domain instanceof DateAxis ? new Timestamp((long) x) : Double.valueOf(x);
 
         final Vector<Object> values = new Vector<>();
         values.add(getKeyValue(trigger));
         values.add(val);
+/*
 
         final int rangeCount = plot.getRangeAxisCount();
         for (int i = 0; i < rangeCount; i++) {
             values.add(plot.getRangeAxis(i).java2DToValue(trigger.getY(), dataArea, RectangleEdge.LEFT));
         }
+*/
 
         final int dsCount = plot.getDatasetCount();
         for (int i = 0; i < dsCount; i++) {

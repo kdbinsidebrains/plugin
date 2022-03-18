@@ -13,48 +13,45 @@ import org.jfree.chart.panel.CrosshairOverlay;
 import org.jfree.chart.plot.Crosshair;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleAnchor;
-import org.jfree.chart.ui.RectangleEdge;
+import org.kdb.inside.brains.view.chart.BaseChartPanel;
+import org.kdb.inside.brains.view.chart.ChartTool;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import java.text.NumberFormat;
 
-public class CrosshairTool extends CrosshairOverlay implements ChartMouseListener {
-    private ChartPanel myPanel;
+public class CrosshairTool extends CrosshairOverlay implements ChartTool, ChartMouseListener {
     private boolean enabled = true;
 
-    private Crosshair xCrosshair;
-    private Crosshair yCrosshair;
+    private Crosshair range;
+    private Crosshair domain;
+
+    private final BaseChartPanel myPanel;
 
     public static final JBColor CROSSHAIR_PAINT = new JBColor(new Color(0xa4a4a5), new Color(0xa4a4a5));
     public static final JBColor CROSSHAIR_LABEL = new JBColor(new Color(0x595959), new Color(0x595959));
     public static final JBColor CROSSHAIR_OUTLINE = new JBColor(new Color(0xe0e0e0), new Color(0xe0e0e0));
     public static final JBColor CROSSHAIR_BACKGROUND = new JBColor(new Color(0xc4c4c4), new Color(0xc4c4c4));
 
-    public CrosshairTool() {
+    public CrosshairTool(BaseChartPanel panel) {
+        myPanel = panel;
+        myPanel.addOverlay(this);
+        myPanel.addChartMouseListener(this);
     }
 
-    public void setChartPanel(ChartPanel panel) {
-        if (myPanel != null) {
-            myPanel.removeOverlay(this);
-            myPanel.removeChartMouseListener(this);
-        }
-
-        myPanel = panel;
-
+    @Override
+    public void setChart(JFreeChart chart) {
         clearRangeCrosshairs();
         clearDomainCrosshairs();
 
-        if (myPanel != null) {
-            myPanel.addOverlay(this);
-            myPanel.addChartMouseListener(this);
+        if (chart != null) {
+            range = createCrosshair(true);
+            addRangeCrosshair(range);
 
-            xCrosshair = createCrosshair(false);
-            yCrosshair = createCrosshair(true);
-
-            addDomainCrosshair(this.xCrosshair);
-            addRangeCrosshair(this.yCrosshair);
+            domain = createCrosshair(false);
+            addDomainCrosshair(this.domain);
         }
+
         fireOverlayChanged();
     }
 
@@ -64,27 +61,15 @@ public class CrosshairTool extends CrosshairOverlay implements ChartMouseListene
 
     @Override
     public void chartMouseMoved(ChartMouseEvent event) {
-        final Rectangle2D dataArea = myPanel.getScreenDataArea();
-        final JFreeChart chart = event.getChart();
-        final XYPlot plot = (XYPlot) chart.getPlot();
-        final ValueAxis xAxis = plot.getDomainAxis();
-        final ValueAxis yAxis = plot.getRangeAxis();
-
-        double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, RectangleEdge.BOTTOM);
-        if (!xAxis.getRange().contains(x)) {
-            x = Double.NaN;
-        }
-        double y = yAxis.java2DToValue(event.getTrigger().getY(), dataArea, RectangleEdge.LEFT);
-        if (!yAxis.getRange().contains(y)) {
-            y = Double.NaN;
-        }
-        xCrosshair.setValue(x);
-        yCrosshair.setValue(y);
+        final Point2D p = myPanel.calculateValuesPoint(event);
+        range.setValue(p.getY());
+        domain.setValue(p.getX());
     }
 
     @NotNull
     private Crosshair createCrosshair(boolean vertical) {
         final Crosshair crosshair = new Crosshair(Double.NaN, CROSSHAIR_PAINT, new BasicStroke(0.5F));
+        crosshair.setValue(Double.NaN);
         crosshair.setLabelVisible(true);
         crosshair.setLabelAnchor(vertical ? RectangleAnchor.LEFT : RectangleAnchor.BOTTOM);
         crosshair.setLabelPaint(CROSSHAIR_LABEL);

@@ -2,7 +2,7 @@ package org.kdb.inside.brains.view.chart.ohlc;
 
 import org.kdb.inside.brains.view.chart.ColumnConfig;
 
-public class ChartConfig {
+class OHLCChartConfig {
     private final ColumnConfig dateColumn;
     private final ColumnConfig openColumn;
     private final ColumnConfig highColumn;
@@ -10,7 +10,7 @@ public class ChartConfig {
     private final ColumnConfig closeColumn;
     private final ColumnConfig volumeColumn;
 
-    public ChartConfig(ColumnConfig dateColumn, ColumnConfig openColumn, ColumnConfig highColumn, ColumnConfig lowColumn, ColumnConfig closeColumn, ColumnConfig volumeColumn) {
+    public OHLCChartConfig(ColumnConfig dateColumn, ColumnConfig openColumn, ColumnConfig highColumn, ColumnConfig lowColumn, ColumnConfig closeColumn, ColumnConfig volumeColumn) {
         this.dateColumn = dateColumn;
         this.openColumn = openColumn;
         this.highColumn = highColumn;

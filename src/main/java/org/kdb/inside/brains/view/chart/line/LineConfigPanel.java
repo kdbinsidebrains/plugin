@@ -13,10 +13,10 @@ import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.ListTableModel;
 import com.intellij.util.ui.UIUtil;
-import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.KdbType;
-import org.kdb.inside.brains.view.chart.*;
+import org.kdb.inside.brains.view.chart.ChartColors;
+import org.kdb.inside.brains.view.chart.ChartDataProvider;
+import org.kdb.inside.brains.view.chart.ColumnConfig;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -25,19 +25,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class LineChartBuilder extends ChartBuilder {
-    private final ComboBox<AxisConfig> domainComponent = new ComboBox<>();
-    private final TableView<AxisConfig> rangesComponent = new TableView<>();
+class LineConfigPanel extends JPanel {
+    private final Runnable callback;
+    private final ChartDataProvider dataProvider;
+
+    private final ComboBox<ColumnConfig> domainComponent = new ComboBox<>();
+    private final TableView<RangeConfig> rangesComponent = new TableView<>();
     private final TableView<SeriesConfig> seriesComponent = new TableView<>();
     private final JCheckBox shapesCheckbox = new JCheckBox("Draw shapes where possible", false);
 
-    public LineChartBuilder(ChartDataProvider dataProvider) {
-        super("Line Chart", KdbIcons.Chart.Line, dataProvider);
-    }
+    public LineConfigPanel(ChartDataProvider dataProvider, Runnable callback) {
+        super(new BorderLayout());
 
-    @Override
-    public JPanel createConfigPanel() {
+        this.callback = callback;
+        this.dataProvider = dataProvider;
+
         initOptions();
         initializeSeriesComponent();
         initializeDomainComponent();
@@ -64,39 +68,28 @@ public class LineChartBuilder extends ChartBuilder {
         formBuilder.setFormLeftIndent(10);
         formBuilder.addComponent(shapesCheckbox);
 
-        JPanel p = new JPanel(new BorderLayout());
-        p.add(formBuilder.getPanel(), BorderLayout.PAGE_START);
-        return p;
+        add(formBuilder.getPanel(), BorderLayout.PAGE_START);
     }
 
-    @Override
-    public BaseChartPanel createChartPanel() {
-        final ChartConfig chartConfig = createChartConfig();
-        return chartConfig.isEmpty() ? null : new LineChartPanel(chartConfig, dataProvider);
-    }
-
-    private ChartConfig createChartConfig() {
-        final List<AxisConfig> list = rangesComponent.getItems().stream().filter(c -> c.getSeries() != null && !c.getSeries().getName().isBlank()).collect(Collectors.toList());
-        return new ChartConfig(domainComponent.getItem(), list, shapesCheckbox.isSelected());
-    }
-
-    private void initializeDomainComponent() {
-        createColumnConfigs(false).forEach(domainComponent::addItem);
-
-        domainComponent.addActionListener(e -> processConfigChanged());
-        domainComponent.setRenderer(ColumnConfig.createListCellRenderer());
+    public LineChartConfig createChartConfig() {
+        final java.util.List<RangeConfig> list = rangesComponent.getItems().stream().filter(c -> c.getSeries() != null && !c.getSeries().getName().isBlank()).collect(Collectors.toList());
+        return new LineChartConfig(domainComponent.getItem(), list, shapesCheckbox.isSelected());
     }
 
     private void initOptions() {
         shapesCheckbox.addActionListener(l -> processConfigChanged());
     }
 
+    private void processConfigChanged() {
+        callback.run();
+    }
+
     private void initializeSeriesComponent() {
         final ListTableModel<SeriesConfig> model = new ListTableModel<>(
-                new ChartColumnInfo<>("Name", SeriesConfig::getName, SeriesConfig::setName),
-                new ChartColumnInfo<>("Style", SeriesConfig::getType, SeriesConfig::setType),
-                new ChartColumnInfo<>("Lower Margin", SeriesConfig::getLowerMargin, SeriesConfig::setLowerMargin),
-                new ChartColumnInfo<>("Upper Margin", SeriesConfig::getUpperMargin, SeriesConfig::setUpperMargin)
+                new RangeColumnInfo<>("Name", SeriesConfig::getName, SeriesConfig::setName),
+                new RangeColumnInfo<>("Style", SeriesConfig::getType, SeriesConfig::setType),
+                new RangeColumnInfo<>("Low. Margin", SeriesConfig::getLowerMargin, SeriesConfig::setLowerMargin),
+                new RangeColumnInfo<>("Upp. Margin", SeriesConfig::getUpperMargin, SeriesConfig::setUpperMargin)
         );
         model.addRow(new SeriesConfig("Value", SeriesType.LINE));
         model.addRow(new SeriesConfig("", SeriesType.LINE));
@@ -139,20 +132,27 @@ public class LineChartBuilder extends ChartBuilder {
         columnModel.getColumn(3).setCellEditor(new IntSpinnerCellEditor());
     }
 
+    private void initializeDomainComponent() {
+        Stream.of(dataProvider.getColumns()).filter(c -> c.isTemporal() || c.isNumber()).forEach(domainComponent::addItem);
+
+        domainComponent.addActionListener(e -> processConfigChanged());
+        domainComponent.setRenderer(ColumnConfig.createListCellRenderer());
+    }
+
     private void initializeRangeValuesTable() {
-        final List<AxisConfig> columnConfigs = createColumnConfigs(true);
-        final Optional<String> maxLabelName = columnConfigs.stream().map(AxisConfig::getLabelWidth).reduce((s, s2) -> s.length() > s2.length() ? s : s2);
-        final ListTableModel<AxisConfig> model = new ListTableModel<>(
-                new ChartColumnInfo<>("Axis", AxisConfig::getSeries, AxisConfig::setSeries, "Range Axis Name"),
-                new ChartColumnInfo<>("Column", AxisConfig::getLabel, null, maxLabelName.orElse("")),
-                new ChartColumnInfo<>("Color", AxisConfig::getColor, AxisConfig::setColor),
-                new ChartColumnInfo<>("Width", AxisConfig::getWidth, AxisConfig::setWidth)
+        final java.util.List<RangeConfig> ranges = createRangeConfigs();
+        final Optional<String> maxLabelName = ranges.stream().map(RangeConfig::getLabelWidth).reduce((s, s2) -> s.length() > s2.length() ? s : s2);
+        final ListTableModel<RangeConfig> model = new ListTableModel<>(
+                new RangeColumnInfo<>("Axis", RangeConfig::getSeries, RangeConfig::setSeries, "Range Axis Name"),
+                new RangeColumnInfo<>("Column", RangeConfig::getLabel, null, maxLabelName.orElse("")),
+                new RangeColumnInfo<>("Color", RangeConfig::getColor, RangeConfig::setColor),
+                new RangeColumnInfo<>("Width", RangeConfig::getWidth, RangeConfig::setWidth)
         );
-        model.addRows(columnConfigs);
+        model.addRows(ranges);
         model.addTableModelListener(e -> processConfigChanged());
 
         rangesComponent.setModelAndUpdateColumns(model);
-        rangesComponent.setVisibleRowCount(columnConfigs.size());
+        rangesComponent.setVisibleRowCount(model.getRowCount());
         UIUtil.putClientProperty(rangesComponent, JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
 
         final TableColumnModel columnModel = rangesComponent.getColumnModel();
@@ -205,35 +205,34 @@ public class LineChartBuilder extends ChartBuilder {
         width.setCellEditor(widthEditor);
     }
 
-    private List<AxisConfig> createColumnConfigs(boolean range) {
-        final int columnCount = dataProvider.getColumnCount();
-        final List<AxisConfig> res = new ArrayList<>(columnCount);
-        for (int i = 0, c = 0; i < columnCount; i++) {
-            final String name = dataProvider.getColumnName(i);
-            final KdbType type = dataProvider.getColumnType(i);
-            if ((range && AxisConfig.isRangeAllowed(type)) || (!range && AxisConfig.isDomainAllowed(type))) {
-                res.add(new AxisConfig(i, name, type, ChartColors.getDefaultColor(c++)));
+    private java.util.List<RangeConfig> createRangeConfigs() {
+        final ColumnConfig[] columns = dataProvider.getColumns();
+        final List<RangeConfig> res = new ArrayList<>(columns.length);
+        for (int i = 0, c = 0; i < columns.length; i++) {
+            final ColumnConfig column = columns[i];
+            if (column.isNumber()) {
+                res.add(new RangeConfig(column.getIndex(), column.getName(), column.getType(), ChartColors.getDefaultColor(c++)));
             }
         }
         return res;
     }
 
     private static class SeriesComboboxModel extends AbstractListModel<SeriesConfig> implements ComboBoxModel<SeriesConfig> {
-        private Object selected;
         private final TableView<SeriesConfig> table;
+        private Object selected;
 
         public SeriesComboboxModel(TableView<SeriesConfig> table) {
             this.table = table;
         }
 
         @Override
-        public void setSelectedItem(Object anItem) {
-            selected = anItem;
+        public Object getSelectedItem() {
+            return selected;
         }
 
         @Override
-        public Object getSelectedItem() {
-            return selected;
+        public void setSelectedItem(Object anItem) {
+            selected = anItem;
         }
 
         @Override
@@ -278,13 +277,13 @@ public class LineChartBuilder extends ChartBuilder {
     }
 
     private static class ColorTableCellEditor extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
-        private Color editingColor;
         private final DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+        private Color editingColor;
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             final JLabel label = (JLabel) renderer.getTableCellRendererComponent(table, null, isSelected, hasFocus, row, column);
-            label.setIcon(AxisConfig.createIcon((Color) value));
+            label.setIcon(RangeConfig.createIcon((Color) value));
             return label;
         }
 

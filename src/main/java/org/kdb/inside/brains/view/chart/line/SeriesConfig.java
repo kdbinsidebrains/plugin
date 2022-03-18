@@ -2,7 +2,7 @@ package org.kdb.inside.brains.view.chart.line;
 
 import org.jfree.chart.axis.ValueAxis;
 
-public class SeriesConfig {
+class SeriesConfig {
     private String name;
     private SeriesType type;
     private int lowerMargin = (int) (ValueAxis.DEFAULT_LOWER_MARGIN * 100);

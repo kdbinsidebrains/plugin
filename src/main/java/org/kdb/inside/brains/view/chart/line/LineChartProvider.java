@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.view.chart.line;
 
+import icons.KdbIcons;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
@@ -17,26 +18,27 @@ import org.jfree.data.xy.IntervalXYDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.kdb.inside.brains.view.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
+import org.kdb.inside.brains.view.chart.ChartViewProvider;
+import org.kdb.inside.brains.view.chart.ColumnConfig;
 
 import java.awt.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class LineChartPanel extends BaseChartPanel {
-    public LineChartPanel(ChartConfig config, ChartDataProvider dataProvider) {
-        super(createChart(config, dataProvider));
+public class LineChartProvider extends ChartViewProvider<LineConfigPanel> {
+    public LineChartProvider(ChartDataProvider dataProvider) {
+        super("Line Chart", KdbIcons.Chart.Line, dataProvider);
     }
 
-    private static JFreeChart createChart(ChartConfig config, ChartDataProvider dataProvider) {
-        final AxisConfig domain = config.getDomainValues();
-        final Map<SeriesConfig, List<AxisConfig>> ranges = config.dataset();
+    private static JFreeChart createChart(LineChartConfig config, ChartDataProvider dataProvider) {
+        final ColumnConfig domain = config.getDomain();
+        final Map<SeriesConfig, List<RangeConfig>> ranges = config.dataset();
 
         final XYDataset[] datasets;
         final JFreeChart chart;
-        if (AxisConfig.isTemporalType(domain.getType())) {
+        if (RangeConfig.isTemporal(domain.getType())) {
             datasets = createTimeDatasets(domain, ranges, dataProvider);
             chart = ChartFactory.createTimeSeriesChart(null, domain.getName(), "", null, true, true, false);
         } else {
@@ -48,17 +50,17 @@ public class LineChartPanel extends BaseChartPanel {
         final XYPlot plot = chart.getXYPlot();
         plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
         plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
-        for (Map.Entry<SeriesConfig, List<AxisConfig>> entry : ranges.entrySet()) {
+        for (Map.Entry<SeriesConfig, List<RangeConfig>> entry : ranges.entrySet()) {
             final SeriesConfig series = entry.getKey();
-            final List<AxisConfig> axes = entry.getValue();
+            final List<RangeConfig> axes = entry.getValue();
 
-            final ValueAxis axis = applyAxisColorSchema(new NumberAxis(series.getName()));
+            final ValueAxis axis = new NumberAxis(series.getName());
             axis.setLowerMargin(series.getLowerMargin() / 100d);
             axis.setUpperMargin(series.getUpperMargin() / 100d);
 
             final XYItemRenderer renderer = createRenderer(config, series, axes);
             for (int j = 0; j < axes.size(); j++) {
-                final AxisConfig ac = axes.get(j);
+                final RangeConfig ac = axes.get(j);
                 renderer.setSeriesPaint(j, ac.getColor());
                 renderer.setSeriesStroke(j, new BasicStroke(ac.getWidth().floatValue()));
             }
@@ -74,7 +76,7 @@ public class LineChartPanel extends BaseChartPanel {
     }
 
     @NotNull
-    private static XYItemRenderer createRenderer(ChartConfig config, SeriesConfig series, List<AxisConfig> axes) {
+    private static XYItemRenderer createRenderer(LineChartConfig config, SeriesConfig series, List<RangeConfig> axes) {
         final SeriesType type = series.getType();
         if (type == null) {
             throw new UnsupportedOperationException("No renderer for type " + series.getType());
@@ -82,13 +84,13 @@ public class LineChartPanel extends BaseChartPanel {
         return type.createRenderer(config, axes);
     }
 
-    private static IntervalXYDataset[] createNumberDatasets(AxisConfig domainCfg, Map<SeriesConfig, List<AxisConfig>> datasets, ChartDataProvider dataProvider) {
+    private static IntervalXYDataset[] createNumberDatasets(ColumnConfig domainCfg, Map<SeriesConfig, List<RangeConfig>> datasets, ChartDataProvider dataProvider) {
         int i = 0;
         final Number[] domain = createNumberDomain(domainCfg, dataProvider);
         final XYSeriesCollection[] res = new XYSeriesCollection[datasets.size()];
-        for (Map.Entry<SeriesConfig, List<AxisConfig>> entry : datasets.entrySet()) {
+        for (Map.Entry<SeriesConfig, List<RangeConfig>> entry : datasets.entrySet()) {
             final XYSeriesCollection series = new XYSeriesCollection();
-            for (AxisConfig column : entry.getValue()) {
+            for (RangeConfig column : entry.getValue()) {
                 final XYSeries s = new XYSeries(column.getName());
                 for (int j = 0; j < domain.length; j++) {
                     s.addOrUpdate(domain[j], (Number) dataProvider.getValueAt(j, column.getIndex()));
@@ -100,13 +102,13 @@ public class LineChartPanel extends BaseChartPanel {
         return res;
     }
 
-    private static IntervalXYDataset[] createTimeDatasets(AxisConfig domainCfg, Map<SeriesConfig, List<AxisConfig>> datasets, ChartDataProvider dataProvider) {
+    private static IntervalXYDataset[] createTimeDatasets(ColumnConfig domainCfg, Map<SeriesConfig, List<RangeConfig>> datasets, ChartDataProvider dataProvider) {
         int i = 0;
         final RegularTimePeriod[] domain = createTimeDomain(domainCfg, dataProvider);
         final IntervalXYDataset[] res = new IntervalXYDataset[datasets.size()];
-        for (Map.Entry<SeriesConfig, List<AxisConfig>> entry : datasets.entrySet()) {
+        for (Map.Entry<SeriesConfig, List<RangeConfig>> entry : datasets.entrySet()) {
             final TimeSeriesCollection series = new TimeSeriesCollection();
-            for (AxisConfig column : entry.getValue()) {
+            for (RangeConfig column : entry.getValue()) {
                 final TimeSeries s = new TimeSeries(column.getName());
                 for (int j = 0; j < domain.length; j++) {
                     s.addOrUpdate(domain[j], (Number) dataProvider.getValueAt(j, column.getIndex()));
@@ -118,9 +120,9 @@ public class LineChartPanel extends BaseChartPanel {
         return res;
     }
 
-    private static Number[] createNumberDomain(AxisConfig domain, ChartDataProvider dataProvider) {
+    private static Number[] createNumberDomain(ColumnConfig domain, ChartDataProvider dataProvider) {
         final int index = domain.getIndex();
-        final int rowsCount = dataProvider.getRowCount();
+        final int rowsCount = dataProvider.getRowsCount();
         final Number[] res = new Number[rowsCount];
         for (int row = 0; row < rowsCount; row++) {
             res[row] = (Number) dataProvider.getValueAt(row, index);
@@ -128,9 +130,9 @@ public class LineChartPanel extends BaseChartPanel {
         return res;
     }
 
-    private static RegularTimePeriod[] createTimeDomain(AxisConfig domain, ChartDataProvider dataProvider) {
+    private static RegularTimePeriod[] createTimeDomain(ColumnConfig domain, ChartDataProvider dataProvider) {
         final int index = domain.getIndex();
-        final int rowsCount = dataProvider.getRowCount();
+        final int rowsCount = dataProvider.getRowsCount();
         final RegularTimePeriod[] res = new RegularTimePeriod[rowsCount];
         for (int row = 0; row < rowsCount; row++) {
             res[row] = createPeriodValue(dataProvider.getValueAt(row, index));
@@ -156,5 +158,16 @@ public class LineChartPanel extends BaseChartPanel {
             return new Millisecond(new Date(v.j / 1_000_000L));
         }
         throw new IllegalArgumentException("Invalid value type: " + value.getClass());
+    }
+
+    @Override
+    protected LineConfigPanel createConfigPanel(ChartDataProvider provider) {
+        return new LineConfigPanel(provider, this::processConfigChanged);
+    }
+
+    @Override
+    public JFreeChart getJFreeChart() {
+        final LineChartConfig chartConfig = configPanel.createChartConfig();
+        return chartConfig.isEmpty() ? null : createChart(chartConfig, dataProvider);
     }
 }

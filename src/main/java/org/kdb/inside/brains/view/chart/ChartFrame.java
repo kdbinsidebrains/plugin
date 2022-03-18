@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.chart;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.openapi.ui.Splitter;
@@ -12,10 +13,11 @@ import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
 import org.kdb.inside.brains.action.ActionPlaces;
 import org.kdb.inside.brains.ide.PopupActionGroup;
-import org.kdb.inside.brains.view.chart.line.LineChartBuilder;
-import org.kdb.inside.brains.view.chart.ohlc.OHLCChartBuilder;
+import org.kdb.inside.brains.view.chart.line.LineChartProvider;
+import org.kdb.inside.brains.view.chart.ohlc.OHLCChartViewProvider;
 import org.kdb.inside.brains.view.chart.tools.CrosshairTool;
 import org.kdb.inside.brains.view.chart.tools.MeasureTool;
 import org.kdb.inside.brains.view.chart.tools.ValuesTool;
@@ -30,23 +32,28 @@ import java.util.List;
 import static com.intellij.util.ui.JBUI.Borders;
 
 public class ChartFrame extends FrameWrapper implements DataProvider {
-    private BaseChartPanel baseChartPanel;
-
     private final JBTabs tabs;
-    private final JPanel chartPanel = new JPanel(new BorderLayout());
+
+    private final CardLayout cardLayout = new CardLayout();
+    private final JPanel chartLayoutPanel = new JPanel(cardLayout);
 
     private final ValuesTool valuesTool;
     private final MeasureTool measureTool;
     private final CrosshairTool crosshairTool;
+
+    private final BaseChartPanel chartPanel = new BaseChartPanel(this::createPopupMenu);
+
+    private static final String EMPTY_PANEL = "EMPTY";
+    private static final String CHART_PANEL = "CHART";
 
     private final Splitter splitter = new Splitter(true, 0.75f);
 
     protected ChartFrame(@Nullable Project project, String title, ChartDataProvider dataProvider) {
         super(project, "KdbInsideBrains-ChartFrameDimension", false, title);
 
-        valuesTool = new ValuesTool(project);
-        measureTool = new MeasureTool();
-        crosshairTool = new CrosshairTool();
+        valuesTool = new ValuesTool(project, chartPanel);
+        measureTool = new MeasureTool(chartPanel);
+        crosshairTool = new CrosshairTool(chartPanel);
 
         tabs = createTabs(project, dataProvider);
 
@@ -68,7 +75,10 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         eastPanel.add(configPanel, BorderLayout.EAST);
         eastPanel.add(createToolbar(), BorderLayout.WEST);
 
-        splitter.setFirstComponent(chartPanel);
+        chartLayoutPanel.add(chartPanel, CHART_PANEL);
+        chartLayoutPanel.add(createEmptyPanel(), EMPTY_PANEL);
+
+        splitter.setFirstComponent(chartLayoutPanel);
         if (valuesTool.isEnabled()) {
             splitter.setSecondComponent(valuesTool.getComponent());
         }
@@ -84,6 +94,26 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         configChanged();
     }
 
+    private ActionGroup createPopupMenu() {
+        final DefaultActionGroup g = new DefaultActionGroup();
+        final List<ChartTool> crosshairTool = List.of(this.crosshairTool, measureTool, valuesTool);
+        for (ChartTool tool : crosshairTool) {
+            if (!tool.isEnabled()) {
+                continue;
+            }
+
+            final ActionGroup popupActions = tool.getPopupActions();
+            if (popupActions.getChildren(null).length != 0) {
+                final String templateText = popupActions.getTemplateText();
+                if (templateText != null) {
+                    g.addSeparator(templateText);
+                }
+                g.addAll(popupActions);
+            }
+        }
+        return g;
+    }
+
     private JBTabs createTabs(Project project, ChartDataProvider dataProvider) {
         final JBTabs tabs = JBTabsFactory.createTabs(project, this);
 
@@ -92,19 +122,19 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         presentation.setSupportsCompression(true);
         presentation.setTabsPosition(JBTabsPosition.top);
 
-        final List<ChartBuilder> builders = List.of(
-                new LineChartBuilder(dataProvider),
-                new OHLCChartBuilder(dataProvider)
+        final List<ChartViewProvider<?>> builders = List.of(
+                new LineChartProvider(dataProvider),
+                new OHLCChartViewProvider(dataProvider)
         );
 
         final Insets borderInsets = UIManager.getBorder("Button.border").getBorderInsets(new JButton());
-        for (ChartBuilder builder : builders) {
+        for (ChartViewProvider<?> builder : builders) {
             builder.addConfigListener(this::configChanged);
 
-            final JPanel configPanel = builder.getConfigPanel();
-            configPanel.setBorder(Borders.empty(0, borderInsets.right));
+            final JComponent panel = builder.getConfigPanel();
+            panel.setBorder(Borders.empty(0, borderInsets.right));
 
-            final TabInfo info = new TabInfo(configPanel);
+            final TabInfo info = new TabInfo(panel);
             info.setIcon(builder.getIcon());
             info.setText(builder.getName());
             info.setObject(builder);
@@ -123,15 +153,18 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
 
     private void configChanged() {
         final TabInfo selectedInfo = tabs.getSelectedInfo();
+        if (selectedInfo == null) {
+            cardLayout.show(chartLayoutPanel, EMPTY_PANEL);
+            return;
+        }
 
-        baseChartPanel = selectedInfo == null ? null : ((ChartBuilder) selectedInfo.getObject()).createChartPanel();
-        measureTool.setChartPanel(baseChartPanel);
-        valuesTool.setChartPanel(baseChartPanel);
-        crosshairTool.setChartPanel(baseChartPanel);
+        final ChartViewProvider<?> provider = (ChartViewProvider<?>) selectedInfo.getObject();
 
-        chartPanel.removeAll();
-        chartPanel.add(baseChartPanel == null ? createEmptyPanel() : baseChartPanel);
-        chartPanel.revalidate();
+        final JFreeChart chart = provider.getJFreeChart();
+        chartPanel.setChart(chart);
+        List.of(valuesTool, measureTool, crosshairTool).forEach(s -> s.setChart(chart));
+
+        cardLayout.show(chartLayoutPanel, chart == null ? EMPTY_PANEL : CHART_PANEL);
     }
 
     private static JPanel createEmptyPanel() {
@@ -142,13 +175,21 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
     }
 
     private void measureSelected(boolean state) {
+        if (measureTool.isEnabled() == state) {
+            return;
+        }
+
         measureTool.setEnabled(state);
         if (state) {
-            pointsSelected(false);
+            valuesSelected(false);
         }
+        chartPanel.setDefaultCursor(state);
     }
 
-    private void pointsSelected(boolean state) {
+    private void valuesSelected(boolean state) {
+        if (valuesTool.isEnabled() == state) {
+            return;
+        }
         valuesTool.setEnabled(state);
         if (state) {
             splitter.setSecondComponent(valuesTool.getComponent());
@@ -156,6 +197,7 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         } else {
             splitter.setSecondComponent(null);
         }
+        chartPanel.setDefaultCursor(state);
     }
 
     private JComponent createToolbar() {
@@ -168,15 +210,24 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         group.addSeparator();
 
         final ToggleAction measureAction = new DynamicToggleAction("Measure", "Measuring tool", KdbIcons.Chart.ToolMeasure, measureTool::isEnabled, this::measureSelected);
-        final ToggleAction pointsAction = new DynamicToggleAction("Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints, valuesTool::isEnabled, this::pointsSelected);
+        final ToggleAction pointsAction = new DynamicToggleAction("Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints, valuesTool::isEnabled, this::valuesSelected);
         group.add(measureAction);
         group.add(pointsAction);
+
+        group.addSeparator();
+
+        final DefaultActionGroup snapping = new PopupActionGroup("Snapping", KdbIcons.Chart.ToolMagnet);
+        snapping.add(new SpanAction("_Disable Snapping", SnapType.NO));
+        snapping.add(new SpanAction("Snap to _Line", SnapType.LINE));
+        snapping.add(new SpanAction("Snap to _Vertex", SnapType.VERTEX));
+
+        group.add(snapping);
 
         group.addSeparator();
         group.addAll(createChartPanelMenu());
 
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.CHARTS_PANEL_TOOLBAR, group, false);
-        actionToolbar.setTargetComponent(chartPanel);
+        actionToolbar.setTargetComponent(chartLayoutPanel);
 
         final JComponent actionComponent = actionToolbar.getComponent();
         actionComponent.setBorder(
@@ -223,6 +274,29 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
         return group;
     }
 
+    private class SpanAction extends CheckboxAction {
+        private final SnapType snapType;
+
+        private SpanAction(String name, SnapType snapType) {
+            super(name);
+            this.snapType = snapType;
+        }
+
+        @Override
+        public boolean isSelected(@NotNull AnActionEvent e) {
+            return chartPanel.getSnapType() == snapType;
+        }
+
+        @Override
+        public void setSelected(@NotNull AnActionEvent e, boolean state) {
+            if (state) {
+                chartPanel.setSnapType(snapType);
+            } else {
+                chartPanel.setSnapType(SnapType.NO);
+            }
+        }
+    }
+
     private class ChartAction extends AnAction {
         private final String command;
 
@@ -237,12 +311,12 @@ public class ChartFrame extends FrameWrapper implements DataProvider {
 
         @Override
         public void update(@NotNull AnActionEvent e) {
-            e.getPresentation().setEnabled(baseChartPanel != null);
+            e.getPresentation().setEnabled(chartPanel.getChart() != null);
         }
 
         @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
-            baseChartPanel.actionPerformed(new ActionEvent(this, -1, command));
+            chartPanel.actionPerformed(new ActionEvent(this, -1, command));
         }
     }
 

@@ -7,12 +7,12 @@ import org.kdb.inside.brains.view.chart.ColumnConfig;
 import javax.swing.*;
 import java.awt.*;
 
-public class AxisConfig extends ColumnConfig {
+class RangeConfig extends ColumnConfig {
     private ColorIcon icon;
     private SeriesConfig series;
     private Number width = 2.0;
 
-    public AxisConfig(int index, String name, KdbType type, Color color) {
+    public RangeConfig(int index, String name, KdbType type, Color color) {
         super(index, name, type);
         this.icon = createIcon(color);
     }
@@ -43,14 +43,6 @@ public class AxisConfig extends ColumnConfig {
 
     public void setWidth(Number width) {
         this.width = width;
-    }
-
-    public static boolean isRangeAllowed(KdbType type) {
-        return isNumberType(type);
-    }
-
-    public static boolean isDomainAllowed(KdbType type) {
-        return isNumberType(type) || isTemporalType(type);
     }
 
     public static ColorIcon createIcon(Color color) {
