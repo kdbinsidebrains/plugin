@@ -33,6 +33,8 @@ import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.action.ToggleConnectAction;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.ide.runner.LineNumberGutterProvider;
+import org.kdb.inside.brains.view.KdbOutputFormatter;
+import org.kdb.inside.brains.view.export.ExportDataProvider;
 import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
 import java.awt.event.MouseAdapter;
@@ -400,7 +402,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                     showConsoleResult();
                 } else {
                     printRoundtrip(result);
-                    printToConsole(formatter.convertResult(result) + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
+                    printToConsole(formatter.resultToString(result) + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
 
                     final TableResult tbl = TableResult.from(query, result);
                     if (tbl != null) {
@@ -468,10 +470,10 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
     @Override
     public @Nullable Object getData(@NotNull @NonNls String dataId) {
-        if (TAB_INFO_DATA_KEY.getName().equals(dataId)) {
+        if (TAB_INFO_DATA_KEY.is(dataId)) {
             return tabs.getSelectedInfo();
         }
-        if (TableResultView.DATA_KEY.getName().equals(dataId)) {
+        if (ExportDataProvider.DATA_KEY.is(dataId)) {
             final TabInfo selectedInfo = tabs.getSelectedInfo();
             if (selectedInfo != null && selectedInfo.getComponent() instanceof TableResultView) {
                 return selectedInfo.getComponent();

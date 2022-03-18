@@ -41,6 +41,12 @@ public final class KdbIcons {
         public static final Icon TypeScatter = load("/org/kdb/inside/brains/icons/chart/type_scatter.svg");
         public static final Icon TypeBar = load("/org/kdb/inside/brains/icons/chart/type_bar.svg");
         public static final Icon TypeDiff = load("/org/kdb/inside/brains/icons/chart/type_diff.svg");
+
+        public static final Icon ToolMagnet = load("/org/kdb/inside/brains/icons/chart/magnet.svg");
+
+        public static final Icon ToolCrosshair = load("/org/kdb/inside/brains/icons/chart/tool_crosshair.svg");
+        public static final Icon ToolPoints = load("/org/kdb/inside/brains/icons/chart/tool_points.svg");
+        public static final Icon ToolMeasure = load("/org/kdb/inside/brains/icons/chart/tool_measure.svg");
     }
 
     public static final class Console {
@@ -59,6 +65,8 @@ public final class KdbIcons {
         public static final Icon Export = AllIcons.ToolbarDecorator.Export;
         public static final Icon ImportBinary = load("/org/kdb/inside/brains/icons/importBinary.svg");
         public static final Icon ExportExcel = load("/org/kdb/inside/brains/icons/exportExcel.svg");
+
+        public static final Icon DelaySearchUpdate = load("/org/kdb/inside/brains/icons/delaySearch.svg");
     }
 
     public static final class Node {

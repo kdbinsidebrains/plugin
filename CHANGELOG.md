@@ -2,6 +2,54 @@
 
 # KdbInsideBrains Changelog
 
+## [0.21.0]
+
+### Added
+
+- Dark icons set added with IntelliJ Idea colors
+- Charting is ready now:
+  - New Magnet/Snap tool has been added with ability to snap to line, vertex or disable the tool (default)
+  - Values Tool shows only series values and no range values anymore
+  - Measure Tool has context menu with remove/clear ability
+
+## [0.20.0]
+
+### Added
+
+- If a TableResult has more than 200K rows*cols - a 300ms timeout for filtering update has been added after the search
+  field change. That allows to write the full search text before do the real search work to reduce freezes for huge
+  table result. Can be disabled in the search toolbar for the current search session.
+
+### Changed
+
+- Console behaviours changed:
+  - Closing a console tab also closes the connection as well now
+  - Changing active console tab changes active connection, so it's the same as select active connection from the toolbar
+
+## [0.19.0]
+
+### Fixed
+
+- Table Result search's been fixed and can process strings now.
+
+### Added
+
+- EPA 2021.1 supporting added
+- Table Result supports search by words and regex with or without case match
+- Right side toolbar in charts view has been added instead of context menu
+- Charting tools have been introduced:
+  - **Crosshair tool** - to show current values for the mouse position
+  - **Measure tool** - draw measuring rectangles on the chart with values diff: left mouse click to start, move, left
+    mouse click to finish. Esc to cancel current drawing.
+  - **Points collector** - save any chart clicked values into the points collector table with ability to export or
+    send into another KDB instance.
+
+## [0.18.1]
+
+### Fixed
+
+- resolved #20: QDocs doesn't work for variables
+
 ## [0.18.0]
 
 ### Added

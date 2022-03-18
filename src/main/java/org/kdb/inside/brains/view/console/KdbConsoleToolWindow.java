@@ -6,9 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentFactory;
-import com.intellij.ui.content.ContentManager;
+import com.intellij.ui.content.*;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.InstanceState;
@@ -19,7 +17,7 @@ import javax.swing.*;
 import java.util.List;
 
 public class KdbConsoleToolWindow implements Disposable {
-    private ToolWindowEx toolWindow;
+    private ContentManager contentManager;
 
     private final Project project;
     private final ContentFactory contentFactory;
@@ -37,7 +35,28 @@ public class KdbConsoleToolWindow implements Disposable {
     }
 
     public void initToolWindow(ToolWindowEx toolWindow) {
-        this.toolWindow = toolWindow;
+        contentManager = toolWindow.getContentManager();
+        contentManager.addContentManagerListener(new ContentManagerListener() {
+            @Override
+            public void selectionChanged(@NotNull ContentManagerEvent event) {
+                if (event.getOperation() == ContentManagerEvent.ContentOperation.add) {
+                    final Content content = event.getContent();
+                    final InstanceConnection connection = getConnection(content);
+                    if (connection != null && connectionManager.getActiveConnection() != connection) {
+                        connectionManager.activate(connection.getInstance());
+                    }
+                }
+            }
+
+            @Override
+            public void contentRemoved(@NotNull ContentManagerEvent event) {
+                final Content content = event.getContent();
+                final InstanceConnection connection = getConnection(content);
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        });
 
         toolWindow.setToHideOnEmptyContent(true);
         toolWindow.setShowStripeButton(true);
@@ -65,14 +84,12 @@ public class KdbConsoleToolWindow implements Disposable {
 
     private Content activateInstance(InstanceConnection connection) {
         Content content = findContent(connection);
-        final ContentManager manager = toolWindow.getContentManager();
-
         if (content == null) {
             content = createInstanceContent(connection);
-            manager.addContent(content);
+            contentManager.addContent(content);
         }
 
-        manager.setSelectedContent(content, false, false, false);
+        contentManager.setSelectedContent(content, false, false, false);
 
         return content;
     }
@@ -82,7 +99,7 @@ public class KdbConsoleToolWindow implements Disposable {
         final KdbConsolePanel panel = new KdbConsolePanel(project, connection, p -> {
             final Content content = findContent(p.getConnection());
             if (content != null) {
-                toolWindow.getContentManager().removeContent(content, true);
+                contentManager.removeContent(content, true);
             }
         });
 
@@ -90,6 +107,7 @@ public class KdbConsoleToolWindow implements Disposable {
         content.setPinnable(true);
         content.setCloseable(true);
         content.setComponent(panel);
+        content.setShouldDisposeContent(true);
 
         return content;
     }
@@ -104,15 +122,20 @@ public class KdbConsoleToolWindow implements Disposable {
     }
 
     private Content findContent(InstanceConnection connection) {
-        final Content[] contents = toolWindow.getContentManager().getContents();
+        final Content[] contents = contentManager.getContents();
         for (Content content : contents) {
-            final JComponent component = content.getComponent();
-            if (component instanceof KdbConsolePanel) {
-                KdbConsolePanel kdbConsolePanel = (KdbConsolePanel) component;
-                if (kdbConsolePanel.getConnection().equals(connection)) {
-                    return content;
-                }
+            final InstanceConnection c = getConnection(content);
+            if (connection.equals(c)) {
+                return content;
             }
+        }
+        return null;
+    }
+
+    private InstanceConnection getConnection(Content content) {
+        final JComponent component = content.getComponent();
+        if (component instanceof KdbConsolePanel) {
+            return ((KdbConsolePanel) component).getConnection();
         }
         return null;
     }

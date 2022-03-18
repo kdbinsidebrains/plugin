@@ -1,6 +1,6 @@
 package org.kdb.inside.brains.view.console;
 
-import com.intellij.find.SearchReplaceComponent;
+import com.intellij.find.FindModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
@@ -8,17 +8,20 @@ import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.table.JBTable;
-import icons.KdbIcons;
+import com.intellij.ui.tabs.JBTabs;
+import com.intellij.ui.tabs.TabInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
-import org.kdb.inside.brains.core.KdbConnectionManager;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.settings.KdbSettingsService;
-import org.kdb.inside.brains.view.console.chart.ChartDataProvider;
-import org.kdb.inside.brains.view.console.chart.ShowChartAction;
-import org.kdb.inside.brains.view.console.export.*;
+import org.kdb.inside.brains.view.KdbOutputFormatter;
+import org.kdb.inside.brains.view.chart.ChartDataProvider;
+import org.kdb.inside.brains.view.chart.ShowChartAction;
+import org.kdb.inside.brains.view.export.ClipboardExportAction;
+import org.kdb.inside.brains.view.export.ExportDataProvider;
+import org.kdb.inside.brains.view.export.ExportingType;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -29,38 +32,33 @@ import java.awt.event.MouseEvent;
 import java.sql.Timestamp;
 import java.util.Comparator;
 import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.lang.Math.max;
 
-public class TableResultView extends NonOpaquePanel implements DataProvider {
-    private JBTable myTable;
-
+public class TableResultView extends NonOpaquePanel implements DataProvider, ExportDataProvider {
     private TableResult tableResult;
-
     private ToggleAction searchAction;
-    private SearchReplaceComponent searchComponent;
 
     private final JLabel statusTime = new JLabel();
     private final JLabel statusSize = new JLabel();
     private final JLabel statusQuery = new JLabel();
 
     private final Project project;
-    private final ConsoleOptions options;
     private final KdbOutputFormatter formatter;
     private final BiConsumer<KdbQuery, TableResultView> repeater;
 
-    public static final DataKey<TableResultView> DATA_KEY = DataKey.create("KdbConsole.TableResultView");
+    private final JBTable myTable;
+    private final TableResultSearchSession searchSession;
 
     public TableResultView(Project project, KdbOutputFormatter formatter, BiConsumer<KdbQuery, TableResultView> repeater) {
         this.project = project;
         this.formatter = formatter;
         this.repeater = repeater;
-        this.options = KdbSettingsService.getInstance().getConsoleOptions();
-        init(project);
-    }
 
-    private void init(Project project) {
-        final DefaultTableCellRenderer valueColumnRenderer = new QTableCellRenderer();
+        final var options = KdbSettingsService.getInstance().getConsoleOptions();
+        final var valueColumnRenderer = formatter.createCellRenderer();
 
         myTable = new JBTable(TableResult.EMPTY_MODEL) {
             @Override
@@ -103,6 +101,16 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
                     final TableResult.QTableModel qModel = (TableResult.QTableModel) model;
 
                     final TableRowSorter<TableResult.QTableModel> sorter = new TableRowSorter<>(qModel);
+                    sorter.setStringConverter(new TableStringConverter() {
+                        @Override
+                        public String toString(TableModel model, int row, int column) {
+                            final Object valueAt = model.getValueAt(row, column);
+                            if (valueAt == null) {
+                                return "";
+                            }
+                            return formatter.objectToString(valueAt);
+                        }
+                    });
                     for (int i = 0; i < qModel.columns.length; i++) {
                         final TableResult.QColumnInfo column = qModel.columns[i];
                         final Comparator<Object> comparator = column.getComparator();
@@ -143,6 +151,9 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
             }
         });
 
+        searchSession = new TableResultSearchSession(myTable, project, new FindModel());
+        searchSession.getFindModel().addObserver(this::modelBeenUpdated);
+
         final JPanel rightStatus = new JPanel(new FlowLayout(FlowLayout.LEFT));
         rightStatus.add(statusTime);
         rightStatus.add(Box.createVerticalStrut(1));
@@ -152,7 +163,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         statusBar.add(statusQuery, BorderLayout.WEST);
         statusBar.add(rightStatus, BorderLayout.EAST);
 
-        createSearchComponent(project);
+        createSearchComponent();
 
         final ActionGroup contextMenu = createContextMenu();
         PopupHandler.installPopupHandler(myTable, contextMenu, "TableResultView.Context");
@@ -161,10 +172,9 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         actionToolbar.setTargetComponent(this);
 
         final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myTable, true);
-//        scrollPane.setRowHeaderView();
 
         setLayout(new BorderLayout());
-        add(searchComponent, BorderLayout.NORTH);
+        add(searchSession.getComponent(), BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
         add(actionToolbar.getComponent(), BorderLayout.WEST);
@@ -186,57 +196,13 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         group.add(searchAction);
         group.addSeparator();
 
-        final ClipboardExportAction copy_all = new ClipboardExportAction("_Copy", ExportingType.SELECTION_WITH_HEADER, this, "Copy selected cells into the clipboard", KdbIcons.Console.CopyTable);
-        copy_all.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK, myTable);
-        group.add(copy_all);
-
-        final ClipboardExportAction copy_values = new ClipboardExportAction("Copy _Values", ExportingType.SELECTION, this, "Copy selected cells into the clipboard", KdbIcons.Console.CopyValues);
-        copy_values.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
-        group.add(copy_values);
-
-        final DefaultActionGroup copyGroup = new DefaultActionGroup("Copy _Special", true);
-        copyGroup.getTemplatePresentation().setIcon(KdbIcons.Console.CopySpecial);
-        copyGroup.add(new ClipboardExportAction("Copy Only Rows", ExportingType.ROWS, this, "Copy the whole row values"));
-
-        copyGroup.add(new ClipboardExportAction("Copy Rows with Header", ExportingType.ROWS_WITH_HEADER, this, "Copy the whole row values including column names"));
-        copyGroup.addSeparator();
-        copyGroup.add(new ClipboardExportAction("Copy Only Columns", ExportingType.COLUMNS, this, "Copy the whole columns values"));
-        copyGroup.add(new ClipboardExportAction("Copy Columns with Header", ExportingType.COLUMNS_WITH_HEADER, this, "Copy the whole columns values including column names"));
-        group.add(copyGroup);
+        group.addAll(ExportDataProvider.createActionGroup(project, this));
 
         group.addSeparator();
 
-        group.add(new ExcelExportAction("Open in _Excel", ExportingType.ALL_WITH_HEADER, this, "Open current table in Excel or compatible application", false));
+        group.add(new ShowChartAction("Show chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.copy(myTable)));
 
-        group.addSeparator();
-
-        group.add(new ShowChartAction("Show chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.tableCopy(myTable)));
-
-        group.addSeparator();
-
-        final DefaultActionGroup exportGroup = new DefaultActionGroup("Export Data _Into ...", true);
-        exportGroup.getTemplatePresentation().setIcon(KdbIcons.Console.Export);
-
-        exportGroup.add(new CsvExportAction("CSV format", ExportingType.ALL_WITH_HEADER, this, "Export current table into Comma Separated File format"));
-        exportGroup.add(new ExcelExportAction("Excel xls format", ExportingType.ALL_WITH_HEADER, this, "Export current table into Excel XLS format", true, null));
-        exportGroup.add(new BinaryExportAction("KDB binary format", ExportingType.ALL_WITH_HEADER, this, "Binary KDB IPC file format. Can be imported directly into KDB."));
-        group.add(exportGroup);
-
-        group.addSeparator();
-
-        final ActionGroup sendTo = new ActionGroup("_Send Data Into ...", true) {
-            @Override
-            public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
-                return KdbConnectionManager.getManager(project).getConnections().stream().map(c -> new SendIntoAction(TableResultView.this, c)).toArray(AnAction[]::new);
-            }
-        };
-        sendTo.getTemplatePresentation().setIcon(KdbIcons.Console.SendInto);
-        group.add(sendTo);
         return group;
-    }
-
-    public JBTable getTable() {
-        return myTable;
     }
 
     public TableResult getTableResult() {
@@ -247,121 +213,52 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         return myTable;
     }
 
-    public void showResult(TableResult tableResult) {
-        this.tableResult = tableResult;
-
-        if (tableResult == null) {
-            myTable.setModel(TableResult.EMPTY_MODEL);
-            statusTime.setText("");
-            statusSize.setText("Empty");
-            statusQuery.setText("");
-        } else {
-            myTable.setModel(tableResult.getTableModel());
-
-            final KdbResult result = tableResult.getResult();
-
-            final double v = result.getRoundtripMillis() / 1000d;
-            final double v1 = ((int) (v * 100)) / 100d;
-            statusTime.setText(formatter.formatTimestamp(new Timestamp(result.getFinishedMillis())) + " (" + v1 + "sec)");
-            statusQuery.setText(tableResult.getQuery().getExpression());
-
-            resorting();
-            updateSizeStatus();
-            updateHeaderWidth();
+    static TableRowFilter createFilter(FindModel model) {
+        final String text = model.getStringToFind();
+        if (text.isBlank()) {
+            return null;
         }
+        return createSimpleFilter(model);
     }
 
-    private void createSearchComponent(Project project) {
-/*
-        final AnAction a1 = new AnAction("a1", "asdasd", KdbIcons.Console.Kill) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
+    @Override
+    public JBTable getTable() {
+        return myTable;
+    }
 
-            }
-        };
-
-        final AnAction a2 = new AnAction("a2", "asdasd", KdbIcons.Console.ExportExcel) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-
-            }
-        };
-        final AnAction a3 = new AnAction("a3", "asdasd", KdbIcons.Console.Table) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-
-            }
-        };
-        final AnAction a4 = new AnAction("a4", "asdasd", KdbIcons.Console.SaveCSV) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-
-            }
-        };
-*/
-
-        Runnable closeSearchAction = () -> {
-            searchComponent.getSearchTextComponent().setText("");
-            searchComponent.setVisible(false);
-        };
-
-        searchComponent = SearchReplaceComponent
-                .buildFor(project, myTable)
-/*
-                .addSearchFieldActions(a1)
-                .addPrimarySearchActions(a2)
-                .addSecondarySearchActions(a3)
-                .addExtraSearchActions(a4)
-*/
-                .withCloseAction(closeSearchAction)
-                .build();
-        searchComponent.setVisible(false);
-
-        searchComponent.update("", "", false, false);
-
-        searchComponent.addListener(new SearchReplaceComponent.Listener() {
-            @Override
-            public void searchFieldDocumentChanged() {
-                resorting();
-            }
-
-            @Override
-            public void replaceFieldDocumentChanged() {
-            }
-
-            @Override
-            public void multilineStateChanged() {
-            }
-        });
-
+    private void createSearchComponent() {
         searchAction = new ToggleAction("_Search", "Search data in the table", AllIcons.Actions.Search) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
-                return searchComponent.isVisible();
+                return searchSession.isOpened();
             }
 
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
                 if (state) {
-                    searchComponent.setVisible(true);
-                    searchComponent.getSearchTextComponent().requestFocusInWindow();
+                    searchSession.open();
                 } else {
-                    closeSearchAction.run();
+                    searchSession.close();
                 }
             }
         };
         searchAction.registerCustomShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK)), myTable);
     }
 
-    private void resorting() {
-        final String text = searchComponent.getSearchTextComponent().getText();
-        final TableRowSorter<? extends TableModel> rowSorter = (TableRowSorter<? extends TableModel>) myTable.getRowSorter();
-        if (text.isBlank()) {
-            rowSorter.setRowFilter(null);
+    @NotNull
+    static TableRowFilter createSimpleFilter(FindModel model) {
+        final String text = model.getStringToFind();
+        if (model.isRegularExpressions()) {
+            final Matcher matcher = model.compileRegExp().matcher("");
+            return new TableRowFilter(v -> matcher.reset(v).find());
+        } else if (model.isWholeWordsOnly()) {
+            final int flags = model.isCaseSensitive() ? 0 : Pattern.CASE_INSENSITIVE;
+            final Pattern compile = Pattern.compile(".*\\b" + text + "\\b.*", flags);
+            final Matcher matcher = compile.matcher("");
+            return new TableRowFilter(v -> matcher.reset(v).find());
         } else {
-            rowSorter.setRowFilter(RowFilter.regexFilter(text));
+            return new TableRowFilter(v -> containsIgnoreCase(v, text, !model.isCaseSensitive()));
         }
-        updateSizeStatus();
     }
 
     private void updateSizeStatus() {
@@ -371,21 +268,75 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
     @Nullable
     @Override
     public Object getData(@NotNull String dataId) {
-        if (DATA_KEY.getName().equals(dataId)) {
+        if (ExportDataProvider.DATA_KEY.is(dataId)) {
             return this;
         }
         return null;
     }
 
-    public String convertValue(Object value) {
-        if (value instanceof String && !options.isPrefixSymbols()) {
-            return String.valueOf(value);
-        } else if (value instanceof char[] && !options.isWrapStrings()) {
-            return new String((char[]) value);
-        } else if (value instanceof Character && !options.isWrapStrings()) {
-            return String.valueOf(value);
+    @Override
+    public String getExportName() {
+        final Container parent = getParent();
+        if (parent instanceof JBTabs) {
+            final JBTabs jbTabs = (JBTabs) parent;
+            for (TabInfo info : jbTabs.getTabs()) {
+                if (info.getObject() == this) {
+                    return info.getText();
+                }
+            }
         }
-        return formatter.convertObject(value);
+        return "Table Result";
+    }
+
+    @Override
+    public Object getNativeObject() {
+        return tableResult.getResult().getObject();
+    }
+
+    private static boolean containsIgnoreCase(String str, String searchStr, boolean ignoreCase) {
+        if (str == null || searchStr == null) {
+            return false;
+        }
+
+        final int length = searchStr.length();
+        if (length == 0) {
+            return true;
+        }
+
+        for (int i = str.length() - length; i >= 0; i--) {
+            if (str.regionMatches(ignoreCase, i, searchStr, 0, length)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void showResult(TableResult tableResult) {
+        this.tableResult = tableResult;
+
+        if (tableResult == null) {
+            myTable.setModel(TableResult.EMPTY_MODEL);
+            statusTime.setText("");
+            statusSize.setText("Empty");
+            statusQuery.setText("");
+            searchSession.setDelaySearchEnabled(false);
+        } else {
+            final TableResult.QTableModel tableModel = tableResult.getTableModel();
+            myTable.setModel(tableModel);
+
+            final KdbResult result = tableResult.getResult();
+
+            final double v = result.getRoundtripMillis() / 1000d;
+            final double v1 = ((int) (v * 100)) / 100d;
+            statusTime.setText(formatter.formatTimestamp(new Timestamp(result.getFinishedMillis())) + " (" + v1 + "sec)");
+            statusQuery.setText(tableResult.getQuery().getExpression());
+            // 10_000 rows by 20 columns can be sorted fast. No reason for delay
+            searchSession.setDelaySearchEnabled(tableModel.getRowCount() * tableModel.getColumnCount() > 200_000);
+
+            updateSizeStatus();
+            updateHeaderWidth();
+            modelBeenUpdated(searchSession.getFindModel());
+        }
     }
 
     private void updateHeaderWidth() {
@@ -396,10 +347,37 @@ public class TableResultView extends NonOpaquePanel implements DataProvider {
         }
     }
 
-    private class QTableCellRenderer extends DefaultTableCellRenderer {
+    @FunctionalInterface
+    private interface ValueFilter {
+        boolean check(String value);
+    }
+
+    private void modelBeenUpdated(FindModel findModel) {
+        final RowFilter<TableModel, Integer> filter = createFilter(findModel);
+        ((TableRowSorter<? extends TableModel>) myTable.getRowSorter()).setRowFilter(filter);
+        updateSizeStatus();
+    }
+
+    static class TableRowFilter extends RowFilter<TableModel, Integer> {
+        private final ValueFilter filter;
+
+        public TableRowFilter(ValueFilter filter) {
+            this.filter = filter;
+        }
+
         @Override
-        protected void setValue(Object value) {
-            setText(convertValue(value));
+        public boolean include(Entry<? extends TableModel, ? extends Integer> value) {
+            final TableModel model = value.getModel();
+//            final String columnName = model.getColumnName();
+
+            int index = value.getValueCount();
+            while (--index >= 0) {
+                final String stringValue = value.getStringValue(index);
+                if (filter.check(stringValue)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

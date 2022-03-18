@@ -3,6 +3,7 @@ package org.kdb.inside.brains.view.console;
 import kx.c;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.kdb.inside.brains.view.KdbOutputFormatter;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -309,6 +310,6 @@ class KdbOutputFormatterTest {
     }
 
     private String convert(Object o) {
-        return new KdbOutputFormatter(options).convertObject(o);
+        return new KdbOutputFormatter(options).objectToString(o);
     }
 }

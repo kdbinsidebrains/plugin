@@ -2,6 +2,7 @@ package org.kdb.inside.brains.lang.docs;
 
 import com.intellij.lang.documentation.AbstractDocumentationProvider;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
@@ -94,10 +95,23 @@ public final class QDocumentationProvider extends AbstractDocumentationProvider 
             return null;
         }
 
-        if (ALLOWED_ELEMENTS.contains(contextElement.getNode().getElementType())) {
+        if (contextElement instanceof PsiComment) {
+            return getCustomDocumentationElement(editor, file, getCommentedVariable(contextElement), targetOffset);
+        }
+
+        final IElementType elementType = contextElement.getNode().getElementType();
+        if (ALLOWED_ELEMENTS.contains(elementType)) {
             return contextElement;
         }
         return super.getCustomDocumentationElement(editor, file, contextElement, targetOffset);
+    }
+
+    private PsiElement getCommentedVariable(PsiElement element) {
+        final PsiElement e = PsiTreeUtil.skipWhitespacesAndCommentsForward(element);
+        if (e instanceof QAssignmentExpr) {
+            return ((QAssignmentExpr) e).getVarDeclaration();
+        }
+        return null;
     }
 
     private QWord getWord(PsiElement element) {

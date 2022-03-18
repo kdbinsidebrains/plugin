@@ -31,8 +31,7 @@
     PAREN_OPEN='('
     PAREN_CLOSE=')'
 
-    LINE_BREAK="break"
-    LINE_SPACE="space"
+    NEW_LINE="new line"
 
     COMMAND_IMPORT="import command"
     COMMAND_CONTEXT="context command"
@@ -85,18 +84,22 @@
 }
 
 root ::= top*
+line_break ::= NEW_LINE {
+ implements="com.intellij.psi.PsiWhiteSpace"
+ }
+
 private top ::= context | mode | top_in_context
 private top_in_context ::= import_command | command | expression | separator
 
-private end_of_line_recover ::= !(LINE_BREAK)
+private end_of_line_recover ::= !(line_break)
 
-private separator ::= SEMICOLON | LINE_BREAK
+private separator ::= SEMICOLON | line_break
 
 private statement ::= SEMICOLON | expression SEMICOLON?
 
 // Context: \d ...
 context_body ::= top_in_context*
-context ::= COMMAND_CONTEXT var_declaration? (LINE_BREAK context_body)? {
+context ::= COMMAND_CONTEXT var_declaration? (line_break context_body)? {
  pin(".*") = 1
  mixin = "org.kdb.inside.brains.psi.impl.QPsiContextImpl"
  methods = [variable="var_declaration"]
@@ -111,7 +114,7 @@ private import_command_file ::= FILE_PATH_PATTERN {recoverWhile = end_of_line_re
 
 import_function ::= FUNCTION_IMPORT expression { pin = 1 extends=expression implements="org.kdb.inside.brains.psi.QImport" }
 
-// In mode we can't use LINE_BREAK as a separator
+// In mode we can't use line_break as a separator
 private mode_content ::= statement+ { recoverWhile = end_of_line_recover }
 mode ::= MODE_PATTERN mode_content? { pin = 1 methods=[modeName="MODE_PATTERN"] } // Mode: [a-Z]) .....
 

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+    <g fill="#6E6E6E" stroke="#6E6E6E">
+        <line x1="1" y1="16" x2="13" y2="16"/>
+        <line x1="19" y1="16" x2="31" y2="16"/>
+        <line x1="16" y1="1" x2="16" y2="13"/>
+        <line x1="16" y1="19" x2="16" y2="31"/>
+        <circle style="pointer-events:inherit" cx="16" cy="16" r="1.5"/>
+    </g>
+</svg>
