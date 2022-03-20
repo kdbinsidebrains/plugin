@@ -125,7 +125,7 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
         consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_ORDER", "Order operators (<= , >= , < , >)", operatorSpaces);
         consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_EQUALITY", "Equality operators (~ , = , <>)", operatorSpaces);
         consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_WEIGHT", "Weight operators (&, |)", operatorSpaces);
-        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_OTHERS", "Mixed operators (!, #, @, _ , ? , ., ^, $)", operatorSpaces);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_OTHERS", "Mixed operators (!, #, @, _ , ? , ^, $)", operatorSpaces);
 
         // Lambda settings
         final String lambdaSection = "Lambda definition";
@@ -136,6 +136,9 @@ public class QLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
         final String tableSpaces = "Table definition";
         consumer.showCustomOption(QCodeStyleSettings.class, "TABLE_SPACE_AFTER_KEY_COLUMNS", "After keys group", tableSpaces);
 //        consumer.showCustomOption(QCodeStyleSettings.class, "CONTEXT_TRIM_TAIL", "Trim spaces after context command", tableSpaces);
+
+        final String executionSection = "Execution statement (.)";
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_BEFORE_EXECUTION", "Before execution", executionSection);
 
         // Control settings
         final String controlSection = "Control statement (if, do, while, ...)";

@@ -12,7 +12,7 @@ import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.QTypes;
 
 public class QSpacingStrategy {
-    private SpacingBuilder builder;
+    private final SpacingBuilder builder;
 
     public QSpacingStrategy(@NotNull CodeStyleSettings codeStyleSettings) {
         final CommonCodeStyleSettings settings = codeStyleSettings.getCommonSettings(QLanguage.INSTANCE);
@@ -59,6 +59,10 @@ public class QSpacingStrategy {
         builder.betweenInside(QTypes.BRACKET_CLOSE, QTypes.SEMICOLON, QTypes.TABLE_EXPR).spaces(0); // no spaces before semicolon
         builder.afterInside(QTypes.BRACKET_CLOSE, QTypes.TABLE_EXPR).spaceIf(qSettings.TABLE_SPACE_AFTER_KEY_COLUMNS);
         builder.around(TokenSet.create(QTypes.TABLE_KEYS, QTypes.TABLE_VALUES, QTypes.TABLE_COLUMN)).spacing(0, 1, 0, true, 0);
+
+        // Execution
+        builder.after(QTypes.OPERATOR_EXECUTE).spaces(1);
+        builder.before(QTypes.OPERATOR_EXECUTE).spaceIf(qSettings.CONTROL_SPACE_BEFORE_EXECUTION);
 
         // Operations
         builder.around(QTypes.OPERATOR_ARITHMETIC).spaceIf(qSettings.SPACE_AROUND_OPERATOR_ARITHMETIC);

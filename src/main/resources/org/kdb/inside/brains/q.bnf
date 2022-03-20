@@ -50,6 +50,7 @@
     OPERATOR_ARITHMETIC="operator arithmetic"
     OPERATOR_WEIGHT="operator weight"
     OPERATOR_COMMA="operator comma"
+    OPERATOR_EXECUTE="operator execute"
     OPERATOR_OTHERS="operator others"
 
     MODE_PATTERN="mode"
@@ -133,7 +134,7 @@ var_declaration ::= VARIABLE_PATTERN {
 
 iterator_type ::= ACCUMULATOR? ITERATOR+
 
-operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPERATOR_WEIGHT | OPERATOR_OTHERS | OPERATOR_COMMA
+operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPERATOR_WEIGHT | OPERATOR_EXECUTE | OPERATOR_OTHERS | OPERATOR_COMMA
 
 console_handler ::= "0" | "1" | "2" | "-1" | "-2"
 system_function ::= UNARY_FUNCTION | BINARY_FUNCTION | COMPLEX_FUNCTION

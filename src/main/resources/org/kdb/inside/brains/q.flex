@@ -87,8 +87,9 @@ OperatorEquality=(\~ | = | <>)
 OperatorOrder=(<= | >= | < | >)
 OperatorArithmetic=[\+\-\*%]
 OperatorWeight=[&\|]
-OperatorOthers=[!#@_\?\.\^\$]
-Operator={OperatorEquality}|{OperatorOrder}|{OperatorArithmetic}|{OperatorWeight}|{OperatorOthers}
+OperatorExecute=[\.]
+OperatorOthers=[!#@_\?\^\$]
+Operator={OperatorEquality}|{OperatorOrder}|{OperatorArithmetic}|{OperatorWeight}|{OperatorExecute}|{OperatorOthers}
 
 ModePrefix=[a-zA-Z]")"
 Variable=[\.a-zA-Z][\._a-zA-Z0-9]*
@@ -186,7 +187,7 @@ SecondList={Second}({WhiteSpace}{Second})+
 
 CharAtom=([^\\\"]|\\[^\ \t])
 Char=\"{CharAtom}\"
-UnclosedString        = \"[^\"]*
+UnclosedString        = \"(\\\" | [^\"])*
 String                = {UnclosedString}\"
 
 Symbol="`"[.:/_a-zA-Z0-9]*
@@ -277,6 +278,7 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   {OperatorOrder}/{NegativeAtom}              { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_ORDER;}
   {OperatorArithmetic}/{NegativeAtom}         { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_ARITHMETIC;}
   {OperatorWeight}/{NegativeAtom}             { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_WEIGHT;}
+  {OperatorExecute}/{NegativeAtom}            { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_EXECUTE;}
   {OperatorOthers}/{NegativeAtom}             { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_OTHERS;}
 
   {Operator}/{Iterator}                       { return ACCUMULATOR; }
@@ -286,6 +288,7 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   {OperatorOrder}                             { return OPERATOR_ORDER;}
   {OperatorArithmetic}                        { return OPERATOR_ARITHMETIC;}
   {OperatorWeight}                            { return OPERATOR_WEIGHT;}
+  {OperatorExecute}                           { return OPERATOR_EXECUTE;}
   {OperatorOthers}                            { return OPERATOR_OTHERS;}
 
   {WhiteSpace}+"/".*                          { return LINE_COMMENT; }

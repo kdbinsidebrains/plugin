@@ -18,6 +18,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean CONTROL_SPACE_WITHIN_BRACES = false;
     public boolean CONTROL_SPACE_AFTER_SEMICOLON = true;
     public boolean CONTROL_SPACE_BEFORE_SEMICOLON = false;
+    public boolean CONTROL_SPACE_BEFORE_EXECUTION = false;
 
     // Conditions
     public int CONDITION_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;

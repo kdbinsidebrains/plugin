@@ -7,6 +7,8 @@ s) var1:20+30; globalVar1::13123+41243;
 
 var1    :   20  +     30  ;           globalVar1  ::  13123+41243; var2:var1+10;
 
+(?)    .    10  20
+
 tbl0:([] a:1; b:2);
 
 tbl1:(  [      ]     col1:`long$()  ; col2:`float$());

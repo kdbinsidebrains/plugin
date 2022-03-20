@@ -373,12 +373,10 @@
 
 
         <!-- Formatter  -->
-        <!--
-                <lang.formatter language="q"
-                                implementationClass="org.kdb.inside.brains.lang.codestyle.QFormattingModelBuilder"/>
+        <lang.formatter language="q"
+                        implementationClass="org.kdb.inside.brains.lang.codestyle.QFormattingModelBuilder"/>
 
-                <langCodeStyleSettingsProvider
-                        implementation="org.kdb.inside.brains.lang.codestyle.QLanguageCodeStyleSettingsProvider"/>
-        -->
+        <langCodeStyleSettingsProvider
+                implementation="org.kdb.inside.brains.lang.codestyle.QLanguageCodeStyleSettingsProvider"/>
     </extensions>
 </idea-plugin>
