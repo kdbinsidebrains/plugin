@@ -192,7 +192,7 @@ SecondList=({Second}({WhiteSpace}{Second})+)
 
 CharAtom=([^\\\"]|\\[^\ \t])
 Char=\"{CharAtom}\"
-UnclosedString        = \"[^\"]*
+UnclosedString        = \"(\\\" | [^\"])*
 String                = {UnclosedString}\"
 //String=(\"\"|\"{CharAtom}{CharAtom}+\")
 
