@@ -31,7 +31,7 @@
     PAREN_OPEN='('
     PAREN_CLOSE=')'
 
-    NEW_LINE="new line"
+    NEW_LINE="\r\n"
 
     COMMAND_IMPORT="import command"
     COMMAND_CONTEXT="context command"
@@ -85,22 +85,20 @@
 }
 
 root ::= top*
-line_break ::= NEW_LINE {
- implements="com.intellij.psi.PsiWhiteSpace"
- }
+
 
 private top ::= context | mode | top_in_context
 private top_in_context ::= import_command | command | expression | separator
 
-private end_of_line_recover ::= !(line_break)
+private end_of_line_recover ::= !(NEW_LINE)
 
-private separator ::= SEMICOLON | line_break
+private separator ::= SEMICOLON | NEW_LINE
 
 private statement ::= SEMICOLON | expression SEMICOLON?
 
 // Context: \d ...
 context_body ::= top_in_context*
-context ::= COMMAND_CONTEXT var_declaration? (line_break context_body)? {
+context ::= COMMAND_CONTEXT var_declaration? (NEW_LINE context_body)? {
  pin(".*") = 1
  mixin = "org.kdb.inside.brains.psi.impl.QPsiContextImpl"
  methods = [variable="var_declaration"]
@@ -136,7 +134,6 @@ iterator_type ::= ACCUMULATOR? ITERATOR+
 
 operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPERATOR_WEIGHT | OPERATOR_EXECUTE | OPERATOR_OTHERS | OPERATOR_COMMA
 
-console_handler ::= "0" | "1" | "2" | "-1" | "-2"
 system_function ::= UNARY_FUNCTION | BINARY_FUNCTION | COMPLEX_FUNCTION
 
 private arguments_def ::= BRACKET_OPEN [!BRACKET_CLOSE statement*] BRACKET_CLOSE {pin(".*")=1}
@@ -153,9 +150,6 @@ private index_assignment ::= var_indexing var_assignment_type expression { pin =
 private variable_assignment ::= var_declaration var_assignment_type operator_type? expression { pin = 2 }
 assignment_expr ::= index_assignment | variable_assignment
 
-control_expr ::= CONTROL_KEYWORD arguments_def { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
-condition_expr ::= CONDITION_KEYWORD arguments_def { pin=1 methods=[expressions="expression"] } // $[...]
-
 expressions ::= separator* expression (separator+ expression)* separator*
 
 return_expr ::= COLON expression
@@ -164,12 +158,20 @@ signal_expr ::= "'" expression
 
 literal_expr ::= NILL | CHAR | SIGNED_ATOM | UNSIGNED_ATOM | VECTOR | STRING | symbol symbol*
 
+//control_expr ::= CONTROL_KEYWORD arguments_def { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
+//condition_expr ::= CONDITION_KEYWORD arguments_def { pin=1 methods=[expressions="expression"] } // $[...]
+
+control_expr ::= CONTROL_KEYWORD BRACKET_OPEN cc_body? BRACKET_CLOSE { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
+condition_expr ::= CONDITION_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin=1 methods=[expressions="expression"] } // $[...]
+private cc_body ::= expression (separator expression)* { recoverWhile=cc_recover}
+private cc_recover ::= !(BRACKET_OPEN | BRACKET_CLOSE)
+
 parameters ::= BRACKET_OPEN [parameters_body] BRACKET_CLOSE { pin(".*")=1 methods = [variables="var_declaration"] }
 private parameters_body ::= var_declaration (SEMICOLON var_declaration)* {pin(".*")="SEMICOLON" recoverWhile=parameters_recover }
 private parameters_recover ::= !(BRACKET_OPEN | BRACKET_CLOSE)
 
 lambda_expr ::= BRACE_OPEN lambda_body BRACE_CLOSE {pin=1}
-private lambda_body ::= parameters? expressions? {recoverWhile=lambda_recover}
+private lambda_body ::= parameters? expressions? { recoverWhile=lambda_recover }
 private lambda_recover ::= !(BRACE_OPEN | BRACE_CLOSE)
 
 operation ::= (iterator_type | operator_type)+
@@ -178,7 +180,7 @@ fake invoke_object ::= operator_type? invoke_function_group?
 invoke_operator ::= operator_type {extends=invoke_object}
 
 invoke_function ::= invoke_function_group {extends=invoke_object}
-private invoke_function_group ::= BINARY_FUNCTION | COMPLEX_FUNCTION | UNARY_FUNCTION | console_handler | prefix_expr
+private invoke_function_group ::= BINARY_FUNCTION | COMPLEX_FUNCTION | UNARY_FUNCTION | prefix_expr
 
 parentheses_expr ::= PAREN_OPEN !BRACKET_OPEN parentheses_body PAREN_CLOSE {pin=2 extends=invoke_object}
 private parentheses_body ::= SEMICOLON* (expression SEMICOLON+)* expression? {pin(".*")=2 recoverWhile=parentheses_recover}

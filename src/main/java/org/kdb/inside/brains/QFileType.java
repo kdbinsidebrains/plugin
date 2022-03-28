@@ -27,7 +27,7 @@ public final class QFileType extends LanguageFileType {
 
     @Override
     public @NotNull String getName() {
-        return "q file";
+        return "KDB+ Q";
     }
 
     @Override

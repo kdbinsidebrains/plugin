@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.lang.codestyle;
+package org.kdb.inside.brains.lang.formatting;
 
 import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
@@ -6,24 +6,21 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.QLanguage;
-import org.kdb.inside.brains.lang.codestyle.blocks.SimpleQBlock;
+import org.kdb.inside.brains.lang.formatting.blocks.CodeBlock;
 
 public class QFormattingModelBuilder implements FormattingModelBuilder {
     @Override
     public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
         final PsiElement element = formattingContext.getPsiElement();
 
+        final QFormatter formatter = new QFormatter(formattingContext);
         final CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
 
-        final QSpacingStrategy spacingStrategy = new QSpacingStrategy(settings);
-        final QCodeStyleSettings qSettings = settings.getCustomSettings(QCodeStyleSettings.class);
-        final CommonCodeStyleSettings commonSettings = settings.getCommonSettings(QLanguage.INSTANCE);
+        final Block rootBlock = new CodeBlock(element.getNode(), formatter);
 
-        final Block rootBlock = new SimpleQBlock(element.getNode(), spacingStrategy, qSettings, commonSettings, null, null, null);
+        System.out.println(FormattingModelDumper.dumpFormattingModelToString(rootBlock));
 
         return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), rootBlock, settings);
     }

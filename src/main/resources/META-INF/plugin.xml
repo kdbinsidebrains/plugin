@@ -231,7 +231,7 @@
         <projectFacetListener facet-type="KDB_FACET_TYPE"
                               implementation="org.kdb.inside.brains.ide.module.facet.KdbFacetStateManager"/>
 
-        <fileType name="q file" implementationClass="org.kdb.inside.brains.QFileType"
+        <fileType name="KDB+ Q" implementationClass="org.kdb.inside.brains.QFileType"
                   fieldName="INSTANCE" language="q" extensions="q;k"/>
 
         <internalFileTemplate name="KDB+Q Blank File"/>
@@ -292,6 +292,7 @@
         <annotator language="q" implementationClass="org.kdb.inside.brains.lang.annotation.QLanguageAnnotator"/>
 
         <lang.commenter language="q" implementationClass="org.kdb.inside.brains.lang.QCommenter"/>
+        <lang.ast.factory language="q" implementationClass="org.kdb.inside.brains.lang.QASTFactory"/>
         <lang.braceMatcher language="q" implementationClass="org.kdb.inside.brains.lang.QBracesMatcher"/>
         <lang.parserDefinition language="q" implementationClass="org.kdb.inside.brains.QParserDefinition"/>
         <lang.namesValidator language="q"
@@ -374,9 +375,9 @@
 
         <!-- Formatter  -->
         <lang.formatter language="q"
-                        implementationClass="org.kdb.inside.brains.lang.codestyle.QFormattingModelBuilder"/>
+                        implementationClass="org.kdb.inside.brains.lang.formatting.QFormattingModelBuilder"/>
 
         <langCodeStyleSettingsProvider
-                implementation="org.kdb.inside.brains.lang.codestyle.QLanguageCodeStyleSettingsProvider"/>
+                implementation="org.kdb.inside.brains.lang.formatting.QCodeStyleSettingsProvider"/>
     </extensions>
 </idea-plugin>

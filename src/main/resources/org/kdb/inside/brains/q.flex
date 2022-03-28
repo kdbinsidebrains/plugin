@@ -223,28 +223,28 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 <COMMAND_IMPORT_STATE> {
   {LineSpace}+                               { return WHITE_SPACE; }
   {FilePath}                                 { return FILE_PATH_PATTERN; }
-  {NewLine}                                { yybegin(YYINITIAL); return NEW_LINE; }
+  {NewLine}                                  { yybegin(YYINITIAL); return NEW_LINE; }
 }
 
 <COMMAND_CONTEXT_STATE> {
   {LineSpace}+                               { return WHITE_SPACE; }
   {Variable}                                 { return VARIABLE_PATTERN;}
-  {NewLine}                                { yybegin(YYINITIAL); return NEW_LINE; }
+  {NewLine}                                  { yybegin(YYINITIAL); return NEW_LINE; }
 }
 
 <COMMAND_SYSTEM_STATE> {
-  {NewLine}                                { yybegin(YYINITIAL); return NEW_LINE; }
+  {NewLine}                                  { yybegin(YYINITIAL); return NEW_LINE; }
   {WhiteSpace}+"/".*                         { yybegin(YYINITIAL); return LINE_COMMENT; }
   {CommandArguments}                         { return COMMAND_ARGUMENTS;}
 }
 
 <COMMENT_ALL_STATE> {
-  .*{NewLine}?                             { return BLOCK_COMMENT; }
+  .*{NewLine}?                               { return BLOCK_COMMENT; }
 }
 
 <COMMENT_BLOCK_STATE> {
-  ^"\\"/{NewLine}+                         { yybegin(YYINITIAL); return BLOCK_COMMENT; }
-  .*{NewLine}?                             { return BLOCK_COMMENT; }
+  ^"\\"/{NewLine}+                           { yybegin(YYINITIAL); return BLOCK_COMMENT; }
+  .*{NewLine}?                               { return BLOCK_COMMENT; }
 }
 
 <NEGATIVE_ATOM_STATE> {
