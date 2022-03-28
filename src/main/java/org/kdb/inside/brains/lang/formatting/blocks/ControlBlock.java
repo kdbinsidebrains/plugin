@@ -15,19 +15,12 @@ import org.kdb.inside.brains.psi.QTypes;
 import java.util.List;
 
 public class ControlBlock extends AbstractQBlock {
-    public ControlBlock(@NotNull ASTNode node, @NotNull QFormatter formatter) {
-        super(node, formatter, null, null);
-    }
-
     public ControlBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);
     }
 
     @Override
     protected Indent getChildIndent() {
-        int weqrafdhaslkdfhhrfqwhflasdhfasjfasfdhasdfjhsadasdfasf
-                =
-                10;
         return NORMAL_INDENT;
     }
 

@@ -16,14 +16,6 @@ public class LeafBlock extends AbstractQBlock {
         super(node, formatter);
     }
 
-    public LeafBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @NotNull Indent indent) {
-        super(node, formatter, indent);
-    }
-
-    public LeafBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment) {
-        super(node, formatter, wrap, alignment);
-    }
-
     public LeafBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);
     }

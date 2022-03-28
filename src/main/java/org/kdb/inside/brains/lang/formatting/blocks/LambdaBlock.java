@@ -16,10 +16,6 @@ import org.kdb.inside.brains.psi.QTypes;
 import java.util.List;
 
 public class LambdaBlock extends AbstractQBlock {
-    public LambdaBlock(@NotNull ASTNode node, @NotNull QFormatter formatter) {
-        super(node, formatter, null, null);
-    }
-
     public LambdaBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);
     }

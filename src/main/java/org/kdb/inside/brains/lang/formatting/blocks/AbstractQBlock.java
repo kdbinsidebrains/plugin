@@ -67,7 +67,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
         return createBlock(node, formatter, null, null, NONE_INDENT);
     }
 
-    protected @Nullable Block createBlock(@Nullable ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @Nullable Indent indent) {
+    protected @Nullable Block createBlock(@Nullable ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         if (node == null) {
             return null;
         }
@@ -86,21 +86,20 @@ public abstract class AbstractQBlock extends AbstractBlock {
         }
 
         if (type == QTypes.ASSIGNMENT_EXPR) {
-            System.out.println(">>>>>>>>>> " + indent);
             return new AssignmentBlock(node, formatter, wrap, alignment, indent);
         }
 
         if (type == QTypes.CONDITION_EXPR || type == QTypes.CONTROL_EXPR) {
-            return new ControlBlock(node, formatter);
+            return new ControlBlock(node, formatter, wrap, alignment, indent);
         }
 
         // One value wrapper type which should be expanded
         if (type == QTypes.INVOKE_OPERATOR || type == QTypes.INVOKE_FUNCTION) {
-            return createBlock(getFirstNotEmptyChild(node), formatter);
+            return createBlock(getFirstNotEmptyChild(node), formatter, wrap, alignment, indent);
         }
 
         if (isExpressionType(type)) {
-            return new CodeBlock(node, formatter);
+            return new CodeBlock(node, formatter, wrap, alignment, indent);
         }
 
         if (isPrimitiveType(type)) {

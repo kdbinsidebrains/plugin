@@ -72,21 +72,8 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
                         WrappingOrBraceOption.RIGHT_MARGIN,
                         WrappingOrBraceOption.WRAP_ON_TYPING,
                         WrappingOrBraceOption.KEEP_LINE_BREAKS
-/*                        WrappingOrBraceOption.METHOD_PARAMETERS_WRAP,
-                        WrappingOrBraceOption.ALIGN_MULTILINE_PARAMETERS,
-                        WrappingOrBraceOption.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE,
-                        WrappingOrBraceOption.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE*/
                 )
         );
-/*
-
-        consumer.renameStandardOption(WrappingOrBraceOption.METHOD_PARAMETERS_WRAP.name(),
-                "Lambda declaration parameters");
-        consumer.renameStandardOption(WrappingOrBraceOption.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE.name(),
-                "New line after '['");
-        consumer.renameStandardOption(WrappingOrBraceOption.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE.name(),
-                "Place ']' on new line");
-*/
 
         final String controlWrapTitle = "Control statement (if, do, while, ...)";
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_WRAP_TYPE", controlWrapTitle, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
@@ -102,17 +89,15 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_LBRACKET_ON_NEXT_LINE", "New line after '['", conditionWrapTitle);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", conditionWrapTitle);
 
+        final String lambda = "Lambda definition ({[] }})";
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_ALIGN_BRACE", "Align braces", lambda);
+
         final String parameters = "Lambda parameters ([x;y;x;...])";
         consumer.showCustomOption(QCodeStyleSettings.class, "PARAMS_WRAP", parameters, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
         consumer.showCustomOption(QCodeStyleSettings.class, "PARAMS_ALIGN_VARS", "Align when multiline", parameters);
         consumer.showCustomOption(QCodeStyleSettings.class, "PARAMS_ALIGN_BRACKET", "Align bracket when multiline", parameters);
         consumer.showCustomOption(QCodeStyleSettings.class, "PARAMS_LBRACKET_ON_NEXT_LINE", "New line after '['", parameters);
         consumer.showCustomOption(QCodeStyleSettings.class, "PARAMS_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", parameters);
-
-        final String lambda = "Lambda definition ({[] }})";
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_ALIGN_BRACE", "Align braces", lambda);
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_AFTER_PARAMETERS", "Space after parameters", lambda);
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_BEFORE_CLOSE_BRACE", "Space before close brace", lambda);
 
 /*
         final String tableWrapTitle = "Table definition";
@@ -146,17 +131,16 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_WEIGHT", "Weight operators (&, |)", operatorSpaces);
         consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_OTHERS", "Mixed operators (!, #, @, _ , ? , ^, $)", operatorSpaces);
 
-        // Parameters settings
+        // Lambda definition
+        final String lambda = "Lambda definition ({[] }})";
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_AFTER_PARAMETERS", "Space after parameters", lambda);
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_BEFORE_CLOSE_BRACE", "Space before close brace", lambda);
+
+        // Lambda parameters
         final String parameters = "Lambda parameters";
         consumer.showCustomOption(QCodeStyleSettings.class, "PARAMS_SPACE_WITHIN_BRACKET", "Within parameter braces", parameters);
         consumer.showCustomOption(QCodeStyleSettings.class, "PARAMS_SPACE_AFTER_SEMICOLON", "After parameter semicolon", parameters);
         consumer.showCustomOption(QCodeStyleSettings.class, "PARAMS_SPACE_BEFORE_SEMICOLON", "Before parameter semicolon", parameters);
-
-/*
-        final String lambdaSection = "Lambda definition";
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_AFTER_PARAMETERS", "After parameter", lambdaSection);
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_BEFORE_CLOSE_BRACE", "Before close brace", lambdaSection);
-*/
 
         // Control settings
         final String controlSection = "Control statement (if, do, while, ...)";
