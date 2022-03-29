@@ -5,21 +5,19 @@ import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
 
 public class QCodeStyleSettings extends CustomCodeStyleSettings {
-    // Params
-    public int PARAMS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
-    public boolean PARAMS_ALIGN_VARS = true;
-    public boolean PARAMS_ALIGN_BRACKET = true;
-    public boolean PARAMS_LBRACKET_ON_NEXT_LINE = false;
-    public boolean PARAMS_RBRACKET_ON_NEXT_LINE = false;
-    public boolean PARAMS_SPACE_WITHIN_BRACKET = false;
-    public boolean PARAMS_SPACE_AFTER_SEMICOLON = true;
-    public boolean PARAMS_SPACE_BEFORE_SEMICOLON = false;
-
     // Lambda
+    public int LAMBDA_PARAMS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean LAMBDA_ALIGN_BRACE = false;
     public boolean LAMBDA_SPACE_AFTER_PARAMETERS = true;
-    public boolean LAMBDA_SPACE_BEFORE_CLOSE_BRACE = true;
+    public boolean LAMBDA_SPACE_WITHIN_BRACES = true;
     public boolean LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE = true;
+    public boolean LAMBDA_PARAMS_ALIGN_NAMES = true;
+    public boolean LAMBDA_PARAMS_ALIGN_BRACKETS = true;
+    public boolean LAMBDA_PARAMS_LBRACKET_ON_NEXT_LINE = false;
+    public boolean LAMBDA_PARAMS_RBRACKET_ON_NEXT_LINE = false;
+    public boolean LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS = false;
+    public boolean LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON = true;
+    public boolean LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON = false;
 
     // Controls
     public int CONTROL_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
@@ -64,13 +62,10 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean SPACE_AROUND_OPERATOR_WEIGHT = false;
     public boolean SPACE_AROUND_OPERATOR_OTHERS = false;
 
-
-    // Tables
-    public int TABLE_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
-    public boolean TABLE_WRAP_ALIGN = true;
-    public boolean TABLE_SPACE_AFTER_KEY_COLUMNS = true;
-    public boolean TABLE_KEYS_EMPTY_LINE = true;
-    public boolean TABLE_CPAREN_EMPTY_LINE = true;
+    // Mode
+    public int MODE_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
+    public boolean MODE_ALIGN = true;
+    public boolean MODE_SPACE_AFTER = true;
 
     protected QCodeStyleSettings(CodeStyleSettings container) {
         super("QCodeStyleSettings", container);

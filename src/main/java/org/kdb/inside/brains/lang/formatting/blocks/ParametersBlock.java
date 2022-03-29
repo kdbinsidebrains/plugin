@@ -22,10 +22,10 @@ public class ParametersBlock extends AbstractQBlock {
     protected List<Block> buildChildren() {
         final QCodeStyleSettings custom = formatter.custom;
 
-        final Wrap wrapCode = Wrap.createWrap(custom.PARAMS_WRAP, true);
+        final Wrap wrapCode = Wrap.createWrap(custom.LAMBDA_PARAMS_WRAP, true);
         final Alignment rootAlignment = Alignment.createAlignment();
-        final Alignment bracketAlignment = custom.PARAMS_ALIGN_BRACKET ? Alignment.createChildAlignment(rootAlignment) : null;
-        final Alignment expressionAlignment = custom.PARAMS_ALIGN_VARS ? Alignment.createChildAlignment(rootAlignment) : null;
+        final Alignment bracketAlignment = custom.LAMBDA_PARAMS_ALIGN_BRACKETS ? Alignment.createChildAlignment(rootAlignment) : null;
+        final Alignment expressionAlignment = custom.LAMBDA_PARAMS_ALIGN_NAMES ? Alignment.createChildAlignment(rootAlignment) : null;
 
         return iterateChildren(myNode, node -> {
             final IElementType type = node.getElementType();

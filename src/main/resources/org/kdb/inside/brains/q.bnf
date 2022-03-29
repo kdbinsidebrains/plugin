@@ -87,8 +87,8 @@
 root ::= top*
 
 
-private top ::= context | mode | top_in_context
-private top_in_context ::= import_command | command | expression | separator
+private top ::= context | top_in_context
+private top_in_context ::= import_command | command | expression | separator | mode
 
 private end_of_line_recover ::= !(NEW_LINE)
 
@@ -161,9 +161,9 @@ literal_expr ::= NILL | CHAR | SIGNED_ATOM | UNSIGNED_ATOM | VECTOR | STRING | s
 //control_expr ::= CONTROL_KEYWORD arguments_def { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
 //condition_expr ::= CONDITION_KEYWORD arguments_def { pin=1 methods=[expressions="expression"] } // $[...]
 
-control_expr ::= CONTROL_KEYWORD BRACKET_OPEN cc_body? BRACKET_CLOSE { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
+control_expr ::= CONTROL_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
 condition_expr ::= CONDITION_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin=1 methods=[expressions="expression"] } // $[...]
-private cc_body ::= expression (separator expression)* { recoverWhile=cc_recover}
+private cc_body ::= statement* { recoverWhile=cc_recover}
 private cc_recover ::= !(BRACKET_OPEN | BRACKET_CLOSE)
 
 parameters ::= BRACKET_OPEN [parameters_body] BRACKET_CLOSE { pin(".*")=1 methods = [variables="var_declaration"] }
@@ -174,7 +174,7 @@ lambda_expr ::= BRACE_OPEN lambda_body BRACE_CLOSE {pin=1}
 private lambda_body ::= parameters? expressions? { recoverWhile=lambda_recover }
 private lambda_recover ::= !(BRACE_OPEN | BRACE_CLOSE)
 
-operation ::= (iterator_type | operator_type)+
+private operation ::= (iterator_type | operator_type)+
 
 fake invoke_object ::= operator_type? invoke_function_group?
 invoke_operator ::= operator_type {extends=invoke_object}

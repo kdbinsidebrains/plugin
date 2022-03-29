@@ -20,15 +20,15 @@ public class QSpacingStrategy {
         builder = new SpacingBuilder(codeStyleSettings, QLanguage.INSTANCE);
 
         // Lambda parameters
-        builder.afterInside(QTypes.SEMICOLON, QTypes.PARAMETERS).spaceIf(custom.PARAMS_SPACE_AFTER_SEMICOLON);
-        builder.beforeInside(QTypes.SEMICOLON, QTypes.PARAMETERS).spaceIf(custom.PARAMS_SPACE_BEFORE_SEMICOLON);
-        builder.afterInside(QTypes.BRACKET_OPEN, QTypes.PARAMETERS).spaceIf(custom.PARAMS_SPACE_WITHIN_BRACKET, custom.PARAMS_LBRACKET_ON_NEXT_LINE);
-        builder.beforeInside(QTypes.BRACKET_CLOSE, QTypes.PARAMETERS).spaceIf(custom.PARAMS_SPACE_WITHIN_BRACKET, custom.PARAMS_RBRACKET_ON_NEXT_LINE);
+        builder.afterInside(QTypes.SEMICOLON, QTypes.PARAMETERS).spaceIf(custom.LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON);
+        builder.beforeInside(QTypes.SEMICOLON, QTypes.PARAMETERS).spaceIf(custom.LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON);
+        builder.afterInside(QTypes.BRACKET_OPEN, QTypes.PARAMETERS).spaceIf(custom.LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS, custom.LAMBDA_PARAMS_LBRACKET_ON_NEXT_LINE);
+        builder.beforeInside(QTypes.BRACKET_CLOSE, QTypes.PARAMETERS).spaceIf(custom.LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS, custom.LAMBDA_PARAMS_RBRACKET_ON_NEXT_LINE);
 
         // Lambda definition
         builder.afterInside(QTypes.PARAMETERS, QTypes.LAMBDA_EXPR).spaceIf(custom.LAMBDA_SPACE_AFTER_PARAMETERS);
-        builder.beforeInside(QTypes.BRACE_CLOSE, QTypes.LAMBDA_EXPR).spaceIf(custom.LAMBDA_SPACE_BEFORE_CLOSE_BRACE);
-//        builder.betweenInside(QTypes.BRACE_OPEN, QTypes.PARAMETERS, QTypes.LAMBDA_EXPR).spaces(0);
+        builder.betweenInside(QTypes.BRACE_OPEN, QTypes.EXPRESSIONS, QTypes.LAMBDA_EXPR).spaceIf(custom.LAMBDA_SPACE_WITHIN_BRACES);
+        builder.betweenInside(QTypes.EXPRESSIONS, QTypes.BRACE_CLOSE, QTypes.LAMBDA_EXPR).spaceIf(custom.LAMBDA_SPACE_WITHIN_BRACES);
 
         // Control
         builder.after(QTypes.CONTROL_KEYWORD).spaceIf(custom.CONTROL_SPACE_AFTER_OPERATOR);
@@ -67,20 +67,14 @@ public class QSpacingStrategy {
 
         // Others
         builder.after(QTypes.OPERATOR_EXECUTE).spaces(1);
+        builder.beforeInside(QTypes.VAR_DECLARATION, QTypes.CONTEXT).spaces(1);
         builder.before(QTypes.OPERATOR_EXECUTE).spaceIf(custom.CONTROL_SPACE_BEFORE_EXECUTION);
         builder.afterInside(QTypes.COLON, QTypes.RETURN_EXPR).spaceIf(custom.RETURN_SPACE_AFTER_COLON);
         builder.afterInside(QTypes.ITERATOR, QTypes.SIGNAL_EXPR).spaceIf(custom.SIGNAL_SPACE_AFTER_SIGNAL);
         builder.before(QTypes.SEMICOLON).spacing(0, custom.EXPRESSION_SEMICOLON_TRIM_SPACES ? 0 : Integer.MAX_VALUE, 0, !custom.EXPRESSION_SEMICOLON_REMOVE_LINES, custom.EXPRESSION_SEMICOLON_REMOVE_LINES ? 0 : common.KEEP_BLANK_LINES_IN_CODE);
 
-
-/*
-        // Tables
-        builder.betweenInside(QTypes.PAREN_OPEN, QTypes.BRACKET_OPEN, QTypes.TABLE_EXPR).spaces(0);
-        builder.betweenInside(QTypes.BRACKET_OPEN, QTypes.BRACKET_CLOSE, QTypes.TABLE_EXPR).spaces(0);
-        builder.afterInside(QTypes.BRACKET_OPEN, QTypes.TABLE_EXPR).spaces(0);
-        builder.betweenInside(QTypes.BRACKET_CLOSE, QTypes.SEMICOLON, QTypes.TABLE_EXPR).spaces(0); // no spaces before semicolon
-        builder.afterInside(QTypes.BRACKET_CLOSE, QTypes.TABLE_EXPR).spaceIf(custom.TABLE_SPACE_AFTER_KEY_COLUMNS);
-        builder.around(TokenSet.create(QTypes.TABLE_KEYS, QTypes.TABLE_VALUES, QTypes.TABLE_COLUMN)).spacing(0, 1, 0, true, 0);*/
+        // Mode
+        builder.after(QTypes.MODE_PATTERN).spaceIf(custom.MODE_SPACE_AFTER);
     }
 
     public Spacing getSpacing(Block parent, Block child1, Block child2) {

@@ -81,6 +81,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new LeafBlock(node, formatter, wrap, alignment, indent);
         }
 
+        if (type == QTypes.MODE) {
+            return new ModeBlock(node, formatter, wrap, alignment, indent);
+        }
+
         if (type == QTypes.LAMBDA_EXPR) {
             return new LambdaBlock(node, formatter, wrap, alignment, indent);
         }
@@ -89,12 +93,18 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new AssignmentBlock(node, formatter, wrap, alignment, indent);
         }
 
+/*
+        if (type == QTypes.ARGUMENTS) {
+            return new ArgumentsBlock(node, formatter, wrap, alignment, indent);
+        }
+*/
+
         if (type == QTypes.CONDITION_EXPR || type == QTypes.CONTROL_EXPR) {
             return new ControlBlock(node, formatter, wrap, alignment, indent);
         }
 
         // One value wrapper type which should be expanded
-        if (type == QTypes.INVOKE_OPERATOR || type == QTypes.INVOKE_FUNCTION) {
+        if (isWrapperType(type)) {
             return createBlock(getFirstNotEmptyChild(node), formatter, wrap, alignment, indent);
         }
 
@@ -113,7 +123,18 @@ public abstract class AbstractQBlock extends AbstractBlock {
     private boolean isPrimitiveType(IElementType type) {
         return type == QTypes.VAR_DECLARATION
                 || type == QTypes.VAR_REFERENCE
-                || type == QTypes.ASSIGNMENT_TYPE;
+                || type == QTypes.ASSIGNMENT_TYPE
+                || type == QTypes.LITERAL_EXPR
+                || type == QTypes.SYMBOL
+                ;
+    }
+
+    private boolean isWrapperType(IElementType type) {
+        return type == QTypes.INVOKE_OPERATOR
+                || type == QTypes.INVOKE_FUNCTION
+                || type == QTypes.OPERATOR_TYPE
+                || type == QTypes.SYSTEM_FUNCTION
+                ;
     }
 
     private boolean isExpressionType(IElementType type) {
@@ -123,16 +144,17 @@ public abstract class AbstractQBlock extends AbstractBlock {
                 || type == QTypes.PREFIX_INVOKE_EXPR
                 || type == QTypes.FUNCTION_INVOKE_EXPR
                 || type == QTypes.PARENTHESES_INVOKE_EXPR
+                || type == QTypes.ITERATOR_TYPE
+                || type == QTypes.CONTEXT
+                || type == QTypes.CONTEXT_BODY
+                || type == QTypes.VAR_INDEXING
 
-                // TODO: testing
-                || type == QTypes.OPERATION
-                || type == QTypes.OPERATOR_TYPE
+//                || type == QTypes.OPERATION
                 ;
 /*
                 || type == QTypes.EXPRESSION
                 || type == QTypes.GROUPING_EXPR
                 || type == QTypes.K_SYNTAX_EXPR
-                || type == QTypes.LAMBDA_EXPR
                 || type == QTypes.LITERAL_EXPR
                 || type == QTypes.PARENTHESES_EXPR
                 || type == QTypes.PARENTHESES_INVOKE_EXPR
