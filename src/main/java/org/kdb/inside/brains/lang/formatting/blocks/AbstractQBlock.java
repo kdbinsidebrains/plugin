@@ -93,6 +93,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new AssignmentBlock(node, formatter, wrap, alignment, indent);
         }
 
+        if (type == QTypes.INVOKE_FUNCTION) {
+            return new CodeBlock(node, formatter, wrap, alignment, indent);
+        }
+
 /*
         if (type == QTypes.ARGUMENTS) {
             return new ArgumentsBlock(node, formatter, wrap, alignment, indent);
@@ -131,7 +135,6 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
     private boolean isWrapperType(IElementType type) {
         return type == QTypes.INVOKE_OPERATOR
-                || type == QTypes.INVOKE_FUNCTION
                 || type == QTypes.OPERATOR_TYPE
                 || type == QTypes.SYSTEM_FUNCTION
                 ;
@@ -148,24 +151,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
                 || type == QTypes.CONTEXT
                 || type == QTypes.CONTEXT_BODY
                 || type == QTypes.VAR_INDEXING
-
-//                || type == QTypes.OPERATION
+                || type == QTypes.COMMAND
+                || type == QTypes.IMPORT_COMMAND
+                || type == QTypes.IMPORT_FUNCTION
                 ;
-/*
-                || type == QTypes.EXPRESSION
-                || type == QTypes.GROUPING_EXPR
-                || type == QTypes.K_SYNTAX_EXPR
-                || type == QTypes.LITERAL_EXPR
-                || type == QTypes.PARENTHESES_EXPR
-                || type == QTypes.PARENTHESES_INVOKE_EXPR
-                || type == QTypes.PREFIX_INVOKE_EXPR
-                || type == QTypes.PROJECTION_EXPR
-                || type == QTypes.QUERY_EXPR
-                || type == QTypes.RETURN_EXPR
-                || type == QTypes.SIGNAL_EXPR
-                || type == QTypes.TABLE_EXPR
-                || type == QTypes.TYPE_CAST_EXPR;
-*/
     }
 
     @Override

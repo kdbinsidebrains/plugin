@@ -105,7 +105,7 @@ context ::= COMMAND_CONTEXT var_declaration? (NEW_LINE context_body)? {
  }
 
 // command - anything with \...
-command ::= COMMAND_SYSTEM  command_params? { pin = 1 methods = [command="COMMAND_SYSTEM" parameters="COMMAND_ARGUMENTS"] }
+command ::= COMMAND_SYSTEM command_params? { pin = 1 methods = [command="COMMAND_SYSTEM" parameters="COMMAND_ARGUMENTS"] }
 private command_params ::= COMMAND_ARGUMENTS {recoverWhile = end_of_line_recover}
 
 import_command ::= COMMAND_IMPORT import_command_file { pin = 1 implements="org.kdb.inside.brains.psi.QImport" }

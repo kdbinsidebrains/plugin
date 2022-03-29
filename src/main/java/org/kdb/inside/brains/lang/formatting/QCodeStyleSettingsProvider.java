@@ -89,7 +89,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_LBRACKET_ON_NEXT_LINE", "New line after '['", condition);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", condition);
 
-        final String lambda = "Lambda definition";
+        final String lambda = "Lambda ({..})";
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_ALIGN_BRACE", "Align braces", lambda);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE", "Space before global close brace", lambda);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_WRAP", "Wrap parameters", lambda, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
@@ -104,17 +104,17 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
     }
 
     private void customizeSpacing(@NotNull CodeStyleSettingsCustomizable consumer) {
-        final String operators = "Around operators";
-        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_ASSIGNMENT_OPERATORS", "Assignment operators (::, :, ...)", operators);
-
-        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_ARITHMETIC", "Arithmetic operators (+, -, * , %)", operators);
-        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_ORDER", "Order operators (<= , >= , < , >)", operators);
-        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_EQUALITY", "Equality operators (~ , = , <>)", operators);
-        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_WEIGHT", "Weight operators (&, |)", operators);
-        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_OTHERS", "Mixed operators (!, #, @, _ , ? , ^, $)", operators);
+        final String operators = "Operators";
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_ASSIGNMENT_OPERATORS", "Around assignment operators (::, :, ...)", operators);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_ARITHMETIC", "Around arithmetic operators (+, -, * , %)", operators);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_ORDER", "Around order operators (<= , >= , < , >)", operators);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_EQUALITY", "Around equality operators (~ , = , <>)", operators);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_WEIGHT", "Around weight operators (&, |)", operators);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_OTHERS", "Around mixed operators (!, #, @, _ , ? , ^, $)", operators);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AFTER_OPERATOR_COMMA", "After comma (,)", operators);
 
         // Lambda definition
-        final String lambda = "Lambda definition";
+        final String lambda = "Lambda ({..})";
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_WITHIN_BRACES", "Within braces", lambda);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_AFTER_PARAMETERS", "After parameters", lambda);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS", "Within parameter brackets", lambda);

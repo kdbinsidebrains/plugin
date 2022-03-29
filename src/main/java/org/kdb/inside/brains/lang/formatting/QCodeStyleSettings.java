@@ -61,6 +61,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean SPACE_AROUND_OPERATOR_ARITHMETIC = false;
     public boolean SPACE_AROUND_OPERATOR_WEIGHT = false;
     public boolean SPACE_AROUND_OPERATOR_OTHERS = false;
+    public boolean SPACE_AFTER_OPERATOR_COMMA = false;
 
     // Mode
     public int MODE_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;

@@ -58,12 +58,20 @@ public class QSpacingStrategy {
         builder.around(QTypes.ASSIGNMENT_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
 
         // Operations
+        builder.aroundInside(QTypes.OPERATOR_ARITHMETIC, QTypes.PREFIX_INVOKE_EXPR).spaces(0);
+        builder.aroundInside(QTypes.OPERATOR_ORDER, QTypes.PREFIX_INVOKE_EXPR).spaces(0);
+        builder.aroundInside(QTypes.OPERATOR_EQUALITY, QTypes.PREFIX_INVOKE_EXPR).spaces(0);
+        builder.aroundInside(QTypes.OPERATOR_WEIGHT, QTypes.PREFIX_INVOKE_EXPR).spaces(0);
+        builder.aroundInside(QTypes.OPERATOR_COMMA, QTypes.PREFIX_INVOKE_EXPR).spaces(0);
+        builder.aroundInside(QTypes.OPERATOR_OTHERS, QTypes.PREFIX_INVOKE_EXPR).spaces(0);
+
         builder.around(QTypes.OPERATOR_ARITHMETIC).spaceIf(custom.SPACE_AROUND_OPERATOR_ARITHMETIC);
         builder.around(QTypes.OPERATOR_ORDER).spaceIf(custom.SPACE_AROUND_OPERATOR_ORDER);
         builder.around(QTypes.OPERATOR_EQUALITY).spaceIf(custom.SPACE_AROUND_OPERATOR_EQUALITY);
         builder.around(QTypes.OPERATOR_WEIGHT).spaceIf(custom.SPACE_AROUND_OPERATOR_WEIGHT);
-        builder.around(QTypes.OPERATOR_COMMA).spaceIf(custom.SPACE_AROUND_OPERATOR_OTHERS);
         builder.around(QTypes.OPERATOR_OTHERS).spaceIf(custom.SPACE_AROUND_OPERATOR_OTHERS);
+        builder.after(QTypes.OPERATOR_COMMA).spaceIf(custom.SPACE_AFTER_OPERATOR_COMMA);
+        builder.before(QTypes.OPERATOR_COMMA).spaces(0);
 
         // Others
         builder.after(QTypes.OPERATOR_EXECUTE).spaces(1);
@@ -75,6 +83,14 @@ public class QSpacingStrategy {
 
         // Mode
         builder.after(QTypes.MODE_PATTERN).spaceIf(custom.MODE_SPACE_AFTER);
+
+        // Predefined
+        builder.after(QTypes.COMMAND_SYSTEM).spaces(1);
+        builder.after(QTypes.COMMAND_IMPORT).spaces(1);
+        builder.after(QTypes.FUNCTION_IMPORT).spaces(1);
+
+        builder.between(QTypes.INVOKE_FUNCTION, QTypes.ITERATOR_TYPE).spaces(0);
+        builder.after(QTypes.INVOKE_FUNCTION).spaces(1);
     }
 
     public Spacing getSpacing(Block parent, Block child1, Block child2) {
