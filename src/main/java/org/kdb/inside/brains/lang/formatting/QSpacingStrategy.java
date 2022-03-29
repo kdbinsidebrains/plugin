@@ -6,7 +6,6 @@ import com.intellij.formatting.Spacing;
 import com.intellij.formatting.SpacingBuilder;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.QTypes;
@@ -28,6 +27,7 @@ public class QSpacingStrategy {
 
         // Lambda definition
         builder.afterInside(QTypes.PARAMETERS, QTypes.LAMBDA_EXPR).spaceIf(custom.LAMBDA_SPACE_AFTER_PARAMETERS);
+        builder.beforeInside(QTypes.BRACE_CLOSE, QTypes.LAMBDA_EXPR).spaceIf(custom.LAMBDA_SPACE_BEFORE_CLOSE_BRACE);
 //        builder.betweenInside(QTypes.BRACE_OPEN, QTypes.PARAMETERS, QTypes.LAMBDA_EXPR).spaces(0);
 
         // Control
@@ -65,20 +65,22 @@ public class QSpacingStrategy {
         builder.around(QTypes.OPERATOR_COMMA).spaceIf(custom.SPACE_AROUND_OPERATOR_OTHERS);
         builder.around(QTypes.OPERATOR_OTHERS).spaceIf(custom.SPACE_AROUND_OPERATOR_OTHERS);
 
-        // Semicolon
+        // Others
+        builder.after(QTypes.OPERATOR_EXECUTE).spaces(1);
+        builder.before(QTypes.OPERATOR_EXECUTE).spaceIf(custom.CONTROL_SPACE_BEFORE_EXECUTION);
+        builder.afterInside(QTypes.COLON, QTypes.RETURN_EXPR).spaceIf(custom.RETURN_SPACE_AFTER_COLON);
+        builder.afterInside(QTypes.ITERATOR, QTypes.SIGNAL_EXPR).spaceIf(custom.SIGNAL_SPACE_AFTER_SIGNAL);
         builder.before(QTypes.SEMICOLON).spacing(0, custom.EXPRESSION_SEMICOLON_TRIM_SPACES ? 0 : Integer.MAX_VALUE, 0, !custom.EXPRESSION_SEMICOLON_REMOVE_LINES, custom.EXPRESSION_SEMICOLON_REMOVE_LINES ? 0 : common.KEEP_BLANK_LINES_IN_CODE);
 
+
+/*
         // Tables
         builder.betweenInside(QTypes.PAREN_OPEN, QTypes.BRACKET_OPEN, QTypes.TABLE_EXPR).spaces(0);
         builder.betweenInside(QTypes.BRACKET_OPEN, QTypes.BRACKET_CLOSE, QTypes.TABLE_EXPR).spaces(0);
         builder.afterInside(QTypes.BRACKET_OPEN, QTypes.TABLE_EXPR).spaces(0);
         builder.betweenInside(QTypes.BRACKET_CLOSE, QTypes.SEMICOLON, QTypes.TABLE_EXPR).spaces(0); // no spaces before semicolon
         builder.afterInside(QTypes.BRACKET_CLOSE, QTypes.TABLE_EXPR).spaceIf(custom.TABLE_SPACE_AFTER_KEY_COLUMNS);
-        builder.around(TokenSet.create(QTypes.TABLE_KEYS, QTypes.TABLE_VALUES, QTypes.TABLE_COLUMN)).spacing(0, 1, 0, true, 0);
-
-        // Execution
-        builder.after(QTypes.OPERATOR_EXECUTE).spaces(1);
-        builder.before(QTypes.OPERATOR_EXECUTE).spaceIf(custom.CONTROL_SPACE_BEFORE_EXECUTION);
+        builder.around(TokenSet.create(QTypes.TABLE_KEYS, QTypes.TABLE_VALUES, QTypes.TABLE_COLUMN)).spacing(0, 1, 0, true, 0);*/
     }
 
     public Spacing getSpacing(Block parent, Block child1, Block child2) {

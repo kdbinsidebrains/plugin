@@ -43,7 +43,7 @@ public class LambdaBlock extends AbstractQBlock {
                 return new LeafBlock(child, formatter, null, braceAlignment, NONE_INDENT);
             }
             if (elementType == QTypes.BRACE_CLOSE) {
-                final Indent indent = formatter.custom.LAMBDA_SPACE_BEFORE_CLOSE_BRACE && ElementContext.of(myNode) == null ? SPACE_INDENT : NONE_INDENT;
+                final Indent indent = formatter.custom.LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE && ElementContext.of(myNode) == null ? SPACE_INDENT : NONE_INDENT;
                 return new LeafBlock(child, formatter, null, braceAlignment, indent);
             }
             return new LeafBlock(child, formatter);

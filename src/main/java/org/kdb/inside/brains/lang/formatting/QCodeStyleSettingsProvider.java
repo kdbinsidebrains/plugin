@@ -91,6 +91,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
 
         final String lambda = "Lambda definition ({[] }})";
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_ALIGN_BRACE", "Align braces", lambda);
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE", "Space before global close brace", lambda);
 
         final String parameters = "Lambda parameters ([x;y;x;...])";
         consumer.showCustomOption(QCodeStyleSettings.class, "PARAMS_WRAP", parameters, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
@@ -116,9 +117,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
 */
 
         // Expressions
-        final String semicolonSpaces = "Ending semicolon";
-        consumer.showCustomOption(QCodeStyleSettings.class, "EXPRESSION_SEMICOLON_TRIM_SPACES", "Trim spaces", semicolonSpaces);
-        consumer.showCustomOption(QCodeStyleSettings.class, "EXPRESSION_SEMICOLON_REMOVE_LINES", "Remove bank lines", semicolonSpaces);
+//        final String semicolonSpaces = "Ending semicolon";
     }
 
     private void customizeSpacing(@NotNull CodeStyleSettingsCustomizable consumer) {
@@ -161,8 +160,12 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         consumer.showCustomOption(QCodeStyleSettings.class, "IMPORT_TRIM_TAIL", "Trim spaces after import command", tailSpaces);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTEXT_TRIM_TAIL", "Trim spaces after context command", tailSpaces);
 
-        final String executionSection = "Execution statement (.)";
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_BEFORE_EXECUTION", "Before execution", executionSection);
+        final String other = "Other";
+        consumer.showCustomOption(QCodeStyleSettings.class, "RETURN_SPACE_AFTER_COLON", "After return colon", other);
+        consumer.showCustomOption(QCodeStyleSettings.class, "SIGNAL_SPACE_AFTER_SIGNAL", "After signal apostrophe", other);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_BEFORE_EXECUTION", "Before execution statement (.)", other);
+        consumer.showCustomOption(QCodeStyleSettings.class, "EXPRESSION_SEMICOLON_TRIM_SPACES", "Trim spaces before semicolon", other);
+        consumer.showCustomOption(QCodeStyleSettings.class, "EXPRESSION_SEMICOLON_REMOVE_LINES", "Remove bank lines before semicolon", other);
 
 
 /*

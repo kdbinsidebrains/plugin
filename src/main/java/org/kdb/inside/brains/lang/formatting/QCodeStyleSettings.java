@@ -19,6 +19,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean LAMBDA_ALIGN_BRACE = false;
     public boolean LAMBDA_SPACE_AFTER_PARAMETERS = true;
     public boolean LAMBDA_SPACE_BEFORE_CLOSE_BRACE = true;
+    public boolean LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE = true;
 
     // Controls
     public int CONTROL_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
@@ -43,14 +44,9 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean CONDITION_SPACE_AFTER_SEMICOLON = true;
     public boolean CONDITION_SPACE_BEFORE_SEMICOLON = false;
 
-    // Tables
-    public int TABLE_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
-    public boolean TABLE_WRAP_ALIGN = true;
-    public boolean TABLE_SPACE_AFTER_KEY_COLUMNS = true;
-    public boolean TABLE_KEYS_EMPTY_LINE = true;
-    public boolean TABLE_CPAREN_EMPTY_LINE = true;
-
-    // Semicolon
+    // Other
+    public boolean RETURN_SPACE_AFTER_COLON = false;
+    public boolean SIGNAL_SPACE_AFTER_SIGNAL = false;
     public boolean EXPRESSION_SEMICOLON_TRIM_SPACES = true;
     public boolean EXPRESSION_SEMICOLON_REMOVE_LINES = true;
 
@@ -68,6 +64,13 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean SPACE_AROUND_OPERATOR_WEIGHT = false;
     public boolean SPACE_AROUND_OPERATOR_OTHERS = false;
 
+
+    // Tables
+    public int TABLE_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
+    public boolean TABLE_WRAP_ALIGN = true;
+    public boolean TABLE_SPACE_AFTER_KEY_COLUMNS = true;
+    public boolean TABLE_KEYS_EMPTY_LINE = true;
+    public boolean TABLE_CPAREN_EMPTY_LINE = true;
 
     protected QCodeStyleSettings(CodeStyleSettings container) {
         super("QCodeStyleSettings", container);

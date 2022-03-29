@@ -55,6 +55,6 @@ lambdaGlobal:{[parameter1;parameter2;parameter3;parameter4]
 
           while            [  innerVar < 10;innerVar+:1;   innerVar2        ]       ;
 
-        {[x;y]x*y+10-12}[parameter1;parameter2]
+        {[x;y]z:x*y+10-12;'"incorrect:",string z}[parameter1;parameter2]
 
 		}				 ;

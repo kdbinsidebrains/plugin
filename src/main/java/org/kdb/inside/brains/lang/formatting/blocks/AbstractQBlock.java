@@ -118,7 +118,16 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
     private boolean isExpressionType(IElementType type) {
         return type == QTypes.ASSIGNMENT_EXPR
-                || type == QTypes.FUNCTION_INVOKE_EXPR;
+                || type == QTypes.SIGNAL_EXPR
+                || type == QTypes.RETURN_EXPR
+                || type == QTypes.PREFIX_INVOKE_EXPR
+                || type == QTypes.FUNCTION_INVOKE_EXPR
+                || type == QTypes.PARENTHESES_INVOKE_EXPR
+
+                // TODO: testing
+                || type == QTypes.OPERATION
+                || type == QTypes.OPERATOR_TYPE
+                ;
 /*
                 || type == QTypes.EXPRESSION
                 || type == QTypes.GROUPING_EXPR
