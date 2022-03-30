@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [0.21.1]
+
+### Fixed
+
+- a string inside a string parsing fixed
+
 ## [0.21.0]
 
 ### Added
