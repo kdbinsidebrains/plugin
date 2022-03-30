@@ -42,6 +42,36 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean CONDITION_SPACE_AFTER_SEMICOLON = true;
     public boolean CONDITION_SPACE_BEFORE_SEMICOLON = false;
 
+    // Arguments
+    public int ARGUMENTS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
+    public boolean ARGUMENTS_ALIGN_EXPRS = true;
+    public boolean ARGUMENTS_ALIGN_BRACKET = false;
+    public boolean ARGUMENTS_LBRACKET_ON_NEXT_LINE = false;
+    public boolean ARGUMENTS_RBRACKET_ON_NEXT_LINE = false;
+    public boolean ARGUMENTS_SPACE_WITHIN_BRACES = false;
+    public boolean ARGUMENTS_SPACE_AFTER_SEMICOLON = true;
+    public boolean ARGUMENTS_SPACE_BEFORE_SEMICOLON = false;
+
+    // Grouping
+    public int GROUPING_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
+    public boolean GROUPING_ALIGN_EXPRS = true;
+    public boolean GROUPING_ALIGN_BRACKET = false;
+    public boolean GROUPING_LBRACKET_ON_NEXT_LINE = false;
+    public boolean GROUPING_RBRACKET_ON_NEXT_LINE = false;
+    public boolean GROUPING_SPACE_WITHIN_BRACES = false;
+    public boolean GROUPING_SPACE_AFTER_SEMICOLON = true;
+    public boolean GROUPING_SPACE_BEFORE_SEMICOLON = false;
+
+    // Parentheses
+    public int PARENTHESES_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
+    public boolean PARENTHESES_ALIGN_EXPRS = true;
+    public boolean PARENTHESES_ALIGN_PAREN = false;
+    public boolean PARENTHESES_LPAREN_ON_NEXT_LINE = false;
+    public boolean PARENTHESES_RPAREN_ON_NEXT_LINE = false;
+    public boolean PARENTHESES_SPACE_WITHIN_PARENS = false;
+    public boolean PARENTHESES_SPACE_AFTER_SEMICOLON = true;
+    public boolean PARENTHESES_SPACE_BEFORE_SEMICOLON = false;
+
     // Other
     public boolean RETURN_SPACE_AFTER_COLON = false;
     public boolean SIGNAL_SPACE_AFTER_SIGNAL = false;

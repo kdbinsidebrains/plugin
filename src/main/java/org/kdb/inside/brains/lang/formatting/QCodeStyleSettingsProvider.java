@@ -51,9 +51,9 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
     @Override
     public void customizeSettings(@NotNull CodeStyleSettingsCustomizable consumer, @NotNull SettingsType settingsType) {
         if (settingsType == SettingsType.SPACING_SETTINGS) {
-            customizeSpacing(consumer);
+            spacing(consumer);
         } else if (settingsType == SettingsType.WRAPPING_AND_BRACES_SETTINGS) {
-            customizeWrapping(consumer);
+            wrapping(consumer);
 /*
         } else if (settingsType == SettingsType.BLANK_LINES_SETTINGS) {
             consumer.showAllStandardOptions();
@@ -66,44 +66,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         return new QCodeStyleSettings(settings);
     }
 
-    private void customizeWrapping(@NotNull CodeStyleSettingsCustomizable consumer) {
-        consumer.showStandardOptions(
-                names(
-                        WrappingOrBraceOption.RIGHT_MARGIN,
-                        WrappingOrBraceOption.WRAP_ON_TYPING,
-                        WrappingOrBraceOption.KEEP_LINE_BREAKS
-                )
-        );
-
-        final String control = "Control statement (if, do, while, ...)";
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_WRAP_TYPE", control, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_ALIGN_EXPRS", "Align when multiline", control);
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_ALIGN_BRACKET", "Align bracket when multiline", control);
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_LBRACKET_ON_NEXT_LINE", "New line after '['", control);
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", control);
-
-        final String condition = "Condition statement (?[], $[], @[], .[], ![], ...)";
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_WRAP_TYPE", condition, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_ALIGN_EXPRS", "Align when multiline", condition);
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_ALIGN_BRACKET", "Align bracket when multiline", condition);
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_LBRACKET_ON_NEXT_LINE", "New line after '['", condition);
-        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", condition);
-
-        final String lambda = "Lambda ({..})";
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_ALIGN_BRACE", "Align braces", lambda);
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE", "Space before global close brace", lambda);
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_WRAP", "Wrap parameters", lambda, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_ALIGN_NAMES", "Align parameters when multiline", lambda);
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_ALIGN_BRACKETS", "Align parameter brackets when multiline", lambda);
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_LBRACKET_ON_NEXT_LINE", "New line after '['", lambda);
-        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", lambda);
-
-        final String mode = "Mode (k), M), ...)";
-        consumer.showCustomOption(QCodeStyleSettings.class, "MODE_WRAP_TYPE", mode, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
-        consumer.showCustomOption(QCodeStyleSettings.class, "MODE_ALIGN", "Align when multiline", mode);
-    }
-
-    private void customizeSpacing(@NotNull CodeStyleSettingsCustomizable consumer) {
+    private void spacing(@NotNull CodeStyleSettingsCustomizable consumer) {
         final String operators = "Operators";
         consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_ASSIGNMENT_OPERATORS", "Around assignment operators (::, :, ...)", operators);
         consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_ARITHMETIC", "Around arithmetic operators (+, -, * , %)", operators);
@@ -113,27 +76,46 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AROUND_OPERATOR_OTHERS", "Around mixed operators (!, #, @, _ , ? , ^, $)", operators);
         consumer.showCustomOption(QCodeStyleSettings.class, "SPACE_AFTER_OPERATOR_COMMA", "After comma (,)", operators);
 
-        // Lambda definition
+        // Lambda
         final String lambda = "Lambda ({..})";
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_WITHIN_BRACES", "Within braces", lambda);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_AFTER_PARAMETERS", "After parameters", lambda);
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE", "Space before global close brace", lambda);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS", "Within parameter brackets", lambda);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON", "After parameter semicolon", lambda);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON", "Before parameter semicolon", lambda);
 
-        // Control settings
+        // Control
         final String control = "Control statement (if, do, while, ...)";
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_AFTER_OPERATOR", "After operator", control);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_WITHIN_BRACES", "Within brackets", control);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_AFTER_SEMICOLON", "After semicolon", control);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_BEFORE_SEMICOLON", "Before semicolon", control);
 
-        // Condition settings
+        // Condition
         final String condition = "Condition statement ($, @, ?, ...)";
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_AFTER_OPERATOR", "After operator", condition);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_WITHIN_BRACES", "Within brackets", condition);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_AFTER_SEMICOLON", "After semicolon", condition);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_SPACE_BEFORE_SEMICOLON", "Before semicolon", condition);
+
+        // Arguments
+        final String arguments = "Arguments (x[;;;])";
+        consumer.showCustomOption(QCodeStyleSettings.class, "ARGUMENTS_SPACE_WITHIN_BRACES", "Within brackets", arguments);
+        consumer.showCustomOption(QCodeStyleSettings.class, "ARGUMENTS_SPACE_AFTER_SEMICOLON", "After semicolon", arguments);
+        consumer.showCustomOption(QCodeStyleSettings.class, "ARGUMENTS_SPACE_BEFORE_SEMICOLON", "Before semicolon", arguments);
+
+        // Arguments
+        final String grouping = "Grouping ([.;.;.])";
+        consumer.showCustomOption(QCodeStyleSettings.class, "GROUPING_SPACE_WITHIN_BRACES", "Within brackets", grouping);
+        consumer.showCustomOption(QCodeStyleSettings.class, "GROUPING_SPACE_AFTER_SEMICOLON", "After semicolon", grouping);
+        consumer.showCustomOption(QCodeStyleSettings.class, "GROUPING_SPACE_BEFORE_SEMICOLON", "Before semicolon", grouping);
+
+        // Parentheses
+        final String parentheses = "Parentheses ( (;;;))";
+        consumer.showCustomOption(QCodeStyleSettings.class, "PARENTHESES_SPACE_WITHIN_PARENS", "Within parens", parentheses);
+        consumer.showCustomOption(QCodeStyleSettings.class, "PARENTHESES_SPACE_AFTER_SEMICOLON", "After semicolon", parentheses);
+        consumer.showCustomOption(QCodeStyleSettings.class, "PARENTHESES_SPACE_BEFORE_SEMICOLON", "Before semicolon", parentheses);
 
         // Mode
         final String mode = "Mode (k), M), ...)";
@@ -150,6 +132,63 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_SPACE_BEFORE_EXECUTION", "Before execution statement (.)", other);
         consumer.showCustomOption(QCodeStyleSettings.class, "EXPRESSION_SEMICOLON_TRIM_SPACES", "Trim spaces before semicolon", other);
         consumer.showCustomOption(QCodeStyleSettings.class, "EXPRESSION_SEMICOLON_REMOVE_LINES", "Remove bank lines before semicolon", other);
+    }
+
+    private void wrapping(@NotNull CodeStyleSettingsCustomizable consumer) {
+        consumer.showStandardOptions(
+                names(
+                        WrappingOrBraceOption.RIGHT_MARGIN,
+                        WrappingOrBraceOption.WRAP_ON_TYPING,
+                        WrappingOrBraceOption.KEEP_LINE_BREAKS
+                )
+        );
+
+        final String control = "Control statement (if, do, while, ...)";
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_WRAP_TYPE", control, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_ALIGN_EXPRS", "Align when multiline", control);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_ALIGN_BRACKET", "Align brackets when multiline", control);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_LBRACKET_ON_NEXT_LINE", "New line after '['", control);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONTROL_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", control);
+
+        final String condition = "Condition statement (?[], $[], @[], .[], ![], ...)";
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_WRAP_TYPE", condition, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_ALIGN_EXPRS", "Align when multiline", condition);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_ALIGN_BRACKET", "Align brackets when multiline", condition);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_LBRACKET_ON_NEXT_LINE", "New line after '['", condition);
+        consumer.showCustomOption(QCodeStyleSettings.class, "CONDITION_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", condition);
+
+        final String arguments = "Arguments (x[...])";
+        consumer.showCustomOption(QCodeStyleSettings.class, "ARGUMENTS_WRAP", arguments, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "ARGUMENTS_ALIGN_EXPRS", "Align when multiline", arguments);
+        consumer.showCustomOption(QCodeStyleSettings.class, "ARGUMENTS_ALIGN_BRACKET", "Align brackets when multiline", arguments);
+        consumer.showCustomOption(QCodeStyleSettings.class, "ARGUMENTS_LBRACKET_ON_NEXT_LINE", "New line after '['", arguments);
+        consumer.showCustomOption(QCodeStyleSettings.class, "ARGUMENTS_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", arguments);
+
+        final String grouping = "Grouping ([.;.;.])";
+        consumer.showCustomOption(QCodeStyleSettings.class, "GROUPING_WRAP", grouping, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "GROUPING_ALIGN_EXPRS", "Align when multiline", grouping);
+        consumer.showCustomOption(QCodeStyleSettings.class, "GROUPING_ALIGN_BRACKET", "Align brackets when multiline", grouping);
+        consumer.showCustomOption(QCodeStyleSettings.class, "GROUPING_LBRACKET_ON_NEXT_LINE", "New line after '['", grouping);
+        consumer.showCustomOption(QCodeStyleSettings.class, "GROUPING_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", grouping);
+
+        final String parentheses = "Parentheses ( (;;;))";
+        consumer.showCustomOption(QCodeStyleSettings.class, "PARENTHESES_WRAP", parentheses, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "PARENTHESES_ALIGN_EXPRS", "Align when multiline", parentheses);
+        consumer.showCustomOption(QCodeStyleSettings.class, "PARENTHESES_ALIGN_PAREN", "Align parens when multiline", parentheses);
+        consumer.showCustomOption(QCodeStyleSettings.class, "PARENTHESES_LPAREN_ON_NEXT_LINE", "New line after '('", parentheses);
+        consumer.showCustomOption(QCodeStyleSettings.class, "PARENTHESES_RPAREN_ON_NEXT_LINE", "Place ')' on new line", parentheses);
+
+        final String lambda = "Lambda ({..})";
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_ALIGN_BRACE", "Align braces", lambda);
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_WRAP", "Wrap parameters", lambda, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_ALIGN_NAMES", "Align parameters when multiline", lambda);
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_ALIGN_BRACKETS", "Align parameter brackets when multiline", lambda);
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_LBRACKET_ON_NEXT_LINE", "New line after '['", lambda);
+        consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", lambda);
+
+        final String mode = "Mode (k), M), ...)";
+        consumer.showCustomOption(QCodeStyleSettings.class, "MODE_WRAP_TYPE", mode, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "MODE_ALIGN", "Align when multiline", mode);
     }
 
     @Override

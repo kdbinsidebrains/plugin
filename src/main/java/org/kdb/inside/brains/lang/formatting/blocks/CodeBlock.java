@@ -16,10 +16,6 @@ public class CodeBlock extends AbstractQBlock {
         super(node, formatter);
     }
 
-    public CodeBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @NotNull Indent indent) {
-        super(node, formatter, indent);
-    }
-
     public CodeBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);
     }

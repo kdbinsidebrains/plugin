@@ -52,7 +52,7 @@ lambdaGlobal:{[parameter1;parameter2;parameter3;parameter4]
 	innerVar2:y;
                 condition:$[innerVar1 < innerVar2;1b;0b];
 
-                    if      [       condition   ;       :`isLessThen    ]      ;
+                    if      [       condition   ; [10+20;      :`isLessThen]    ]      ;
 
         :   {[x    ;   y]   x^y        }   [       innerVar1   ;       innerVar2   ];
 		};

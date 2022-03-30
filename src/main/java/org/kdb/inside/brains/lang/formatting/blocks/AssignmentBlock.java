@@ -28,6 +28,9 @@ public class AssignmentBlock extends CodeBlock {
         final Alignment alignment = Alignment.createAlignment();
         return iterateChildren(myNode, child -> {
             final IElementType elementType = child.getElementType();
+            if (elementType == QTypes.VAR_INDEXING) {
+                return createBlock(child, formatter);
+            }
             if (elementType == QTypes.VAR_DECLARATION) {
                 return new LeafBlock(child, formatter);
             }

@@ -44,6 +44,24 @@ public class QSpacingStrategy {
         builder.afterInside(QTypes.SEMICOLON, QTypes.CONDITION_EXPR).spaceIf(custom.CONDITION_SPACE_AFTER_SEMICOLON);
         builder.beforeInside(QTypes.SEMICOLON, QTypes.CONDITION_EXPR).spaceIf(custom.CONDITION_SPACE_BEFORE_SEMICOLON);
 
+        // Arguments
+        builder.afterInside(QTypes.BRACKET_OPEN, QTypes.ARGUMENTS).spaceIf(custom.ARGUMENTS_SPACE_WITHIN_BRACES, custom.ARGUMENTS_LBRACKET_ON_NEXT_LINE);
+        builder.beforeInside(QTypes.BRACKET_CLOSE, QTypes.ARGUMENTS).spaceIf(custom.ARGUMENTS_SPACE_WITHIN_BRACES, custom.ARGUMENTS_RBRACKET_ON_NEXT_LINE);
+        builder.afterInside(QTypes.SEMICOLON, QTypes.ARGUMENTS).spaceIf(custom.ARGUMENTS_SPACE_AFTER_SEMICOLON);
+        builder.beforeInside(QTypes.SEMICOLON, QTypes.ARGUMENTS).spaceIf(custom.ARGUMENTS_SPACE_BEFORE_SEMICOLON);
+
+        // Grouping
+        builder.afterInside(QTypes.BRACKET_OPEN, QTypes.GROUPING_EXPR).spaceIf(custom.GROUPING_SPACE_WITHIN_BRACES, custom.GROUPING_LBRACKET_ON_NEXT_LINE);
+        builder.beforeInside(QTypes.BRACKET_CLOSE, QTypes.GROUPING_EXPR).spaceIf(custom.GROUPING_SPACE_WITHIN_BRACES, custom.GROUPING_RBRACKET_ON_NEXT_LINE);
+        builder.afterInside(QTypes.SEMICOLON, QTypes.GROUPING_EXPR).spaceIf(custom.GROUPING_SPACE_AFTER_SEMICOLON);
+        builder.beforeInside(QTypes.SEMICOLON, QTypes.GROUPING_EXPR).spaceIf(custom.GROUPING_SPACE_BEFORE_SEMICOLON);
+
+        // Parentheses
+        builder.afterInside(QTypes.PAREN_OPEN, QTypes.PARENTHESES_EXPR).spaceIf(custom.PARENTHESES_SPACE_WITHIN_PARENS, custom.PARENTHESES_LPAREN_ON_NEXT_LINE);
+        builder.beforeInside(QTypes.PAREN_CLOSE, QTypes.PARENTHESES_EXPR).spaceIf(custom.PARENTHESES_SPACE_WITHIN_PARENS, custom.PARENTHESES_RPAREN_ON_NEXT_LINE);
+        builder.afterInside(QTypes.SEMICOLON, QTypes.PARENTHESES_EXPR).spaceIf(custom.PARENTHESES_SPACE_AFTER_SEMICOLON);
+        builder.beforeInside(QTypes.SEMICOLON, QTypes.PARENTHESES_EXPR).spaceIf(custom.PARENTHESES_SPACE_BEFORE_SEMICOLON);
+
         // Import
         if (custom.IMPORT_TRIM_TAIL) {
             builder.after(QTypes.IMPORT_COMMAND).spaces(0);
@@ -89,6 +107,7 @@ public class QSpacingStrategy {
         builder.after(QTypes.COMMAND_IMPORT).spaces(1);
         builder.after(QTypes.FUNCTION_IMPORT).spaces(1);
 
+        builder.between(QTypes.INVOKE_FUNCTION, QTypes.ARGUMENTS).spaces(0);
         builder.between(QTypes.INVOKE_FUNCTION, QTypes.ITERATOR_TYPE).spaces(0);
         builder.after(QTypes.INVOKE_FUNCTION).spaces(1);
     }

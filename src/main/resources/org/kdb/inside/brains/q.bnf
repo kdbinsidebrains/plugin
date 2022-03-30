@@ -150,16 +150,13 @@ private index_assignment ::= var_indexing var_assignment_type expression { pin =
 private variable_assignment ::= var_declaration var_assignment_type operator_type? expression { pin = 2 }
 assignment_expr ::= index_assignment | variable_assignment
 
-expressions ::= separator* expression (separator+ expression)* separator*
+private expressions_group ::= separator* expression (separator+ expression)* separator*
 
 return_expr ::= COLON expression
 
 signal_expr ::= "'" expression
 
 literal_expr ::= NILL | CHAR | SIGNED_ATOM | UNSIGNED_ATOM | VECTOR | STRING | symbol symbol*
-
-//control_expr ::= CONTROL_KEYWORD arguments_def { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
-//condition_expr ::= CONDITION_KEYWORD arguments_def { pin=1 methods=[expressions="expression"] } // $[...]
 
 control_expr ::= CONTROL_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
 condition_expr ::= CONDITION_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin=1 methods=[expressions="expression"] } // $[...]
@@ -171,6 +168,7 @@ private parameters_body ::= var_declaration (SEMICOLON var_declaration)* {pin(".
 private parameters_recover ::= !(BRACKET_OPEN | BRACKET_CLOSE)
 
 lambda_expr ::= BRACE_OPEN lambda_body BRACE_CLOSE {pin=1}
+expressions ::= expressions_group
 private lambda_body ::= parameters? expressions? { recoverWhile=lambda_recover }
 private lambda_recover ::= !(BRACE_OPEN | BRACE_CLOSE)
 
@@ -217,7 +215,7 @@ private query_body_recover ::= !QUERY_FROM
 private query_source ::= QUERY_FROM expression {pin=1}
 query_expr ::= query_body query_source
 
-grouping_expr ::= BRACKET_OPEN expressions BRACKET_CLOSE
+grouping_expr ::= BRACKET_OPEN expressions_group BRACKET_CLOSE
 
 k_syntax_expr ::= operation+ expression
 

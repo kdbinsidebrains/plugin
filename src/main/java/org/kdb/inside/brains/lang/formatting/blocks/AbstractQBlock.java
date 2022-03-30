@@ -17,27 +17,15 @@ import java.util.function.Function;
 
 public abstract class AbstractQBlock extends AbstractBlock {
     protected static final Indent NONE_INDENT = Indent.getNoneIndent();
-    protected static final Indent NORMAL_INDENT = Indent.getNormalIndent();
-    protected static final Indent SPACE_INDENT = Indent.getSpaceIndent(1);
+
     protected final QFormatter formatter;
+    protected static final Indent SPACE_INDENT = Indent.getSpaceIndent(1);
+    protected static final Indent NORMAL_INDENT = Indent.getNormalIndent();
     private final Indent indent;
 
     public AbstractQBlock(@NotNull ASTNode node,
                           @NotNull QFormatter formatter) {
         this(node, formatter, null, null, NONE_INDENT);
-    }
-
-    public AbstractQBlock(@NotNull ASTNode node,
-                          @NotNull QFormatter formatter,
-                          @NotNull Indent indent) {
-        this(node, formatter, null, null, indent);
-    }
-
-    public AbstractQBlock(@NotNull ASTNode node,
-                          @NotNull QFormatter formatter,
-                          @Nullable Wrap wrap,
-                          @Nullable Alignment alignment) {
-        this(node, formatter, wrap, alignment, NONE_INDENT);
     }
 
     public AbstractQBlock(@NotNull ASTNode node,
@@ -97,11 +85,17 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new CodeBlock(node, formatter, wrap, alignment, indent);
         }
 
-/*
         if (type == QTypes.ARGUMENTS) {
-            return new ArgumentsBlock(node, formatter, wrap, alignment, indent);
+            return BracketsBlock.arguments(node, formatter, wrap, alignment, indent);
         }
-*/
+
+        if (type == QTypes.PARENTHESES_EXPR) {
+            return BracketsBlock.parentheses(node, formatter, wrap, alignment, indent);
+        }
+
+        if (type == QTypes.GROUPING_EXPR) {
+            return BracketsBlock.grouping(node, formatter, wrap, alignment, indent);
+        }
 
         if (type == QTypes.CONDITION_EXPR || type == QTypes.CONTROL_EXPR) {
             return new ControlBlock(node, formatter, wrap, alignment, indent);
@@ -142,6 +136,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
     private boolean isExpressionType(IElementType type) {
         return type == QTypes.ASSIGNMENT_EXPR
+                || type == QTypes.EXPRESSIONS
                 || type == QTypes.SIGNAL_EXPR
                 || type == QTypes.RETURN_EXPR
                 || type == QTypes.PREFIX_INVOKE_EXPR
@@ -154,6 +149,9 @@ public abstract class AbstractQBlock extends AbstractBlock {
                 || type == QTypes.COMMAND
                 || type == QTypes.IMPORT_COMMAND
                 || type == QTypes.IMPORT_FUNCTION
+                || type == QTypes.K_SYNTAX_EXPR
+                || type == QTypes.PROJECTION_EXPR
+                || type == QTypes.TYPE_CAST_EXPR
                 ;
     }
 

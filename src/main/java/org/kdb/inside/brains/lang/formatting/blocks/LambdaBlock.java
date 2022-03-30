@@ -34,16 +34,16 @@ public class LambdaBlock extends AbstractQBlock {
         return iterateChildren(myNode, child -> {
             final IElementType elementType = child.getElementType();
             if (elementType == QTypes.PARAMETERS) {
-                return new ParametersBlock(child, formatter, NORMAL_INDENT);
+                return BracketsBlock.parameters(child, formatter, null, null, NORMAL_INDENT);
             }
             if (elementType == QTypes.EXPRESSIONS) {
-                return new CodeBlock(child, formatter, NORMAL_INDENT);
+                return createBlock(child, formatter, null, null, NORMAL_INDENT);
             }
             if (elementType == QTypes.BRACE_OPEN) {
                 return new LeafBlock(child, formatter, null, braceAlignment, NONE_INDENT);
             }
             if (elementType == QTypes.BRACE_CLOSE) {
-                final Indent indent = formatter.custom.LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE && ElementContext.of(myNode) == null ? SPACE_INDENT : NONE_INDENT;
+                final Indent indent = custom.LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE && ElementContext.of(myNode) == null ? SPACE_INDENT : NONE_INDENT;
                 return new LeafBlock(child, formatter, null, braceAlignment, indent);
             }
             return new LeafBlock(child, formatter);

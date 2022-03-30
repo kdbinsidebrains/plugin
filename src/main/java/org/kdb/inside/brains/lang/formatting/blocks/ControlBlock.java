@@ -50,7 +50,7 @@ public class ControlBlock extends AbstractQBlock {
             if (type == QTypes.SEMICOLON) {
                 return new LeafBlock(node, formatter, null, expressionAlignment, NORMAL_INDENT);
             }
-            return new CodeBlock(node, formatter, wrapCode, expressionAlignment, NORMAL_INDENT);
+            return createBlock(node, formatter, wrapCode, expressionAlignment, NORMAL_INDENT);
         });
     }
 
