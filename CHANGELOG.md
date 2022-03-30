@@ -2,6 +2,15 @@
 
 # KdbInsideBrains Changelog
 
+## [0.23.0]
+
+### Fixed
+
+- Hovering for striped tables is not shown.
+- TableView background is not correct if 'stripe table' is disabled for keyed tables.
+- Disabling 'wrap string' option also disables 'Stripe table' option.
+- Key column symbol is not shown for keyed table but dictionary.
+
 ## [0.22.0]
 
 ### Added
@@ -57,8 +66,8 @@
   - **Crosshair tool** - to show current values for the mouse position
   - **Measure tool** - draw measuring rectangles on the chart with values diff: left mouse click to start, move, left
     mouse click to finish. Esc to cancel current drawing.
-  - **Points collector** - save any chart clicked values into the points collector table with ability to export or
-    send into another KDB instance.
+  - **Points collector** - save any chart clicked values into the points collector table with ability to export or send
+    into another KDB instance.
 
 ## [0.18.1]
 

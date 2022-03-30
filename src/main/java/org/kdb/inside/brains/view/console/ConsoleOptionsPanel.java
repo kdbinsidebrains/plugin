@@ -42,7 +42,7 @@ public class ConsoleOptionsPanel extends JPanel {
         consoleOptions.setFloatPrecision(floatPrecisionEditor.getNumber());
         consoleOptions.setWrapStrings(wrapString.isSelected());
         consoleOptions.setPrefixSymbols(prefixSymbols.isSelected());
-        consoleOptions.setStriped(wrapString.isSelected());
+        consoleOptions.setStriped(striped.isSelected());
         consoleOptions.setShowGrid(showGrid.isSelected());
         consoleOptions.setListAsTable(listAsTable.isSelected());
         consoleOptions.setDictAsTable(dictAsTable.isSelected());
