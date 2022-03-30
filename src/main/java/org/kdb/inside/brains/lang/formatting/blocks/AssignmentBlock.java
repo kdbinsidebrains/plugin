@@ -26,7 +26,7 @@ public class AssignmentBlock extends CodeBlock {
     @Override
     protected List<Block> buildChildren() {
         final Alignment alignment = Alignment.createAlignment();
-        return iterateChildren(myNode, child -> {
+        return iterateChildren(child -> {
             final IElementType elementType = child.getElementType();
             if (elementType == QTypes.VAR_INDEXING) {
                 return createBlock(child, formatter);

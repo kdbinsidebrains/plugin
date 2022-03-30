@@ -31,7 +31,7 @@ public class LambdaBlock extends AbstractQBlock {
 
         final Alignment braceAlignment = custom.LAMBDA_ALIGN_BRACE ? Alignment.createAlignment() : null;
 
-        return iterateChildren(myNode, child -> {
+        return iterateChildren(child -> {
             final IElementType elementType = child.getElementType();
             if (elementType == QTypes.PARAMETERS) {
                 return BracketsBlock.parameters(child, formatter, null, null, NORMAL_INDENT);

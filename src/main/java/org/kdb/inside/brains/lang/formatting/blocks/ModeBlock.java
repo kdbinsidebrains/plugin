@@ -28,7 +28,7 @@ public class ModeBlock extends AbstractQBlock {
         final QCodeStyleSettings custom = formatter.custom;
         final Wrap wrap = Wrap.createWrap(custom.MODE_WRAP_TYPE, false);
         final Alignment alignment = custom.MODE_ALIGN ? Alignment.createAlignment() : null;
-        return iterateChildren(myNode, node -> {
+        return iterateChildren(node -> {
             if (node.getElementType() == QTypes.MODE_PATTERN) {
                 return new LeafBlock(node, formatter);
             }

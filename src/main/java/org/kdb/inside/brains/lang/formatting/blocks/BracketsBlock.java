@@ -57,7 +57,7 @@ public class BracketsBlock extends AbstractQBlock {
         final Alignment bracketAlignment = descriptor.alignBrac.apply(custom) ? Alignment.createChildAlignment(rootAlignment) : null;
         final Alignment expressionAlignment = descriptor.alignExpr.apply(custom) ? Alignment.createChildAlignment(rootAlignment) : null;
 
-        return iterateChildren(myNode, node -> {
+        return iterateChildren(node -> {
             final IElementType type = node.getElementType();
             if (type == descriptor.open) {
                 return new LeafBlock(node, formatter, null, rootAlignment, NONE_INDENT);

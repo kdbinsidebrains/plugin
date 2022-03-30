@@ -101,6 +101,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new ControlBlock(node, formatter, wrap, alignment, indent);
         }
 
+        if (type == QTypes.QUERY_EXPR) {
+            return new QueryBlock(node, formatter, wrap, alignment, indent);
+        }
+
         // One value wrapper type which should be expanded
         if (isWrapperType(type)) {
             return createBlock(getFirstNotEmptyChild(node), formatter, wrap, alignment, indent);
@@ -160,7 +164,8 @@ public abstract class AbstractQBlock extends AbstractBlock {
         return formatter.getSpacing(this, child1, child2);
     }
 
-    protected List<Block> iterateFromChild(ASTNode child, Function<ASTNode, Block> consumer) {
+    protected final List<Block> iterateChildren(Function<ASTNode, Block> consumer) {
+        ASTNode child = getFirstNotEmptyChild(myNode);
         final List<Block> result = new ArrayList<>();
         while (child != null) {
             final Block block = consumer.apply(child);
@@ -170,14 +175,6 @@ public abstract class AbstractQBlock extends AbstractBlock {
             child = getNextNotEmptySibling(child);
         }
         return result;
-    }
-
-    protected final List<Block> iterateChildren(ASTNode node, Function<ASTNode, Block> consumer) {
-        return iterateFromChild(getFirstNotEmptyChild(node), consumer);
-    }
-
-    protected final List<Block> iterateSiblings(ASTNode currentNode, Function<ASTNode, Block> consumer) {
-        return iterateFromChild(getNextNotEmptySibling(currentNode), consumer);
     }
 
     protected ASTNode getFirstNotEmptyChild(@NotNull ASTNode node) {
