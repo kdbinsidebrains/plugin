@@ -8,7 +8,6 @@ import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
 
-import javax.swing.table.DefaultTableCellRenderer;
 import java.lang.reflect.Array;
 import java.sql.Date;
 import java.sql.Time;
@@ -57,46 +56,12 @@ public final class KdbOutputFormatter {
         return formatObject(object);
     }
 
-    public DefaultTableCellRenderer createCellRenderer() {
-        return createCellRenderer(true);
-    }
-
-    public DefaultTableCellRenderer createCellRenderer(boolean useOptions) {
-        return new DefaultTableCellRenderer() {
-            @Override
-            protected void setValue(Object value) {
-                setText(valueToString(value));
-            }
-
-            private String valueToString(Object value) {
-                if (useOptions) {
-                    if (value instanceof String && !options.isPrefixSymbols()) {
-                        return String.valueOf(value);
-                    } else if (value instanceof char[] && !options.isWrapStrings()) {
-                        return new String((char[]) value);
-                    } else if (value instanceof Character && !options.isWrapStrings()) {
-                        return String.valueOf(value);
-                    }
-                }
-                return formatObject(value);
-            }
-        };
-    }
-
     public static KdbOutputFormatter getInstance() {
         if (instance == null) {
             instance = new KdbOutputFormatter(KdbSettingsService.getInstance().getConsoleOptions());
         }
         return instance;
     }
-
-    /*
-
-    public String convertResult(KdbResult result) {
-        return convertObject(result.getObject());
-    }
-*/
-
 
     private String formatObject(Object v) {
         if (v == null) {

@@ -10,6 +10,7 @@ import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
@@ -58,29 +59,50 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         this.repeater = repeater;
 
         final var options = KdbSettingsService.getInstance().getConsoleOptions();
-        final var valueColumnRenderer = formatter.createCellRenderer();
-
-        myTable = new JBTable(TableResult.EMPTY_MODEL) {
+        final var valueColumnRenderer = new DefaultTableCellRenderer() {
             @Override
-            public @NotNull Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
-                final Component c = super.prepareRenderer(renderer, row, column);
-                final TableColumn tableColumn = getColumnModel().getColumn(column);
-                tableColumn.setPreferredWidth(max(c.getPreferredSize().width + getIntercellSpacing().width + 10, tableColumn.getPreferredWidth()));
-
-                if (getModel().isKeyColumn(column)) {
-                    c.setBackground(UIUtils.getKeyColumnColor(c.getBackground()));
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                final Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (!isSelected) {
+                    if (options.isStriped() && row % 2 == 0) {
+                        c.setBackground(UIUtil.getDecoratedRowColor());
+                    } else {
+                        c.setBackground(table.getBackground());
+                    }
                 }
                 return c;
             }
 
             @Override
-            protected void createDefaultRenderers() {
-                defaultRenderersByColumnClass = new UIDefaults(8, 0.75f);
+            protected void setValue(Object value) {
+                setText(valueToString(value));
             }
 
+            private String valueToString(Object value) {
+                if (value instanceof String && !options.isPrefixSymbols()) {
+                    return String.valueOf(value);
+                } else if (value instanceof char[] && !options.isWrapStrings()) {
+                    return new String((char[]) value);
+                } else if (value instanceof Character && !options.isWrapStrings()) {
+                    return String.valueOf(value);
+                }
+                return formatter.objectToString(value);
+            }
+        };
+
+        myTable = new JBTable(TableResult.EMPTY_MODEL) {
             @Override
-            protected void createDefaultEditors() {
-                defaultEditorsByColumnClass = new UIDefaults(3, 0.75f);
+            public @NotNull Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
+                final Component c = super.prepareRenderer(renderer, row, column);
+
+                final TableColumn tableColumn = getColumnModel().getColumn(column);
+                tableColumn.setPreferredWidth(max(c.getPreferredSize().width + getIntercellSpacing().width + 10, tableColumn.getPreferredWidth()));
+
+                final boolean keyColumn = getModel().isKeyColumn(column);
+                if (keyColumn) {
+                    c.setBackground(UIUtils.getKeyColumnColor(c.getBackground()));
+                }
+                return c;
             }
 
             @Override
@@ -123,7 +145,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             }
         };
 
-        myTable.setStriped(options.isStriped());
+        myTable.setStriped(false);
         myTable.setShowGrid(options.isShowGrid());
 
         myTable.setShowColumns(true);

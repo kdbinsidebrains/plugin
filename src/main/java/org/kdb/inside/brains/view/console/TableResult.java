@@ -222,7 +222,7 @@ public class TableResult {
 
         @SuppressWarnings("unchecked")
         public QColumnInfo(String name, Class<?> columnClass, boolean key) {
-            super(name);
+            super((key ? KEY_COLUMN_PREFIX : "") + name);
             this.key = key;
             this.columnClass = columnClass;
 
@@ -255,7 +255,7 @@ public class TableResult {
 
         static QColumnInfo[] of(c.Dict dict) {
             return new QColumnInfo[]{
-                    new QColumnInfo(KEY_COLUMN_PREFIX + "Key", dict.x.getClass().getComponentType(), true),
+                    new QColumnInfo("Key", dict.x.getClass().getComponentType(), true),
                     new QColumnInfo("Value", dict.y.getClass().getComponentType(), false)
             };
         }
