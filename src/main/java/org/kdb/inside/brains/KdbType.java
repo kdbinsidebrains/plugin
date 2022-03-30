@@ -254,10 +254,13 @@ public enum KdbType implements Type {
     }
 
     public static KdbType typeOf(Class<?> clazz) {
+        final KdbType kdbType;
         if (clazz.isPrimitive()) {
-            return classToType.get(Primitives.wrap(clazz));
+            kdbType = classToType.get(Primitives.wrap(clazz));
+        } else {
+            kdbType = classToType.get(clazz);
         }
-        return classToType.get(clazz);
+        return kdbType == null ? ANY : kdbType;
     }
 
     public static KdbType listOf(KdbType type) {

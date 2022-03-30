@@ -2,6 +2,16 @@
 
 # KdbInsideBrains Changelog
 
+## [0.22.0]
+
+### Added
+
+- a list shown in a TableView (can be disabled in options. Enabled by default.)
+
+### Changed
+
+- a dict in a TableView can be disabled in options
+
 ## [0.21.1]
 
 ### Fixed

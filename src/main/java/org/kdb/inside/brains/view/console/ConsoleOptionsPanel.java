@@ -13,6 +13,8 @@ public class ConsoleOptionsPanel extends JPanel {
     private final JBCheckBox prefixSymbols = new JBCheckBox("Prefix symbols with grave accent");
     private final JBCheckBox showGrid = new JBCheckBox("Show table grid");
     private final JBCheckBox striped = new JBCheckBox("Stripe table rows");
+    private final JBCheckBox listAsTable = new JBCheckBox("Show list as table");
+    private final JBCheckBox dictAsTable = new JBCheckBox("Show dict as table");
     private final JBIntSpinner floatPrecisionEditor = new JBIntSpinner(7, 0, 20);
 
     public ConsoleOptionsPanel() {
@@ -26,6 +28,8 @@ public class ConsoleOptionsPanel extends JPanel {
         formBuilder.addComponent(enlistArrays);
         formBuilder.addComponent(wrapString);
         formBuilder.addComponent(prefixSymbols);
+        formBuilder.addComponent(listAsTable);
+        formBuilder.addComponent(dictAsTable);
         formBuilder.addLabeledComponent("Float precision: ", floatPrecisionEditor);
 
         add(formBuilder.getPanel());
@@ -40,6 +44,8 @@ public class ConsoleOptionsPanel extends JPanel {
         consoleOptions.setPrefixSymbols(prefixSymbols.isSelected());
         consoleOptions.setStriped(wrapString.isSelected());
         consoleOptions.setShowGrid(showGrid.isSelected());
+        consoleOptions.setListAsTable(listAsTable.isSelected());
+        consoleOptions.setDictAsTable(dictAsTable.isSelected());
         return consoleOptions;
     }
 
@@ -50,5 +56,7 @@ public class ConsoleOptionsPanel extends JPanel {
         prefixSymbols.setSelected(consoleOptions.isPrefixSymbols());
         striped.setSelected(consoleOptions.isStriped());
         showGrid.setSelected(consoleOptions.isShowGrid());
+        listAsTable.setSelected(consoleOptions.isListAsTable());
+        dictAsTable.setSelected(consoleOptions.isDictAsTable());
     }
 }

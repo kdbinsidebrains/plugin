@@ -4,8 +4,10 @@ import com.intellij.util.ui.ColumnInfo;
 import kx.c;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
+import org.kdb.inside.brains.settings.KdbSettingsService;
 
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
@@ -45,6 +47,9 @@ public class TableResult {
 
     public static TableResult from(KdbQuery query, KdbResult result) {
         final Object k = result.getObject();
+        if (k == null) {
+            return null;
+        }
 
         QTableModel model = null;
         if (k instanceof c.Flip) {
@@ -52,10 +57,12 @@ public class TableResult {
         } else if (k instanceof c.Dict) {
             final c.Dict dict = (c.Dict) k;
             if (dict.x instanceof c.Flip && dict.y instanceof c.Flip) {
-                model = new KeyedTableMode((c.Flip) dict.x, (c.Flip) dict.y);
-            } else {
-                model = new DictTableMode(dict);
+                model = new KeyedTableModel((c.Flip) dict.x, (c.Flip) dict.y);
+            } else if (KdbSettingsService.getInstance().getConsoleOptions().isDictAsTable()) {
+                model = new DictTableModel(dict);
             }
+        } else if (k.getClass().isArray() && KdbSettingsService.getInstance().getConsoleOptions().isListAsTable()) {
+            model = new ListTableModel(k);
         }
         return model == null ? null : new TableResult(query, result, model);
     }
@@ -124,10 +131,33 @@ public class TableResult {
         }
     }
 
-    public static class DictTableMode extends QTableModel {
+    public static class ListTableModel extends QTableModel {
+        private final Object array;
+
+        protected ListTableModel(Object array) {
+            this(array, array.getClass().getComponentType());
+        }
+
+        private ListTableModel(Object array, Class<?> type) {
+            super(new QColumnInfo[]{new QColumnInfo(KdbType.typeOf(type).getTypeName(), type, false)});
+            this.array = array;
+        }
+
+        @Override
+        public int getRowCount() {
+            return Array.getLength(array);
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            return Array.get(array, rowIndex);
+        }
+    }
+
+    public static class DictTableModel extends QTableModel {
         final c.Dict dict;
 
-        private DictTableMode(c.Dict dict) {
+        private DictTableModel(c.Dict dict) {
             super(QColumnInfo.of(dict));
             this.dict = dict;
         }
@@ -144,11 +174,11 @@ public class TableResult {
         }
     }
 
-    public static class KeyedTableMode extends QTableModel {
+    public static class KeyedTableModel extends QTableModel {
         final c.Flip keys;
         final c.Flip values;
 
-        public KeyedTableMode(c.Flip keys, c.Flip values) {
+        public KeyedTableModel(c.Flip keys, c.Flip values) {
             super(QColumnInfo.of(keys, values));
             this.keys = keys;
             this.values = values;
