@@ -26,18 +26,18 @@ public class AssignmentBlock extends CodeBlock {
     @Override
     protected List<Block> buildChildren() {
         final Alignment alignment = Alignment.createAlignment();
-        return iterateChildren(child -> {
-            final IElementType elementType = child.getElementType();
+        return iterateChildren((node, first) -> {
+            final IElementType elementType = node.getElementType();
             if (elementType == QTypes.VAR_INDEXING) {
-                return createBlock(child, formatter);
+                return createBlock(node, formatter);
             }
             if (elementType == QTypes.VAR_DECLARATION) {
-                return new LeafBlock(child, formatter);
+                return new LeafBlock(node, formatter);
             }
             if (elementType == QTypes.ASSIGNMENT_TYPE) {
-                return new LeafBlock(child, formatter, null, alignment, NORMAL_INDENT);
+                return new LeafBlock(node, formatter, null, alignment, NORMAL_INDENT);
             }
-            return createBlock(child, formatter, null, null, NORMAL_INDENT);
+            return createBlock(node, formatter, NORMAL_INDENT);
         });
     }
 }

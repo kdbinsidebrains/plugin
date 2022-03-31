@@ -28,8 +28,7 @@ tbl3:(
 
 
 select col1,
-     col2
-   		   ,{x*y}'[col1;col2]
+             col2       ,       {x*y}   '       [col1;col2]
    	 by key1,
 
            key2

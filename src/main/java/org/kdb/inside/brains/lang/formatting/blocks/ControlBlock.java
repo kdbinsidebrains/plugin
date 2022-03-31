@@ -36,7 +36,7 @@ public class ControlBlock extends AbstractQBlock {
         final Alignment bracketAlignment = controlType.alignBracket(settings) ? Alignment.createChildAlignment(rootAlignment) : null;
         final Alignment expressionAlignment = controlType.alignExpr(settings) ? Alignment.createChildAlignment(rootAlignment) : null;
 
-        return iterateChildren(node -> {
+        return iterateChildren((node, first) -> {
             final IElementType type = node.getElementType();
             if (controlNode == node) {
                 return new LeafBlock(node, formatter);

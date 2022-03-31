@@ -13,8 +13,8 @@ import org.kdb.inside.brains.psi.QTypes;
 
 import java.util.List;
 
-public class ModeBlock extends AbstractQBlock {
-    public ModeBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
+public class ColumnsBlock extends AbstractQBlock {
+    public ColumnsBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);
     }
 
@@ -26,16 +26,11 @@ public class ModeBlock extends AbstractQBlock {
     @Override
     protected List<Block> buildChildren() {
         final QCodeStyleSettings custom = formatter.custom;
-        final Wrap wrap = Wrap.createWrap(custom.MODE_WRAP_TYPE, false);
-        final Alignment alignment = custom.MODE_ALIGN ? Alignment.createAlignment() : null;
+        final Wrap wrap = Wrap.createWrap(custom.QUERY_WRAP_COLUMNS, false);
+        final Alignment alignment = custom.QUERY_COLUMNS_ALIGN ? Alignment.createAlignment() : null;
         return iterateChildren((node, first) -> {
-            if (node.getElementType() == QTypes.MODE_PATTERN) {
-                return new LeafBlock(node, formatter);
-            }
-            if (node.getElementType() == QTypes.SEMICOLON) {
-                return createBlock(node, formatter, null, alignment, NORMAL_INDENT);
-            }
-            return createBlock(node, formatter, wrap, alignment, NORMAL_INDENT);
+            final Wrap w = node.getElementType() == QTypes.QUERY_SPLITTER ? null : wrap;
+            return createBlock(node, formatter, w, alignment, NORMAL_INDENT);
         });
     }
 }

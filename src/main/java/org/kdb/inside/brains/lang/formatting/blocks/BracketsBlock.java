@@ -16,11 +16,12 @@ import java.util.List;
 import java.util.function.Function;
 
 public class BracketsBlock extends AbstractQBlock {
+    private final Descriptor descriptor;
+
     private static final Descriptor GROUPING = new Descriptor(QTypes.BRACKET_OPEN, QTypes.BRACKET_CLOSE, c -> c.GROUPING_WRAP, c -> c.GROUPING_ALIGN_BRACKET, c -> c.GROUPING_ALIGN_EXPRS);
     private static final Descriptor ARGUMENTS = new Descriptor(QTypes.BRACKET_OPEN, QTypes.BRACKET_CLOSE, c -> c.ARGUMENTS_WRAP, c -> c.ARGUMENTS_ALIGN_BRACKET, c -> c.ARGUMENTS_ALIGN_EXPRS);
     private static final Descriptor PARAMETERS = new Descriptor(QTypes.BRACKET_OPEN, QTypes.BRACKET_CLOSE, c -> c.LAMBDA_PARAMS_WRAP, c -> c.LAMBDA_PARAMS_ALIGN_BRACKETS, c -> c.LAMBDA_PARAMS_ALIGN_NAMES);
     private static final Descriptor PARENTHESES = new Descriptor(QTypes.PAREN_OPEN, QTypes.PAREN_CLOSE, c -> c.PARENTHESES_WRAP, c -> c.PARENTHESES_ALIGN_PAREN, c -> c.PARENTHESES_ALIGN_EXPRS);
-    private final Descriptor descriptor;
 
     private BracketsBlock(@NotNull Descriptor descriptor, @NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);
@@ -53,14 +54,13 @@ public class BracketsBlock extends AbstractQBlock {
         final QCodeStyleSettings custom = formatter.custom;
 
         final Wrap wrap = Wrap.createWrap(descriptor.wrap.apply(custom), true);
-        final Alignment rootAlignment = Alignment.createAlignment();
-        final Alignment bracketAlignment = descriptor.alignBrac.apply(custom) ? Alignment.createChildAlignment(rootAlignment) : null;
-        final Alignment expressionAlignment = descriptor.alignExpr.apply(custom) ? Alignment.createChildAlignment(rootAlignment) : null;
+        final Alignment bracketAlignment = descriptor.alignBrac.apply(custom) ? Alignment.createAlignment() : null;
+        final Alignment expressionAlignment = descriptor.alignExpr.apply(custom) ? Alignment.createAlignment() : null;
 
-        return iterateChildren(node -> {
+        return iterateChildren((node, first) -> {
             final IElementType type = node.getElementType();
             if (type == descriptor.open) {
-                return new LeafBlock(node, formatter, null, rootAlignment, NONE_INDENT);
+                return new LeafBlock(node, formatter, null, bracketAlignment, NONE_INDENT);
             }
             if (type == descriptor.close) {
                 return new LeafBlock(node, formatter, null, bracketAlignment, NORMAL_INDENT);

@@ -11,17 +11,22 @@ import org.kdb.inside.brains.lang.formatting.QFormatter;
 
 import java.util.List;
 
-public class CodeBlock extends AbstractQBlock {
-    public CodeBlock(@NotNull ASTNode node, @NotNull QFormatter formatter) {
+public class IndentedBlock extends AbstractQBlock {
+    public IndentedBlock(@NotNull ASTNode node, @NotNull QFormatter formatter) {
         super(node, formatter);
     }
 
-    public CodeBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
+    public IndentedBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);
     }
 
     @Override
+    protected Indent getChildIndent() {
+        return NORMAL_INDENT;
+    }
+
+    @Override
     protected List<Block> buildChildren() {
-        return iterateChildren((node, first) -> createBlock(node, formatter));
+        return iterateChildren((node, first) -> IndentedBlock.this.createBlock(node, formatter, null, null, first ? NONE_INDENT : NORMAL_INDENT));
     }
 }

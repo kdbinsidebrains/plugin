@@ -98,6 +98,13 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean MODE_ALIGN = true;
     public boolean MODE_SPACE_AFTER = true;
 
+    // Query
+    public int QUERY_WRAP_PARTS = CommonCodeStyleSettings.WRAP_AS_NEEDED;
+    public int QUERY_WRAP_COLUMNS = CommonCodeStyleSettings.DO_NOT_WRAP;
+    public boolean QUERY_PARTS_ALIGN = true;
+    public boolean QUERY_COLUMNS_ALIGN = true;
+    public boolean QUERY_SPACE_AFTER_COMMA = true;
+
     protected QCodeStyleSettings(CodeStyleSettings container) {
         super("QCodeStyleSettings", container);
     }

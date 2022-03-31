@@ -126,6 +126,12 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         consumer.showCustomOption(QCodeStyleSettings.class, "IMPORT_TRIM_TAIL", "Trim spaces after import command", commands);
         consumer.showCustomOption(QCodeStyleSettings.class, "CONTEXT_TRIM_TAIL", "Trim spaces after context command", commands);
 
+        // Query
+        final String query = "Query (select by from)";
+        consumer.showCustomOption(QCodeStyleSettings.class, "QUERY_SPACE_AFTER_COMMA", "After column's comma", query);
+//        consumer.showCustomOption(QCodeStyleSettings.class, "CONTEXT_TRIM_TAIL", "Trim spaces after context command", query);
+
+
         final String other = "Other";
         consumer.showCustomOption(QCodeStyleSettings.class, "RETURN_SPACE_AFTER_COLON", "After return colon", other);
         consumer.showCustomOption(QCodeStyleSettings.class, "SIGNAL_SPACE_AFTER_SIGNAL", "After signal apostrophe", other);
@@ -185,6 +191,13 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_ALIGN_BRACKETS", "Align parameter brackets when multiline", lambda);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_LBRACKET_ON_NEXT_LINE", "New line after '['", lambda);
         consumer.showCustomOption(QCodeStyleSettings.class, "LAMBDA_PARAMS_RBRACKET_ON_NEXT_LINE", "Place ']' on new line", lambda);
+
+        // Query
+        final String query = "Query (select by from)";
+        consumer.showCustomOption(QCodeStyleSettings.class, "QUERY_WRAP_PARTS", "Wrap parts", query, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "QUERY_PARTS_ALIGN", "Align parts by right", query);
+        consumer.showCustomOption(QCodeStyleSettings.class, "QUERY_WRAP_COLUMNS", "Wrap columns", query, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);
+        consumer.showCustomOption(QCodeStyleSettings.class, "QUERY_COLUMNS_ALIGN", "Align columns when multiline", query);
 
         final String mode = "Mode (k), M), ...)";
         consumer.showCustomOption(QCodeStyleSettings.class, "MODE_WRAP_TYPE", mode, null, getInstance().WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES);

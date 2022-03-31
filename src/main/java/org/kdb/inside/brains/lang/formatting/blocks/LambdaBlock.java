@@ -31,22 +31,22 @@ public class LambdaBlock extends AbstractQBlock {
 
         final Alignment braceAlignment = custom.LAMBDA_ALIGN_BRACE ? Alignment.createAlignment() : null;
 
-        return iterateChildren(child -> {
-            final IElementType elementType = child.getElementType();
+        return iterateChildren((node, first) -> {
+            final IElementType elementType = node.getElementType();
             if (elementType == QTypes.PARAMETERS) {
-                return BracketsBlock.parameters(child, formatter, null, null, NORMAL_INDENT);
+                return BracketsBlock.parameters(node, formatter, null, null, NORMAL_INDENT);
             }
             if (elementType == QTypes.EXPRESSIONS) {
-                return createBlock(child, formatter, null, null, NORMAL_INDENT);
+                return createBlock(node, formatter, NORMAL_INDENT);
             }
             if (elementType == QTypes.BRACE_OPEN) {
-                return new LeafBlock(child, formatter, null, braceAlignment, NONE_INDENT);
+                return new LeafBlock(node, formatter, null, braceAlignment, NONE_INDENT);
             }
             if (elementType == QTypes.BRACE_CLOSE) {
                 final Indent indent = custom.LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE && ElementContext.of(myNode) == null ? SPACE_INDENT : NONE_INDENT;
-                return new LeafBlock(child, formatter, null, braceAlignment, indent);
+                return new LeafBlock(node, formatter, null, braceAlignment, indent);
             }
-            return new LeafBlock(child, formatter);
+            return new LeafBlock(node, formatter);
         });
     }
 }

@@ -102,6 +102,15 @@ public class QSpacingStrategy {
         // Mode
         builder.after(QTypes.MODE_PATTERN).spaceIf(custom.MODE_SPACE_AFTER);
 
+        // Query
+        builder.after(QTypes.QUERY_TYPE).spaces(1);
+        builder.after(QTypes.QUERY_BY).spaces(1);
+        builder.after(QTypes.QUERY_FROM).spaces(1);
+        builder.after(QTypes.QUERY_SPLITTER).spaceIf(custom.QUERY_SPACE_AFTER_COMMA);
+        builder.before(QTypes.QUERY_BY).spaces(1);
+        builder.before(QTypes.QUERY_FROM).spaces(1);
+        builder.before(QTypes.QUERY_SPLITTER).spaces(0);
+
         // Predefined
         builder.after(QTypes.COMMAND_SYSTEM).spaces(1);
         builder.after(QTypes.COMMAND_IMPORT).spaces(1);

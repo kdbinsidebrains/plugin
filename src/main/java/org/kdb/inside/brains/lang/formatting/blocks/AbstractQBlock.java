@@ -13,7 +13,6 @@ import org.kdb.inside.brains.psi.QTypes;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 public abstract class AbstractQBlock extends AbstractBlock {
     protected static final Indent NONE_INDENT = Indent.getNoneIndent();
@@ -52,7 +51,11 @@ public abstract class AbstractQBlock extends AbstractBlock {
     }
 
     protected @Nullable Block createBlock(@Nullable ASTNode node, @NotNull QFormatter formatter) {
-        return createBlock(node, formatter, null, null, NONE_INDENT);
+        return createBlock(node, formatter, NONE_INDENT);
+    }
+
+    protected @Nullable Block createBlock(@Nullable ASTNode node, @NotNull QFormatter formatter, @NotNull Indent indent) {
+        return createBlock(node, formatter, null, null, indent);
     }
 
     protected @Nullable Block createBlock(@Nullable ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
@@ -81,10 +84,6 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new AssignmentBlock(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.INVOKE_FUNCTION) {
-            return new CodeBlock(node, formatter, wrap, alignment, indent);
-        }
-
         if (type == QTypes.ARGUMENTS) {
             return BracketsBlock.arguments(node, formatter, wrap, alignment, indent);
         }
@@ -104,6 +103,9 @@ public abstract class AbstractQBlock extends AbstractBlock {
         if (type == QTypes.QUERY_EXPR) {
             return new QueryBlock(node, formatter, wrap, alignment, indent);
         }
+        if (type == QTypes.QUERY_KEYS || type == QTypes.QUERY_VALUES) {
+            return new ColumnsBlock(node, formatter, wrap, alignment, indent);
+        }
 
         // One value wrapper type which should be expanded
         if (isWrapperType(type)) {
@@ -112,6 +114,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
         if (isExpressionType(type)) {
             return new CodeBlock(node, formatter, wrap, alignment, indent);
+        }
+
+        if (isIndentedExpression(type)) {
+            return new IndentedBlock(node, formatter, wrap, alignment, indent);
         }
 
         if (isPrimitiveType(type)) {
@@ -135,16 +141,16 @@ public abstract class AbstractQBlock extends AbstractBlock {
         return type == QTypes.INVOKE_OPERATOR
                 || type == QTypes.OPERATOR_TYPE
                 || type == QTypes.SYSTEM_FUNCTION
+                || type == QTypes.QUERY_COLUMN
                 ;
     }
 
     private boolean isExpressionType(IElementType type) {
-        return type == QTypes.ASSIGNMENT_EXPR
-                || type == QTypes.EXPRESSIONS
+        return type == QTypes.EXPRESSIONS
+                || type == QTypes.INVOKE_FUNCTION
                 || type == QTypes.SIGNAL_EXPR
                 || type == QTypes.RETURN_EXPR
                 || type == QTypes.PREFIX_INVOKE_EXPR
-                || type == QTypes.FUNCTION_INVOKE_EXPR
                 || type == QTypes.PARENTHESES_INVOKE_EXPR
                 || type == QTypes.ITERATOR_TYPE
                 || type == QTypes.CONTEXT
@@ -159,19 +165,26 @@ public abstract class AbstractQBlock extends AbstractBlock {
                 ;
     }
 
+    private boolean isIndentedExpression(IElementType type) {
+        return type == QTypes.FUNCTION_INVOKE_EXPR
+                ;
+    }
+
     @Override
     public @Nullable Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
         return formatter.getSpacing(this, child1, child2);
     }
 
-    protected final List<Block> iterateChildren(Function<ASTNode, Block> consumer) {
+    protected final List<Block> iterateChildren(ChildrenIterator iterator) {
+        boolean first = true;
         ASTNode child = getFirstNotEmptyChild(myNode);
         final List<Block> result = new ArrayList<>();
         while (child != null) {
-            final Block block = consumer.apply(child);
+            final Block block = iterator.createBlock(child, first);
             if (block != null) {
                 result.add(block);
             }
+            first = false;
             child = getNextNotEmptySibling(child);
         }
         return result;
@@ -195,5 +208,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
     protected boolean isEmptyNode(@NotNull ASTNode child) {
         return FormatterUtil.containsWhiteSpacesOnly(child) || child.getTextLength() <= 0;
+    }
+
+    @FunctionalInterface
+    protected interface ChildrenIterator {
+        Block createBlock(ASTNode node, boolean first);
     }
 }
