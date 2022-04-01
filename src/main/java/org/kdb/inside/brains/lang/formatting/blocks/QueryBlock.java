@@ -29,18 +29,23 @@ public class QueryBlock extends AbstractQBlock {
         final QCodeStyleSettings custom = formatter.custom;
 
         final Wrap wrap = Wrap.createWrap(custom.QUERY_WRAP_PARTS, false);
-        final Alignment alignment = custom.QUERY_PARTS_ALIGN ? Alignment.createAlignment(true, Alignment.Anchor.RIGHT) : null;
+        final Alignment alignment = custom.QUERY_PARTS_ALIGN ? Alignment.createAlignment(false, Alignment.Anchor.RIGHT) : null;
 
         return iterateChildren((node, first) -> {
             final IElementType type = node.getElementType();
 
-            final Indent indent = first ? NONE_INDENT : NORMAL_INDENT;
-            final Wrap w = wrappingType(type) ? wrap : null;
-            return createBlock(node, formatter, w, alignment, indent);
-        });
-    }
+            if (type == QTypes.QUERY_TYPE) {
+                return new LeafBlock(node, formatter, wrap, alignment, NONE_INDENT);
+            }
 
-    private boolean wrappingType(IElementType type) {
-        return type == QTypes.QUERY_TYPE || type == QTypes.QUERY_BY || type == QTypes.QUERY_FROM;
+            if (type == QTypes.QUERY_BY || type == QTypes.QUERY_FROM || type == QTypes.QUERY_WHERE) {
+                return new LeafBlock(node, formatter, wrap, alignment, NORMAL_INDENT);
+            }
+
+            if (type == QTypes.QUERY_COLUMNS) {
+                return new ColumnsBlock(node, formatter, null, null, NORMAL_INDENT);
+            }
+            return createBlock(node, formatter, null, null, NORMAL_INDENT);
+        });
     }
 }

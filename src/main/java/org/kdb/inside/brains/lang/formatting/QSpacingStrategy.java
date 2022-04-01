@@ -104,12 +104,14 @@ public class QSpacingStrategy {
 
         // Query
         builder.after(QTypes.QUERY_TYPE).spaces(1);
-        builder.after(QTypes.QUERY_BY).spaces(1);
-        builder.after(QTypes.QUERY_FROM).spaces(1);
-        builder.after(QTypes.QUERY_SPLITTER).spaceIf(custom.QUERY_SPACE_AFTER_COMMA);
         builder.before(QTypes.QUERY_BY).spaces(1);
+        builder.after(QTypes.QUERY_BY).spaces(1);
         builder.before(QTypes.QUERY_FROM).spaces(1);
+        builder.after(QTypes.QUERY_FROM).spaces(1);
+        builder.before(QTypes.QUERY_WHERE).spaces(1);
+        builder.after(QTypes.QUERY_WHERE).spaces(1);
         builder.before(QTypes.QUERY_SPLITTER).spaces(0);
+        builder.after(QTypes.QUERY_SPLITTER).spaceIf(custom.QUERY_SPACE_AFTER_COMMA);
 
         // Predefined
         builder.after(QTypes.COMMAND_SYSTEM).spaces(1);

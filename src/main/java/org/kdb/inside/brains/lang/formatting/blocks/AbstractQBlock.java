@@ -2,6 +2,7 @@ package org.kdb.inside.brains.lang.formatting.blocks;
 
 import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.TokenType;
 import com.intellij.psi.formatter.FormatterUtil;
 import com.intellij.psi.formatter.common.AbstractBlock;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -103,9 +104,6 @@ public abstract class AbstractQBlock extends AbstractBlock {
         if (type == QTypes.QUERY_EXPR) {
             return new QueryBlock(node, formatter, wrap, alignment, indent);
         }
-        if (type == QTypes.QUERY_KEYS || type == QTypes.QUERY_VALUES) {
-            return new ColumnsBlock(node, formatter, wrap, alignment, indent);
-        }
 
         // One value wrapper type which should be expanded
         if (isWrapperType(type)) {
@@ -121,6 +119,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
         }
 
         if (isPrimitiveType(type)) {
+            return new LeafBlock(node, formatter, wrap, alignment, indent);
+        }
+
+        if (type == TokenType.ERROR_ELEMENT) {
             return new LeafBlock(node, formatter, wrap, alignment, indent);
         }
 

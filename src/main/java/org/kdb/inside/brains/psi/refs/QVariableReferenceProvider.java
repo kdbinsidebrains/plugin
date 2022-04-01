@@ -95,7 +95,7 @@ public class QVariableReferenceProvider extends QReferenceProvider<QVariable> {
         }
 
         private ResolveResult[] resolveQuery(QVariable var, QQueryExpr query) {
-            final QExpression expression = query.getExpression();
+            final QExpression expression = query.getSource();
             if (expression == null) {
                 return ResolveResult.EMPTY_ARRAY;
             }
@@ -106,7 +106,7 @@ public class QVariableReferenceProvider extends QReferenceProvider<QVariable> {
                 if (child instanceof QVarReference) {
                     refs.add((QVarReference) child);
                 }
-                if (child instanceof LeafPsiElement && "where".equals(child.getText())) {
+                if (child instanceof LeafPsiElement) {
                     break;
                 }
                 child = child.getNextSibling();

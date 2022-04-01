@@ -26,20 +26,23 @@ tbl3:(
 
     ;
 
+select  col1        ,        col2    by     key1 ,    key2      from    tbl3        where    col1    in`a`b`c   ,       (col2=10) or key2%2<-10;
 
-select col1,
-             col2       ,       {x*y}   '       [col1;col2]
-   	 by key1,
+query:{
+        select col1,
+                     col2       ,       {x*y}   '       [col1;col2]
+             by key1,
 
-           key2
- from
-   (
-       tbl1
-     ,
-   tbl2)
-   where
-   			cold2>var1,
-   					key1 in `this`is`key, col1 within (var2;globalVar1)
+                   key2
+         from
+           (
+               tbl1
+             ,
+           tbl2)
+           where
+                    cold2>var1,
+                            key1 in `this`is`key, col1 within (var2;globalVar1)
+ };
 
 pot:{   $   [   x   ;   `asdas  ;   23123   ]   };
 

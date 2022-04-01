@@ -2,9 +2,13 @@ package org.kdb.inside.brains;
 
 import com.intellij.psi.tree.IElementType;
 
+import java.util.Deque;
+import java.util.ArrayDeque;
+
+import static org.kdb.inside.brains.psi.QTypes.*;
+
 import static com.intellij.psi.TokenType.BAD_CHARACTER;
 import static com.intellij.psi.TokenType.WHITE_SPACE;
-import static org.kdb.inside.brains.psi.QTypes.*;
 
 %%
 
@@ -13,52 +17,30 @@ import static org.kdb.inside.brains.psi.QTypes.*;
 %unicode
 %function advance
 %type IElementType
-%eof{  return LINE_BREAK;
+
+%eof{
+    yyresetstate();
 %eof}
 
 %{
-    private int parensCount = 0;
-    private int bracesCount = 0;
-    private boolean queryParsing = false;
+    private final Deque<Integer> states = new ArrayDeque<>(10);
 
-    public QLexer() {
+    private QLexer() {
         this(null);
     }
 
-    public void beginQuery() {
-        queryParsing = true;
+    private void yypushstate(int state) {
+        states.push(yystate());
+        yybegin(state);
     }
 
-    public void finishQuery() {
-        queryParsing = false;
+    private void yypopstate() {
+        yybegin(states.isEmpty() ? YYINITIAL : states.pop());
     }
 
-    public void openParen() {
-        if (queryParsing) {
-            parensCount++;
-        }
-    }
-
-    public void closeParen() {
-        if (queryParsing) {
-            parensCount--;
-        }
-    }
-
-    public void openBrace() {
-        if (queryParsing) {
-            bracesCount++;
-        }
-    }
-
-    public void closeBrace() {
-        if (queryParsing) {
-            bracesCount--;
-        }
-    }
-
-    public boolean isQuerySplitter() {
-        return queryParsing && parensCount == 0 && bracesCount == 0;
+    private void yyresetstate() {
+        states.clear();
+        yybegin(YYINITIAL);
     }
 
     public boolean isNegativeSign() {
@@ -105,6 +87,9 @@ QueryType=(select|exec|update|delete)
 QueryGroup=(by)
 QueryFrom=(from)
 
+// Special case
+Where=(where)
+
 // (abs x) or abs[x]
 UnaryFunction=(abs|all|any|asc|iasc|attr|avg|avgs|ceiling|count|
     cols|cos|acos|deltas|desc|idesc|dev|sdev|differ|distinct|
@@ -114,7 +99,7 @@ UnaryFunction=(abs|all|any|asc|iasc|attr|avg|avgs|ceiling|count|
     mins|neg|next|prev|not|null|parse|prd|prds|rand|rank|ratios|
     raze|read0|read1|reciprocal|reverse|save|rsave|show|signum|sin|
     asin|sqrt|string|sum|sums|system|tables|tan|atan|til|trim|ltrim|rtrim|
-    type|value|var|svar|view|views|where|fills)
+    type|value|var|svar|view|views|fills)
 
 // and[x;y] or (x and y)
 BinaryFunction=(and|xasc|asof|mavg|wavg|bin|binr|mcount|xcol|
@@ -209,6 +194,8 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
     {TimestampList}|{TimeList}|{MonthList}|{DateList}|{DatetimeList}|{MinuteList}|{SecondList}
 
 %state MODE_STATE
+%state QUERY_COLUMNS_STATE
+%state QUERY_SOURCE_STATE
 %state ITERATOR_STATE
 %state COMMAND_IMPORT_STATE
 %state COMMAND_CONTEXT_STATE
@@ -224,13 +211,13 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 <COMMAND_IMPORT_STATE> {
   {LineSpace}+                               { return WHITE_SPACE; }
   {FilePath}                                 { return FILE_PATH_PATTERN; }
-  {NewLine}                                  { yybegin(YYINITIAL); return NEW_LINE; }
+  {NewLine}                                  { yyresetstate(); return NEW_LINE; }
 }
 
 <COMMAND_CONTEXT_STATE> {
   {LineSpace}+                               { return WHITE_SPACE; }
   {Variable}                                 { return VARIABLE_PATTERN;}
-  {NewLine}                                  { yybegin(YYINITIAL); return NEW_LINE; }
+  {NewLine}                                  { yyresetstate(); return NEW_LINE; }
 }
 
 <COMMAND_SYSTEM_STATE> {
@@ -238,7 +225,7 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 }
 
 <COMMAND_SYSTEM_ARGUMENTS_STATE> {
-  {NewLine}                                  { yybegin(YYINITIAL); return NEW_LINE; }
+  {NewLine}                                  { yyresetstate(); return NEW_LINE; }
   {WhiteSpace}+"/".*                         { yybegin(YYINITIAL); return LINE_COMMENT; }
   {CommandArguments}                         { return COMMAND_ARGUMENTS;}
 }
@@ -253,38 +240,46 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 }
 
 <NEGATIVE_ATOM_STATE> {
-  {Vector}                                   { yybegin(YYINITIAL); return VECTOR; }
-  {NegativeAtom}                             { yybegin(YYINITIAL); return SIGNED_ATOM; }
+  {Vector}                                   { yypopstate(); return VECTOR; }
+  {NegativeAtom}                             { yypopstate(); return SIGNED_ATOM; }
 }
 
-<YYINITIAL> {
+<QUERY_COLUMNS_STATE> {
+  ","                                        { return QUERY_SPLITTER; }
+}
+
+<QUERY_SOURCE_STATE> {
+  {Where}                                    { yybegin(YYINITIAL); return QUERY_WHERE; }
+}
+
+<YYINITIAL, QUERY_COLUMNS_STATE, QUERY_SOURCE_STATE> {
   "("{LineSpace}*")"                         { return VECTOR; }
   "("{LineSpace}*"::"{LineSpace}*")"         { return NILL; }
 
-  "("                                        { openParen(); return PAREN_OPEN; }
-  ")"                                        { closeParen(); return PAREN_CLOSE; }
-  ";"                                        { return SEMICOLON; }
-  "["                                        { return BRACKET_OPEN; }
-  "]"                                        { return BRACKET_CLOSE; }
-  "{"                                        { openBrace(); return BRACE_OPEN; }
-  "}"                                        { closeBrace(); return BRACE_CLOSE; }
+  "("                                        { yypushstate(YYINITIAL); return PAREN_OPEN; }
+  ")"                                        { yypopstate(); return PAREN_CLOSE; }
+  "["                                        { yypushstate(YYINITIAL); return BRACKET_OPEN; }
+  "]"                                        { yypopstate(); return BRACKET_CLOSE; }
+  "{"                                        { yypushstate(YYINITIAL); return BRACE_OPEN; }
+  "}"                                        { yypopstate(); return BRACE_CLOSE; }
+
   ":"                                        { return COLON; }
+  ";"                                        { yybegin(YYINITIAL); return SEMICOLON; }
 
   ","/{Iterator}                             { return ACCUMULATOR; }
-  // Special case - the comma is a splitter if it's inside a query (not not inside a lambda that's inside the query)
-  ","                                        { if(isQuerySplitter()) {return QUERY_SPLITTER; } else {return OPERATOR_COMMA;} }
+  ","                                        { return OPERATOR_COMMA; }
 
   {ControlKeyword}/{WhiteSpace}*"["          { return CONTROL_KEYWORD; }
   {ConditionKeyword}/{WhiteSpace}*"["        { return CONDITION_KEYWORD; }
 
-  {Iterator}/{NegativeAtom}                  { yybegin(NEGATIVE_ATOM_STATE); return ITERATOR; }
-  {WhiteSpace}/{NegativeAtom}                { yybegin(NEGATIVE_ATOM_STATE); return WHITE_SPACE; }
-  {OperatorEquality}/{NegativeAtom}          { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_EQUALITY;}
-  {OperatorOrder}/{NegativeAtom}             { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_ORDER;}
-  {OperatorArithmetic}/{NegativeAtom}        { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_ARITHMETIC;}
-  {OperatorWeight}/{NegativeAtom}            { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_WEIGHT;}
-  {OperatorExecute}/{NegativeAtom}           { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_EXECUTE;}
-  {OperatorOthers}/{NegativeAtom}            { yybegin(NEGATIVE_ATOM_STATE); return OPERATOR_OTHERS;}
+  {Iterator}/{NegativeAtom}                  { yypushstate(NEGATIVE_ATOM_STATE); return ITERATOR; }
+  {WhiteSpace}/{NegativeAtom}                { yypushstate(NEGATIVE_ATOM_STATE); return WHITE_SPACE; }
+  {OperatorEquality}/{NegativeAtom}          { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_EQUALITY;}
+  {OperatorOrder}/{NegativeAtom}             { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_ORDER;}
+  {OperatorArithmetic}/{NegativeAtom}        { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_ARITHMETIC;}
+  {OperatorWeight}/{NegativeAtom}            { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_WEIGHT;}
+  {OperatorExecute}/{NegativeAtom}           { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_EXECUTE;}
+  {OperatorOthers}/{NegativeAtom}            { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_OTHERS;}
 
   {Operator}/{Iterator}                      { return ACCUMULATOR; }
   {Iterator}                                 { return ITERATOR; }
@@ -302,9 +297,9 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   ^"\\"/{NewLine}                            { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }
   ^"/".*                                     { if (zzCurrentPos == 0 || zzBuffer.length() == zzCurrentPos || zzBuffer.charAt(zzCurrentPos - 1) == '\n' || zzBuffer.charAt(zzCurrentPos - 1) == '\r') { return LINE_COMMENT;} return ITERATOR; }
 
-  {NewLine}+                                 { finishQuery(); return NEW_LINE; }
+  {NewLine}+                                 { yyresetstate(); return NEW_LINE; }
 
-  ^"\\l"/{LineSpace}+!{NewLine}              { yybegin(COMMAND_IMPORT_STATE);  return COMMAND_IMPORT; }
+  ^"\\l"/{LineSpace}+!{NewLine}              { yybegin(COMMAND_IMPORT_STATE); return COMMAND_IMPORT; }
   "system"/{WhiteSpace}*"\"l "               { return FUNCTION_IMPORT; }
 
   ^"\\d"/{LineSpace}+!{NewLine}              { yybegin(COMMAND_CONTEXT_STATE); return COMMAND_CONTEXT; }
@@ -326,10 +321,11 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   {Symbol}                                   { return SYMBOL_PATTERN; }
   {WhiteSpace}                               { return WHITE_SPACE; }
 
-  {QueryType}                                { beginQuery(); return QUERY_TYPE; }
-  {QueryGroup}                               { return QUERY_BY; }
-  {QueryFrom}                                { finishQuery(); return QUERY_FROM; }
+  {QueryType}                                { yybegin(QUERY_COLUMNS_STATE); return QUERY_TYPE; }
+  {QueryGroup}                               { yybegin(QUERY_COLUMNS_STATE); return QUERY_BY; }
+  {QueryFrom}                                { yybegin(QUERY_SOURCE_STATE); return QUERY_FROM; }
 
+  {Where}                                    { return UNARY_FUNCTION; }
   {UnaryFunction}                            { return UNARY_FUNCTION; }
   {BinaryFunction}                           { return BINARY_FUNCTION; }
   {ComplexFunction}                          { return COMPLEX_FUNCTION; }

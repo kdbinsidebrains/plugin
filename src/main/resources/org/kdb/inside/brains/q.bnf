@@ -45,13 +45,13 @@
     ITERATOR="iterator"
     ACCUMULATOR="accumulator"
 
-    OPERATOR_ORDER="operator order"
-    OPERATOR_EQUALITY="operator equality"
-    OPERATOR_ARITHMETIC="operator arithmetic"
-    OPERATOR_WEIGHT="operator weight"
-    OPERATOR_COMMA="operator comma"
-    OPERATOR_EXECUTE="operator execute"
-    OPERATOR_OTHERS="operator others"
+    OPERATOR_ORDER="order"
+    OPERATOR_EQUALITY="equality"
+    OPERATOR_ARITHMETIC="arithmetic"
+    OPERATOR_WEIGHT="weight"
+    OPERATOR_COMMA="comma"
+    OPERATOR_EXECUTE="execute"
+    OPERATOR_OTHERS="others"
 
     MODE_PATTERN="mode"
     SYMBOL_PATTERN="symbol"
@@ -59,14 +59,15 @@
     FILE_PATH_PATTERN="string path"
     SYMBOL_PATH_PATTERN="symbol path"
 
-    UNARY_FUNCTION="unary function"
-    BINARY_FUNCTION="binary function"
-    COMPLEX_FUNCTION="complex function"
+    UNARY_FUNCTION="unary"
+    BINARY_FUNCTION="binary"
+    COMPLEX_FUNCTION="complex"
 
-    QUERY_BY="query by"
-    QUERY_TYPE="query type"
-    QUERY_FROM="query from"
-    QUERY_SPLITTER="query comma"
+    QUERY_BY="by"
+    QUERY_TYPE="type"
+    QUERY_FROM="from"
+    QUERY_WHERE="where"
+    QUERY_SPLITTER="splitter"
 
     VECTOR="vector"
 
@@ -203,17 +204,16 @@ table_values ::= table_columns_group {implements=table_columns methods=[columns=
 private table_values_recover ::= !PAREN_CLOSE
 table_expr ::= PAREN_OPEN BRACKET_OPEN [table_keys] BRACKET_CLOSE [SEMICOLON? table_values] PAREN_CLOSE { pin=2 methods=[keys="table_keys" values="table_values"]}
 
-// But extends works here with no issues
 query_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
-private query_columns_group ::= query_column (QUERY_SPLITTER query_column)* {pin(".*")="QUERY_SPLITTER"}
-fake query_columns ::= query_columns_group {methods=[columns="query_column"]}
-query_keys ::= query_columns_group {extends=query_columns}
-query_values ::= query_columns_group {extends=query_columns}
-
-private query_body ::= QUERY_TYPE [query_values] (QUERY_BY query_keys)? { pin=1 methods=[QUERY_TYPE="QUERY_TYPE" keys="query_keys" values="query_values"] recoverWhile=query_body_recover}
-private query_body_recover ::= !QUERY_FROM
-private query_source ::= QUERY_FROM expression {pin=1}
-query_expr ::= query_body query_source
+query_columns ::= query_column (QUERY_SPLITTER query_column)* {pin(".*")="QUERY_SPLITTER"}
+private query_values ::= query_columns {recoverWhile=query_values_recover}
+private query_values_recover ::= !(QUERY_BY | QUERY_FROM)
+private query_groups ::= query_columns {recoverWhile=query_groups_recover}
+private query_groups_recover ::= !QUERY_FROM
+query_expr ::= QUERY_TYPE query_values? [QUERY_BY query_groups] [QUERY_FROM expression [QUERY_WHERE expression]] {
+  pin(".*") = 1
+  methods=[query_columns expression source="expression[0]" filter="expression[1]" columns="query_columns[0]"  keys="query_columns[1]"]
+ }
 
 grouping_expr ::= BRACKET_OPEN expressions_group BRACKET_CLOSE
 

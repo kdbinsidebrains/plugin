@@ -27,6 +27,7 @@ public class IndentedBlock extends AbstractQBlock {
 
     @Override
     protected List<Block> buildChildren() {
-        return iterateChildren((node, first) -> IndentedBlock.this.createBlock(node, formatter, null, null, first ? NONE_INDENT : NORMAL_INDENT));
+        final Alignment alignment = Alignment.createAlignment();
+        return iterateChildren((node, first) -> IndentedBlock.this.createBlock(node, formatter, null, alignment, first ? NONE_INDENT : NORMAL_INDENT));
     }
 }
