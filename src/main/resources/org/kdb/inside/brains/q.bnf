@@ -194,15 +194,17 @@ private invoke_group ::= parentheses_invoke_expr | prefix_invoke_expr | function
 
 type_cast_expr ::= TYPE_CAST_PATTERN expression? {pin = 1 methods=[typeCast="TYPE_CAST_PATTERN"]}
 
-// extends doesn't work in this case - have to do implements and redefine the method for each
 table_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
-private table_columns_group ::= table_column (SEMICOLON table_column)* {pin(".*")="SEMICOLON"}
-fake table_columns ::= table_columns_group {methods=[columns="table_column"]}
-table_keys ::= table_columns_group {implements=table_columns methods=[columns="table_column"] recoverWhile=table_keys_recover}
-private table_keys_recover ::= !BRACKET_CLOSE
-table_values ::= table_columns_group {implements=table_columns methods=[columns="table_column"] recoverWhile=table_values_recover}
-private table_values_recover ::= !PAREN_CLOSE
-table_expr ::= PAREN_OPEN BRACKET_OPEN [table_keys] BRACKET_CLOSE [SEMICOLON? table_values] PAREN_CLOSE { pin=2 methods=[keys="table_keys" values="table_values"]}
+private table_columns_group ::= table_column (SEMICOLON table_column)* { pin(".*")="SEMICOLON"  recoverWhile=table_columns_recover}
+private table_columns_recover ::= !(PAREN_CLOSE | BRACKET_CLOSE)
+fake table_columns ::= table_columns_group { methods=[columns="table_column"] }
+table_keys ::= BRACKET_OPEN [table_columns_group] BRACKET_CLOSE { pin=1  extends=table_columns  methods=[table_column] }
+table_values ::= table_columns_group { extends=table_columns }
+table_expr ::= PAREN_OPEN  table_keys  [SEMICOLON? table_values] PAREN_CLOSE {
+    pin=2
+    methods=[table_columns]
+    implements="org.kdb.inside.brains.psi.QTableDefinition"
+}
 
 query_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
 query_columns ::= query_column (QUERY_SPLITTER query_column)* {pin(".*")="QUERY_SPLITTER"}

@@ -93,7 +93,7 @@ task generateCode() {
 
 compileJava {
     dependsOn generateCode
-    options.compilerArgs += ['-Xlint:unchecked']
+    options.compilerArgs += ['-Xlint:unchecked', '-Xlint:deprecation']
 }
 
 patchPluginXml {

@@ -48,4 +48,26 @@ public class QueryBlock extends AbstractQBlock {
             return createBlock(node, formatter, null, null, NORMAL_INDENT);
         });
     }
+
+    private static class ColumnsBlock extends AbstractQBlock {
+        public ColumnsBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
+            super(node, formatter, wrap, alignment, indent);
+        }
+
+        @Override
+        protected Indent getChildIndent() {
+            return NORMAL_INDENT;
+        }
+
+        @Override
+        protected List<Block> buildChildren() {
+            final QCodeStyleSettings custom = formatter.custom;
+            final Wrap wrap = Wrap.createWrap(custom.QUERY_WRAP_COLUMNS, false);
+            final Alignment alignment = custom.QUERY_COLUMNS_ALIGN ? Alignment.createAlignment() : null;
+            return iterateChildren((node, first) -> {
+                final Wrap w = node.getElementType() == QTypes.QUERY_SPLITTER ? null : wrap;
+                return createBlock(node, formatter, w, alignment, NORMAL_INDENT);
+            });
+        }
+    }
 }

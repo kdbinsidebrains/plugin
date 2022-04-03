@@ -12,23 +12,35 @@ import org.kdb.inside.brains.psi.QTypes;
 
 public class QSpacingStrategy {
     private final SpacingBuilder builder;
+    private final QCodeStyleSettings custom;
+    private final CommonCodeStyleSettings common;
 
     public QSpacingStrategy(@NotNull CodeStyleSettings codeStyleSettings) {
-        final QCodeStyleSettings custom = codeStyleSettings.getCustomSettings(QCodeStyleSettings.class);
-        final CommonCodeStyleSettings common = codeStyleSettings.getCommonSettings(QLanguage.INSTANCE);
+        custom = codeStyleSettings.getCustomSettings(QCodeStyleSettings.class);
+        common = codeStyleSettings.getCommonSettings(QLanguage.INSTANCE);
 
         builder = new SpacingBuilder(codeStyleSettings, QLanguage.INSTANCE);
 
-        // Lambda parameters
+        // Lambda
         builder.afterInside(QTypes.SEMICOLON, QTypes.PARAMETERS).spaceIf(custom.LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON);
         builder.beforeInside(QTypes.SEMICOLON, QTypes.PARAMETERS).spaceIf(custom.LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON);
         builder.afterInside(QTypes.BRACKET_OPEN, QTypes.PARAMETERS).spaceIf(custom.LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS, custom.LAMBDA_PARAMS_LBRACKET_ON_NEXT_LINE);
         builder.beforeInside(QTypes.BRACKET_CLOSE, QTypes.PARAMETERS).spaceIf(custom.LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS, custom.LAMBDA_PARAMS_RBRACKET_ON_NEXT_LINE);
-
-        // Lambda definition
         builder.afterInside(QTypes.PARAMETERS, QTypes.LAMBDA_EXPR).spaceIf(custom.LAMBDA_SPACE_AFTER_PARAMETERS);
         builder.betweenInside(QTypes.BRACE_OPEN, QTypes.EXPRESSIONS, QTypes.LAMBDA_EXPR).spaceIf(custom.LAMBDA_SPACE_WITHIN_BRACES);
         builder.betweenInside(QTypes.EXPRESSIONS, QTypes.BRACE_CLOSE, QTypes.LAMBDA_EXPR).spaceIf(custom.LAMBDA_SPACE_WITHIN_BRACES);
+
+        // Table
+        builder.afterInside(QTypes.SEMICOLON, QTypes.TABLE_KEYS).spaceIf(custom.TABLE_SPACE_AFTER_KEY_SEMICOLON);
+        builder.beforeInside(QTypes.SEMICOLON, QTypes.TABLE_KEYS).spaceIf(custom.TABLE_SPACE_BEFORE_KEY_SEMICOLON);
+        // See TableBlock#getSpaces for custom rule as this one doesn't cover it
+        builder.afterInside(QTypes.BRACKET_OPEN, QTypes.TABLE_KEYS).spaceIf(false, custom.TABLE_LBRACKET_NEW_LINE);
+        builder.beforeInside(QTypes.BRACKET_CLOSE, QTypes.TABLE_KEYS).spaceIf(false, custom.TABLE_RBRACKET_NEW_LINE);
+        builder.beforeInside(QTypes.TABLE_VALUES, QTypes.TABLE_EXPR).spaceIf(custom.TABLE_SPACE_BEFORE_COLUMNS, custom.TABLE_RBRACKET_NEW_LINE);
+        builder.beforeInside(QTypes.PAREN_CLOSE, QTypes.TABLE_EXPR).spaceIf(custom.TABLE_SPACE_AFTER_COLUMNS, custom.TABLE_CLOSE_PAREN_NEW_LINE);
+        builder.afterInside(QTypes.SEMICOLON, QTypes.TABLE_VALUES).spaceIf(custom.TABLE_SPACE_AFTER_COLUMN_SEMICOLON);
+        builder.beforeInside(QTypes.SEMICOLON, QTypes.TABLE_VALUES).spaceIf(custom.TABLE_SPACE_BEFORE_COLUMN_SEMICOLON);
+        builder.beforeInside(QTypes.TABLE_KEYS, QTypes.TABLE_EXPR).spaces(0);
 
         // Control
         builder.after(QTypes.CONTROL_KEYWORD).spaceIf(custom.CONTROL_SPACE_AFTER_OPERATOR);

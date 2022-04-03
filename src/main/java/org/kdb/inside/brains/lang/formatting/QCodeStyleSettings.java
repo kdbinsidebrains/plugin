@@ -99,11 +99,27 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean MODE_SPACE_AFTER = true;
 
     // Query
-    public int QUERY_WRAP_PARTS = CommonCodeStyleSettings.WRAP_AS_NEEDED;
+    public int QUERY_WRAP_PARTS = CommonCodeStyleSettings.DO_NOT_WRAP;
     public int QUERY_WRAP_COLUMNS = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean QUERY_PARTS_ALIGN = true;
     public boolean QUERY_COLUMNS_ALIGN = true;
     public boolean QUERY_SPACE_AFTER_COMMA = true;
+
+    // Table
+    public int TABLE_COLUMNS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
+    public boolean TABLE_ALIGN_BRACKETS = true;
+    public boolean TABLE_ALIGN_PARENS = false;
+    public boolean TABLE_ALIGN_COLUMNS = true;
+    public boolean TABLE_LBRACKET_NEW_LINE = true;
+    public boolean TABLE_RBRACKET_NEW_LINE = true;
+    public boolean TABLE_SPACE_AFTER_KEY_SEMICOLON = true;
+    public boolean TABLE_SPACE_BEFORE_KEY_SEMICOLON = false;
+    public boolean TABLE_SPACE_BEFORE_COLUMNS = true;
+    public boolean TABLE_SPACE_AFTER_COLUMN_SEMICOLON = true;
+    public boolean TABLE_SPACE_BEFORE_COLUMN_SEMICOLON = false;
+    public boolean TABLE_CLOSE_PAREN_NEW_LINE = true;
+    public boolean TABLE_SPACE_AFTER_COLUMNS = false;
+    public boolean TABLE_SPACE_BEFORE_GLOBAL_CLOSE_BRACKET = true;
 
     protected QCodeStyleSettings(CodeStyleSettings container) {
         super("QCodeStyleSettings", container);

@@ -48,7 +48,8 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
     @Override
     protected Indent getChildIndent() {
-        return NONE_INDENT;
+        System.out.println("Indent: " + getClass().getSimpleName());
+        return NORMAL_INDENT;
     }
 
     protected @Nullable Block createBlock(@Nullable ASTNode node, @NotNull QFormatter formatter) {
@@ -103,6 +104,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
         if (type == QTypes.QUERY_EXPR) {
             return new QueryBlock(node, formatter, wrap, alignment, indent);
+        }
+
+        if (type == QTypes.TABLE_EXPR) {
+            return new TableBlock(node, formatter, wrap, alignment, indent);
         }
 
         // One value wrapper type which should be expanded
