@@ -16,7 +16,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean LAMBDA_PARAMS_LBRACKET_ON_NEXT_LINE = false;
     public boolean LAMBDA_PARAMS_RBRACKET_ON_NEXT_LINE = false;
     public boolean LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS = false;
-    public boolean LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON = true;
+    public boolean LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON = false;
     public boolean LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON = false;
 
     // Controls
@@ -27,7 +27,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean CONTROL_RBRACKET_ON_NEXT_LINE = false;
     public boolean CONTROL_SPACE_AFTER_OPERATOR = false;
     public boolean CONTROL_SPACE_WITHIN_BRACES = false;
-    public boolean CONTROL_SPACE_AFTER_SEMICOLON = true;
+    public boolean CONTROL_SPACE_AFTER_SEMICOLON = false;
     public boolean CONTROL_SPACE_BEFORE_SEMICOLON = false;
     public boolean CONTROL_SPACE_BEFORE_EXECUTION = false;
 
@@ -39,7 +39,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean CONDITION_RBRACKET_ON_NEXT_LINE = false;
     public boolean CONDITION_SPACE_AFTER_OPERATOR = false;
     public boolean CONDITION_SPACE_WITHIN_BRACES = false;
-    public boolean CONDITION_SPACE_AFTER_SEMICOLON = true;
+    public boolean CONDITION_SPACE_AFTER_SEMICOLON = false;
     public boolean CONDITION_SPACE_BEFORE_SEMICOLON = false;
 
     // Arguments
@@ -49,7 +49,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean ARGUMENTS_LBRACKET_ON_NEXT_LINE = false;
     public boolean ARGUMENTS_RBRACKET_ON_NEXT_LINE = false;
     public boolean ARGUMENTS_SPACE_WITHIN_BRACES = false;
-    public boolean ARGUMENTS_SPACE_AFTER_SEMICOLON = true;
+    public boolean ARGUMENTS_SPACE_AFTER_SEMICOLON = false;
     public boolean ARGUMENTS_SPACE_BEFORE_SEMICOLON = false;
 
     // Grouping
@@ -59,7 +59,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean GROUPING_LBRACKET_ON_NEXT_LINE = false;
     public boolean GROUPING_RBRACKET_ON_NEXT_LINE = false;
     public boolean GROUPING_SPACE_WITHIN_BRACES = false;
-    public boolean GROUPING_SPACE_AFTER_SEMICOLON = true;
+    public boolean GROUPING_SPACE_AFTER_SEMICOLON = false;
     public boolean GROUPING_SPACE_BEFORE_SEMICOLON = false;
 
     // Parentheses
@@ -69,19 +69,8 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean PARENTHESES_LPAREN_ON_NEXT_LINE = false;
     public boolean PARENTHESES_RPAREN_ON_NEXT_LINE = false;
     public boolean PARENTHESES_SPACE_WITHIN_PARENS = false;
-    public boolean PARENTHESES_SPACE_AFTER_SEMICOLON = true;
+    public boolean PARENTHESES_SPACE_AFTER_SEMICOLON = false;
     public boolean PARENTHESES_SPACE_BEFORE_SEMICOLON = false;
-
-    // Other
-    public boolean RETURN_SPACE_AFTER_COLON = false;
-    public boolean SIGNAL_SPACE_AFTER_SIGNAL = false;
-    public boolean EXPRESSION_SEMICOLON_TRIM_SPACES = true;
-    public boolean EXPRESSION_SEMICOLON_REMOVE_LINES = true;
-
-    // Tail trim
-    public boolean IMPORT_TRIM_TAIL = true;
-    public boolean CONTEXT_TRIM_TAIL = true;
-
     // Assignment
     public boolean SPACE_AROUND_ASSIGNMENT_OPERATORS = false;
 
@@ -120,6 +109,18 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean TABLE_CLOSE_PAREN_NEW_LINE = true;
     public boolean TABLE_SPACE_AFTER_COLUMNS = false;
     public boolean TABLE_SPACE_BEFORE_GLOBAL_CLOSE_BRACKET = true;
+
+    // Other
+    public boolean ITERATOR_SPACE_AFTER = false;
+    public boolean SEMICOLON_SPACE_AFTER = true;
+    public boolean RETURN_SPACE_AFTER_COLON = false;
+    public boolean SIGNAL_SPACE_AFTER_SIGNAL = false;
+    public boolean EXPRESSION_SEMICOLON_TRIM_SPACES = true;
+    public boolean EXPRESSION_SEMICOLON_REMOVE_LINES = true;
+
+    // Tail trim
+    public boolean IMPORT_TRIM_TAIL = true;
+    public boolean CONTEXT_TRIM_TAIL = true;
 
     protected QCodeStyleSettings(CodeStyleSettings container) {
         super("QCodeStyleSettings", container);

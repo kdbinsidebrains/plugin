@@ -14,10 +14,15 @@ var1    :   20  +     30  ;           globalVar1  ::  13123+41243; var2:var1+10;
 var3:indexed[;0];
 indexed[0;0]:var1;
 
-tbl0:([] a:1; b:2);
+tbl0:([] a:1; b:2); / This is tbl0 definition
 
 tbl1:(  [      ]     col1:`long$()  ; col2:`float$());
 
+/
+This table has:
+- key columns
+- value columns
+\
 tbl2:([key1:`symbol$(); key2:"I"$()] col1:`long$()  ; col2:`float$());
 
 tbl3:(
@@ -46,6 +51,15 @@ query:{
 
 pot:{   $   [   x   ;   `asdas  ;   23123   ]   };
 
+/
+This is global lambda definition
+
+:parameter1 - input 1
+:parameter2 - input 2
+:parameter3 - input 3
+:parameter4 - input 4
+:return nothing
+\
 lambdaGlobal:{[parameter1;parameter2;parameter3;parameter4]
 		innerVar:parameter1+    parameter2  *parameter3;
 				justConstant    :   10;

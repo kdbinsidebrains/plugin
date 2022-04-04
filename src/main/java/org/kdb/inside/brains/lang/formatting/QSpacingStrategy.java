@@ -103,14 +103,6 @@ public class QSpacingStrategy {
         builder.after(QTypes.OPERATOR_COMMA).spaceIf(custom.SPACE_AFTER_OPERATOR_COMMA);
         builder.before(QTypes.OPERATOR_COMMA).spaces(0);
 
-        // Others
-        builder.after(QTypes.OPERATOR_EXECUTE).spaces(1);
-        builder.beforeInside(QTypes.VAR_DECLARATION, QTypes.CONTEXT).spaces(1);
-        builder.before(QTypes.OPERATOR_EXECUTE).spaceIf(custom.CONTROL_SPACE_BEFORE_EXECUTION);
-        builder.afterInside(QTypes.COLON, QTypes.RETURN_EXPR).spaceIf(custom.RETURN_SPACE_AFTER_COLON);
-        builder.afterInside(QTypes.ITERATOR, QTypes.SIGNAL_EXPR).spaceIf(custom.SIGNAL_SPACE_AFTER_SIGNAL);
-        builder.before(QTypes.SEMICOLON).spacing(0, custom.EXPRESSION_SEMICOLON_TRIM_SPACES ? 0 : Integer.MAX_VALUE, 0, !custom.EXPRESSION_SEMICOLON_REMOVE_LINES, custom.EXPRESSION_SEMICOLON_REMOVE_LINES ? 0 : common.KEEP_BLANK_LINES_IN_CODE);
-
         // Mode
         builder.after(QTypes.MODE_PATTERN).spaceIf(custom.MODE_SPACE_AFTER);
 
@@ -133,6 +125,17 @@ public class QSpacingStrategy {
         builder.between(QTypes.INVOKE_FUNCTION, QTypes.ARGUMENTS).spaces(0);
         builder.between(QTypes.INVOKE_FUNCTION, QTypes.ITERATOR_TYPE).spaces(0);
         builder.after(QTypes.INVOKE_FUNCTION).spaces(1);
+
+        // Others
+        builder.after(QTypes.OPERATOR_EXECUTE).spaces(1);
+        builder.after(QTypes.ITERATOR_TYPE).spaceIf(custom.ITERATOR_SPACE_AFTER);
+        builder.beforeInside(QTypes.VAR_DECLARATION, QTypes.CONTEXT).spaces(1);
+        builder.before(QTypes.OPERATOR_EXECUTE).spaceIf(custom.CONTROL_SPACE_BEFORE_EXECUTION);
+        builder.afterInside(QTypes.COLON, QTypes.RETURN_EXPR).spaceIf(custom.RETURN_SPACE_AFTER_COLON);
+        builder.afterInside(QTypes.ITERATOR, QTypes.SIGNAL_EXPR).spaceIf(custom.SIGNAL_SPACE_AFTER_SIGNAL);
+        builder.between(QTypes.SEMICOLON, QTypes.LINE_COMMENT).spacing(0, Integer.MAX_VALUE, 0, false, 0);
+        builder.after(QTypes.SEMICOLON).spaceIf(custom.SEMICOLON_SPACE_AFTER);
+        builder.before(QTypes.SEMICOLON).spacing(0, custom.EXPRESSION_SEMICOLON_TRIM_SPACES ? 0 : Integer.MAX_VALUE, 0, !custom.EXPRESSION_SEMICOLON_REMOVE_LINES, custom.EXPRESSION_SEMICOLON_REMOVE_LINES ? 0 : common.KEEP_BLANK_LINES_IN_CODE);
     }
 
     public Spacing getSpacing(Block parent, Block child1, Block child2) {
