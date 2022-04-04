@@ -48,8 +48,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
     @Override
     protected Indent getChildIndent() {
-        System.out.println("Indent: " + getClass().getSimpleName());
-        return NORMAL_INDENT;
+        return NONE_INDENT;
     }
 
     protected @Nullable Block createBlock(@Nullable ASTNode node, @NotNull QFormatter formatter) {
