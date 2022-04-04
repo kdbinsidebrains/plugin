@@ -130,7 +130,6 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new LeafBlock(node, formatter, wrap, alignment, indent);
         }
 
-        System.out.println("Leaf type created: " + type);
         return new LeafBlock(node, formatter, wrap, alignment, indent);
     }
 

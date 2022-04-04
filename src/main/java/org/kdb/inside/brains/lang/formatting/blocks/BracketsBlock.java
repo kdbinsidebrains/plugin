@@ -53,7 +53,7 @@ public class BracketsBlock extends AbstractQBlock {
     protected List<Block> buildChildren() {
         final QCodeStyleSettings custom = formatter.custom;
 
-        final Wrap wrap = Wrap.createWrap(descriptor.wrap.apply(custom), true);
+        final Wrap wrap = Wrap.createWrap(descriptor.wrap.apply(custom), false);
         final Alignment bracketAlignment = descriptor.alignBrac.apply(custom) ? Alignment.createAlignment() : null;
         final Alignment expressionAlignment = descriptor.alignExpr.apply(custom) ? Alignment.createAlignment() : null;
 

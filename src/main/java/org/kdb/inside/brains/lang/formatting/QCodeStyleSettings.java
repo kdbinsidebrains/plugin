@@ -9,7 +9,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public int LAMBDA_PARAMS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean LAMBDA_ALIGN_BRACE = false;
     public boolean LAMBDA_SPACE_AFTER_PARAMETERS = true;
-    public boolean LAMBDA_SPACE_WITHIN_BRACES = true;
+    public boolean LAMBDA_SPACE_WITHIN_BRACES = false;
     public boolean LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE = true;
     public boolean LAMBDA_PARAMS_ALIGN_NAMES = true;
     public boolean LAMBDA_PARAMS_ALIGN_BRACKETS = true;

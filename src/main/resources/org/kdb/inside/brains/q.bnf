@@ -139,8 +139,8 @@ operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPE
 
 system_function ::= UNARY_FUNCTION | BINARY_FUNCTION | COMPLEX_FUNCTION
 
-private arguments_def ::= BRACKET_OPEN [arguments_def_body] BRACKET_CLOSE {pin(".*")=1}
-private arguments_def_body ::= statement {recoverWhile=brackets_recover}
+private arguments_def ::= BRACKET_OPEN arguments_def_body BRACKET_CLOSE {pin(".*")=1}
+private arguments_def_body ::= statement* {recoverWhile=brackets_recover}
 arguments ::= arguments_def {methods=[expressions="expression"]}
 private arguments_list ::= arguments+
 
@@ -200,16 +200,11 @@ private table_columns_group ::= table_column (SEMICOLON table_column)* {
  }
 private table_columns_recover ::= !(PAREN_CLOSE | BRACKET_CLOSE)
 fake table_columns ::= table_columns_group { methods=[columns="table_column"] }
-table_keys ::= BRACKET_OPEN [table_columns_group] BRACKET_CLOSE {
-    pin=1
-    extends=table_columns
-    methods=[table_column]
+table_keys ::= BRACKET_OPEN [table_columns_group] BRACKET_CLOSE { pin=1 extends=table_columns methods=[table_column]
  }
 table_values ::= [table_columns_group] { extends=table_columns }
 table_expr ::= PAREN_OPEN  table_keys  SEMICOLON? table_values PAREN_CLOSE {
-    pin=2
-//    methods=[table_columns]
-    implements="org.kdb.inside.brains.psi.QTableDefinition"
+    pin=2 methods=[table_columns keys="table_columns[0]" values="table_columns[1]"]
 }
 
 query_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
