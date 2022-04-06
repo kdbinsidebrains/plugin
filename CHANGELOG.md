@@ -2,6 +2,13 @@
 
 # KdbInsideBrains Changelog
 
+## [0.23.1]
+
+### Fixed
+
+- a string shown in a TableView
+- chart fails if there is no time/float columns
+
 ## [0.23.0]
 
 ### Fixed
