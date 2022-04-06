@@ -2,6 +2,14 @@
 
 # KdbInsideBrains Changelog
 
+## [1.0.0-beta]
+
+### Added
+
+Formatting has been added
+
+**WARNING!** It's recommended don't use auto-formatting option at commit for production code.
+
 ## [0.23.1]
 
 ### Fixed
