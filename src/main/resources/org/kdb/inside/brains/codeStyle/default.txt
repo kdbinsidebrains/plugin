@@ -49,6 +49,9 @@ query:{
                             key1 in `this`is`key, col1 within (var2;globalVar1)
  };
 
+/ Simple pot function
+/
+/ @param x (boolean) - condition
 pot:{   $   [   x   ;   `asdas  ;   23123   ]   };
 
 /

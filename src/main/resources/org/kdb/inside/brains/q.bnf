@@ -122,6 +122,7 @@ mode ::= MODE_PATTERN mode_content? { pin = 1 methods=[modeName="MODE_PATTERN"] 
 
 // ============ Custom types ====================
 symbol ::= SYMBOL_PATTERN
+symbols ::= symbol symbol+
 
 var_reference ::= VARIABLE_PATTERN {
  implements="org.kdb.inside.brains.psi.QVariable"
@@ -147,11 +148,12 @@ private arguments_list ::= arguments+
 var_indexing ::= var_reference arguments_list {pin=2 methods=[variable="var_reference" arguments_group="arguments"]}
 
 fake assignment_type ::= COLON {}
-var_assignment_type ::= operator_type COLON | COLON COLON? { extends=assignment_type elementType=assignment_type }
-column_assignment_type ::= COLON { extends=assignment_type elementType=assignment_type }
+column_assignment_type ::= COLON { extends=assignment_type }
+var_assignment_type ::= COLON COLON? { extends=assignment_type }
+var_accumulator_type ::= operator_type COLON { extends=assignment_type }
 
 private index_assignment ::= var_indexing var_assignment_type expression { pin = 2 }
-private variable_assignment ::= var_declaration var_assignment_type operator_type? expression { pin = 2 }
+private variable_assignment ::= var_declaration (var_assignment_type|var_accumulator_type) operator_type? expression { pin = 2 }
 assignment_expr ::= index_assignment | variable_assignment
 
 private expressions_group ::= separator* expression (separator+ expression)* separator*
@@ -160,7 +162,7 @@ return_expr ::= COLON expression
 
 signal_expr ::= "'" expression
 
-literal_expr ::= NILL | CHAR | SIGNED_ATOM | UNSIGNED_ATOM | VECTOR | STRING | symbol symbol*
+literal_expr ::= NILL | CHAR | SIGNED_ATOM | UNSIGNED_ATOM | VECTOR | STRING | symbols | symbol
 
 control_expr ::= CONTROL_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
 condition_expr ::= CONDITION_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin=1 methods=[expressions="expression"] } // $[...]
@@ -175,11 +177,12 @@ private lambda_body ::= parameters? expressions? { recoverWhile=braces_recover }
 
 private operation ::= (iterator_type | operator_type)+
 
-fake invoke_object ::= operator_type? invoke_function_group?
+fake invoke_object ::= operator_type? (function_system | function_custom)?
 invoke_operator ::= operator_type {extends=invoke_object}
 
-invoke_function ::= invoke_function_group {extends=invoke_object}
-private invoke_function_group ::= BINARY_FUNCTION | COMPLEX_FUNCTION | UNARY_FUNCTION | prefix_expr
+invoke_function ::= function_system | function_custom {extends=invoke_object}
+function_system ::= BINARY_FUNCTION | COMPLEX_FUNCTION | UNARY_FUNCTION
+function_custom ::= prefix_expr
 
 parentheses_expr ::= PAREN_OPEN !BRACKET_OPEN parentheses_body PAREN_CLOSE {pin=2 extends=invoke_object}
 private parentheses_body ::= SEMICOLON* (expression SEMICOLON+)* expression? {pin(".*")=2 recoverWhile=parens_recover}

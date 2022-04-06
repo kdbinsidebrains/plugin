@@ -62,7 +62,7 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
             final IElementType tokenType = node.getTokenType();
             if (tokenType == SYMBOL) {
                 item = processSymbol(node, text);
-            } else if (tokenType == ASSIGNMENT_TYPE) {
+            } else if (tokenType == COLUMN_ASSIGNMENT_TYPE || tokenType == VAR_ASSIGNMENT_TYPE || tokenType == VAR_ACCUMULATOR_TYPE) {
                 item = processAssignment(tree, node, text, offset);
             }
 

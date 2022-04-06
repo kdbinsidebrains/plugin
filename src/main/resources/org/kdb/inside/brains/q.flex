@@ -97,7 +97,7 @@ UnaryFunction=(abs|all|any|asc|iasc|attr|avg|avgs|ceiling|count|
     get|getenv|group|gtime|ltime|hcount|hdel|hopen|hclose|hsym|
     inv|key|keys|load|log|lower|upper|max|maxs|md5|med|meta|min|
     mins|neg|next|prev|not|null|parse|prd|prds|rand|rank|ratios|
-    raze|read0|read1|reciprocal|reverse|save|rsave|show|signum|sin|
+    raze|read0|read1|2:|reciprocal|reverse|save|rsave|show|signum|sin|
     asin|sqrt|string|sum|sums|system|tables|tan|atan|til|trim|ltrim|rtrim|
     type|value|var|svar|view|views|fills)
 
@@ -172,8 +172,8 @@ SecondList={Second}({WhiteSpace}{Second})+
 
 CharAtom=([^\\\"]|\\[^\ \t])
 Char=\"{CharAtom}\"
-UnclosedString        = \"(\\\" | [^\"])*
-String                = {UnclosedString}\"
+UnclosedString        = \"{CharAtom}+
+String                = (\"\")|({UnclosedString}\")
 
 Symbol="`"[.:/_a-zA-Z0-9]*
 

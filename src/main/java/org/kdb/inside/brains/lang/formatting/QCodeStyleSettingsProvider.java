@@ -159,6 +159,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         others.item("RETURN_SPACE_AFTER_COLON", "After return colon");
         others.item("SIGNAL_SPACE_AFTER_SIGNAL", "After signal apostrophe");
         others.item("CONTROL_SPACE_BEFORE_EXECUTION", "Before execution statement (.)");
+        others.item("FUNCTION_INVOKE_SPACE_BEFORE_SYMBOL", "Before a symbol in an invoke");
         others.item("ITERATOR_SPACE_AFTER", "After iterator");
         others.item("SEMICOLON_SPACE_AFTER", "After expression's semicolon");
         others.item("EXPRESSION_SEMICOLON_TRIM_SPACES", "Trim spaces before semicolon");

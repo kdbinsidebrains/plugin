@@ -22,24 +22,24 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     // Controls
     public int CONTROL_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean CONTROL_ALIGN_EXPRS = true;
-    public boolean CONTROL_ALIGN_BRACKET = false;
+    public boolean CONTROL_ALIGN_BRACKET = true;
     public boolean CONTROL_LBRACKET_ON_NEXT_LINE = false;
     public boolean CONTROL_RBRACKET_ON_NEXT_LINE = false;
     public boolean CONTROL_SPACE_AFTER_OPERATOR = false;
     public boolean CONTROL_SPACE_WITHIN_BRACES = false;
-    public boolean CONTROL_SPACE_AFTER_SEMICOLON = false;
+    public boolean CONTROL_SPACE_AFTER_SEMICOLON = true;
     public boolean CONTROL_SPACE_BEFORE_SEMICOLON = false;
     public boolean CONTROL_SPACE_BEFORE_EXECUTION = false;
 
     // Conditions
     public int CONDITION_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean CONDITION_ALIGN_EXPRS = true;
-    public boolean CONDITION_ALIGN_BRACKET = false;
+    public boolean CONDITION_ALIGN_BRACKET = true;
     public boolean CONDITION_LBRACKET_ON_NEXT_LINE = false;
     public boolean CONDITION_RBRACKET_ON_NEXT_LINE = false;
     public boolean CONDITION_SPACE_AFTER_OPERATOR = false;
     public boolean CONDITION_SPACE_WITHIN_BRACES = false;
-    public boolean CONDITION_SPACE_AFTER_SEMICOLON = false;
+    public boolean CONDITION_SPACE_AFTER_SEMICOLON = true;
     public boolean CONDITION_SPACE_BEFORE_SEMICOLON = false;
 
     // Arguments
@@ -49,7 +49,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean ARGUMENTS_LBRACKET_ON_NEXT_LINE = false;
     public boolean ARGUMENTS_RBRACKET_ON_NEXT_LINE = false;
     public boolean ARGUMENTS_SPACE_WITHIN_BRACES = false;
-    public boolean ARGUMENTS_SPACE_AFTER_SEMICOLON = false;
+    public boolean ARGUMENTS_SPACE_AFTER_SEMICOLON = true;
     public boolean ARGUMENTS_SPACE_BEFORE_SEMICOLON = false;
 
     // Grouping
@@ -59,7 +59,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean GROUPING_LBRACKET_ON_NEXT_LINE = false;
     public boolean GROUPING_RBRACKET_ON_NEXT_LINE = false;
     public boolean GROUPING_SPACE_WITHIN_BRACES = false;
-    public boolean GROUPING_SPACE_AFTER_SEMICOLON = false;
+    public boolean GROUPING_SPACE_AFTER_SEMICOLON = true;
     public boolean GROUPING_SPACE_BEFORE_SEMICOLON = false;
 
     // Parentheses
@@ -71,16 +71,17 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean PARENTHESES_SPACE_WITHIN_PARENS = false;
     public boolean PARENTHESES_SPACE_AFTER_SEMICOLON = false;
     public boolean PARENTHESES_SPACE_BEFORE_SEMICOLON = false;
+
     // Assignment
     public boolean SPACE_AROUND_ASSIGNMENT_OPERATORS = false;
 
     // Operators
+    public boolean SPACE_AFTER_OPERATOR_COMMA = false;
     public boolean SPACE_AROUND_OPERATOR_ORDER = false;
+    public boolean SPACE_AROUND_OPERATOR_WEIGHT = true;
     public boolean SPACE_AROUND_OPERATOR_EQUALITY = false;
     public boolean SPACE_AROUND_OPERATOR_ARITHMETIC = false;
-    public boolean SPACE_AROUND_OPERATOR_WEIGHT = false;
     public boolean SPACE_AROUND_OPERATOR_OTHERS = false;
-    public boolean SPACE_AFTER_OPERATOR_COMMA = false;
 
     // Mode
     public int MODE_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
@@ -117,6 +118,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean SIGNAL_SPACE_AFTER_SIGNAL = false;
     public boolean EXPRESSION_SEMICOLON_TRIM_SPACES = true;
     public boolean EXPRESSION_SEMICOLON_REMOVE_LINES = true;
+    public boolean FUNCTION_INVOKE_SPACE_BEFORE_SYMBOL = false;
 
     // Tail trim
     public boolean IMPORT_TRIM_TAIL = true;

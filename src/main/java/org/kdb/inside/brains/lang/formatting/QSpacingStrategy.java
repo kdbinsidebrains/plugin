@@ -85,7 +85,10 @@ public class QSpacingStrategy {
         }
 
         // Operators
-        builder.around(QTypes.ASSIGNMENT_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
+        builder.before(QTypes.VAR_ACCUMULATOR_TYPE).spaces(1);
+        builder.after(QTypes.VAR_ACCUMULATOR_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
+        builder.around(QTypes.VAR_ASSIGNMENT_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
+        builder.around(QTypes.COLUMN_ASSIGNMENT_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
 
         // Operations
         builder.aroundInside(QTypes.OPERATOR_ARITHMETIC, QTypes.PREFIX_INVOKE_EXPR).spaces(0);
@@ -122,9 +125,17 @@ public class QSpacingStrategy {
         builder.after(QTypes.COMMAND_IMPORT).spaces(1);
         builder.after(QTypes.FUNCTION_IMPORT).spaces(1);
 
-        builder.between(QTypes.INVOKE_FUNCTION, QTypes.ARGUMENTS).spaces(0);
-        builder.between(QTypes.INVOKE_FUNCTION, QTypes.ITERATOR_TYPE).spaces(0);
-        builder.after(QTypes.INVOKE_FUNCTION).spaces(1);
+        // InvokeFunction expanded
+        builder.between(QTypes.FUNCTION_SYSTEM, QTypes.ARGUMENTS).spaces(0);
+        builder.between(QTypes.FUNCTION_CUSTOM, QTypes.ARGUMENTS).spaces(0);
+        builder.between(QTypes.FUNCTION_SYSTEM, QTypes.ITERATOR_TYPE).spaces(0);
+        builder.between(QTypes.FUNCTION_CUSTOM, QTypes.ITERATOR_TYPE).spaces(0);
+        builder.between(QTypes.FUNCTION_SYSTEM, QTypes.SYMBOL).spaces(1);
+        builder.between(QTypes.FUNCTION_CUSTOM, QTypes.SYMBOL).spaceIf(custom.FUNCTION_INVOKE_SPACE_BEFORE_SYMBOL);
+        builder.between(QTypes.FUNCTION_SYSTEM, QTypes.SYMBOLS).spaces(1);
+        builder.between(QTypes.FUNCTION_CUSTOM, QTypes.SYMBOLS).spaceIf(custom.FUNCTION_INVOKE_SPACE_BEFORE_SYMBOL);
+        builder.after(QTypes.FUNCTION_SYSTEM).spaces(1);
+        builder.after(QTypes.FUNCTION_CUSTOM).spaces(1);
 
         // Others
         builder.after(QTypes.OPERATOR_EXECUTE).spaces(1);
@@ -133,7 +144,7 @@ public class QSpacingStrategy {
         builder.before(QTypes.OPERATOR_EXECUTE).spaceIf(custom.CONTROL_SPACE_BEFORE_EXECUTION);
         builder.afterInside(QTypes.COLON, QTypes.RETURN_EXPR).spaceIf(custom.RETURN_SPACE_AFTER_COLON);
         builder.afterInside(QTypes.ITERATOR, QTypes.SIGNAL_EXPR).spaceIf(custom.SIGNAL_SPACE_AFTER_SIGNAL);
-        builder.between(QTypes.SEMICOLON, QTypes.LINE_COMMENT).spacing(0, Integer.MAX_VALUE, 0, false, 0);
+        builder.between(QTypes.SEMICOLON, QTypes.LINE_COMMENT).spacing(0, Integer.MAX_VALUE, 0, true, common.KEEP_BLANK_LINES_IN_CODE);
         builder.after(QTypes.SEMICOLON).spaceIf(custom.SEMICOLON_SPACE_AFTER);
         builder.before(QTypes.SEMICOLON).spacing(0, custom.EXPRESSION_SEMICOLON_TRIM_SPACES ? 0 : Integer.MAX_VALUE, 0, !custom.EXPRESSION_SEMICOLON_REMOVE_LINES, custom.EXPRESSION_SEMICOLON_REMOVE_LINES ? 0 : common.KEEP_BLANK_LINES_IN_CODE);
     }

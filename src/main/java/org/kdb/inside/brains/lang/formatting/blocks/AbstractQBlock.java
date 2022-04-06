@@ -81,7 +81,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new LambdaBlock(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.ASSIGNMENT_EXPR) {
+        if (type == QTypes.ASSIGNMENT_EXPR || type == QTypes.QUERY_COLUMN) {
             return new AssignmentBlock(node, formatter, wrap, alignment, indent);
         }
 
@@ -109,6 +109,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new TableBlock(node, formatter, wrap, alignment, indent);
         }
 
+        if (type == QTypes.FUNCTION_INVOKE_EXPR) {
+            return new FunctionInvokeBlock(node, formatter, wrap, alignment, indent);
+        }
+
         // One value wrapper type which should be expanded
         if (isWrapperType(type)) {
             return createBlock(getFirstNotEmptyChild(node), formatter, wrap, alignment, indent);
@@ -130,29 +134,35 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new LeafBlock(node, formatter, wrap, alignment, indent);
         }
 
+        System.out.println("Leaf: " + node);
+
         return new LeafBlock(node, formatter, wrap, alignment, indent);
     }
 
     private boolean isPrimitiveType(IElementType type) {
         return type == QTypes.VAR_DECLARATION
                 || type == QTypes.VAR_REFERENCE
-                || type == QTypes.ASSIGNMENT_TYPE
-                || type == QTypes.LITERAL_EXPR
+                || type == QTypes.VAR_ASSIGNMENT_TYPE
+                || type == QTypes.VAR_ACCUMULATOR_TYPE
+                || type == QTypes.COLUMN_ASSIGNMENT_TYPE
+                || type == QTypes.FUNCTION_SYSTEM
                 || type == QTypes.SYMBOL
+                || type == QTypes.SYMBOLS
                 ;
     }
 
     private boolean isWrapperType(IElementType type) {
         return type == QTypes.INVOKE_OPERATOR
+                || type == QTypes.LITERAL_EXPR
                 || type == QTypes.OPERATOR_TYPE
                 || type == QTypes.SYSTEM_FUNCTION
-                || type == QTypes.QUERY_COLUMN
+                || type == QTypes.INVOKE_FUNCTION
                 ;
     }
 
     private boolean isExpressionType(IElementType type) {
         return type == QTypes.EXPRESSIONS
-                || type == QTypes.INVOKE_FUNCTION
+                || type == QTypes.FUNCTION_CUSTOM
                 || type == QTypes.SIGNAL_EXPR
                 || type == QTypes.RETURN_EXPR
                 || type == QTypes.PREFIX_INVOKE_EXPR
