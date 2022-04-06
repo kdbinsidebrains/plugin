@@ -61,7 +61,7 @@ public class TableResult {
             } else if (KdbSettingsService.getInstance().getConsoleOptions().isDictAsTable()) {
                 model = new DictTableModel(dict);
             }
-        } else if (k.getClass().isArray() && KdbSettingsService.getInstance().getConsoleOptions().isListAsTable()) {
+        } else if (k.getClass().isArray() && KdbSettingsService.getInstance().getConsoleOptions().isListAsTable() && !(k instanceof char[])) {
             model = new ListTableModel(k);
         }
         return model == null ? null : new TableResult(query, result, model);

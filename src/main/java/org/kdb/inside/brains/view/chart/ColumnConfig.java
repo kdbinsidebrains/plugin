@@ -108,7 +108,7 @@ public class ColumnConfig {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 final ColumnConfig cc = (ColumnConfig) value;
-                return super.getTableCellRendererComponent(table, cc.getLabel(), isSelected, hasFocus, row, column);
+                return super.getTableCellRendererComponent(table, cc == null ? null : cc.getLabel(), isSelected, hasFocus, row, column);
             }
         };
     }
@@ -117,7 +117,8 @@ public class ColumnConfig {
         return new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                return super.getListCellRendererComponent(list, ((ColumnConfig) value).getLabel(), index, isSelected, cellHasFocus);
+                final ColumnConfig cc = (ColumnConfig) value;
+                return super.getListCellRendererComponent(list, cc == null ? null : cc.getLabel(), index, isSelected, cellHasFocus);
             }
         };
     }

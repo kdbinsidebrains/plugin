@@ -39,35 +39,4 @@ public interface ChartDataProvider {
     Object getValueAt(int row, int col);
 
     int getRowsCount();
-
-/*
-    static ChartDataProvider tableWrap(JTable table) {
-        return new ChartDataProvider() {
-            @Override
-            public int getColumnCount() {
-                return table.getColumnCount();
-            }
-
-            @Override
-            public String getColumnName(int col) {
-                return table.getColumnName(col);
-            }
-
-            @Override
-            public Class<?> getColumnClass(int col) {
-                return table.getColumnClass(col);
-            }
-
-            @Override
-            public int getRowsCount() {
-                return table.getRowCount();
-            }
-
-            @Override
-            public Object getValueAt(int row, int col) {
-                return table.getValueAt(row, col);
-            }
-        };
-    }
-*/
 }
