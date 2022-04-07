@@ -12,10 +12,6 @@ import org.kdb.inside.brains.lang.formatting.QFormatter;
 import java.util.List;
 
 public class IndentedBlock extends AbstractQBlock {
-    public IndentedBlock(@NotNull ASTNode node, @NotNull QFormatter formatter) {
-        super(node, formatter);
-    }
-
     public IndentedBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);
     }
@@ -27,7 +23,9 @@ public class IndentedBlock extends AbstractQBlock {
 
     @Override
     protected List<Block> buildChildren() {
-        final Alignment alignment = Alignment.createAlignment();
-        return iterateChildren((node, first) -> IndentedBlock.this.createBlock(node, formatter, null, alignment, first ? NONE_INDENT : NORMAL_INDENT));
+        return iterateChildren((node, first) -> {
+            final Indent indent = first ? NONE_INDENT : NORMAL_INDENT;
+            return IndentedBlock.this.createBlock(node, formatter, null, null, indent);
+        });
     }
 }

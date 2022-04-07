@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [1.0.1-beta]
+
+### Fixed
+
+- Formatting optimization
+
 ## [1.0.0-beta]
 
 ### Added
