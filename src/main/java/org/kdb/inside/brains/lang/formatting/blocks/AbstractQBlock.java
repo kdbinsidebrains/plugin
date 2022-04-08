@@ -134,8 +134,6 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new LeafBlock(node, formatter, wrap, alignment, indent);
         }
 
-        System.out.println("Leaf: " + node);
-
         return new LeafBlock(node, formatter, wrap, alignment, indent);
     }
 
@@ -145,24 +143,22 @@ public abstract class AbstractQBlock extends AbstractBlock {
                 || type == QTypes.VAR_ASSIGNMENT_TYPE
                 || type == QTypes.VAR_ACCUMULATOR_TYPE
                 || type == QTypes.COLUMN_ASSIGNMENT_TYPE
-                || type == QTypes.FUNCTION_SYSTEM
                 || type == QTypes.SYMBOL
                 || type == QTypes.SYMBOLS
                 ;
     }
 
     private boolean isWrapperType(IElementType type) {
-        return type == QTypes.INVOKE_OPERATOR
-                || type == QTypes.LITERAL_EXPR
+        return type == QTypes.LITERAL_EXPR
                 || type == QTypes.OPERATOR_TYPE
                 || type == QTypes.SYSTEM_FUNCTION
-                || type == QTypes.INVOKE_FUNCTION
+                || type == QTypes.INTERNAL_FUNCTION
                 ;
     }
 
     private boolean isExpressionType(IElementType type) {
         return type == QTypes.EXPRESSIONS
-                || type == QTypes.FUNCTION_CUSTOM
+                || type == QTypes.CUSTOM_FUNCTION
                 || type == QTypes.SIGNAL_EXPR
                 || type == QTypes.RETURN_EXPR
                 || type == QTypes.PREFIX_INVOKE_EXPR

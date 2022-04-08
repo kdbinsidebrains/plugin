@@ -97,8 +97,9 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         operators.item("SPACE_AROUND_OPERATOR_ORDER", "Around order operators (<= , >= , < , >)");
         operators.item("SPACE_AROUND_OPERATOR_EQUALITY", "Around equality operators (~ , = , <>)");
         operators.item("SPACE_AROUND_OPERATOR_WEIGHT", "Around weight operators (&, |)");
-        operators.item("SPACE_AROUND_OPERATOR_OTHERS", "Around mixed operators (!, #, @, _ , ? , ^, $)");
+        operators.item("SPACE_AROUND_OPERATOR_OTHERS", "Around mixed operators (!, #, @, ? , ^, $)");
         operators.item("SPACE_AFTER_OPERATOR_COMMA", "After comma (,)");
+        operators.item("SPACE_AFTER_OPERATOR_CUT", "After cut/drop ( _ )");
 
         final Group lambda = customizer.group(LAMBDA);
         lambda.item("LAMBDA_SPACE_WITHIN_BRACES", "Within braces");
@@ -158,7 +159,6 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         final Group others = customizer.group(OTHER);
         others.item("RETURN_SPACE_AFTER_COLON", "After return colon");
         others.item("SIGNAL_SPACE_AFTER_SIGNAL", "After signal apostrophe");
-        others.item("CONTROL_SPACE_BEFORE_EXECUTION", "Before execution statement (.)");
         others.item("FUNCTION_INVOKE_SPACE_BEFORE_SYMBOL", "Before a symbol in an invoke");
         others.item("ITERATOR_SPACE_AFTER", "After iterator");
         others.item("SEMICOLON_SPACE_AFTER", "After expression's semicolon");

@@ -68,6 +68,7 @@ public final class QSyntaxHighlighter extends SyntaxHighlighterBase {
             entry(QTypes.SYMBOL_PATTERN, SYMBOL),
             entry(QTypes.TYPE_CAST_PATTERN, TYPECAST),
 
+            entry(QTypes.OPERATOR_CUT, OPERATOR),
             entry(QTypes.OPERATOR_ORDER, OPERATOR),
             entry(QTypes.OPERATOR_ARITHMETIC, OPERATOR),
             entry(QTypes.OPERATOR_EQUALITY, OPERATOR),
@@ -93,6 +94,7 @@ public final class QSyntaxHighlighter extends SyntaxHighlighterBase {
             entry(QTypes.UNARY_FUNCTION, KEYWORD),
             entry(QTypes.BINARY_FUNCTION, KEYWORD),
             entry(QTypes.COMPLEX_FUNCTION, KEYWORD),
+            entry(QTypes.INTERNAL_FUNCTION, KEYWORD),
             entry(QTypes.CONTROL_KEYWORD, KEYWORD),
             entry(QTypes.CONDITION_KEYWORD, KEYWORD),
 

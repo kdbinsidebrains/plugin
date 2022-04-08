@@ -10,6 +10,7 @@ s) var1:20+30; globalVar1::13123+41243;
 var1    :   20  +     30  ;           globalVar1  ::  13123+41243; var2:var1+10;
 
 (?)    .    10  20
+x       _       10 20
 
 var3:indexed[;0];
 indexed[0;0]:var1;

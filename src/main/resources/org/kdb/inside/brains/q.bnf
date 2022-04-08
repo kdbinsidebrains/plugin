@@ -45,12 +45,13 @@
     ITERATOR="iterator"
     ACCUMULATOR="accumulator"
 
+    OPERATOR_CUT="_"
+    OPERATOR_APPLY="."
     OPERATOR_ORDER="order"
     OPERATOR_EQUALITY="equality"
     OPERATOR_ARITHMETIC="arithmetic"
     OPERATOR_WEIGHT="weight"
     OPERATOR_COMMA="comma"
-    OPERATOR_EXECUTE="execute"
     OPERATOR_OTHERS="others"
 
     MODE_PATTERN="mode"
@@ -62,6 +63,7 @@
     UNARY_FUNCTION="unary"
     BINARY_FUNCTION="binary"
     COMPLEX_FUNCTION="complex"
+    INTERNAL_FUNCTION="internal"
 
     QUERY_BY="by"
     QUERY_TYPE="type"
@@ -136,9 +138,10 @@ var_declaration ::= VARIABLE_PATTERN {
 
 iterator_type ::= ACCUMULATOR? ITERATOR+
 
-operator_type ::= OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPERATOR_WEIGHT | OPERATOR_EXECUTE | OPERATOR_OTHERS | OPERATOR_COMMA
+operator_type ::= OPERATOR_CUT | OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPERATOR_WEIGHT | OPERATOR_APPLY | OPERATOR_OTHERS | OPERATOR_COMMA
 
-system_function ::= UNARY_FUNCTION | BINARY_FUNCTION | COMPLEX_FUNCTION
+custom_function ::= prefix_expr
+system_function ::= UNARY_FUNCTION | BINARY_FUNCTION | COMPLEX_FUNCTION | INTERNAL_FUNCTION
 
 private arguments_def ::= BRACKET_OPEN arguments_def_body BRACKET_CLOSE {pin(".*")=1}
 private arguments_def_body ::= statement* {recoverWhile=brackets_recover}
@@ -177,14 +180,16 @@ private lambda_body ::= parameters? expressions? { recoverWhile=braces_recover }
 
 private operation ::= (iterator_type | operator_type)+
 
-fake invoke_object ::= operator_type? (function_system | function_custom)?
-invoke_operator ::= operator_type {extends=invoke_object}
+//fake invoke_object ::= operator_type? (system_function | custom_function)?
+//invoke_operator ::= operator_type {extends=invoke_object}
+//invoke_function ::= system_function | custom_function {extends=invoke_object}
 
-invoke_function ::= function_system | function_custom {extends=invoke_object}
-function_system ::= BINARY_FUNCTION | COMPLEX_FUNCTION | UNARY_FUNCTION
-function_custom ::= prefix_expr
+//parentheses_expr ::= PAREN_OPEN !BRACKET_OPEN parentheses_body PAREN_CLOSE {pin=2 extends=invoke_object}
 
-parentheses_expr ::= PAREN_OPEN !BRACKET_OPEN parentheses_body PAREN_CLOSE {pin=2 extends=invoke_object}
+private invoke_operator ::= operator_type
+private invoke_function ::= system_function | custom_function
+
+parentheses_expr ::= PAREN_OPEN !BRACKET_OPEN parentheses_body PAREN_CLOSE {pin=2}
 private parentheses_body ::= SEMICOLON* (expression SEMICOLON+)* expression? {pin(".*")=2 recoverWhile=parens_recover}
 
 fake invoke_expr ::= (invoke_operator | invoke_function | parentheses_expr) arguments_list? operation? expression?

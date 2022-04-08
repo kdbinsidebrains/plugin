@@ -69,9 +69,10 @@ OperatorEquality=(\~ | = | <>)
 OperatorOrder=(<= | >= | < | >)
 OperatorArithmetic=[\+\-\*%]
 OperatorWeight=[&\|]
-OperatorExecute=[\.]
-OperatorOthers=[!#@_\?\^\$]
-Operator={OperatorEquality}|{OperatorOrder}|{OperatorArithmetic}|{OperatorWeight}|{OperatorExecute}|{OperatorOthers}
+OperatorCut=[_]
+OperatorApply=[\.]
+OperatorOthers=[!#@\?\^\$]
+Operator={OperatorEquality}|{OperatorOrder}|{OperatorArithmetic}|{OperatorWeight}|{OperatorCut}|{OperatorApply}|{OperatorOthers}
 
 ModePrefix=[a-zA-Z]")"
 Variable=[\.a-zA-Z][\._a-zA-Z0-9]*
@@ -274,21 +275,23 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 
   {Iterator}/{NegativeAtom}                  { yypushstate(NEGATIVE_ATOM_STATE); return ITERATOR; }
   {WhiteSpace}/{NegativeAtom}                { yypushstate(NEGATIVE_ATOM_STATE); return WHITE_SPACE; }
+  {OperatorCut}/{NegativeAtom}               { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_CUT;}
+  {OperatorApply}/{NegativeAtom}             { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_APPLY;}
   {OperatorEquality}/{NegativeAtom}          { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_EQUALITY;}
   {OperatorOrder}/{NegativeAtom}             { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_ORDER;}
   {OperatorArithmetic}/{NegativeAtom}        { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_ARITHMETIC;}
   {OperatorWeight}/{NegativeAtom}            { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_WEIGHT;}
-  {OperatorExecute}/{NegativeAtom}           { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_EXECUTE;}
   {OperatorOthers}/{NegativeAtom}            { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_OTHERS;}
 
   {Operator}/{Iterator}                      { return ACCUMULATOR; }
   {Iterator}                                 { return ITERATOR; }
 
+  {OperatorCut}                              { return OPERATOR_CUT;}
+  {OperatorApply}                            { return OPERATOR_APPLY;}
   {OperatorEquality}                         { return OPERATOR_EQUALITY;}
   {OperatorOrder}                            { return OPERATOR_ORDER;}
   {OperatorArithmetic}                       { return OPERATOR_ARITHMETIC;}
   {OperatorWeight}                           { return OPERATOR_WEIGHT;}
-  {OperatorExecute}                          { return OPERATOR_EXECUTE;}
   {OperatorOthers}                           { return OPERATOR_OTHERS;}
 
   {WhiteSpace}+"/".*                         { return LINE_COMMENT; }
@@ -314,9 +317,10 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 
   {TypeCast}                                 { return TYPE_CAST_PATTERN; }
 
-  "-"[0-9]+"!"                               { return UNARY_FUNCTION; }
   [0-6]":"/{Iterator}                        { return BINARY_FUNCTION; }
   [0-6]":"/[^\[]                             { return BINARY_FUNCTION; }
+  // https://code.kx.com/q/basics/internal/
+  "-"[0-9]+"!"                               { return INTERNAL_FUNCTION; }
 
   {Symbol}                                   { return SYMBOL_PATTERN; }
   {WhiteSpace}                               { return WHITE_SPACE; }

@@ -29,7 +29,6 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean CONTROL_SPACE_WITHIN_BRACES = false;
     public boolean CONTROL_SPACE_AFTER_SEMICOLON = true;
     public boolean CONTROL_SPACE_BEFORE_SEMICOLON = false;
-    public boolean CONTROL_SPACE_BEFORE_EXECUTION = false;
 
     // Conditions
     public int CONDITION_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
@@ -77,6 +76,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
 
     // Operators
     public boolean SPACE_AFTER_OPERATOR_COMMA = false;
+    public boolean SPACE_AFTER_OPERATOR_CUT = false;
     public boolean SPACE_AROUND_OPERATOR_ORDER = false;
     public boolean SPACE_AROUND_OPERATOR_WEIGHT = true;
     public boolean SPACE_AROUND_OPERATOR_EQUALITY = false;

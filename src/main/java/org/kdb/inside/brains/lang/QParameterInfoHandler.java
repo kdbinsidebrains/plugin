@@ -23,11 +23,11 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
         QVarReference ref = null;
         List<QLambdaExpr> lambdas = null;
 
-        final QFunctionCustom functionCustom = invoke.getInvokeObject().getFunctionCustom();
-        if (functionCustom == null) {
+        final QCustomFunction customFunction = invoke.getCustomFunction();
+        if (customFunction == null) {
             return null;
         }
-        final QExpression expression = functionCustom.getExpression();
+        final QExpression expression = customFunction.getExpression();
         if (expression instanceof QLambdaExpr) {
             lambdas = List.of((QLambdaExpr) expression);
         } else if (expression instanceof QVarReference) {
