@@ -6,7 +6,7 @@
 
 ### Fixed
 
-- Formatting optimization
+- Formatting optimization and improvements
 
 ## [1.0.0-beta]
 

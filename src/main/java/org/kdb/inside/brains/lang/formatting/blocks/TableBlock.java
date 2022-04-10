@@ -26,9 +26,9 @@ public class TableBlock extends AbstractQBlock {
     public @Nullable Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
         if (ASTBlock.getElementType(child1) == QTypes.PAREN_OPEN && ASTBlock.getElementType(child2) == QTypes.TABLE_KEYS) {
             if (formatter.custom.TABLE_LBRACKET_NEW_LINE) {
-                return Spacing.createDependentLFSpacing(0, 0, child2.getTextRange(), formatter.common.KEEP_LINE_BREAKS, formatter.common.KEEP_BLANK_LINES_IN_CODE);
+                return formatter.spacing.spacing(0, child2);
             }
-            return Spacing.createSpacing(0, 0, 0, formatter.common.KEEP_LINE_BREAKS, formatter.common.KEEP_BLANK_LINES_IN_CODE);
+            return formatter.spacing.spacing(0);
         }
         return super.getSpacing(child1, child2);
     }

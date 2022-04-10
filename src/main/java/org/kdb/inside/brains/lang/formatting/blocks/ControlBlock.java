@@ -14,6 +14,8 @@ import org.kdb.inside.brains.psi.QTypes;
 
 import java.util.List;
 
+import static org.kdb.inside.brains.lang.QNodeFactory.getFirstNotEmptyChild;
+
 public class ControlBlock extends AbstractQBlock {
     public ControlBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);

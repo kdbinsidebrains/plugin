@@ -21,6 +21,7 @@ import static com.intellij.psi.codeStyle.CodeStyleSettingsCustomizableOptions.ge
 
 public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
     private static final String OPERATORS = "Operators";
+    private static final String ITERATORS = "Iterators";
     private static final String LAMBDA = "Lambda ({..})";
     private static final String TABLE = "Table definition (([...]...))";
     private static final String CONTROL = "Control statement (if, do, while, ...)";
@@ -28,6 +29,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
     private static final String ARGUMENTS = "Arguments (x[;;;])";
     private static final String GROUPING = "Grouping ([.;.;.])";
     private static final String PARENTHESES = "Parentheses ( (;;;))";
+    private static final String EXECUTION = "Execution (f`p, f `p, f[`p])";
     private static final String MODE = "Mode (k), M), ...)";
     private static final String COMMANDS = "Commands";
     private static final String QUERY = "Query (select by from)";
@@ -98,8 +100,13 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         operators.item("SPACE_AROUND_OPERATOR_EQUALITY", "Around equality operators (~ , = , <>)");
         operators.item("SPACE_AROUND_OPERATOR_WEIGHT", "Around weight operators (&, |)");
         operators.item("SPACE_AROUND_OPERATOR_OTHERS", "Around mixed operators (!, #, @, ? , ^, $)");
+        operators.item("SPACE_AROUND_OPERATOR_CUT", "Around cut but vars and symbols ( _ )");
         operators.item("SPACE_AFTER_OPERATOR_COMMA", "After comma (,)");
-        operators.item("SPACE_AFTER_OPERATOR_CUT", "After cut/drop ( _ )");
+
+        final Group iterators = customizer.group(ITERATORS);
+        iterators.item("ITERATOR_SPACE_AROUND", "Around iterators but operator");
+        iterators.item("ITERATOR_SPACE_BETWEEN", "Between iterators");
+        iterators.item("ITERATOR_SPACE_AFTER_OPERATOR", "Before operator");
 
         final Group lambda = customizer.group(LAMBDA);
         lambda.item("LAMBDA_SPACE_WITHIN_BRACES", "Within braces");
@@ -131,6 +138,12 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         condition.item("CONDITION_SPACE_AFTER_SEMICOLON", "After semicolon");
         condition.item("CONDITION_SPACE_BEFORE_SEMICOLON", "Before semicolon");
 
+        final Group execution = customizer.group(EXECUTION);
+        execution.item("EXECUTION_SPACE_BEFORE_SYMBOLS", "Before symbol(s)");
+        execution.item("EXECUTION_SPACE_BEFORE_ARGUMENTS", "Before arguments");
+        execution.item("EXECUTION_SPACE_BEFORE_PARAMETER", "Before parameter");
+        execution.item("EXECUTION_SPACE_AFTER_INTERNAL", "After internal function (-[0-9]+!)");
+
         final Group arguments = customizer.group(ARGUMENTS);
         arguments.item("ARGUMENTS_SPACE_WITHIN_BRACES", "Within brackets");
         arguments.item("ARGUMENTS_SPACE_AFTER_SEMICOLON", "After semicolon");
@@ -159,8 +172,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         final Group others = customizer.group(OTHER);
         others.item("RETURN_SPACE_AFTER_COLON", "After return colon");
         others.item("SIGNAL_SPACE_AFTER_SIGNAL", "After signal apostrophe");
-        others.item("FUNCTION_INVOKE_SPACE_BEFORE_SYMBOL", "Before a symbol in an invoke");
-        others.item("ITERATOR_SPACE_AFTER", "After iterator");
+        others.item("FUNCTION_INVOKE_SPACE_BEFORE_SYMBOL", "Before symbol(s) in an invoke");
         others.item("SEMICOLON_SPACE_AFTER", "After expression's semicolon");
         others.item("EXPRESSION_SEMICOLON_TRIM_SPACES", "Trim spaces before semicolon");
         others.item("EXPRESSION_SEMICOLON_REMOVE_LINES", "Remove bank lines before semicolon");

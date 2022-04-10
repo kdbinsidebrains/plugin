@@ -43,7 +43,6 @@
     TYPE_CAST_PATTERN="type cast pattern"
 
     ITERATOR="iterator"
-    ACCUMULATOR="accumulator"
 
     OPERATOR_CUT="_"
     OPERATOR_APPLY="."
@@ -136,8 +135,7 @@ var_declaration ::= VARIABLE_PATTERN {
  mixin="org.kdb.inside.brains.psi.impl.QVariableDeclarationImpl"
 }
 
-iterator_type ::= ACCUMULATOR? ITERATOR+
-
+iterator_type ::= ITERATOR
 operator_type ::= OPERATOR_CUT | OPERATOR_ORDER | OPERATOR_EQUALITY | OPERATOR_ARITHMETIC | OPERATOR_WEIGHT | OPERATOR_APPLY | OPERATOR_OTHERS | OPERATOR_COMMA
 
 custom_function ::= prefix_expr

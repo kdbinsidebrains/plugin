@@ -11,6 +11,8 @@ var1    :   20  +     30  ;           globalVar1  ::  13123+41243; var2:var1+10;
 
 (?)    .    10  20
 x       _       10 20
+-1   _      10 20
+end:{(neg union/[w[; ; 0]])@\:(`.u.end;x)}
 
 var3:indexed[;0];
 indexed[0;0]:var1;

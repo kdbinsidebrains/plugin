@@ -267,7 +267,6 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   ":"                                        { return COLON; }
   ";"                                        { yybegin(YYINITIAL); return SEMICOLON; }
 
-  ","/{Iterator}                             { return ACCUMULATOR; }
   ","                                        { return OPERATOR_COMMA; }
 
   {ControlKeyword}/{WhiteSpace}*"["          { return CONTROL_KEYWORD; }
@@ -283,7 +282,6 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   {OperatorWeight}/{NegativeAtom}            { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_WEIGHT;}
   {OperatorOthers}/{NegativeAtom}            { yypushstate(NEGATIVE_ATOM_STATE); return OPERATOR_OTHERS;}
 
-  {Operator}/{Iterator}                      { return ACCUMULATOR; }
   {Iterator}                                 { return ITERATOR; }
 
   {OperatorCut}                              { return OPERATOR_CUT;}

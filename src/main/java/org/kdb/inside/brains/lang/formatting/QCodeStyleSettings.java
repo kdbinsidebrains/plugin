@@ -41,6 +41,12 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean CONDITION_SPACE_AFTER_SEMICOLON = true;
     public boolean CONDITION_SPACE_BEFORE_SEMICOLON = false;
 
+    // Execution
+    public boolean EXECUTION_SPACE_BEFORE_ARGUMENTS = false;
+    public boolean EXECUTION_SPACE_BEFORE_SYMBOLS = true;
+    public boolean EXECUTION_SPACE_BEFORE_PARAMETER = true;
+    public boolean EXECUTION_SPACE_AFTER_INTERNAL = false;
+
     // Arguments
     public int ARGUMENTS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean ARGUMENTS_ALIGN_EXPRS = true;
@@ -76,12 +82,17 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
 
     // Operators
     public boolean SPACE_AFTER_OPERATOR_COMMA = false;
-    public boolean SPACE_AFTER_OPERATOR_CUT = false;
+    public boolean SPACE_AROUND_OPERATOR_CUT = false;
     public boolean SPACE_AROUND_OPERATOR_ORDER = false;
     public boolean SPACE_AROUND_OPERATOR_WEIGHT = true;
     public boolean SPACE_AROUND_OPERATOR_EQUALITY = false;
     public boolean SPACE_AROUND_OPERATOR_ARITHMETIC = false;
     public boolean SPACE_AROUND_OPERATOR_OTHERS = false;
+
+    // Iterators
+    public boolean ITERATOR_SPACE_AROUND = false;
+    public boolean ITERATOR_SPACE_BETWEEN = false;
+    public boolean ITERATOR_SPACE_AFTER_OPERATOR = false;
 
     // Mode
     public int MODE_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
@@ -112,7 +123,6 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean TABLE_SPACE_BEFORE_GLOBAL_CLOSE_BRACKET = true;
 
     // Other
-    public boolean ITERATOR_SPACE_AFTER = false;
     public boolean SEMICOLON_SPACE_AFTER = true;
     public boolean RETURN_SPACE_AFTER_COLON = false;
     public boolean SIGNAL_SPACE_AFTER_SIGNAL = false;

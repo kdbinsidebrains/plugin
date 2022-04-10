@@ -4,21 +4,29 @@ import com.intellij.formatting.ASTBlock;
 import com.intellij.formatting.Block;
 import com.intellij.formatting.Spacing;
 import com.intellij.formatting.SpacingBuilder;
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QLanguage;
-
-import java.util.List;
+import org.kdb.inside.brains.lang.QNodeFactory;
 
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QSpacingStrategy {
     private final SpacingBuilder builder;
+    private static final TokenSet OPERATORS = TokenSet.create(OPERATOR_CUT, OPERATOR_ARITHMETIC, OPERATOR_ORDER, OPERATOR_EQUALITY, OPERATOR_WEIGHT, OPERATOR_OTHERS, OPERATOR_COMMA);
+    private static final TokenSet FUNCTIONS = TokenSet.create(UNARY_FUNCTION, BINARY_FUNCTION, COMPLEX_FUNCTION, INTERNAL_FUNCTION);
+    private static final TokenSet SYMBOLS_TYPE = TokenSet.create(SYMBOL, SYMBOLS);
+    private final QCodeStyleSettings custom;
+    private final CommonCodeStyleSettings common;
 
     public QSpacingStrategy(@NotNull CodeStyleSettings codeStyleSettings) {
-        final var custom = codeStyleSettings.getCustomSettings(QCodeStyleSettings.class);
-        final var common = codeStyleSettings.getCommonSettings(QLanguage.INSTANCE);
+        custom = codeStyleSettings.getCustomSettings(QCodeStyleSettings.class);
+        common = codeStyleSettings.getCommonSettings(QLanguage.INSTANCE);
 
         builder = new SpacingBuilder(codeStyleSettings, QLanguage.INSTANCE);
 
@@ -93,35 +101,32 @@ public class QSpacingStrategy {
 
         // Operations
         // Special case - separate apply always
-        builder.before(OPERATOR_CUT).spaces(1);
-        builder.after(OPERATOR_CUT).spaceIf(custom.SPACE_AFTER_OPERATOR_CUT);
         builder.around(OPERATOR_APPLY).spaces(1);
-
-        builder.aroundInside(OPERATOR_ARITHMETIC, PREFIX_INVOKE_EXPR).spaces(0);
+        builder.between(VAR_REFERENCE, OPERATOR_CUT).spaces(1);
+        builder.around(OPERATOR_CUT).spaceIf(custom.SPACE_AROUND_OPERATOR_CUT);
         builder.around(OPERATOR_ARITHMETIC).spaceIf(custom.SPACE_AROUND_OPERATOR_ARITHMETIC);
-        builder.aroundInside(OPERATOR_ORDER, PREFIX_INVOKE_EXPR).spaces(0);
         builder.around(OPERATOR_ORDER).spaceIf(custom.SPACE_AROUND_OPERATOR_ORDER);
-        builder.aroundInside(OPERATOR_EQUALITY, PREFIX_INVOKE_EXPR).spaces(0);
         builder.around(OPERATOR_EQUALITY).spaceIf(custom.SPACE_AROUND_OPERATOR_EQUALITY);
-        builder.aroundInside(OPERATOR_WEIGHT, PREFIX_INVOKE_EXPR).spaces(0);
         builder.around(OPERATOR_WEIGHT).spaceIf(custom.SPACE_AROUND_OPERATOR_WEIGHT);
-        builder.aroundInside(OPERATOR_OTHERS, PREFIX_INVOKE_EXPR).spaces(0);
         builder.around(OPERATOR_OTHERS).spaceIf(custom.SPACE_AROUND_OPERATOR_OTHERS);
-        builder.aroundInside(OPERATOR_COMMA, PREFIX_INVOKE_EXPR).spaces(0);
-        builder.after(OPERATOR_COMMA).spaceIf(custom.SPACE_AFTER_OPERATOR_COMMA);
+
         builder.before(OPERATOR_COMMA).spaces(0);
+        builder.after(OPERATOR_COMMA).spaceIf(custom.SPACE_AFTER_OPERATOR_COMMA);
+        for (IElementType operator : OPERATORS.getTypes()) {
+            builder.aroundInside(operator, PREFIX_INVOKE_EXPR).spaces(0);
+        }
+
+        // Iterators
+        // @see #iteratorSpacing
 
         // Mode
         builder.after(MODE_PATTERN).spaceIf(custom.MODE_SPACE_AFTER);
 
         // Query
         builder.after(QUERY_TYPE).spaces(1);
-        builder.before(QUERY_BY).spaces(1);
-        builder.after(QUERY_BY).spaces(1);
-        builder.before(QUERY_FROM).spaces(1);
-        builder.after(QUERY_FROM).spaces(1);
-        builder.before(QUERY_WHERE).spaces(1);
-        builder.after(QUERY_WHERE).spaces(1);
+        builder.around(QUERY_BY).spaces(1);
+        builder.around(QUERY_FROM).spaces(1);
+        builder.around(QUERY_WHERE).spaces(1);
         builder.before(QUERY_SPLITTER).spaces(0);
         builder.after(QUERY_SPLITTER).spaceIf(custom.QUERY_SPACE_AFTER_COMMA);
 
@@ -131,13 +136,13 @@ public class QSpacingStrategy {
         builder.after(FUNCTION_IMPORT).spaces(1);
 
         // InvokeFunction expanded
-        builder.after(INTERNAL_FUNCTION).spaces(0); // Special case for internal functions, like -11!x
-        for (IElementType type : List.of(UNARY_FUNCTION, BINARY_FUNCTION, COMPLEX_FUNCTION, INTERNAL_FUNCTION)) {
-            builder.between(type, ARGUMENTS).spaces(0);
-            builder.between(type, ITERATOR_TYPE).spaces(0);
-            builder.between(type, SYMBOL).spaces(1);
-            builder.between(type, SYMBOLS).spaces(1);
-            builder.after(type).spaces(1);
+        builder.after(INTERNAL_FUNCTION).spaceIf(custom.EXECUTION_SPACE_AFTER_INTERNAL); // Special case for internal functions, like -11!x
+        // Operator types
+        for (IElementType type : FUNCTIONS.getTypes()) {
+            builder.between(type, ARGUMENTS).spaceIf(custom.EXECUTION_SPACE_BEFORE_ARGUMENTS);
+            builder.between(type, SYMBOL).spaceIf(custom.EXECUTION_SPACE_BEFORE_SYMBOLS);
+            builder.between(type, SYMBOLS).spaceIf(custom.EXECUTION_SPACE_BEFORE_SYMBOLS);
+            builder.after(type).spaceIf(custom.EXECUTION_SPACE_BEFORE_PARAMETER);
         }
 
         builder.between(CUSTOM_FUNCTION, ARGUMENTS).spaces(0);
@@ -147,7 +152,7 @@ public class QSpacingStrategy {
         builder.after(CUSTOM_FUNCTION).spaces(1);
 
         // Others
-        builder.after(ITERATOR_TYPE).spaceIf(custom.ITERATOR_SPACE_AFTER);
+        builder.around(ITERATOR_TYPE).spaces(0);
         builder.beforeInside(VAR_DECLARATION, CONTEXT).spaces(1);
         builder.afterInside(COLON, RETURN_EXPR).spaceIf(custom.RETURN_SPACE_AFTER_COLON);
         builder.afterInside(ITERATOR, SIGNAL_EXPR).spaceIf(custom.SIGNAL_SPACE_AFTER_SIGNAL);
@@ -164,6 +169,85 @@ public class QSpacingStrategy {
     }
 
     private Spacing getASTSpacing(ASTBlock parent, ASTBlock child1, ASTBlock child2) {
+        final Spacing spacing = customSpacing(child1, child2);
+        if (spacing != null) {
+            return spacing;
+        }
         return builder.getSpacing(parent, child1, child2);
+    }
+
+    public Spacing spacing(int count) {
+        return spacing(count, (ASTNode) null);
+    }
+
+    public Spacing spacingIf(boolean condition) {
+        return spacing(condition ? 1 : 0);
+    }
+
+    public Spacing spacing(int count, Block parent) {
+        return spacing(count, parent == null ? null : ASTBlock.getNode(parent));
+    }
+
+    public Spacing spacing(int count, ASTNode parent) {
+        if (parent != null) {
+            return Spacing.createDependentLFSpacing(count, count, parent.getTextRange(), common.KEEP_LINE_BREAKS, common.KEEP_BLANK_LINES_IN_CODE);
+        } else {
+            return Spacing.createSpacing(count, count, 0, common.KEEP_LINE_BREAKS, common.KEEP_BLANK_LINES_IN_CODE);
+        }
+    }
+
+    private Spacing customSpacing(ASTBlock child1, ASTBlock child2) {
+        final IElementType child1Type = ASTBlock.getElementType(child1);
+        final IElementType child2Type = ASTBlock.getElementType(child2);
+
+        final Spacing spacing = operatorCutFix(child1, child1Type, child2Type);
+        if (spacing != null) {
+            return spacing;
+        }
+        return iteratorSpacing(child2, child1Type, child2Type);
+    }
+
+    @Nullable
+    private Spacing iteratorSpacing(ASTBlock child2, IElementType child1Type, IElementType child2Type) {
+        if (child1Type == ITERATOR_TYPE && child2Type != ITERATOR_TYPE) {
+            return spacingIf(custom.ITERATOR_SPACE_AROUND);
+        }
+
+        if (child2Type == ITERATOR_TYPE) {
+            final ASTNode iter = QNodeFactory.getFirstNotEmptyChild(child2.getNode());
+            if (iter != null && iter.getText().charAt(0) == '/') {
+                return spacing(0);
+            }
+
+            if (child1Type == ITERATOR_TYPE) {
+                return spacingIf(custom.ITERATOR_SPACE_BETWEEN);
+            }
+
+            if (OPERATORS.contains(child1Type)) {
+                return spacingIf(custom.ITERATOR_SPACE_AFTER_OPERATOR);
+            }
+            return spacingIf(custom.ITERATOR_SPACE_AROUND);
+        }
+        return null;
+    }
+
+    @Nullable
+    private Spacing operatorCutFix(ASTBlock child1, IElementType child1Type, IElementType child2Type) {
+        if (child1Type != CUSTOM_FUNCTION || child2Type != OPERATOR_CUT) {
+            return null;
+        }
+
+        final ASTNode funcChild = QNodeFactory.getFirstNotEmptyChild(child1.getNode());
+        if (funcChild == null) {
+            return null;
+        }
+
+        if (funcChild.getElementType() == VAR_REFERENCE) {
+            return spacing(1);
+        }
+        if (funcChild.getElementType() == LITERAL_EXPR && funcChild.findChildByType(SYMBOLS_TYPE) != null) {
+            return spacing(1);
+        }
+        return null;
     }
 }

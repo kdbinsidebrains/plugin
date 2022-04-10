@@ -292,7 +292,7 @@
         <annotator language="q" implementationClass="org.kdb.inside.brains.lang.annotation.QLanguageAnnotator"/>
 
         <lang.commenter language="q" implementationClass="org.kdb.inside.brains.lang.QCommenter"/>
-        <lang.ast.factory language="q" implementationClass="org.kdb.inside.brains.lang.QASTFactory"/>
+        <lang.ast.factory language="q" implementationClass="org.kdb.inside.brains.lang.QNodeFactory"/>
         <lang.braceMatcher language="q" implementationClass="org.kdb.inside.brains.lang.QBracesMatcher"/>
         <lang.parserDefinition language="q" implementationClass="org.kdb.inside.brains.QParserDefinition"/>
         <lang.namesValidator language="q"
