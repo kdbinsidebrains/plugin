@@ -2,7 +2,17 @@
 
 # KdbInsideBrains Changelog
 
+## [1.0.2-beta]
+
+**WARNING! It's recommended don't use auto-formatting option at commit for production code.**
+
+### Fixed
+
+- spaces before accumulator but cut operator
+
 ## [1.0.1-beta]
+
+**WARNING! It's recommended don't use auto-formatting option at commit for production code.**
 
 ### Fixed
 
@@ -10,11 +20,11 @@
 
 ## [1.0.0-beta]
 
+**WARNING! It's recommended don't use auto-formatting option at commit for production code.**
+
 ### Added
 
 Formatting has been added
-
-**WARNING!** It's recommended don't use auto-formatting option at commit for production code.
 
 ## [0.23.1]
 

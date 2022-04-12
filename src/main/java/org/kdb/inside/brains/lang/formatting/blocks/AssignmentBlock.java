@@ -32,10 +32,10 @@ public class AssignmentBlock extends CodeBlock {
                 return createBlock(node, formatter);
             }
             if (elementType == QTypes.VAR_DECLARATION) {
-                return new LeafBlock(node, formatter);
+                return createBlock(node, formatter);
             }
             if (elementType == QTypes.VAR_ASSIGNMENT_TYPE || elementType == QTypes.COLUMN_ASSIGNMENT_TYPE || elementType == QTypes.VAR_ACCUMULATOR_TYPE) {
-                return new LeafBlock(node, formatter, null, alignment, NORMAL_INDENT);
+                return createBlock(node, formatter, null, alignment, NORMAL_INDENT);
             }
             return createBlock(node, formatter, NORMAL_INDENT);
         });

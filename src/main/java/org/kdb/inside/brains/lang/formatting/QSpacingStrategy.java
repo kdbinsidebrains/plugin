@@ -94,15 +94,15 @@ public class QSpacingStrategy {
         }
 
         // Operators
-        builder.before(VAR_ACCUMULATOR_TYPE).spaces(1);
-        builder.after(VAR_ACCUMULATOR_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
         builder.around(VAR_ASSIGNMENT_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
+        builder.around(VAR_ACCUMULATOR_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
         builder.around(COLUMN_ASSIGNMENT_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
 
-        // Operations
-        // Special case - separate apply always
-        builder.around(OPERATOR_APPLY).spaces(1);
+        // Special case - cut can't go between a var
         builder.between(VAR_REFERENCE, OPERATOR_CUT).spaces(1);
+
+        // Operations
+        builder.around(OPERATOR_APPLY).spaces(1);
         builder.around(OPERATOR_CUT).spaceIf(custom.SPACE_AROUND_OPERATOR_CUT);
         builder.around(OPERATOR_ARITHMETIC).spaceIf(custom.SPACE_AROUND_OPERATOR_ARITHMETIC);
         builder.around(OPERATOR_ORDER).spaceIf(custom.SPACE_AROUND_OPERATOR_ORDER);
@@ -200,7 +200,7 @@ public class QSpacingStrategy {
         final IElementType child1Type = ASTBlock.getElementType(child1);
         final IElementType child2Type = ASTBlock.getElementType(child2);
 
-        final Spacing spacing = operatorCutFix(child1, child1Type, child2Type);
+        final Spacing spacing = operatorCutFix(child1, child1Type, child2, child2Type);
         if (spacing != null) {
             return spacing;
         }
@@ -232,21 +232,31 @@ public class QSpacingStrategy {
     }
 
     @Nullable
-    private Spacing operatorCutFix(ASTBlock child1, IElementType child1Type, IElementType child2Type) {
-        if (child1Type != CUSTOM_FUNCTION || child2Type != OPERATOR_CUT) {
+    private Spacing operatorCutFix(ASTBlock child1, IElementType child1Type, ASTBlock child2, IElementType child2Type) {
+        if (child2Type == VAR_ACCUMULATOR_TYPE) {
+            final ASTNode node = child2.getNode();
+            if (node != null && node.getTextLength() != 0 && node.getChars().charAt(0) == '_') {
+                return spacing(1);
+            }
             return null;
         }
 
-        final ASTNode funcChild = QNodeFactory.getFirstNotEmptyChild(child1.getNode());
-        if (funcChild == null) {
+        if (child2Type != OPERATOR_CUT) {
             return null;
         }
 
-        if (funcChild.getElementType() == VAR_REFERENCE) {
-            return spacing(1);
-        }
-        if (funcChild.getElementType() == LITERAL_EXPR && funcChild.findChildByType(SYMBOLS_TYPE) != null) {
-            return spacing(1);
+        if (child1Type == CUSTOM_FUNCTION) {
+            final ASTNode funcChild = QNodeFactory.getFirstNotEmptyChild(child1.getNode());
+            if (funcChild == null) {
+                return null;
+            }
+
+            if (funcChild.getElementType() == VAR_REFERENCE) {
+                return spacing(1);
+            }
+            if (funcChild.getElementType() == LITERAL_EXPR && funcChild.findChildByType(SYMBOLS_TYPE) != null) {
+                return spacing(1);
+            }
         }
         return null;
     }

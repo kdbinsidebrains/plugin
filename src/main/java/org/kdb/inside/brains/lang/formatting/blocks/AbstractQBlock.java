@@ -139,7 +139,6 @@ public abstract class AbstractQBlock extends AbstractBlock {
         return type == QTypes.VAR_DECLARATION
                 || type == QTypes.VAR_REFERENCE
                 || type == QTypes.VAR_ASSIGNMENT_TYPE
-                || type == QTypes.VAR_ACCUMULATOR_TYPE
                 || type == QTypes.COLUMN_ASSIGNMENT_TYPE
                 || type == QTypes.SYMBOL
                 || type == QTypes.SYMBOLS
@@ -157,6 +156,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
     private boolean isExpressionType(IElementType type) {
         return type == QTypes.EXPRESSIONS
+                || type == QTypes.VAR_ACCUMULATOR_TYPE
                 || type == QTypes.CUSTOM_FUNCTION
                 || type == QTypes.SIGNAL_EXPR
                 || type == QTypes.RETURN_EXPR
