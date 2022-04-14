@@ -7,7 +7,6 @@ import com.intellij.find.SearchSession;
 import com.intellij.find.editorHeaderActions.Embeddable;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
@@ -18,9 +17,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SmartList;
 import com.intellij.util.ui.ComponentWithEmptyText;
 import icons.KdbIcons;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.concurrent.locks.Lock;
@@ -48,12 +45,7 @@ public class TableResultSearchSession implements SearchSession {
                         SearchTypeAction.regex(findModel)
                 )
                 .addPrimarySearchActions(new DelaySearchAction())
-                .withDataProvider(new DataProvider() {
-                    @Override
-                    public @Nullable Object getData(@NotNull @NonNls String dataId) {
-                        return SearchSession.KEY.is(dataId) ? this : null;
-                    }
-                })
+                .withDataProvider(dataId -> SearchSession.KEY.is(dataId) ? TableResultSearchSession.this : null)
                 .withMultilineEnabled(false)
                 .withCloseAction(this::close)
                 .build();

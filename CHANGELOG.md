@@ -34,6 +34,12 @@
 
 Formatting has been added
 
+## [0.24.0]
+
+### Fixed
+
+- Idea 2022.1 integration fixed (search in a TableView)
+
 ## [0.23.1]
 
 ### Fixed
