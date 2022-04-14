@@ -53,6 +53,17 @@ public class ElementContext {
         return scope == ElementScope.PARAMETERS ? (QParameters) element : null;
     }
 
+    public static boolean isRoot(ASTNode node) {
+        if (node == null) {
+            return false;
+        }
+        ASTNode treeParent = node.getTreeParent();
+        if (treeParent == null) {
+            return true;
+        }
+        return treeParent.getTreeParent() == null;
+    }
+
     public static IElementType of(ASTNode node) {
         ASTNode parent = node.getTreeParent();
         while (parent != null) {

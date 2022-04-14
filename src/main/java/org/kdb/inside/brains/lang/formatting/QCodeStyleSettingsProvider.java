@@ -242,6 +242,9 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
 
         final Group mode = customizer.wrap(MODE, "MODE_WRAP_TYPE");
         mode.item("MODE_ALIGN", "Align when multiline");
+
+        final Group others = customizer.group(OTHER);
+        others.item("INVOKE_ALIGN_ITEMS", "Align invoke expressions");
     }
 
     private String[] names(Enum<?>... enums) {

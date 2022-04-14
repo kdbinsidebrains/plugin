@@ -176,26 +176,18 @@ lambda_expr ::= BRACE_OPEN lambda_body BRACE_CLOSE {pin=1}
 expressions ::= expressions_group
 private lambda_body ::= parameters? expressions? { recoverWhile=braces_recover }
 
+private operator ::= operator_type
+private function ::= system_function | custom_function
 private operation ::= (iterator_type | operator_type)+
-
-//fake invoke_object ::= operator_type? (system_function | custom_function)?
-//invoke_operator ::= operator_type {extends=invoke_object}
-//invoke_function ::= system_function | custom_function {extends=invoke_object}
-
-//parentheses_expr ::= PAREN_OPEN !BRACKET_OPEN parentheses_body PAREN_CLOSE {pin=2 extends=invoke_object}
-
-private invoke_operator ::= operator_type
-private invoke_function ::= system_function | custom_function
 
 parentheses_expr ::= PAREN_OPEN !BRACKET_OPEN parentheses_body PAREN_CLOSE {pin=2}
 private parentheses_body ::= SEMICOLON* (expression SEMICOLON+)* expression? {pin(".*")=2 recoverWhile=parens_recover}
 
-fake invoke_expr ::= (invoke_operator | invoke_function | parentheses_expr) arguments_list? operation? expression?
-prefix_invoke_expr ::= invoke_operator arguments_list operation? expression? { pin=2 extends=invoke_expr}
-function_invoke_expr ::= invoke_function ((arguments_list? ((operation? expression) | operation)) | (arguments_list operation?)) { extends=invoke_expr }
-parentheses_invoke_expr ::= parentheses_expr arguments_list? operation? expression? { extends=invoke_expr }
+fake invoke_expr ::= (operator | function | parentheses_expr) arguments_list? operation? expression?
+invoke_prefix ::= operator arguments_list operation? expression? { pin=2 extends=invoke_expr}
+invoke_function ::= (function | parentheses_expr) ((arguments_list? ((operation? expression) | operation)) | (arguments_list operation?)) { extends=invoke_expr }
 
-private invoke_group ::= parentheses_invoke_expr | prefix_invoke_expr | function_invoke_expr
+private invoke_group ::= invoke_prefix | invoke_function
 
 type_cast_expr ::= TYPE_CAST_PATTERN expression? {pin = 1 methods=[typeCast="TYPE_CAST_PATTERN"]}
 
@@ -252,4 +244,5 @@ expression ::= assignment_expr
     | signal_expr
     | k_syntax_expr
     | projection_expr
+    | parentheses_expr
     { extraRoot=true }

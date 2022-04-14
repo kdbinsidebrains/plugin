@@ -2,6 +2,14 @@
 
 # KdbInsideBrains Changelog
 
+## [1.0.3-beta]
+
+**WARNING! It's recommended don't use auto-formatting option at commit for production code.**
+
+### Fixed
+
+- Cascading invoke has been fixed
+
 ## [1.0.2-beta]
 
 **WARNING! It's recommended don't use auto-formatting option at commit for production code.**

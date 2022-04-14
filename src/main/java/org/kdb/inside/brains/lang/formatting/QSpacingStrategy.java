@@ -18,11 +18,12 @@ import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QSpacingStrategy {
     private final SpacingBuilder builder;
-    private static final TokenSet OPERATORS = TokenSet.create(OPERATOR_CUT, OPERATOR_ARITHMETIC, OPERATOR_ORDER, OPERATOR_EQUALITY, OPERATOR_WEIGHT, OPERATOR_OTHERS, OPERATOR_COMMA);
-    private static final TokenSet FUNCTIONS = TokenSet.create(UNARY_FUNCTION, BINARY_FUNCTION, COMPLEX_FUNCTION, INTERNAL_FUNCTION);
-    private static final TokenSet SYMBOLS_TYPE = TokenSet.create(SYMBOL, SYMBOLS);
     private final QCodeStyleSettings custom;
     private final CommonCodeStyleSettings common;
+
+    private static final TokenSet SYMBOLS_SET = TokenSet.create(SYMBOL, SYMBOLS);
+    private static final TokenSet FUNCTIONS_SET = TokenSet.create(UNARY_FUNCTION, BINARY_FUNCTION, COMPLEX_FUNCTION, INTERNAL_FUNCTION);
+    private static final TokenSet OPERATORS_SET = TokenSet.create(OPERATOR_CUT, OPERATOR_ARITHMETIC, OPERATOR_ORDER, OPERATOR_EQUALITY, OPERATOR_WEIGHT, OPERATOR_OTHERS, OPERATOR_COMMA);
 
     public QSpacingStrategy(@NotNull CodeStyleSettings codeStyleSettings) {
         custom = codeStyleSettings.getCustomSettings(QCodeStyleSettings.class);
@@ -112,8 +113,8 @@ public class QSpacingStrategy {
 
         builder.before(OPERATOR_COMMA).spaces(0);
         builder.after(OPERATOR_COMMA).spaceIf(custom.SPACE_AFTER_OPERATOR_COMMA);
-        for (IElementType operator : OPERATORS.getTypes()) {
-            builder.aroundInside(operator, PREFIX_INVOKE_EXPR).spaces(0);
+        for (IElementType operator : OPERATORS_SET.getTypes()) {
+            builder.aroundInside(operator, INVOKE_PREFIX).spaces(0);
         }
 
         // Iterators
@@ -138,7 +139,7 @@ public class QSpacingStrategy {
         // InvokeFunction expanded
         builder.after(INTERNAL_FUNCTION).spaceIf(custom.EXECUTION_SPACE_AFTER_INTERNAL); // Special case for internal functions, like -11!x
         // Operator types
-        for (IElementType type : FUNCTIONS.getTypes()) {
+        for (IElementType type : FUNCTIONS_SET.getTypes()) {
             builder.between(type, ARGUMENTS).spaceIf(custom.EXECUTION_SPACE_BEFORE_ARGUMENTS);
             builder.between(type, SYMBOL).spaceIf(custom.EXECUTION_SPACE_BEFORE_SYMBOLS);
             builder.between(type, SYMBOLS).spaceIf(custom.EXECUTION_SPACE_BEFORE_SYMBOLS);
@@ -153,6 +154,8 @@ public class QSpacingStrategy {
 
         // Others
         builder.around(ITERATOR_TYPE).spaces(0);
+        builder.afterInside(ARGUMENTS, INVOKE_PREFIX).spaces(1);
+        builder.afterInside(ARGUMENTS, INVOKE_FUNCTION).spaces(1);
         builder.beforeInside(VAR_DECLARATION, CONTEXT).spaces(1);
         builder.afterInside(COLON, RETURN_EXPR).spaceIf(custom.RETURN_SPACE_AFTER_COLON);
         builder.afterInside(ITERATOR, SIGNAL_EXPR).spaceIf(custom.SIGNAL_SPACE_AFTER_SIGNAL);
@@ -223,7 +226,7 @@ public class QSpacingStrategy {
                 return spacingIf(custom.ITERATOR_SPACE_BETWEEN);
             }
 
-            if (OPERATORS.contains(child1Type)) {
+            if (OPERATORS_SET.contains(child1Type)) {
                 return spacingIf(custom.ITERATOR_SPACE_AFTER_OPERATOR);
             }
             return spacingIf(custom.ITERATOR_SPACE_AROUND);
@@ -254,7 +257,7 @@ public class QSpacingStrategy {
             if (funcChild.getElementType() == VAR_REFERENCE) {
                 return spacing(1);
             }
-            if (funcChild.getElementType() == LITERAL_EXPR && funcChild.findChildByType(SYMBOLS_TYPE) != null) {
+            if (funcChild.getElementType() == LITERAL_EXPR && funcChild.findChildByType(SYMBOLS_SET) != null) {
                 return spacing(1);
             }
         }

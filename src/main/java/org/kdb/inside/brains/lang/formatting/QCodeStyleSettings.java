@@ -50,7 +50,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     // Arguments
     public int ARGUMENTS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean ARGUMENTS_ALIGN_EXPRS = true;
-    public boolean ARGUMENTS_ALIGN_BRACKET = false;
+    public boolean ARGUMENTS_ALIGN_BRACKET = true;
     public boolean ARGUMENTS_LBRACKET_ON_NEXT_LINE = false;
     public boolean ARGUMENTS_RBRACKET_ON_NEXT_LINE = false;
     public boolean ARGUMENTS_SPACE_WITHIN_BRACES = false;
@@ -129,6 +129,8 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean EXPRESSION_SEMICOLON_TRIM_SPACES = true;
     public boolean EXPRESSION_SEMICOLON_REMOVE_LINES = true;
     public boolean FUNCTION_INVOKE_SPACE_BEFORE_SYMBOL = false;
+
+    public boolean INVOKE_ALIGN_ITEMS = true;
 
     // Tail trim
     public boolean IMPORT_TRIM_TAIL = true;

@@ -18,12 +18,11 @@ import static org.kdb.inside.brains.lang.QNodeFactory.getFirstNotEmptyChild;
 import static org.kdb.inside.brains.lang.QNodeFactory.getNextNotEmptySibling;
 
 public abstract class AbstractQBlock extends AbstractBlock {
-    protected static final Indent NONE_INDENT = Indent.getNoneIndent();
-    protected final QFormatter formatter;
     private final Indent indent;
-
-    protected static final Indent SPACE_INDENT = Indent.getSpaceIndent(1);
+    protected static final Indent NONE_INDENT = Indent.getNoneIndent();
     protected static final Indent NORMAL_INDENT = Indent.getNormalIndent();
+    protected final QFormatter formatter;
+    protected static final Indent SPACE_INDENT = Indent.getSpaceIndent(1);
 
     public AbstractQBlock(@NotNull ASTNode node,
                           @NotNull QFormatter formatter) {
@@ -111,6 +110,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new TableBlock(node, formatter, wrap, alignment, indent);
         }
 
+        if (InvokeBlock.isInvokeElement(type)) {
+            return new InvokeBlock(node, formatter, wrap, alignment, indent);
+        }
+
         // One value wrapper type which should be expanded
         if (isWrapperType(type)) {
             return createBlock(getFirstNotEmptyChild(node), formatter, wrap, alignment, indent);
@@ -118,10 +121,6 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
         if (isExpressionType(type)) {
             return new CodeBlock(node, formatter, wrap, alignment, indent);
-        }
-
-        if (isIndentedExpression(type)) {
-            return new IndentedBlock(node, formatter, wrap, alignment, indent);
         }
 
         if (isPrimitiveType(type)) {
@@ -160,8 +159,6 @@ public abstract class AbstractQBlock extends AbstractBlock {
                 || type == QTypes.CUSTOM_FUNCTION
                 || type == QTypes.SIGNAL_EXPR
                 || type == QTypes.RETURN_EXPR
-                || type == QTypes.PREFIX_INVOKE_EXPR
-                || type == QTypes.PARENTHESES_INVOKE_EXPR
                 || type == QTypes.CONTEXT
                 || type == QTypes.CONTEXT_BODY
                 || type == QTypes.VAR_INDEXING
@@ -174,33 +171,43 @@ public abstract class AbstractQBlock extends AbstractBlock {
                 ;
     }
 
-    private boolean isIndentedExpression(IElementType type) {
-        return type == QTypes.FUNCTION_INVOKE_EXPR
-                ;
-    }
-
     @Override
     public @Nullable Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
         return formatter.getSpacing(this, child1, child2);
     }
 
-    protected final List<Block> iterateChildren(ChildrenIterator iterator) {
-        boolean first = true;
-        ASTNode child = getFirstNotEmptyChild(myNode);
+    protected final List<Block> iterateChildren(BlockCreator iterator) {
         final List<Block> result = new ArrayList<>();
-        while (child != null) {
-            final Block block = iterator.createBlock(child, first);
+        consumeChildren((node, first) -> {
+            final Block block = iterator.newBlock(node, first);
             if (block != null) {
                 result.add(block);
             }
-            first = false;
-            child = getNextNotEmptySibling(child);
-        }
+        });
         return result;
     }
 
+    protected final void consumeChildren(NodeConsumer consumer) {
+        consumeChildren(myNode, consumer);
+    }
+
+    protected final void consumeChildren(ASTNode node, NodeConsumer consumer) {
+        boolean first = true;
+        ASTNode child = getFirstNotEmptyChild(node);
+        while (child != null) {
+            consumer.consumeNode(child, first);
+            first = false;
+            child = getNextNotEmptySibling(child);
+        }
+    }
+
     @FunctionalInterface
-    protected interface ChildrenIterator {
-        Block createBlock(ASTNode node, boolean first);
+    protected interface BlockCreator {
+        Block newBlock(ASTNode node, boolean first);
+    }
+
+    @FunctionalInterface
+    protected interface NodeConsumer {
+        void consumeNode(ASTNode node, boolean first);
     }
 }
