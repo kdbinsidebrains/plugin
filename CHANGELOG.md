@@ -2,37 +2,12 @@
 
 # KdbInsideBrains Changelog
 
-## [1.0.3-beta]
-
-**WARNING! It's recommended don't use auto-formatting option at commit for production code.**
-
-### Fixed
-
-- Cascading invoke has been fixed
-
-## [1.0.2-beta]
-
-**WARNING! It's recommended don't use auto-formatting option at commit for production code.**
-
-### Fixed
-
-- spaces before accumulator but cut operator
-
-## [1.0.1-beta]
-
-**WARNING! It's recommended don't use auto-formatting option at commit for production code.**
-
-### Fixed
-
-- Formatting optimization and improvements
-
-## [1.0.0-beta]
-
-**WARNING! It's recommended don't use auto-formatting option at commit for production code.**
+## [1.0.0]
 
 ### Added
 
-Formatting has been added
+- Code formatting has been added. **Warning: it's not recommended to reformat all code at once**
+- Type suggestions added for a column definition
 
 ## [0.24.0]
 
