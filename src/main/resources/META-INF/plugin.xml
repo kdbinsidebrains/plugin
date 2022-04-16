@@ -370,8 +370,8 @@
         <lang.documentationProvider language="q"
                                     implementationClass="org.kdb.inside.brains.lang.docs.QDocumentationProvider"/>
 
+        <!-- Query Logger -->
         <projectService serviceImplementation="org.kdb.inside.brains.core.KdbQueryLogger"/>
-
 
         <!-- Formatter  -->
         <lang.formatter language="q"

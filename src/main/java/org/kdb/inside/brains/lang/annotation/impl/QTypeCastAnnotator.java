@@ -16,15 +16,13 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWithRightAlignedComponent;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.lang.CastType;
 import org.kdb.inside.brains.lang.annotation.QElementAnnotator;
 import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QTypeCastExpr;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
     private static final Set<String> EXTRACTORS = Set.of("hh", "mm", "ss");
@@ -119,57 +117,5 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
         SYMBOL,
         LOWER,
         UPPER
-    }
-
-    private enum CastType {
-        BOOLEAN('b', "boolean"),
-        GUID('g', "guid"),
-        BYTE('x', "byte"),
-        SHORT('h', "short"),
-        INT('i', "int"),
-        LONG('j', "long"),
-        REAL('e', "real"),
-        FLOAT('f', "float"),
-        CHAR('c', "char"),
-        SYMBOL('s', "symbol"),
-        TIMESTAMP('p', "timestamp"),
-        MONTH('m', "month"),
-        DATE('d', "date"),
-        DATETIME('z', "datetime"),
-        TIMESPAN('n', "timespan"),
-        MINUTE('u', "minute"),
-        SECOND('v', "second"),
-        TIME('t', "time"),
-        YEAR(' ', "year");
-
-        private final char code;
-        private final String name;
-        private final String lowerCode;
-        private final String upperCode;
-
-        private static final Map<String, CastType> byName = new HashMap<>();
-        private static final Map<Character, CastType> byCode = new HashMap<>();
-
-        static {
-            Stream.of(CastType.values()).forEach(value -> {
-                byName.put(value.name, value);
-                byCode.put(value.code, value);
-            });
-        }
-
-        CastType(char code, String name) {
-            this.code = code;
-            this.name = name;
-            this.lowerCode = String.valueOf(Character.toLowerCase(code));
-            this.upperCode = String.valueOf(Character.toUpperCase(code));
-        }
-
-        public static CastType byName(String name) {
-            return byName.get(name);
-        }
-
-        public static CastType byCode(char code) {
-            return byCode.get(code);
-        }
     }
 }

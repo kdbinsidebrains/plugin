@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class QVariableCompletionContributor extends CompletionProvider<CompletionParameters> {
+public class QVariableCompletion extends CompletionProvider<CompletionParameters> {
     @Override
     protected void addCompletions(@NotNull CompletionParameters parameters, @NotNull ProcessingContext context, @NotNull CompletionResultSet result) {
         final PsiElement el = parameters.getOriginalPosition();
