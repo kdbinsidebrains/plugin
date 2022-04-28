@@ -185,9 +185,10 @@ private parentheses_body ::= SEMICOLON* (expression SEMICOLON+)* expression? {pi
 
 fake invoke_expr ::= (operator | function | parentheses_expr) arguments_list? operation? expression?
 invoke_prefix ::= operator arguments_list operation? expression? { pin=2 extends=invoke_expr}
-invoke_function ::= (function | parentheses_expr) ((arguments_list? ((operation? expression) | operation)) | (arguments_list operation?)) { extends=invoke_expr }
+invoke_function ::= function ((arguments_list? ((operation? expression) | operation)) | (arguments_list operation?)) { extends=invoke_expr }
+invoke_parentheses ::= parentheses_expr arguments_list? operation? expression? { extends=invoke_expr }
 
-private invoke_group ::= invoke_prefix | invoke_function
+private invoke_group ::= invoke_prefix | invoke_function | invoke_parentheses
 
 type_cast_expr ::= TYPE_CAST_PATTERN expression? {pin = 1 methods=[typeCast="TYPE_CAST_PATTERN"]}
 
@@ -244,5 +245,4 @@ expression ::= assignment_expr
     | signal_expr
     | k_syntax_expr
     | projection_expr
-    | parentheses_expr
     { extraRoot=true }

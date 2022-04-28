@@ -35,7 +35,7 @@ public class InvokeBlock extends AbstractQBlock {
     }
 
     public static boolean isInvokeElement(IElementType type) {
-        return type == INVOKE_FUNCTION || type == INVOKE_PREFIX;
+        return type == INVOKE_FUNCTION || type == INVOKE_PREFIX || type == INVOKE_PARENTHESES;
     }
 
     @Override

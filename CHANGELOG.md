@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [1.0.1]
+
+### Fixed
+
+- Freezes at cascading parentheses parsing has been fixed
+
 ## [1.0.0]
 
 ### Added

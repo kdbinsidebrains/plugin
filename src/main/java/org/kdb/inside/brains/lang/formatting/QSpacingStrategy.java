@@ -156,6 +156,7 @@ public class QSpacingStrategy {
         builder.around(ITERATOR_TYPE).spaces(0);
         builder.afterInside(ARGUMENTS, INVOKE_PREFIX).spaces(1);
         builder.afterInside(ARGUMENTS, INVOKE_FUNCTION).spaces(1);
+        builder.afterInside(ARGUMENTS, INVOKE_PARENTHESES).spaces(1);
         builder.beforeInside(VAR_DECLARATION, CONTEXT).spaces(1);
         builder.afterInside(COLON, RETURN_EXPR).spaceIf(custom.RETURN_SPACE_AFTER_COLON);
         builder.afterInside(ITERATOR, SIGNAL_EXPR).spaceIf(custom.SIGNAL_SPACE_AFTER_SIGNAL);
