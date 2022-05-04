@@ -5,6 +5,7 @@ import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +62,11 @@ public final class QFileType extends LanguageFileType {
         return (QFile) PsiFileFactory.getInstance(project).createFileFromText("QElementFactory.q", QFileType.INSTANCE, text);
     }
 
-    public static boolean is(VirtualFile vf) {
-        return vf != null && (INSTANCE == vf.getFileType() || FileTypeRegistry.getInstance().getFileTypeByFileName(vf.getName()) == INSTANCE);
+    public static boolean is(PsiFile file) {
+        return file != null && is(file.getVirtualFile());
+    }
+
+    public static boolean is(VirtualFile file) {
+        return file != null && (INSTANCE == file.getFileType() || FileTypeRegistry.getInstance().getFileTypeByFileName(file.getName()) == INSTANCE);
     }
 }

@@ -1,0 +1,7 @@
+<svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+    <g>
+        <text font-size="14" y="11.8" x="11" fill="#6E6E6E">}</text>
+        <text font-size="14" y="11.8" x="" fill="#6E6E6E">{</text>
+        <polygon id="svg_1" points="4 2 14 8 4 14" fill-rule="evenodd" fill="#59A869"/>
+    </g>
+</svg>

@@ -2,6 +2,20 @@
 
 # KdbInsideBrains Changelog
 
+## [1.1.0]
+
+### Added
+
+- New 'Execute Global Assignment' action has been added: by pressing 'Ctrl + Shift + Enter' or from context menu you
+  can send whole global definition for current context into an instance.
+
+  For example, if you have a function definition then 'Execute Global Assignment' will execute the definition wherever
+  the cursor is inside the function. It also works for global multiline expressions.
+
+### Fixed
+
+- Long query overlays query time and rows count in a table result view. The query truncated to available size now.
+
 ## [1.0.1]
 
 ### Fixed
