@@ -2,14 +2,11 @@ package org.kdb.inside.brains.action;
 
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.LogicalPosition;
-import com.intellij.openapi.editor.SelectionModel;
+import com.intellij.openapi.editor.*;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
@@ -38,43 +35,51 @@ public class ExecuteAction extends AnAction implements DumbAware {
             return;
         }
 
+        final PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
         final Project project = CommonDataKeys.PROJECT.getData(dataContext);
-        final VirtualFile vf = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
-        if (project == null || !QFileType.is(vf)) {
+        if (project == null || !QFileType.is(file)) {
             presentation.setEnabled(false);
-            return;
+        } else {
+            final InstanceConnection activeInstance = getConnection(project);
+            presentation.setEnabled(activeInstance != null && activeInstance.getState() == InstanceState.CONNECTED);
         }
-        final InstanceConnection activeInstance = getConnection(project);
-        presentation.setEnabled(activeInstance != null && activeInstance.getState() == InstanceState.CONNECTED);
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         final DataContext dataContext = e.getDataContext();
+        final PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
         final Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
         final Project project = CommonDataKeys.PROJECT.getData(dataContext);
-        if (editor == null || project == null) {
+        if (editor == null || project == null || file == null) {
             return;
         }
 
-        final LogicalPosition pos = editor.getCaretModel().getLogicalPosition();
         ReadAction.run(() -> {
-            final TextRange textRange;
-            final SelectionModel selectionModel = editor.getSelectionModel();
-
-            if (selectionModel.hasSelection()) {
-                textRange = new TextRange(selectionModel.getSelectionStart(), selectionModel.getSelectionEnd());
-            } else {
-                final Document document = editor.getDocument();
-                textRange = new TextRange(document.getLineStartOffset(pos.line), document.getLineEndOffset(pos.line));
+            final InstanceConnection connection = getConnection(project);
+            if (connection == null) {
+                return;
             }
 
-            final InstanceConnection connection = getConnection(project);
-            if (connection != null) {
-                execute(project, editor, connection, textRange);
+            final TextRange range = getExecutionRange(file, editor);
+            if (range != null && !range.isEmpty()) {
+                execute(project, editor, connection, range);
             }
         });
+    }
+
+    protected TextRange getExecutionRange(PsiFile file, Editor editor) {
+        final CaretModel caretModel = editor.getCaretModel();
+
+        final SelectionModel selectionModel = editor.getSelectionModel();
+        if (selectionModel.hasSelection()) {
+            return new TextRange(selectionModel.getSelectionStart(), selectionModel.getSelectionEnd());
+        }
+
+        final Document document = editor.getDocument();
+        final LogicalPosition pos = caretModel.getLogicalPosition();
+        return new TextRange(document.getLineStartOffset(pos.line), document.getLineEndOffset(pos.line));
     }
 
     protected @Nullable InstanceConnection getConnection(Project project) {

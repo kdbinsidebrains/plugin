@@ -104,6 +104,7 @@ public final class KdbIcons {
 
         public static final Icon Execute = AllIcons.Actions.Execute;
         public static final Icon ExecuteOn = AllIcons.Actions.Expandall;
+        public static final Icon ExecuteContext = load("/org/kdb/inside/brains/icons/executeContext.svg");
         public static final Icon QuickExecute = AllIcons.Debugger.EvaluateExpression;
 
         public static final Icon Connected = load("/org/kdb/inside/brains/icons/connected.svg");

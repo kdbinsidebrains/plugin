@@ -10,6 +10,7 @@ import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.ui.GridBag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -176,15 +177,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         searchSession = new TableResultSearchSession(myTable, project, new FindModel());
         searchSession.getFindModel().addObserver(this::modelBeenUpdated);
 
-        final JPanel rightStatus = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        rightStatus.add(statusTime);
-        rightStatus.add(Box.createVerticalStrut(1));
-        rightStatus.add(statusSize);
-
-        final JPanel statusBar = new JPanel(new BorderLayout());
-        statusBar.add(statusQuery, BorderLayout.WEST);
-        statusBar.add(rightStatus, BorderLayout.EAST);
-
         createSearchComponent();
 
         final ActionGroup contextMenu = createContextMenu();
@@ -198,8 +190,24 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         setLayout(new BorderLayout());
         add(searchSession.getComponent(), BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
-        add(statusBar, BorderLayout.SOUTH);
+        add(createStatusBar(), BorderLayout.SOUTH);
         add(actionToolbar.getComponent(), BorderLayout.WEST);
+    }
+
+    @NotNull
+    private JPanel createStatusBar() {
+        final GridBag c = new GridBag()
+                .setDefaultAnchor(0, GridBagConstraints.LINE_START)
+                .setDefaultWeightX(0, 1)
+                .setDefaultFill(GridBagConstraints.HORIZONTAL)
+                .setDefaultInsets(3, 10, 3, 3);
+
+
+        final JPanel statusBar = new JPanel(new GridBagLayout());
+        statusBar.add(statusQuery, c.next());
+        statusBar.add(statusTime, c.next());
+        statusBar.add(statusSize, c.next());
+        return statusBar;
     }
 
     public ActionGroup createContextMenu() {
