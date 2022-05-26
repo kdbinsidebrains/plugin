@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [1.1.1]
+
+### Fixed
+
+- Key columns shown wrong after moving around in TableResult
+
 ## [1.1.0]
 
 ### Added

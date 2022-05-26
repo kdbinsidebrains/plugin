@@ -97,9 +97,9 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
                 final Component c = super.prepareRenderer(renderer, row, column);
 
                 final TableColumn tableColumn = getColumnModel().getColumn(column);
-                tableColumn.setPreferredWidth(max(c.getPreferredSize().width + getIntercellSpacing().width + 10, tableColumn.getPreferredWidth()));
+                tableColumn.setPreferredWidth(max(c.getPreferredSize().width + getIntercellSpacing().width + 20, tableColumn.getPreferredWidth()));
 
-                final boolean keyColumn = getModel().isKeyColumn(column);
+                final boolean keyColumn = getModel().isKeyColumn(tableColumn.getModelIndex());
                 if (keyColumn) {
                     c.setBackground(UIUtils.getKeyColumnColor(c.getBackground()));
                 }

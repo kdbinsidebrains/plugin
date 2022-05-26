@@ -110,8 +110,8 @@ public class TableResult {
             return columns[columnIndex].getColumnClass();
         }
 
-        public boolean isKeyColumn(int column) {
-            return columns[column].key;
+        public boolean isKeyColumn(int columnIndex) {
+            return columns[columnIndex].key;
         }
     }
 
