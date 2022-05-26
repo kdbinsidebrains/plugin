@@ -14,6 +14,7 @@ import org.kdb.inside.brains.view.console.TableResult;
 
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
 
@@ -133,7 +134,8 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
                 c = new Colors(table.getForeground(), UIUtil.getDecoratedRowColor());
             }
 
-            if (model.isKeyColumn(i)) {
+            final TableColumn column = table.getColumnModel().getColumn(i);
+            if (model.isKeyColumn(column.getModelIndex())) {
                 c = c.toKeyColors();
             }
             res[i] = c;
