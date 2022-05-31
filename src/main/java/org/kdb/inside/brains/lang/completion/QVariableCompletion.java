@@ -39,7 +39,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
         final String qualifiedName = variable.getQualifiedName();
 
         addGlobal(qualifiedName, el.getProject(), result);
-        addLocal(qualifiedName, ElementContext.of(variable), result);
+        addLambda(qualifiedName, ElementContext.of(variable), result);
         addFunctions(qualifiedName, result);
         addKeywords(qualifiedName, result);
     }
@@ -91,15 +91,40 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
         );
     }
 
-    private void addLocal(String qualifiedName, ElementContext context, CompletionResultSet result) {
-        if (context.getScope() != ElementScope.LAMBDA) {
+    private void addLambda(String qualifiedName, ElementContext context, CompletionResultSet result) {
+        final QLambdaExpr lambda = context.lambda();
+        if (lambda == null) {
             return;
         }
 
-        final PsiElement element = context.getElement();
-        final Collection<QAssignmentExpr> childrenOfType = PsiTreeUtil.findChildrenOfType(element, QAssignmentExpr.class);
-
         final Set<String> names = new HashSet<>();
+        addLambdaParams(lambda, qualifiedName, names, result);
+        addLambdaVariables(lambda, qualifiedName, names, result);
+    }
+
+    private void addLambdaParams(QLambdaExpr lambda, String qualifiedName, Set<String> names, CompletionResultSet result) {
+        final QParameters parameters = lambda.getParameters();
+        if (parameters == null) {
+            return;
+        }
+
+        for (QVarDeclaration variable : parameters.getVariables()) {
+            final String varName = variable.getQualifiedName();
+            if (!varName.startsWith(qualifiedName) || !names.add(varName)) {
+                continue;
+            }
+
+            final LookupElementBuilder b = LookupElementBuilder
+                    .create(variable)
+                    .withIcon(IdentifierType.ARGUMENT.getIcon())
+                    .withTypeText("Function argument", true);
+            result.addElement(b);
+
+        }
+    }
+
+    private void addLambdaVariables(QLambdaExpr lambda, String qualifiedName, Set<String> names, CompletionResultSet result) {
+        final Collection<QAssignmentExpr> childrenOfType = PsiTreeUtil.findChildrenOfType(lambda, QAssignmentExpr.class);
         for (QAssignmentExpr assignment : childrenOfType) {
             final QVarDeclaration variable = assignment.getVarDeclaration();
             if (variable == null) {
