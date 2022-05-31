@@ -12,7 +12,8 @@ public enum IdentifierType {
     TABLE(KdbIcons.Node.Table),
     SYMBOL(KdbIcons.Node.Symbol),
     LAMBDA(KdbIcons.Node.Lambda),
-    VARIABLE(KdbIcons.Node.Variable);
+    VARIABLE(KdbIcons.Node.Variable),
+    ARGUMENT(KdbIcons.Node.Parameter);
 
     private final Icon icon;
 

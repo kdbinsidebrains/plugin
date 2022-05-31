@@ -87,6 +87,7 @@ public final class KdbIcons {
         public static final Icon Symbol = AllIcons.Nodes.Static;
         public static final Icon Lambda = AllIcons.Nodes.Lambda;
         public static final Icon Variable = AllIcons.Nodes.Variable;
+        public static final Icon Parameter = AllIcons.Nodes.Parameter;
         public static final Icon Function = AllIcons.Nodes.Function;
         public static final Icon Keyword = AllIcons.Nodes.Constant;
 

@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [1.1.2]
+
+### Fixed
+
+- A function's arguments/parameters suggestion has been fixed
+
 ## [1.1.1]
 
 ### Fixed
