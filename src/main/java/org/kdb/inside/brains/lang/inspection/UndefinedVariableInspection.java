@@ -44,7 +44,7 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
         }
 
         // ignore every non-resolved variable as it may be referencing a column name
-        if (scope == ElementScope.QUERY && !(variable.getParent() instanceof QCustomFunction)) {
+        if (scope == ElementScope.QUERY) {
             return;
         }
 
