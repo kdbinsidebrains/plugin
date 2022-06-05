@@ -6,8 +6,7 @@
 
 ### Added
 
-- QuickFix of an undefined function
-- Checks for undefined functions inside a query
+- Quick definition of an unknown function (quickfix) has been added
 
 ## [1.1.2]
 
