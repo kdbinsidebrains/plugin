@@ -2,9 +2,13 @@ package org.kdb.inside.brains.psi;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiParserFacade;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.kdb.inside.brains.QFileType;
+
+import java.util.function.Predicate;
 
 public final class QPsiUtil {
     private QPsiUtil() {
@@ -69,6 +73,32 @@ public final class QPsiUtil {
         return el instanceof LeafPsiElement && text.equals(el.getText());
     }
 
+    public static boolean isLeafText(PsiElement el, Predicate<String> predicate) {
+        return el instanceof LeafPsiElement && predicate.test(el.getText());
+    }
+
+    public static PsiElement findRootExpression(PsiElement element) {
+        if (element == null) {
+            return null;
+        }
+        return findRootExpression(element, null);
+    }
+
+    public static PsiElement findRootExpression(PsiElement element, PsiElement context) {
+        if (element == null) {
+            return null;
+        }
+
+        PsiElement cur = element;
+        PsiElement parent = element.getParent();
+
+        while (parent != null && parent != context && !(parent instanceof PsiFile)) {
+            cur = parent;
+            parent = parent.getParent();
+        }
+        return cur;
+    }
+
     public static ElementContext getElementContext(QPsiElement element) {
         return ElementContext.of(element);
     }
@@ -88,8 +118,27 @@ public final class QPsiUtil {
         return PsiTreeUtil.findChildOfType(file, QSymbol.class);
     }
 
+    public static PsiElement createWhitespace(Project project, String text) {
+        return PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText(text);
+    }
+
+    public static PsiElement createSemicolon(Project project) {
+        return QFileType.createFactoryFile(project, ";").getFirstChild();
+    }
+
     public static QVarReference createVarReference(Project project, String name) {
         return PsiTreeUtil.findChildOfType(QFileType.createFactoryFile(project, name), QVarReference.class);
+    }
+
+    public static PsiElement createLambdaDeclaration(Project project, boolean global, String name, String... params) {
+        final StringBuilder b = new StringBuilder(name);
+        b.append(":{");
+        if (params != null && params.length != 0) {
+            b.append('[').append(String.join("; ", params)).append(']');
+        }
+        b.append(global ? '\n' : "  ");
+        b.append('}');
+        return QFileType.createFactoryFile(project, b.toString()).getFirstChild();
     }
 
     public static QVarDeclaration createVarDeclaration(Project project, String name) {
