@@ -2,6 +2,13 @@
 
 # KdbInsideBrains Changelog
 
+## [1.2.0]
+
+### Added
+
+- QuickFix of an undefined function
+- Checks for undefined functions inside a query
+
 ## [1.1.2]
 
 ### Fixed
@@ -101,7 +108,8 @@
 
 - Console behaviours changed:
   - Closing a console tab also closes the connection as well now
-  - Changing active console tab changes active connection, so it's the same as select active connection from the toolbar
+  - Changing active console tab changes active connection, so it's the same as select active connection from the
+    toolbar
 
 ## [0.19.0]
 
@@ -118,7 +126,8 @@
   - **Crosshair tool** - to show current values for the mouse position
   - **Measure tool** - draw measuring rectangles on the chart with values diff: left mouse click to start, move, left
     mouse click to finish. Esc to cancel current drawing.
-  - **Points collector** - save any chart clicked values into the points collector table with ability to export or send
+  - **Points collector** - save any chart clicked values into the points collector table with ability to export or
+    send
     into another KDB instance.
 
 ## [0.18.1]

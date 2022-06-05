@@ -18,6 +18,11 @@ public interface QVariable extends QPsiElement {
     @NotNull
     String getQualifiedName();
 
+    default String getSimpleName() {
+        final String name = getName();
+        int i = name.lastIndexOf('.');
+        return i < 0 ? name : name.substring(i + 1);
+    }
 
     ElementContext getVariableContext();
 }
