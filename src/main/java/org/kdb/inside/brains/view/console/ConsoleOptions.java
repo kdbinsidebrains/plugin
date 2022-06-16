@@ -13,6 +13,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     private boolean showGrid = true;
     private boolean dictAsTable = true;
     private boolean listAsTable = true;
+    private ConsoleSplitType splitType = ConsoleSplitType.NO;
 
     public static final int MAX_DECIMAL_PRECISION = 15;
 
@@ -83,6 +84,14 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.listAsTable = listAsTable;
     }
 
+    public ConsoleSplitType getSplitType() {
+        return splitType;
+    }
+
+    public void setSplitType(ConsoleSplitType splitType) {
+        this.splitType = splitType;
+    }
+
     @Override
     public void copyFrom(ConsoleOptions options) {
         this.enlistArrays = options.enlistArrays;
@@ -93,6 +102,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.showGrid = options.showGrid;
         this.listAsTable = options.listAsTable;
         this.dictAsTable = options.dictAsTable;
+        this.splitType = options.splitType;
     }
 
     @Override
@@ -100,12 +110,12 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ConsoleOptions that = (ConsoleOptions) o;
-        return floatPrecision == that.floatPrecision && enlistArrays == that.enlistArrays && wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && striped == that.striped && showGrid == that.showGrid && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable;
+        return floatPrecision == that.floatPrecision && enlistArrays == that.enlistArrays && wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && striped == that.striped && showGrid == that.showGrid && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable && splitType == that.splitType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(floatPrecision, enlistArrays, wrapStrings, prefixSymbols, striped, showGrid, dictAsTable, listAsTable);
+        return Objects.hash(floatPrecision, enlistArrays, wrapStrings, prefixSymbols, striped, showGrid, dictAsTable, listAsTable, splitType);
     }
 
     @Override
@@ -119,6 +129,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
                 ", showGrid=" + showGrid +
                 ", dictAsTable=" + dictAsTable +
                 ", listAsTable=" + listAsTable +
+                ", splitType=" + splitType +
                 '}';
     }
 }

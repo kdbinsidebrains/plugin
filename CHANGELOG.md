@@ -2,6 +2,18 @@
 
 # KdbInsideBrains Changelog
 
+## [1.3.0]
+
+### Added
+
+- Ability to split Console and TableResults views in Instance Console View: vertically or horizontally. You can set
+  default split type in configuration (by default - no split) or set required for each Instance Console View.
+
+### Fixed
+
+- Tooltip for a TableResult has been removed - was added for debug and contains irrelevant information
+- Closing last Instance Console View doesn't close Kdb Console tool window
+
 ## [1.2.0]
 
 ### Added

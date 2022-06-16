@@ -12,6 +12,7 @@ import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.InstanceState;
 import org.kdb.inside.brains.core.KdbConnectionListener;
 import org.kdb.inside.brains.core.KdbConnectionManager;
+import org.kdb.inside.brains.settings.KdbSettingsService;
 
 import javax.swing.*;
 import java.util.List;
@@ -58,8 +59,9 @@ public class KdbConsoleToolWindow implements Disposable {
             }
         });
 
-        toolWindow.setToHideOnEmptyContent(true);
+        toolWindow.setAutoHide(false);
         toolWindow.setShowStripeButton(true);
+        toolWindow.setToHideOnEmptyContent(false);
         toolWindow.setTabActions(ActionManager.getInstance().getAction("Kdb.NewConnection"));
 
         final List<InstanceConnection> connections = connectionManager.getConnections();
@@ -96,7 +98,9 @@ public class KdbConsoleToolWindow implements Disposable {
 
     @NotNull
     private Content createInstanceContent(InstanceConnection connection) {
-        final KdbConsolePanel panel = new KdbConsolePanel(project, connection, p -> {
+        final ConsoleSplitType splitType = KdbSettingsService.getInstance().getConsoleOptions().getSplitType();
+
+        final KdbConsolePanel panel = new KdbConsolePanel(project, connection, splitType, p -> {
             final Content content = findContent(p.getConnection());
             if (content != null) {
                 contentManager.removeContent(content, true);
