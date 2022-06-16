@@ -19,6 +19,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.JBTabsFactory;
 import com.intellij.ui.tabs.TabInfo;
@@ -32,11 +33,13 @@ import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.action.ToggleConnectAction;
 import org.kdb.inside.brains.core.*;
+import org.kdb.inside.brains.ide.PopupActionGroup;
 import org.kdb.inside.brains.ide.runner.LineNumberGutterProvider;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
+import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -46,14 +49,18 @@ import java.util.stream.Collectors;
 
 public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvider, Disposable {
     private final JBTabs tabs;
+    private final JBTabs consoleTabs;
+
+    private final TabInfo consoleTab;
+    private final JBSplitter splitter;
+
+    private TabInfo tableResultTab;
+    private ConsoleSplitType activeSplitType;
+
+    private LanguageConsoleView console;
 
     private boolean showOnlyLast = false;
     private boolean scrollToTheEnd = true;
-
-    private TabInfo consoleTab;
-    private TabInfo tableResultTab;
-
-    private LanguageConsoleView console;
 
     private final KdbScope scope;
     private final Project project;
@@ -70,7 +77,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
     public static final DataKey<TabInfo> TAB_INFO_DATA_KEY = DataKey.create("KdbConsole.TabInfo");
 
-    public KdbConsolePanel(Project project, InstanceConnection connection, Consumer<KdbConsolePanel> panelKillerConsumer) {
+    public KdbConsolePanel(Project project, InstanceConnection connection, ConsoleSplitType splitType, Consumer<KdbConsolePanel> panelKillerConsumer) {
         super(false);
         this.project = project;
         this.connection = connection;
@@ -99,6 +106,9 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         tabs.addTabMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
+                if (tabs.getTargetInfo() == consoleTab) {
+                    return;
+                }
                 if (UIUtil.isCloseClick(e, MouseEvent.MOUSE_RELEASED)) {
                     IdeEventQueue.getInstance().blockNextEvents(e);
                     closeTab(tabs.findInfo(e));
@@ -108,42 +118,29 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             }
         });
 
+        splitter = createSplitter();
+        consoleTabs = JBTabsFactory.createTabs(project, this);
+        splitter.setFirstComponent(consoleTabs.getComponent());
+
+        consoleTab = createConsoleTab();
+
+        tabs.addTab(consoleTab, 0);
         setContent(tabs.getComponent());
 
-        createMainToolbar();
-
-        createConsoleTab();
+        changeSplitting(splitType);
+        setToolbar(createMainToolbar().getComponent());
     }
 
-    private @NotNull ActionGroup buildTabsPopupGroup() {
-        final TabInfo info = tabs.getTargetInfo();
-        if (info == null) {
-            return ActionGroup.EMPTY_GROUP;
-        }
-
-        final boolean resultView = info.getObject() instanceof TableResultView;
-        if (resultView) {
-            return buildResultViewPopup(info);
-        } else {
-            return buildConsolePopup();
-        }
+    private JBSplitter createSplitter() {
+        JBSplitter splitter = new JBSplitter(true, 0.5f);
+        splitter.setResizeEnabled(true);
+        splitter.setHonorComponentsMinimumSize(true);
+        splitter.setHonorComponentsPreferredSize(false);
+        splitter.setAndLoadSplitterProportionKey("KdbConsole.Tabs.Splitter");
+        return splitter;
     }
 
-    private @NotNull ActionGroup buildConsolePopup() {
-        return ActionGroup.EMPTY_GROUP;
-    }
-
-    private @NotNull ActionGroup buildResultViewPopup(TabInfo info) {
-        final DefaultActionGroup group = new DefaultActionGroup();
-        group.add(renameAction);
-
-        final TableResultView view = (TableResultView) info.getObject();
-        group.addSeparator();
-        group.addAll(view.createContextMenu());
-        return group;
-    }
-
-    private void createConsoleTab() {
+    private TabInfo createConsoleTab() {
         final LanguageConsoleBuilder b = new LanguageConsoleBuilder();
         b.executionEnabled(view -> connection != null && connection.getState() == InstanceState.CONNECTED);
 
@@ -174,13 +171,41 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         kdbConsoleActionToolbar.setTargetComponent(consolePanel);
         consolePanel.setToolbar(kdbConsoleActionToolbar.getComponent());
 
-        consoleTab = new TabInfo(consolePanel);
-        consoleTab.setText("Console");
-        consoleTab.setIcon(KdbIcons.Console.Console);
-        consoleTab.setObject(console);
-        consoleTab.setTabColor(connection.getInstance().getInheritedColor());
+        final TabInfo tab = new TabInfo(consolePanel);
+        tab.setText("Console");
+        tab.setIcon(KdbIcons.Console.Console);
+        tab.setObject(console);
+        tab.setTabColor(connection.getInstance().getInheritedColor());
 
-        tabs.addTab(consoleTab);
+        return tab;
+    }
+
+    private @NotNull ActionGroup buildTabsPopupGroup() {
+        final TabInfo info = tabs.getTargetInfo();
+        if (info == null) {
+            return ActionGroup.EMPTY_GROUP;
+        }
+
+        final boolean resultView = info.getObject() instanceof TableResultView;
+        if (resultView) {
+            return buildResultViewPopup(info);
+        } else {
+            return buildConsolePopup();
+        }
+    }
+
+    private @NotNull ActionGroup buildConsolePopup() {
+        return ActionGroup.EMPTY_GROUP;
+    }
+
+    private @NotNull ActionGroup buildResultViewPopup(TabInfo info) {
+        final DefaultActionGroup group = new DefaultActionGroup();
+        group.add(renameAction);
+
+        final TableResultView view = (TableResultView) info.getObject();
+        group.addSeparator();
+        group.addAll(view.createContextMenu());
+        return group;
     }
 
     @NotNull
@@ -225,7 +250,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         return consoleActions;
     }
 
-    private void createMainToolbar() {
+    private ActionToolbar createMainToolbar() {
         final ActionManager am = ActionManager.getInstance();
         final DefaultActionGroup consoleActions = new DefaultActionGroup();
 
@@ -264,6 +289,16 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             }
         });
         consoleActions.addSeparator();
+
+        final DefaultActionGroup g = new PopupActionGroup("Split Console and Result Tabs", KdbIcons.Console.Layout);
+        g.add(new SplitAction("Tabs view", "Show console and results in tabs", KdbIcons.Console.LayoutNo, ConsoleSplitType.NO));
+        g.addSeparator();
+        g.add(new SplitAction("Split Vertically", "Split console and result vertically", KdbIcons.Console.LayoutVertical, ConsoleSplitType.VERTICAL));
+        g.add(new SplitAction("Split Horizontally", "Split console and result horizontally", KdbIcons.Console.LayoutHorizontal, ConsoleSplitType.HORIZONTAL));
+
+        consoleActions.add(g);
+
+        consoleActions.addSeparator();
         consoleActions.add(new DumbAwareAction("Close", "Closed connection and this console", KdbIcons.Console.Kill) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
@@ -274,7 +309,28 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         final ActionToolbar kdbConsoleMainToolbar = am.createActionToolbar("KdbConsoleMainToolbar", consoleActions, false);
         kdbConsoleMainToolbar.setTargetComponent(this);
-        setToolbar(kdbConsoleMainToolbar.getComponent());
+        return kdbConsoleMainToolbar;
+    }
+
+    private void changeSplitting(ConsoleSplitType type) {
+        final boolean splat = getContent() == splitter;
+        if (type == ConsoleSplitType.NO || (splat && tabs.getTabCount() == 0)) {
+            if (splat) {
+                consoleTabs.removeTab(consoleTab);
+                tabs.addTab(consoleTab, 0);
+                splitter.setSecondComponent(null);
+                setContent(tabs.getComponent());
+            }
+        } else {
+            if (activeSplitType == ConsoleSplitType.NO || (!splat && tabs.getTabCount() > 1)) {
+                tabs.removeTab(consoleTab);
+                consoleTabs.addTab(consoleTab);
+                splitter.setSecondComponent(tabs.getComponent());
+                setContent(splitter);
+            }
+            splitter.setOrientation(type == ConsoleSplitType.VERTICAL);
+        }
+        activeSplitType = type;
     }
 
     private void loadBinaryFile() {
@@ -296,6 +352,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                 final TabInfo tab = createNewResultViewTab(virtualFile.getNameWithoutExtension(), tr);
                 tabs.addTab(tab);
                 tabs.select(tab, false);
+                changeSplitting(activeSplitType);
             } catch (Exception ex) {
                 Messages.showErrorDialog(project, "The file can't be loaded: " + ex.getMessage(), "Incorrect KDB Table File");
             }
@@ -319,16 +376,6 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         processQuery(query, resultView);
     }
 
-    private void closeTab(TabInfo info) {
-        if (info == null || !(info.getObject() instanceof TableResultView)) {
-            return;
-        }
-        if (tableResultTab == info) {
-            tableResultTab = null;
-        }
-        tabs.removeTab(info);
-    }
-
     private void showConsoleResult() {
         if (tabs.getSelectedInfo() != consoleTab) {
             tabs.select(consoleTab, false);
@@ -341,7 +388,9 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         if (info == null && tableResultTab == null) {
             tableResultTab = createNewResultViewTab("Table Result", tableResult);
             info = tableResultTab;
-            tabs.addTab(tableResultTab, 1);
+
+            tabs.addTab(tableResultTab, activeSplitType == ConsoleSplitType.NO ? 1 : 0);
+            changeSplitting(activeSplitType);
         } else {
             // Info is unknown? - use main instead
             if (info == null) {
@@ -349,10 +398,20 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             }
             ((TableResultView) info.getObject()).showResult(tableResult);
         }
-        info.setTooltipText(formatter + ": " + tableResult.getQuery());
         if (tabs.getSelectedInfo() != info) {
             tabs.select(info, false);
         }
+    }
+
+    private void closeTab(TabInfo info) {
+        if (info == null || !(info.getObject() instanceof TableResultView)) {
+            return;
+        }
+        if (tableResultTab == info) {
+            tableResultTab = null;
+        }
+        tabs.removeTab(info);
+        changeSplitting(activeSplitType);
     }
 
     private TabInfo createNewResultViewTab(String name, TableResult tableResult) {
@@ -377,7 +436,6 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         return info;
     }
-
 
     private void clearHistory() {
         console.getHistoryViewer().getDocument().setText("");
@@ -482,6 +540,25 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         return super.getData(dataId);
     }
 
+    private class SplitAction extends ToggleAction {
+        private final ConsoleSplitType splitType;
+
+        public SplitAction(String text, String description, Icon icon, ConsoleSplitType splitType) {
+            super(text, description, icon);
+            this.splitType = splitType;
+        }
+
+        @Override
+        public boolean isSelected(@NotNull AnActionEvent e) {
+            return splitType == activeSplitType;
+        }
+
+        @Override
+        public void setSelected(@NotNull AnActionEvent e, boolean state) {
+            changeSplitting(state ? splitType : ConsoleSplitType.NO);
+        }
+    }
+
     private class RenameTabAction extends AnAction {
         public RenameTabAction() {
             super("Rename/Pin", "Rename the result set to keep it in memory", null);
@@ -495,14 +572,12 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             }
 
             final Set<String> collect = tabs.getTabs().stream().map(TabInfo::getText).collect(Collectors.toSet());
-            UIUtils.createNameDialog(project, "New name", info.getText(), e.getDataContext(),
-                    name -> !collect.contains(name),
-                    name -> {
-                        info.setText(name);
-                        if (info == tableResultTab) {
-                            tableResultTab = null;
-                        }
-                    });
+            UIUtils.createNameDialog(project, "New name", info.getText(), e.getDataContext(), name -> !collect.contains(name), name -> {
+                info.setText(name);
+                if (info == tableResultTab) {
+                    tableResultTab = null;
+                }
+            });
         }
     }
 

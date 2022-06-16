@@ -1,7 +1,9 @@
 package org.kdb.inside.brains.view.console;
 
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.FormBuilder;
 
 import javax.swing.*;
@@ -16,6 +18,7 @@ public class ConsoleOptionsPanel extends JPanel {
     private final JBCheckBox listAsTable = new JBCheckBox("Show list as table");
     private final JBCheckBox dictAsTable = new JBCheckBox("Show dict as table");
     private final JBIntSpinner floatPrecisionEditor = new JBIntSpinner(7, 0, 20);
+    private final ComboBox<ConsoleSplitType> splitTypes = new ComboBox<>(ConsoleSplitType.values());
 
     public ConsoleOptionsPanel() {
         super(new BorderLayout());
@@ -31,10 +34,22 @@ public class ConsoleOptionsPanel extends JPanel {
         formBuilder.addComponent(listAsTable);
         formBuilder.addComponent(dictAsTable);
         formBuilder.addLabeledComponent("Float precision: ", floatPrecisionEditor);
+        createSplitTypes(formBuilder);
 
         add(formBuilder.getPanel());
     }
 
+    private void createSplitTypes(FormBuilder formBuilder) {
+        splitTypes.setEditable(false);
+        splitTypes.setSelectedItem(ConsoleSplitType.NO);
+
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        p.add(new JBLabel("Default console and results tabs splitting: "));
+        p.add(splitTypes);
+
+        formBuilder.addComponent(p);
+
+    }
 
     public ConsoleOptions getConsoleOptions() {
         final ConsoleOptions consoleOptions = new ConsoleOptions();
@@ -46,6 +61,7 @@ public class ConsoleOptionsPanel extends JPanel {
         consoleOptions.setShowGrid(showGrid.isSelected());
         consoleOptions.setListAsTable(listAsTable.isSelected());
         consoleOptions.setDictAsTable(dictAsTable.isSelected());
+        consoleOptions.setSplitType(splitTypes.getItem());
         return consoleOptions;
     }
 
@@ -58,5 +74,6 @@ public class ConsoleOptionsPanel extends JPanel {
         showGrid.setSelected(consoleOptions.isShowGrid());
         listAsTable.setSelected(consoleOptions.isListAsTable());
         dictAsTable.setSelected(consoleOptions.isDictAsTable());
+        splitTypes.setItem(consoleOptions.getSplitType());
     }
 }

@@ -67,6 +67,11 @@ public final class KdbIcons {
         public static final Icon ExportExcel = load("/org/kdb/inside/brains/icons/exportExcel.svg");
 
         public static final Icon DelaySearchUpdate = load("/org/kdb/inside/brains/icons/delaySearch.svg");
+
+        public static final Icon Layout = AllIcons.Debugger.RestoreLayout;
+        public static final Icon LayoutNo = AllIcons.Actions.MoveToTopLeft;
+        public static final Icon LayoutVertical = AllIcons.Actions.SplitVertically;
+        public static final Icon LayoutHorizontal = AllIcons.Actions.SplitHorizontally;
     }
 
     public static final class Node {
