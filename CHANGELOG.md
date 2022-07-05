@@ -2,6 +2,13 @@
 
 # KdbInsideBrains Changelog
 
+## [1.3.1]
+
+### Fixed
+
+- Only console settings are restored: #36
+- Not all iterators shown in console result: #37
+
 ## [1.3.0]
 
 ### Added
