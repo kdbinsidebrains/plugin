@@ -98,7 +98,10 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
 
     @Override
     public void loadState(State state) {
-        myState.consoleOptions.copyFrom(state.consoleOptions);
+        myState.setConsoleOptions(state.consoleOptions);
+        myState.setEditorOptions(state.executionOptions);
+        myState.setInstanceOptions(state.instanceOptions);
+        myState.setCredentialPlugins(state.credentialPlugins);
     }
 
     public static KdbSettingsService getInstance() {

@@ -202,6 +202,10 @@ public final class KdbOutputFormatter {
             return formatDict((c.Dict) v);
         }
 
+        if (v instanceof c.EachIterator) {
+            return formatEach((c.EachIterator) v);
+        }
+
         if (v instanceof c.Operator) {
             return ((c.Operator) v).getOperation();
         }
@@ -218,10 +222,6 @@ public final class KdbOutputFormatter {
             return formatComposition((c.Composition) v);
         }
 
-        if (v instanceof c.Each) {
-            return formatEach((c.Each) v);
-        }
-
         if (v.getClass().isArray()) {
             return '(' + formatArray(v, this::objectToString, 10, ';') + ')';
         }
@@ -229,8 +229,8 @@ public final class KdbOutputFormatter {
         return String.valueOf(v);
     }
 
-    private String formatEach(c.Each v) {
-        return objectToString(v.getArgument()) + v.getCode();
+    private String formatEach(c.EachIterator v) {
+        return objectToString(v.getArgument()) + v.getOperation();
     }
 
     private String formatComposition(c.Composition v) {

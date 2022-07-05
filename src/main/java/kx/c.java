@@ -460,13 +460,229 @@ public class c {
         }
     }
 
-    public static class Operator {
-        private final int type;
-        private final String code;
+    /**
+     * Deserializes the contents of the incoming message buffer {@code b}.
+     *
+     * @return deserialised object
+     * @throws UnsupportedEncodingException If the named charset is not supported
+     */
+    Object r() throws UnsupportedEncodingException {
+        int i = 0, n, t = b[j++];
+        if (t < 0) {
+            switch (t) {
+                case -1:
+                    return rb();
+                case (-2):
+                    return rg();
+                case -4:
+                    return b[j++];
+                case -5:
+                    return rh();
+                case -6:
+                    return ri();
+                case -7:
+                    return rj();
+                case -8:
+                    return re();
+                case -9:
+                    return rf();
+                case -10:
+                    return rc();
+                case -11:
+                    return rs();
+                case -12:
+                    return rp();
+                case -13:
+                    return rm();
+                case -14:
+                    return rd();
+                case -15:
+                    return rz();
+                case -16:
+                    return rn();
+                case -17:
+                    return ru();
+                case -18:
+                    return rv();
+                case -19:
+                    return rt();
+            }
+        }
+        if (t > 99) {
+            if (t == 100) {
+                rs();
+                return new Function((char[]) r());
+            }
+            if (t == 101) {
+                return new UnaryOperator(b[j++]);
+            }
+            if (t == 102) {
+                return new BinaryOperator(b[j++]);
+            }
+            if (t == 103) {
+                return new IterationOperator(b[j++]);
+            }
+            if (t == 104) {
+                final int sz = ri();
+                Object[] res = new Object[sz];
+                for (i = 0; i < sz; i++) {
+                    res[i] = r();
+                }
+                return new Projection(res);
+            }
+            if (t == 105) {
+                final int sz = ri();
+                Object[] res = new Object[sz];
+                for (i = 0; i < sz; i++) {
+                    res[i] = r();
+                }
+                return new Composition(res);
+            }
+            if (t == 106 || t == 107 || t == 108 || t == 109 || t == 110 || t == 111) {
+                return new EachIterator(t, r());
+            }
+            if (t == 112) {
+                // dynamic load
+                j++;
+                return null;
+            }
+            j++;
+            return "Type" + t;
+        }
 
-        private Operator(int type, String code) {
+        if (t == 99) {
+            return new Dict(r(), r());
+        }
+        j++;
+        if (t == 98) {
+            return new Flip((Dict) r());
+        }
+        n = ri();
+        switch (t) {
+            case 0:
+                Object[] L = new Object[n];
+                for (; i < n; i++) {
+                    L[i] = r();
+                }
+                return L;
+            case 1:
+                boolean[] B = new boolean[n];
+                for (; i < n; i++) {
+                    B[i] = rb();
+                }
+                return B;
+            case 2: {
+                UUID[] G = new UUID[n];
+                for (; i < n; i++) {
+                    G[i] = rg();
+                }
+                return G;
+            }
+            case 4:
+                byte[] G = new byte[n];
+                for (; i < n; i++) {
+                    G[i] = b[j++];
+                }
+                return G;
+            case 5:
+                short[] H = new short[n];
+                for (; i < n; i++) {
+                    H[i] = rh();
+                }
+                return H;
+            case 6:
+                int[] I = new int[n];
+                for (; i < n; i++) {
+                    I[i] = ri();
+                }
+                return I;
+            case 7:
+                long[] J = new long[n];
+                for (; i < n; i++) {
+                    J[i] = rj();
+                }
+                return J;
+            case 8:
+                float[] E = new float[n];
+                for (; i < n; i++) {
+                    E[i] = re();
+                }
+                return E;
+            case 9:
+                double[] F = new double[n];
+                for (; i < n; i++) {
+                    F[i] = rf();
+                }
+                return F;
+            case 10:
+                char[] C = new String(b, j, n, encoding).toCharArray();
+                j += n;
+                return C;
+            case 11:
+                String[] S = new String[n];
+                for (; i < n; i++) {
+                    S[i] = rs();
+                }
+                return S;
+            case 12:
+                Timestamp[] P = new Timestamp[n];
+                for (; i < n; i++) {
+                    P[i] = rp();
+                }
+                return P;
+            case 13:
+                Month[] M = new Month[n];
+                for (; i < n; i++) {
+                    M[i] = rm();
+                }
+                return M;
+            case 14:
+                Date[] D = new Date[n];
+                for (; i < n; i++) {
+                    D[i] = rd();
+                }
+                return D;
+            case 15:
+                java.util.Date[] Z = new java.util.Date[n];
+                for (; i < n; i++) {
+                    Z[i] = rz();
+                }
+                return Z;
+            case 16:
+                Timespan[] N = new Timespan[n];
+                for (; i < n; i++) {
+                    N[i] = rn();
+                }
+                return N;
+            case 17:
+                Minute[] U = new Minute[n];
+                for (; i < n; i++) {
+                    U[i] = ru();
+                }
+                return U;
+            case 18:
+                Second[] V = new Second[n];
+                for (; i < n; i++) {
+                    V[i] = rv();
+                }
+                return V;
+            case 19:
+                Time[] T = new Time[n];
+                for (; i < n; i++) {
+                    T[i] = rt();
+                }
+                return T;
+        }
+        return null;
+    }
+
+    private static class Construction {
+        private final int type;
+        private final String operation;
+
+        private Construction(int type, String[] operators, int index) {
             this.type = type;
-            this.code = code;
+            this.operation = index < 0 || index >= operators.length ? "@" + type : operators[index];
         }
 
         public int getType() {
@@ -474,31 +690,43 @@ public class c {
         }
 
         public String getOperation() {
-            return code;
+            return operation;
+        }
+    }
+
+    public static class Iterator extends Construction {
+        private Iterator(int type, String[] operators, int index) {
+            super(type, operators, index);
+        }
+    }
+
+    public static class Operator extends Construction {
+        private Operator(int type, String[] operators) {
+            super(type, operators, type);
         }
     }
 
     public static class UnaryOperator extends Operator {
-        private static final String[] operators = {"::", "+:", "-:", "*:", "%:", "&:", "|:", "^:", "=:", "<:", ">:", "$:", ",:", "#:", "_:", "~:", "!:", "?:", "@:", ".:", "0::", "1::", "2::", "avg", "last", "sum", "prd", "min", "max", "exit", "getenv", "abs", "sqrt", "log", "exp", "sin", "asin", "cos", "acos", "tan", "atan", "enlist", "var", "dev", "hopen"};
+        private static final String[] OPERATORS = {"::", "+:", "-:", "*:", "%:", "&:", "|:", "^:", "=:", "<:", ">:", "$:", ",:", "#:", "_:", "~:", "!:", "?:", "@:", ".:", "0::", "1::", "2::", "avg", "last", "sum", "prd", "min", "max", "exit", "getenv", "abs", "sqrt", "log", "exp", "sin", "asin", "cos", "acos", "tan", "atan", "enlist", "var", "dev", "hopen"};
 
         public UnaryOperator(byte type) {
-            super(type, type < 0 ? "" : operators[type]);
+            super(type, OPERATORS);
         }
     }
 
     public static class BinaryOperator extends Operator {
-        private static final String[] operators = {":", "+", "-", "*", "%", "&", "|", "^", "=", "<", ">", "$", ",", "#", "_", "~", "!", "?", "@", ".", "0:", "1:", "2:", "in", "within", "like", "bin", "ss", "insert", "wsum", "wavg", "div", "xexp", "setenv", "binr", "cov", "cor"};
+        private static final String[] OPERATORS = {":", "+", "-", "*", "%", "&", "|", "^", "=", "<", ">", "$", ",", "#", "_", "~", "!", "?", "@", ".", "0:", "1:", "2:", "in", "within", "like", "bin", "ss", "insert", "wsum", "wavg", "div", "xexp", "setenv", "binr", "cov", "cor"};
 
         public BinaryOperator(byte type) {
-            super(type, operators[type]);
+            super(type, OPERATORS);
         }
     }
 
     public static class IterationOperator extends Operator {
-        private static final String[] operators = {"''", "/", "\\"};
+        private static final String[] OPERATORS = {"'", "/", "\\", "':", "/:", "\\:"};
 
         public IterationOperator(byte type) {
-            super(type, type < 0 ? "" : operators[type]);
+            super(type, OPERATORS);
         }
     }
 
@@ -535,43 +763,6 @@ public class c {
 
         public Object[] getItems() {
             return items;
-        }
-    }
-
-    public static class Each {
-        private final int type;
-        private final Object argument;
-
-        public Each(int type, Object object) {
-            this.type = type;
-            this.argument = object;
-        }
-
-        public int getType() {
-            return type;
-        }
-
-        public String getCode() {
-            switch (type) {
-                case 106:
-                    return "'";
-                case 107:
-                    return "/";
-                case 108:
-                    return "\\";
-                case 109:
-                    return "':";
-                case 110:
-                    return "/:";
-                case 111:
-                    return "\\:";
-                default:
-                    return "each@" + type;
-            }
-        }
-
-        public Object getArgument() {
-            return argument;
         }
     }
 
@@ -942,220 +1133,18 @@ public class c {
         B[J++] = 0;
     }
 
-    /**
-     * Deserializes the contents of the incoming message buffer {@code b}.
-     *
-     * @return deserialised object
-     * @throws UnsupportedEncodingException If the named charset is not supported
-     */
-    Object r() throws UnsupportedEncodingException {
-        int i = 0, n, t = b[j++];
-        if (t < 0) {
-            switch (t) {
-                case -1:
-                    return rb();
-                case (-2):
-                    return rg();
-                case -4:
-                    return b[j++];
-                case -5:
-                    return rh();
-                case -6:
-                    return ri();
-                case -7:
-                    return rj();
-                case -8:
-                    return re();
-                case -9:
-                    return rf();
-                case -10:
-                    return rc();
-                case -11:
-                    return rs();
-                case -12:
-                    return rp();
-                case -13:
-                    return rm();
-                case -14:
-                    return rd();
-                case -15:
-                    return rz();
-                case -16:
-                    return rn();
-                case -17:
-                    return ru();
-                case -18:
-                    return rv();
-                case -19:
-                    return rt();
-            }
-        }
-        if (t > 99) {
-            if (t == 100) {
-                rs();
-                return new Function((char[]) r());
-            }
-            if (t == 101) {
-                return new UnaryOperator(b[j++]);
-            }
-            if (t == 102) {
-                return new BinaryOperator(b[j++]);
-            }
-            if (t == 103) {
-                return new IterationOperator(b[j++]);
-            }
-            if (t == 104) {
-                final int sz = ri();
-                Object[] res = new Object[sz];
-                for (i = 0; i < sz; i++) {
-                    res[i] = r();
-                }
-                return new Projection(res);
-            }
-            if (t == 105) {
-                final int sz = ri();
-                Object[] res = new Object[sz];
-                for (i = 0; i < sz; i++) {
-                    res[i] = r();
-                }
-                return new Composition(res);
-            }
-            if (t == 106 || t == 107 || t == 108 || t == 109 || t == 110 || t == 111) {
-                return new Each(t, r());
-            }
-            if (t == 112) {
-                // dynamic load
-                j++;
-                return null;
-            }
-            j++;
-            return "Type" + t;
+    public static class EachIterator extends Iterator {
+        private static final String[] OPERATORS = {"'", "/", "\\", "':", "/:", "\\:"};
+        private final Object argument;
+
+        public EachIterator(int type, Object object) {
+            super(type, OPERATORS, type - 106);
+            this.argument = object;
         }
 
-        if (t == 99) {
-            return new Dict(r(), r());
+        public Object getArgument() {
+            return argument;
         }
-        j++;
-        if (t == 98) {
-            return new Flip((Dict) r());
-        }
-        n = ri();
-        switch (t) {
-            case 0:
-                Object[] L = new Object[n];
-                for (; i < n; i++) {
-                    L[i] = r();
-                }
-                return L;
-            case 1:
-                boolean[] B = new boolean[n];
-                for (; i < n; i++) {
-                    B[i] = rb();
-                }
-                return B;
-            case 2: {
-                UUID[] G = new UUID[n];
-                for (; i < n; i++) {
-                    G[i] = rg();
-                }
-                return G;
-            }
-            case 4:
-                byte[] G = new byte[n];
-                for (; i < n; i++) {
-                    G[i] = b[j++];
-                }
-                return G;
-            case 5:
-                short[] H = new short[n];
-                for (; i < n; i++) {
-                    H[i] = rh();
-                }
-                return H;
-            case 6:
-                int[] I = new int[n];
-                for (; i < n; i++) {
-                    I[i] = ri();
-                }
-                return I;
-            case 7:
-                long[] J = new long[n];
-                for (; i < n; i++) {
-                    J[i] = rj();
-                }
-                return J;
-            case 8:
-                float[] E = new float[n];
-                for (; i < n; i++) {
-                    E[i] = re();
-                }
-                return E;
-            case 9:
-                double[] F = new double[n];
-                for (; i < n; i++) {
-                    F[i] = rf();
-                }
-                return F;
-            case 10:
-                char[] C = new String(b, j, n, encoding).toCharArray();
-                j += n;
-                return C;
-            case 11:
-                String[] S = new String[n];
-                for (; i < n; i++) {
-                    S[i] = rs();
-                }
-                return S;
-            case 12:
-                Timestamp[] P = new Timestamp[n];
-                for (; i < n; i++) {
-                    P[i] = rp();
-                }
-                return P;
-            case 13:
-                Month[] M = new Month[n];
-                for (; i < n; i++) {
-                    M[i] = rm();
-                }
-                return M;
-            case 14:
-                Date[] D = new Date[n];
-                for (; i < n; i++) {
-                    D[i] = rd();
-                }
-                return D;
-            case 15:
-                java.util.Date[] Z = new java.util.Date[n];
-                for (; i < n; i++) {
-                    Z[i] = rz();
-                }
-                return Z;
-            case 16:
-                Timespan[] N = new Timespan[n];
-                for (; i < n; i++) {
-                    N[i] = rn();
-                }
-                return N;
-            case 17:
-                Minute[] U = new Minute[n];
-                for (; i < n; i++) {
-                    U[i] = ru();
-                }
-                return U;
-            case 18:
-                Second[] V = new Second[n];
-                for (; i < n; i++) {
-                    V[i] = rv();
-                }
-                return V;
-            case 19:
-                Time[] T = new Time[n];
-                for (; i < n; i++) {
-                    T[i] = rt();
-                }
-                return T;
-        }
-        return null;
     }
 
     //object.getClass().isArray()   t(int[]) is .5 isarray is .1 lookup .05
