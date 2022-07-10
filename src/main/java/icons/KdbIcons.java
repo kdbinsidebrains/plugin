@@ -103,6 +103,9 @@ public final class KdbIcons {
         public static final Icon ChangeColor = AllIcons.Actions.Colors;
         public static final Icon ShowConnectionFilter = AllIcons.Actions.Show;
 
+
+        public static final Icon PublicItem = AllIcons.Nodes.C_public;
+        public static final Icon PrivateItem = AllIcons.Nodes.C_private;
     }
 
     public static final class Instance {

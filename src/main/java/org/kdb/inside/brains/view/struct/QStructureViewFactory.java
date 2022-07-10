@@ -17,7 +17,7 @@ public class QStructureViewFactory implements PsiStructureViewFactory {
             @NotNull
             @Override
             public StructureViewModel createStructureViewModel(@Nullable Editor editor) {
-                return new QStructureViewModel(psiFile);
+                return new QStructureViewModel(editor, psiFile);
             }
         };
     }

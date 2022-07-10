@@ -336,9 +336,11 @@
         <projectService serviceImplementation="org.kdb.inside.brains.psi.index.QIndexService"/>
 
         <gotoSymbolContributor implementation="org.kdb.inside.brains.lang.QChooseByNameContributor"/>
+
+        <!-- Structure view-->
+        <navbar implementation="org.kdb.inside.brains.view.struct.QNavBarExtension"/>
         <lang.psiStructureViewFactory language="q"
                                       implementationClass="org.kdb.inside.brains.view.struct.QStructureViewFactory"/>
-
 
         <!-- Inspections -->
         <localInspection language="q" id="UndefinedVariable" shortName="UndefinedVariable"

@@ -2,6 +2,13 @@
 
 # KdbInsideBrains Changelog
 
+## [1.4.0]
+
+### Added
+
+- Show public and private assignments in the StrictureView
+- Show current element in the NavigationBar, base on the StructureView
+
 ## [1.3.1]
 
 ### Fixed
