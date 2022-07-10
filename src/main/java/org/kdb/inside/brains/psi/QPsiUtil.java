@@ -36,6 +36,10 @@ public final class QPsiUtil {
         return false;
     }
 
+    public static boolean isGlobalDeclaration(QAssignmentExpr assignment) {
+        return isGlobalDeclaration(assignment.getVarDeclaration());
+    }
+
     public static boolean isGlobalDeclaration(QVarDeclaration declaration) {
         final ElementContext of = ElementContext.of(declaration);
         switch (of.getScope()) {
