@@ -6,7 +6,7 @@ import javax.swing.*;
 
 public enum StructureElementType {
     FILE(KdbIcons.Node.File, false, true),
-    LOAD(KdbIcons.Node.Import, true, false),
+    IMPORT(KdbIcons.Node.Import, true, false),
     COMMAND(KdbIcons.Node.Command, true, false),
     CONTEXT(KdbIcons.Node.Context, false, true),
     VARIABLE(KdbIcons.Node.Variable, true, false),

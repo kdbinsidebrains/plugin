@@ -2,18 +2,12 @@ package org.kdb.inside.brains.view.struct;
 
 import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.structureView.impl.common.PsiTreeElementBase;
-import com.intellij.openapi.util.LastComputedIconCache;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiUtil;
-import com.intellij.ui.IconManager;
-import com.intellij.ui.icons.RowIcon;
-import com.intellij.util.VisibilityIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.*;
 
-import javax.swing.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -43,7 +37,7 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
     public static @Nullable QStructureViewElement createViewElement(PsiElement child) {
         if (child instanceof QImport) {
             final QImport qImport = (QImport) child;
-            return new QStructureViewElement(child, StructureElementType.LOAD, qImport.getFilePath());
+            return new QStructureViewElement(child, StructureElementType.IMPORT, qImport.getFilePath());
         } else if (child instanceof QCommand) {
             return new QStructureViewElement(child, StructureElementType.COMMAND, child.getText());
         } else if (child instanceof QContext) {
@@ -55,11 +49,15 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
             } else {
                 return new QStructureViewElement(child, StructureElementType.CONTEXT, ".", body);
             }
+        } else if (child instanceof QLambdaExpr) {
+            return createLambdaElement(child, (QLambdaExpr) child, "\uD835\uDF06");
         } else if (child instanceof QTableColumn) {
             final QTableColumn col = (QTableColumn) child;
             final boolean keys = col.getParent() instanceof QTableKeys;
             final QVarDeclaration varDeclaration = col.getVarDeclaration();
-            final String name = varDeclaration == null ? "" : varDeclaration.getQualifiedName();
+
+            String name = varDeclaration == null ? "" : varDeclaration.getQualifiedName();
+            name += getExpressionType(col.getExpression());
             return new QStructureViewElement(child, keys ? StructureElementType.TABLE_KEY_COLUMN : StructureElementType.TABLE_VALUE_COLUMN, name);
         } else if (child instanceof QAssignmentExpr) {
             final QAssignmentExpr assignment = (QAssignmentExpr) child;
@@ -75,71 +73,45 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
 
             String name = variable.getQualifiedName();
             if (expression instanceof QLambdaExpr) {
-                final QLambdaExpr lambda = (QLambdaExpr) expression;
-                final QParameters parameters = lambda.getParameters();
-                if (parameters == null) {
-                    name += "[]";
-                } else {
-                    final String collect = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
-                    name += "[" + collect + "]";
-                }
-                return new QStructureViewElement(child, StructureElementType.LAMBDA, name, lambda.getExpressions());
+                return createLambdaElement(child, (QLambdaExpr) expression, name);
             } else if (expression instanceof QTableExpr) {
                 return new QStructureViewElement(child, StructureElementType.TABLE, name, expression);
             } else {
-                name += ": " + getExpressionType(expression);
+                name += getExpressionType(expression);
                 return new QStructureViewElement(child, StructureElementType.VARIABLE, name);
             }
         }
         return null;
     }
 
-    private static String getExpressionType(QExpression expression) {
-        if (expression instanceof QTypeCastExpr) {
-            return QPsiUtil.getTypeCast((QTypeCastExpr) expression);
+    @NotNull
+    private static QStructureViewElement createLambdaElement(PsiElement element, QLambdaExpr lambda, String namePrefix) {
+        final QParameters parameters = lambda.getParameters();
+        if (parameters == null) {
+            namePrefix += "[]";
+        } else {
+            final String collect = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
+            namePrefix += "[" + collect + "]";
         }
-        if (expression instanceof QLiteralExpr) {
-            return "literal";
-        }
-        if (expression instanceof QQueryExpr) {
-            return "query";
-        }
-        return "expression";
+        return new QStructureViewElement(element, StructureElementType.LAMBDA, namePrefix, lambda.getExpressions());
     }
 
-    @Override
-    public Icon getIcon(boolean open) {
-        final PsiElement element = getElement();
-        if (element == null) {
-            return null;
+    private static String getExpressionType(QExpression expression) {
+        if (expression instanceof QTypeCastExpr) {
+            return ": " + QPsiUtil.getTypeCast((QTypeCastExpr) expression);
         }
-
-        Icon base = LastComputedIconCache.get(element, 0);
-        if (base == null) {
-            final Icon icon = getBaseIcon();
-            if (element instanceof QAssignmentExpr) {
-                final QAssignmentExpr assignmentExpr = (QAssignmentExpr) element;
-                final RowIcon baseIcon = IconManager.getInstance().createLayeredIcon(element, icon, 0);
-                if (QPsiUtil.isGlobalDeclaration(assignmentExpr)) {
-                    VisibilityIcons.setVisibilityIcon(PsiUtil.ACCESS_LEVEL_PUBLIC, baseIcon);
-                } else {
-                    VisibilityIcons.setVisibilityIcon(PsiUtil.ACCESS_LEVEL_PRIVATE, baseIcon);
-                }
-                base = baseIcon;
-            } else {
-                base = icon;
-            }
+        if (expression instanceof QLiteralExpr) {
+            return ": " + expression.getText();
         }
-        return base;
+        if (expression instanceof QQueryExpr) {
+            return ": query";
+        }
+        return ": expression";
     }
 
     @Override
     public @Nullable String getPresentableText() {
         return text;
-    }
-
-    public Icon getBaseIcon() {
-        return type.getIcon();
     }
 
     private @NotNull Collection<StructureViewTreeElement> processChildren(PsiElement content) {

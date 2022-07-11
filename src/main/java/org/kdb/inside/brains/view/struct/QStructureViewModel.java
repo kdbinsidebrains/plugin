@@ -18,7 +18,7 @@ import java.util.EnumSet;
 
 final class QStructureViewModel extends StructureViewModelBase implements StructureViewModel.ElementInfoProvider, StructureViewModel.ExpandInfoProvider {
     private static final Class[] CLASSES = {
-            QFile.class, QImport.class, QCommand.class, QContext.class, QAssignmentExpr.class, QTableColumn.class
+            QFile.class, QImport.class, QCommand.class, QContext.class, QLambdaExpr.class, QAssignmentExpr.class, QTableColumn.class
     };
 
     public QStructureViewModel(@Nullable Editor editor, PsiFile psiFile) {
@@ -45,7 +45,7 @@ final class QStructureViewModel extends StructureViewModelBase implements Struct
         return new Filter[]{
                 new TheElementFilter("SHOW_TABLES", "Show Tables", StructureElementType.TABLE),
                 new TheElementFilter("SHOW_COLUMNS", "Show Columns", EnumSet.of(StructureElementType.TABLE_VALUE_COLUMN, StructureElementType.TABLE_KEY_COLUMN)),
-                new TheElementFilter("SHOW_IMPORTS", "Show Imports", StructureElementType.LOAD),
+                new TheElementFilter("SHOW_IMPORTS", "Show Imports", StructureElementType.IMPORT),
                 new TheElementFilter("SHOW_COMMANDS", "Show Commands", StructureElementType.COMMAND),
                 new TheElementFilter("SHOW_LAMBDAS", "Show Lambdas", StructureElementType.LAMBDA),
                 new TheElementFilter("SHOW_VARIABLES", "Show Variables", StructureElementType.VARIABLE),
