@@ -5,7 +5,7 @@
 ## [1.4.0]
 
 ### Added
-
+- Idea 2022.2 supporting added
 - Show public and private assignments in the StrictureView
 - Show current element in the NavigationBar, base on the StructureView
 
