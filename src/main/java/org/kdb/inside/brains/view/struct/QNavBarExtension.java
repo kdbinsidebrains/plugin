@@ -9,7 +9,6 @@ import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.QPsiElement;
 
 import javax.swing.*;
-import java.util.function.Function;
 
 public class QNavBarExtension extends StructureAwareNavBarModelExtension {
     @NotNull
@@ -20,18 +19,17 @@ public class QNavBarExtension extends StructureAwareNavBarModelExtension {
 
     @Override
     public @Nullable Icon getIcon(Object object) {
-        return extract(object, QStructureViewElement::getBaseIcon);
+        if (object instanceof QPsiElement) {
+            return ((QPsiElement) object).getIcon(0);
+        }
+        return null;
     }
 
     @Override
     public @Nullable String getPresentableText(Object object) {
-        return extract(object, QStructureViewElement::getPresentableText);
-    }
-
-    private <T> T extract(Object object, Function<QStructureViewElement, T> function) {
         if (object instanceof QPsiElement) {
-            final QStructureViewElement viewElement = QStructureViewElement.createViewElement((PsiElement) object);
-            return viewElement != null ? function.apply(viewElement) : null;
+            final QStructureViewElement element = QStructureViewElement.createViewElement((PsiElement) object);
+            return element != null ? element.getPresentableText() : null;
         }
         return null;
     }

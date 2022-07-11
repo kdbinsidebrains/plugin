@@ -338,6 +338,7 @@
         <gotoSymbolContributor implementation="org.kdb.inside.brains.lang.QChooseByNameContributor"/>
 
         <!-- Structure view-->
+        <iconProvider implementation="org.kdb.inside.brains.psi.QIconProvider"/>
         <navbar implementation="org.kdb.inside.brains.view.struct.QNavBarExtension"/>
         <lang.psiStructureViewFactory language="q"
                                       implementationClass="org.kdb.inside.brains.view.struct.QStructureViewFactory"/>
