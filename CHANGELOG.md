@@ -2,9 +2,22 @@
 
 # KdbInsideBrains Changelog
 
+## [1.5.0]
+
+### Added
+
+- Credentials plugin structure has been improved and redesigned a bit but backward compatible: plugin version has been
+  added with "undefined" default value for now.
+
+### Fixed
+
+- Global and Scope credential changes show appropriate error is something is wrong
+- Credentials plugin completely destroyed when removed and releases all resources
+
 ## [1.4.0]
 
 ### Added
+
 - Idea 2022.2 supporting added
 - Show public and private assignments in the StrictureView
 - Show current element in the NavigationBar, base on the StructureView

@@ -26,7 +26,6 @@ public abstract class CredentialEditor extends JPanel {
 
     public abstract void setCredentials(String credentials);
 
-
     public abstract List<CredentialsError> validateEditor();
 
 

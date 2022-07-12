@@ -19,6 +19,7 @@ import org.kdb.inside.brains.core.credentials.plugin.CredentialPlugin;
 import org.kdb.inside.brains.settings.KdbSettingsConfigurable;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
@@ -39,8 +40,8 @@ public class CredentialProviderService implements PersistentStateComponent<Eleme
         return Collections.unmodifiableList(providers);
     }
 
-    public CredentialProvider getProvider(String credentials) {
-        return CredentialProvider.findProvider(providers, credentials);
+    public static CredentialProvider findProvider(Collection<CredentialProvider> providers, String credentials) {
+        return providers.stream().filter(p -> p.isSupported(credentials)).findFirst().orElse(UsernameCredentialProvider.INSTANCE);
     }
 
     public CredentialProvider getProviderByName(String name) {
@@ -70,10 +71,6 @@ public class CredentialProviderService implements PersistentStateComponent<Eleme
     }
 
     public void setCredentialPlugin(List<URL> data) {
-        for (CredentialPlugin value : loadedCredentialPlugins.values()) {
-            unregisterProvider(value.getProvider());
-        }
-
         credentialPlugins.clear();
         credentialPlugins.addAll(data);
 
@@ -112,17 +109,8 @@ public class CredentialProviderService implements PersistentStateComponent<Eleme
         return StrSubstitutor.replaceSystemProperties(credentials);
     }
 
-    private void reloadPlugins() {
-        loadedCredentialPlugins.clear();
-        for (URL url : Lists.reverse(credentialPlugins)) {
-            try {
-                final CredentialPlugin load = CredentialPlugin.load(url);
-                loadedCredentialPlugins.put(url, load);
-                registerProvider(0, load.getProvider());
-            } catch (Throwable ex) {
-                notifyPluginFailedPlugin(url, ex);
-            }
-        }
+    public CredentialProvider getProvider(String credentials) {
+        return findProvider(providers, credentials);
     }
 
     private void notifyPluginFailedPlugin(URL url, Throwable ex) {
@@ -174,5 +162,29 @@ public class CredentialProviderService implements PersistentStateComponent<Eleme
         }
 
         reloadPlugins();
+    }
+
+    private void reloadPlugins() {
+        loadedCredentialPlugins.forEach((u, p) -> {
+            unregisterProvider(p.getProvider());
+
+            try {
+                p.destroy();
+            } catch (IOException ex) {
+                notifyPluginFailedPlugin(u, ex);
+            }
+        });
+
+        loadedCredentialPlugins.clear();
+
+        for (URL url : Lists.reverse(credentialPlugins)) {
+            try {
+                final CredentialPlugin load = CredentialPlugin.load(url);
+                loadedCredentialPlugins.put(url, load);
+                registerProvider(0, load.getProvider());
+            } catch (Throwable ex) {
+                notifyPluginFailedPlugin(url, ex);
+            }
+        }
     }
 }
