@@ -50,7 +50,7 @@ public class CredentialsEditorPanel extends CredentialEditor implements Disposab
         if (inherit) {
             providers.add(new InheritedCredentialProvider(scope));
         }
-        providers.addAll(CredentialProviderService.getInstance().getProviders());
+        providers.addAll(CredentialService.getInstance().getProviders());
 
         int i = 0;
         final String[] names = new String[providers.size()];
@@ -107,7 +107,7 @@ public class CredentialsEditorPanel extends CredentialEditor implements Disposab
 
     @Override
     public void setCredentials(String credentials) {
-        final CredentialProvider provider = CredentialProviderService.findProvider(providers, credentials);
+        final CredentialProvider provider = CredentialService.findProvider(providers, credentials);
         final String name = provider.getName();
         if (!name.equals(editorsBox.getSelectedItem())) {
             editorsBox.setSelectedItem(name);

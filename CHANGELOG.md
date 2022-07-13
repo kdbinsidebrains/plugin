@@ -2,6 +2,15 @@
 
 # KdbInsideBrains Changelog
 
+## [1.6.0]
+
+### Added
+
+- CredentialsPlugin functionality redesigned:
+  - plugins copied into Idea System folder (current approach will be auto-migrated)
+  - duplicate plugins are not allowed and adding new version replaces exist one
+  - plugion version and description added (plugins must be recomplited)
+
 ## [1.5.0]
 
 ### Added
@@ -11,7 +20,7 @@
 
 ### Fixed
 
-- Global and Scope credential changes show appropriate error is something is wrong
+- Global and Scope credential changes show appropriate error if something is wrong
 - Credentials plugin completely destroyed when removed and releases all resources
 
 ## [1.4.0]
