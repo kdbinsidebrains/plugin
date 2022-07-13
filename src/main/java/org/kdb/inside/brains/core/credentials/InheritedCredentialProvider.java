@@ -42,22 +42,13 @@ public final class InheritedCredentialProvider implements CredentialProvider {
             credentials = scope.getCredentials();
         }
 
-        final CredentialProvider provider = CredentialProviderService.getInstance().getProvider(credentials);
+        final CredentialProvider provider = CredentialService.findProvider(credentials);
 
         final CredentialEditor editor = provider.createEditor();
         editor.setCredentials(credentials);
 
         return new TheCredentialsEditor(editor, name);
     }
-/*
-
-    private String generateItemCredentials(InstanceItem instance) {
-        if (instance == null) {
-            return KdbSettingsService.getInstance().getDefaultCredentials();
-        }
-
-    }
-*/
 
     private static class TheCredentialsEditor extends CredentialEditor {
         private final CredentialEditor editor;

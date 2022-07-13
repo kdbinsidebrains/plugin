@@ -263,7 +263,7 @@
                            notificationIds="Kdb Credentials Service" isLogByDefault="true"/>
 
         <applicationService
-                serviceImplementation="org.kdb.inside.brains.core.credentials.CredentialProviderService"/>
+                serviceImplementation="org.kdb.inside.brains.core.credentials.CredentialService"/>
 
         <!-- Configuration / Settings -->
         <applicationService serviceImplementation="org.kdb.inside.brains.settings.KdbSettingsService"/>
