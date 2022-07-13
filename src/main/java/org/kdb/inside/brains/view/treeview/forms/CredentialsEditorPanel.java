@@ -1,6 +1,9 @@
 package org.kdb.inside.brains.view.treeview.forms;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.ComponentValidator;
+import com.intellij.openapi.ui.ValidationInfo;
 import org.kdb.inside.brains.core.KdbScope;
 import org.kdb.inside.brains.core.credentials.*;
 
@@ -11,11 +14,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class CredentialsEditorPanel extends CredentialEditor {
+public class CredentialsEditorPanel extends CredentialEditor implements Disposable {
     private ComboBox<Object> editorsBox;
     private CredentialEditor activeEditor;
 
+    private List<ValidationInfo> myInfo = new ArrayList<>();
     private final List<CredentialProvider> providers = new ArrayList<>();
 
     private final TheCredentialChangeListener changeListener = new TheCredentialChangeListener();
@@ -102,22 +107,60 @@ public class CredentialsEditorPanel extends CredentialEditor {
 
     @Override
     public void setCredentials(String credentials) {
-        final CredentialProvider provider = CredentialProvider.findProvider(providers, credentials);
+        final CredentialProvider provider = CredentialProviderService.findProvider(providers, credentials);
         final String name = provider.getName();
         if (!name.equals(editorsBox.getSelectedItem())) {
             editorsBox.setSelectedItem(name);
         }
         activeEditor.setCredentials(credentials);
+        clearErrors();
     }
 
     @Override
     public List<CredentialsError> validateEditor() {
-        return activeEditor.validateEditor();
+        return updateErrors(activeEditor.validateEditor());
+    }
+
+    @Override
+    public void dispose() {
+        clearErrors();
+    }
+
+    private void clearErrors() {
+        updateErrors(null);
+    }
+
+    private List<CredentialsError> updateErrors(List<CredentialsError> errors) {
+        final List<ValidationInfo> info = errors == null || errors.isEmpty() ? List.of() : errors.stream().map(e -> new ValidationInfo(e.getMessage(), e.getComponent())).collect(Collectors.toList());
+        if (!myInfo.equals(info)) {
+            updateComponentErrors(info);
+            myInfo = info;
+        }
+        return errors;
+    }
+
+    private void updateComponentErrors(List<ValidationInfo> info) {
+        // clear current component errors
+        myInfo.stream()
+                .filter(vi -> !info.contains(vi))
+                .filter(vi -> vi.component != null)
+                .map(vi -> ComponentValidator.getInstance(vi.component))
+                .forEach(c -> c.ifPresent(vi -> vi.updateInfo(null)));
+
+        // show current errors
+        for (ValidationInfo vi : info) {
+            JComponent component = vi.component;
+            if (component == null) {
+                continue;
+            }
+            ComponentValidator.getInstance(component).orElseGet(() -> new ComponentValidator(this).installOn(component)).updateInfo(vi);
+        }
     }
 
     private class TheCredentialChangeListener implements CredentialChangeListener {
         @Override
         public void credentialsChanged(String credentials) {
+            clearErrors();
             processCredentialChanged(credentials);
         }
     }

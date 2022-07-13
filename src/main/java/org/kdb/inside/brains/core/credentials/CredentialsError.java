@@ -2,7 +2,7 @@ package org.kdb.inside.brains.core.credentials;
 
 import javax.swing.*;
 
-public class CredentialsError {
+public final class CredentialsError {
     private final String message;
     private final JComponent component;
 

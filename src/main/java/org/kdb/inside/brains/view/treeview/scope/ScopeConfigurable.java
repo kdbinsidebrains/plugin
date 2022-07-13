@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.view.treeview.scope;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.ui.TitledSeparator;
@@ -125,10 +126,10 @@ public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
     }
 
     @Override
-    public void apply() {
+    public void apply() throws ConfigurationException {
         final List<CredentialsError> credentialsErrors = credentialsPanel.validateEditor();
         if (credentialsErrors != null && !credentialsErrors.isEmpty()) {
-            return;
+            throw new ConfigurationException("Some credentials parameters are wrong. Please check appropriate fields.");
         }
 
         editableScope = new KdbScope(editableScope.getName(), getCurrentType(), getCurrentCredentials(), getInstanceOptions());

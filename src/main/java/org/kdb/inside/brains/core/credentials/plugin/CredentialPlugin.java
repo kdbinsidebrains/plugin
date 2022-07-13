@@ -13,6 +13,7 @@ import java.util.jar.Manifest;
 public final class CredentialPlugin {
     private final URL resource;
     private final CredentialProvider provider;
+    private final URLClassLoader classLoader;
 
     private CredentialPlugin(URL resource) throws IOException, CredentialPluginException {
         try (JarInputStream i = new JarInputStream(resource.openStream())) {
@@ -26,12 +27,13 @@ public final class CredentialPlugin {
                 throw new CredentialPluginException("Manifest doesn't have mandatory CredentialsProvider attribute");
             }
 
-            final URLClassLoader l = new URLClassLoader(new URL[]{resource}, CredentialProvider.class.getClassLoader());
-            final Class<?> aClass = l.loadClass(credentialsProvider);
+            classLoader = new URLClassLoader(new URL[]{resource}, CredentialProvider.class.getClassLoader());
+            final Class<?> aClass = classLoader.loadClass(credentialsProvider);
             if (!(CredentialProvider.class.isAssignableFrom(aClass))) {
                 throw new CredentialPluginException("CredentialProvider class doesn't implement CredentialProvider interface: " + aClass);
             }
             final Constructor<?> declaredConstructor = aClass.getDeclaredConstructor();
+
 
             this.resource = resource;
             this.provider = (CredentialProvider) declaredConstructor.newInstance();
@@ -48,12 +50,20 @@ public final class CredentialPlugin {
         return provider.getName();
     }
 
+    public String getVersion() {
+        return provider.getVersion();
+    }
+
     public URL getResource() {
         return resource;
     }
 
     public CredentialProvider getProvider() {
         return provider;
+    }
+
+    public void destroy() throws IOException {
+        classLoader.close();
     }
 
     public static void test(URL url) throws IOException, CredentialPluginException {

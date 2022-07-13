@@ -1,15 +1,18 @@
 package org.kdb.inside.brains.settings;
 
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.util.ui.FormBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.InstanceOptionsPanel;
 import org.kdb.inside.brains.core.credentials.CredentialProviderService;
+import org.kdb.inside.brains.core.credentials.CredentialsError;
 import org.kdb.inside.brains.core.credentials.plugin.CredentialPluginsPanel;
 import org.kdb.inside.brains.view.treeview.forms.CredentialsEditorPanel;
 
 import javax.swing.*;
+import java.util.List;
 
 public class KdbConnectionsConfigurable extends KdbConfigurable {
     private final CredentialPluginsPanel pluginsPanel = new CredentialPluginsPanel();
@@ -60,10 +63,12 @@ public class KdbConnectionsConfigurable extends KdbConfigurable {
     }
 
     @Override
-    public void apply() {
-        if (credentialsPanel.validateEditor() != null) {
-            return;
+    public void apply() throws ConfigurationException {
+        final List<CredentialsError> credentialsErrors = credentialsPanel.validateEditor();
+        if (credentialsErrors != null && !credentialsErrors.isEmpty()) {
+            throw new ConfigurationException("Some credentials parameters are wrong. Please check appropriate fields.");
         }
+
         settingsService.setDefaultCredentials(credentialsPanel.getCredentials());
         settingsService.setInstanceOptions(instanceOptionsPanel.getInstanceOptions());
         CredentialProviderService.getInstance().setCredentialPlugin(pluginsPanel.getCredentialPlugin());

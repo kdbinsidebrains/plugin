@@ -49,7 +49,7 @@ public class CredentialPluginsPanel extends AddEditRemovePanel<CredentialPlugins
 
     @Override
     protected @Nullable CredentialPluginsPanel.Item editItem(Item o) {
-        final FileChooserDialog fileChooser = FileChooserFactory.getInstance().createFileChooser(new FileTypeDescriptor("Plugin jar file", "jar"), null, this);
+        final FileChooserDialog fileChooser = FileChooserFactory.getInstance().createFileChooser(new FileTypeDescriptor("Plugin Jar File", "jar"), null, this);
         final VirtualFile[] choose = fileChooser.choose(null, o == null ? VirtualFile.EMPTY_ARRAY : new VirtualFile[]{VfsUtil.findFileByURL(o.resource)});
         if (choose.length == 0) {
             return null;
@@ -57,8 +57,20 @@ public class CredentialPluginsPanel extends AddEditRemovePanel<CredentialPlugins
 
         final VirtualFile virtualFile = choose[0];
         final URL url = VfsUtilCore.convertToURL(virtualFile.getUrl());
+        if (url == null) {
+            return null;
+        }
 
         try {
+/*
+            CredentialPlugin.load(url).destroy();
+            final Path configDir = PathManager.getConfigDir().resolve("KdbInsideBrains").resolve("credentials");
+            if (Files.notExists(configDir)) {
+                Files.createDirectories(configDir);
+            }
+            Files.copy(url.openStream(), configDir);
+*/
+//            return new Item(CredentialPlugin.load(configDir.toUri().toURL()));
             return new Item(CredentialPlugin.load(url));
         } catch (Exception ex) {
             Messages.showErrorDialog(this, ex.getMessage(), "Incorrect Plugin Resource");
@@ -93,7 +105,7 @@ public class CredentialPluginsPanel extends AddEditRemovePanel<CredentialPlugins
     }
 
     private static class TheTableModel extends TableModel<Item> {
-        private final String[] myNames = {"Name", "Description", "Resource"};
+        private final String[] myNames = {"Name", "Version", "Class or Error"};
 
         @Override
         public int getColumnCount() {
@@ -106,9 +118,9 @@ public class CredentialPluginsPanel extends AddEditRemovePanel<CredentialPlugins
                 case 0:
                     return o.name;
                 case 1:
-                    return o.description;
+                    return o.version;
                 case 2:
-                    return o.resource.toString();
+                    return o.description;
             }
             return "";
         }
@@ -121,12 +133,14 @@ public class CredentialPluginsPanel extends AddEditRemovePanel<CredentialPlugins
 
     protected static class Item {
         String name;
+        String version;
         String description;
         URL resource;
         boolean error;
 
         public Item(URL resource, Exception ex) {
             name = ex.getClass().getSimpleName();
+            version = "error";
             description = ex.getMessage();
             this.resource = resource;
             error = true;
@@ -134,6 +148,7 @@ public class CredentialPluginsPanel extends AddEditRemovePanel<CredentialPlugins
 
         public Item(CredentialPlugin plugin) {
             this.name = plugin.getName();
+            this.version = plugin.getVersion();
             this.description = plugin.getProvider().getClass().getName();
             this.resource = plugin.getResource();
             this.error = false;
