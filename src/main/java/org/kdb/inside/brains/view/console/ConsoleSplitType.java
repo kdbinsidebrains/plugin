@@ -5,14 +5,13 @@ public enum ConsoleSplitType {
     VERTICAL("Split vertically"),
     HORIZONTAL("Split horizontally");
 
-    private final String name;
+    private final String label;
 
-    ConsoleSplitType(String name) {
-        this.name = name;
+    ConsoleSplitType(String label) {
+        this.label = label;
     }
 
-    @Override
-    public String toString() {
-        return name;
+    public String getLabel() {
+        return label;
     }
 }

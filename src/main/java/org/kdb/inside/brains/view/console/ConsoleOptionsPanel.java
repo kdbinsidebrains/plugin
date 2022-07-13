@@ -42,6 +42,12 @@ public class ConsoleOptionsPanel extends JPanel {
     private void createSplitTypes(FormBuilder formBuilder) {
         splitTypes.setEditable(false);
         splitTypes.setSelectedItem(ConsoleSplitType.NO);
+        splitTypes.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                return super.getListCellRendererComponent(list, ((ConsoleSplitType) value).getLabel(), index, isSelected, cellHasFocus);
+            }
+        });
 
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         p.add(new JBLabel("Default console and results tabs splitting: "));
