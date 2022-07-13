@@ -89,7 +89,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     }
 
     public void setSplitType(ConsoleSplitType splitType) {
-        this.splitType = splitType;
+        this.splitType = splitType == null ? ConsoleSplitType.NO : splitType;
     }
 
     @Override
