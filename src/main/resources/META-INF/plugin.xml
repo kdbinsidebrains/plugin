@@ -314,12 +314,6 @@
         <lang.syntaxHighlighterFactory language="q"
                                        implementationClass="org.kdb.inside.brains.lang.QSyntaxHighlighterFactory"/>
 
-        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QVariable"
-                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QVariableElementManipulator"/>
-
-        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QImport"
-                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QImportElementManipulator"/>
-
         <spellchecker.support language="q" implementationClass="org.kdb.inside.brains.lang.QSpellcheckingStrategy"/>
 
 
@@ -365,19 +359,26 @@
                          implementationClass="org.kdb.inside.brains.lang.inspection.MixinLambdaVarDeclaration"/>
 
         <!-- Usage and references -->
-        <usageTypeProvider implementation="org.kdb.inside.brains.lang.usage.QUsageTypeProvider"/>
+        <usageTypeProvider implementation="org.kdb.inside.brains.lang.usages.QUsageTypeProvider"/>
+        <!--        <elementDescriptionProvider implementation="org.kdb.inside.brains.lang.usages.QUsageViewDescriptionProvider"/>-->
+        <lang.findUsagesProvider language="q"
+                                 implementationClass="org.kdb.inside.brains.lang.usages.QFindUsagesProvider"/>
+
         <psi.referenceContributor language="q" implementation="org.kdb.inside.brains.psi.refs.QReferenceContributor"/>
-        <renamePsiElementProcessor
-                implementation="org.kdb.inside.brains.lang.refactoring.QRenamePsiElementProcessor"/>
+        <renamePsiElementProcessor implementation="org.kdb.inside.brains.lang.refactoring.QRenamePsiElementProcessor"/>
+        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QSymbol"
+                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QSymbolElementManipulator"/>
+        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QVariable"
+                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QVariableElementManipulator"/>
+        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QImport"
+                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QImportElementManipulator"/>
+
 
         <codeInsight.parameterInfo language="q" implementationClass="org.kdb.inside.brains.lang.QParameterInfoHandler"/>
 
         <completion.contributor language="q"
                                 order="first"
                                 implementationClass="org.kdb.inside.brains.lang.completion.QCompletionContributor"/>
-
-        <lang.findUsagesProvider language="q"
-                                 implementationClass="org.kdb.inside.brains.lang.usage.QFindUsagesProvider"/>
 
         <typedHandler implementation="org.kdb.inside.brains.lang.completion.QTypedHandler"/>
 

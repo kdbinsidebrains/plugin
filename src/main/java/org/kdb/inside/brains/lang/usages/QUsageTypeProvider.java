@@ -1,8 +1,9 @@
-package org.kdb.inside.brains.lang.usage;
+package org.kdb.inside.brains.lang.usages;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.usages.impl.rules.UsageType;
 import com.intellij.usages.impl.rules.UsageTypeProvider;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.*;
 
@@ -17,7 +18,7 @@ public final class QUsageTypeProvider implements UsageTypeProvider {
     public static final UsageType UNKNOWN_ASSIGNMENT = new UsageType(() -> "Unknown assignment");
 
     @Override
-    public @Nullable UsageType getUsageType(PsiElement element) {
+    public @Nullable UsageType getUsageType(@NotNull PsiElement element) {
         if (element instanceof QVarReference) {
             return VARIABLE_REFERENCE;
         }

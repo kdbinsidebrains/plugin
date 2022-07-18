@@ -8,10 +8,10 @@ import com.intellij.psi.PsiReferenceRegistrar;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class QReferenceProvider<E extends PsiElement> extends PsiReferenceProvider {
+public abstract class QBaseReferenceProvider<E extends PsiElement> extends PsiReferenceProvider {
     protected final Class<E> aClass;
 
-    protected QReferenceProvider(Class<E> aClass) {
+    protected QBaseReferenceProvider(Class<E> aClass) {
         this.aClass = aClass;
     }
 
@@ -25,7 +25,7 @@ public abstract class QReferenceProvider<E extends PsiElement> extends PsiRefere
         return getElementReferences(aClass.cast(element), context);
     }
 
-    public static <T extends PsiElement> void register(PsiReferenceRegistrar registrar, Class<T> type, QReferenceProvider<T> provider) {
+    public static <T extends PsiElement> void register(PsiReferenceRegistrar registrar, Class<T> type, QBaseReferenceProvider<T> provider) {
         registrar.registerReferenceProvider(PlatformPatterns.psiElement(type), provider);
     }
 }

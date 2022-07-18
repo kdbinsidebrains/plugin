@@ -10,8 +10,8 @@ import org.kdb.inside.brains.psi.QVariable;
 public class QReferenceContributor extends PsiReferenceContributor {
     @Override
     public void registerReferenceProviders(@NotNull PsiReferenceRegistrar registrar) {
-        QReferenceProvider.register(registrar, QSymbol.class, new QSymbolReferenceProvider());
-        QReferenceProvider.register(registrar, QVariable.class, new QVariableReferenceProvider());
-        QReferenceProvider.register(registrar, QImport.class, new QImportReferenceProvider());
+        QBaseReferenceProvider.register(registrar, QImport.class, new QImportReferenceProvider());
+        QBaseReferenceProvider.register(registrar, QSymbol.class, new QSymbolReferenceProvider());
+        QBaseReferenceProvider.register(registrar, QVariable.class, new QVariableReferenceProvider());
     }
 }

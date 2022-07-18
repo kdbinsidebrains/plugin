@@ -13,7 +13,7 @@ import java.util.Collection;
 
 import static java.util.Collections.emptyList;
 
-public class QImportReferenceProvider extends QReferenceProvider<QImport> {
+public class QImportReferenceProvider extends QBaseReferenceProvider<QImport> {
     protected QImportReferenceProvider() {
         super(QImport.class);
     }

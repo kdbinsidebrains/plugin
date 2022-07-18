@@ -131,7 +131,7 @@ var_reference ::= VARIABLE_PATTERN {
 }
 
 var_declaration ::= VARIABLE_PATTERN {
- implements=["org.kdb.inside.brains.psi.QVariable" "com.intellij.psi.PsiNameIdentifierOwner" "com.intellij.psi.NavigatablePsiElement"]
+ implements=["org.kdb.inside.brains.psi.QVariable" "com.intellij.psi.PsiNameIdentifierOwner" "com.intellij.psi.PsiQualifiedNamedElement" "com.intellij.psi.NavigatablePsiElement"]
  mixin="org.kdb.inside.brains.psi.impl.QVariableDeclarationImpl"
 }
 
