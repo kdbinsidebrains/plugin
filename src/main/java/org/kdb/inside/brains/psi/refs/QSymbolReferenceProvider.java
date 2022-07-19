@@ -18,15 +18,11 @@ public class QSymbolReferenceProvider extends QBaseReferenceProvider<QSymbol> {
 
     public static class QSymbolReference extends QBaseReference<QSymbol> {
         public QSymbolReference(@NotNull QSymbol element) {
-            super(element);
-        }
-
-        public QSymbolReference(@NotNull QSymbol element, TextRange range) {
-            super(element, range);
+            super(element, new TextRange(1, element.getTextLength()));
         }
 
         @Override
-        protected String getElementName(QSymbol element) {
+        protected String getQualifiedName(QSymbol element) {
             return element.getText().substring(1);
         }
     }

@@ -77,7 +77,7 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
             return ResolveResult.EMPTY_ARRAY;
         }
 
-        final String name = getElementName(element);
+        final String name = getQualifiedName(element);
         if (name == null) {
             return ResolveResult.EMPTY_ARRAY;
         }
@@ -110,5 +110,5 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
         return allGlobal.stream().map(PsiElementResolveResult::new).toArray(ResolveResult[]::new);
     }
 
-    protected abstract String getElementName(T element);
+    protected abstract String getQualifiedName(T element);
 }

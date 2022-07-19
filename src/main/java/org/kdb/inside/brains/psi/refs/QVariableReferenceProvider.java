@@ -50,7 +50,7 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
         }
 
         @Override
-        protected String getElementName(QVariable element) {
+        protected String getQualifiedName(QVariable element) {
             return element.getQualifiedName();
         }
 
