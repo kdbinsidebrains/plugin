@@ -12,7 +12,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.ui.PopupHandler;
-import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.awt.RelativeRectangle;
 import com.intellij.util.NullableFunction;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -78,11 +77,12 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
 
         PopupHandler.installPopupHandler(this, "Kdb.InstancesScopeView", ActionPlaces.getActionGroupPopupPlace(ActionPlaces.INSTANCES_VIEW_POPUP));
 
-        new TreeSpeedSearch(this);
+        InstancesSpeedSearch.install(this);
 
         ToolTipManager.sharedInstance().registerComponent(this);
 
         enableDnD();
+
         initListeners();
     }
 

@@ -17,7 +17,7 @@ public class ConsoleOptionsPanel extends JPanel {
     private final JBCheckBox striped = new JBCheckBox("Stripe table rows");
     private final JBCheckBox listAsTable = new JBCheckBox("Show list as table");
     private final JBCheckBox dictAsTable = new JBCheckBox("Show dict as table");
-    private final JBIntSpinner floatPrecisionEditor = new JBIntSpinner(7, 0, 20);
+    private final JBIntSpinner floatPrecisionEditor = new JBIntSpinner(7, 0, ConsoleOptions.MAX_DECIMAL_PRECISION);
     private final ComboBox<ConsoleSplitType> splitTypes = new ComboBox<>(ConsoleSplitType.values());
 
     public ConsoleOptionsPanel() {

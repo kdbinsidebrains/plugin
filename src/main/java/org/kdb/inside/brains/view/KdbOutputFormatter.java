@@ -48,12 +48,27 @@ public final class KdbOutputFormatter {
         this.options = options;
     }
 
-    public String resultToString(KdbResult result) {
-        return formatObject(result.getObject());
+    public String objectToString(Object object) {
+        return objectToString(object, options.isPrefixSymbols(), options.isWrapStrings());
     }
 
-    public String objectToString(Object object) {
+    public String resultToString(KdbResult result) {
+        return objectToString(result.getObject());
+    }
+
+    public String objectToString(Object object, boolean prefixSymbol, boolean wrapString) {
+        if (!prefixSymbol && object instanceof String) {
+            return String.valueOf(object);
+        } else if (!wrapString && object instanceof char[]) {
+            return new String((char[]) object);
+        } else if (!wrapString && object instanceof Character) {
+            return String.valueOf(object);
+        }
         return formatObject(object);
+    }
+
+    public String resultToString(KdbResult result, boolean prefixSymbol, boolean wrapString) {
+        return objectToString(result.getObject(), prefixSymbol, wrapString);
     }
 
     public static KdbOutputFormatter getInstance() {
@@ -223,20 +238,20 @@ public final class KdbOutputFormatter {
         }
 
         if (v.getClass().isArray()) {
-            return '(' + formatArray(v, this::objectToString, 10, ';') + ')';
+            return '(' + formatArray(v, this::formatObject, 10, ';') + ')';
         }
 
         return String.valueOf(v);
     }
 
     private String formatEach(c.EachIterator v) {
-        return objectToString(v.getArgument()) + v.getOperation();
+        return formatObject(v.getArgument()) + v.getOperation();
     }
 
     private String formatComposition(c.Composition v) {
         StringBuilder b = new StringBuilder();
         for (Object item : v.getItems()) {
-            b.append(objectToString(item));
+            b.append(formatObject(item));
         }
         return b.toString();
     }
@@ -262,7 +277,7 @@ public final class KdbOutputFormatter {
             }
             b.append("(");
             for (int i = 1; i < args.length; i++) {
-                b.append(objectToString(args[i]));
+                b.append(formatObject(args[i]));
                 b.append(';');
             }
             b.setCharAt(b.length() - 1, ')');
@@ -271,13 +286,13 @@ public final class KdbOutputFormatter {
 
         final boolean function = (first instanceof c.Function) || (first instanceof c.UnaryOperator) || (first instanceof c.BinaryOperator);
         if (function) {
-            b.append(objectToString(first));
+            b.append(formatObject(first));
             b.append('[');
         } else {
             b.append('(');
         }
         for (int i = function ? 1 : 0; i < args.length; i++) {
-            b.append(objectToString(args[i]));
+            b.append(formatObject(args[i]));
             b.append(";");
         }
         b.setCharAt(b.length() - 1, function ? ']' : ')');
@@ -571,8 +586,8 @@ public final class KdbOutputFormatter {
 
     @NotNull
     public String formatDict(c.Dict d) {
-        String k = objectToString(d.x);
-        String v = objectToString(d.y);
+        String k = formatObject(d.x);
+        String v = formatObject(d.y);
         return wrapArrayIfRequired(k) + '!' + wrapArrayIfRequired(v);
     }
 

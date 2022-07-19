@@ -460,7 +460,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                     showConsoleResult();
                 } else {
                     printRoundtrip(result);
-                    printToConsole(formatter.resultToString(result) + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
+                    printToConsole(formatter.resultToString(result, true, true) + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
 
                     final TableResult tbl = TableResult.from(query, result);
                     if (tbl != null) {
