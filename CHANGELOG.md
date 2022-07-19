@@ -2,6 +2,16 @@
 
 # KdbInsideBrains Changelog
 
+## [1.6.1]
+
+### Fixed
+
+- Items are auto-expanded at search in InstanceTree
+- Max decimal precisions is 16 digits now and size is limited by the spinner in the settings
+- Export to Excel and CSV ignores symbol and string wrapping options and export only raw data
+- Nulls in Excel exported as empty value
+- Copy/Paste takes into account symbol and string wrapping options
+
 ## [1.6.0]
 
 ### Added

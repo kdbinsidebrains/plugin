@@ -76,18 +76,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
             @Override
             protected void setValue(Object value) {
-                setText(valueToString(value));
-            }
-
-            private String valueToString(Object value) {
-                if (value instanceof String && !options.isPrefixSymbols()) {
-                    return String.valueOf(value);
-                } else if (value instanceof char[] && !options.isWrapStrings()) {
-                    return new String((char[]) value);
-                } else if (value instanceof Character && !options.isWrapStrings()) {
-                    return String.valueOf(value);
-                }
-                return formatter.objectToString(value);
+                setText(formatter.objectToString(value));
             }
         };
 

@@ -77,6 +77,6 @@ public class CsvExportAction extends AnExportAction<VirtualFileWrapper> {
         if (Primitives.isWrapperType(valueAt.getClass())) {
             return valueAt;
         }
-        return '"' + formatter.objectToString(valueAt).replace("\"", "\"\"") + '"';
+        return '"' + formatter.objectToString(valueAt, false, false).replace("\"", "\"\"") + '"';
     }
 }
