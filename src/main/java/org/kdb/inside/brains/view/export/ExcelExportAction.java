@@ -9,6 +9,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import icons.KdbIcons;
 import kx.KxConnection;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -78,20 +79,9 @@ public class ExcelExportAction extends AnExportAction<File> {
             indicator.setIndeterminate(false);
             for (int r = ri.reset(); r != -1 && !indicator.isCanceled(); r = ri.next()) {
                 final Row row = sheet.createRow(index++);
-                int i = 0;
-                for (int c = ci.reset(); c != -1 && !indicator.isCanceled(); c = ci.next()) {
+                for (int c = ci.reset(), column = 0; c != -1 && !indicator.isCanceled(); c = ci.next(), column++) {
                     final Object value = table.getValueAt(r, c);
-                    if (value instanceof Boolean) {
-                        row.createCell(i++, CellType.BOOLEAN).setCellValue((Boolean) value);
-                    } else if (value instanceof Number) {
-                        if (KxConnection.isNull(value)) {
-                            row.createCell(i++, CellType.NUMERIC).setCellValue(formatter.objectToString(value));
-                        } else {
-                            row.createCell(i++, CellType.NUMERIC).setCellValue(((Number) value).doubleValue());
-                        }
-                    } else {
-                        row.createCell(i++).setCellValue(formatter.objectToString(value));
-                    }
+                    createNewCell(row, column, value, formatter);
                     indicator.setFraction(count++ / totalCount);
                 }
             }
@@ -105,5 +95,43 @@ public class ExcelExportAction extends AnExportAction<File> {
             }
             return true;
         }
+    }
+
+    private void createNewCell(Row row, int column, Object value, KdbOutputFormatter formatter) {
+        if (value instanceof Boolean) {
+            createBoolean(row, column, (Boolean) value);
+        } else if (value instanceof Number) {
+            createNumber(row, column, (Number) value);
+        } else if (value instanceof String) {
+            createString(row, column, (String) value);
+        } else if (value instanceof char[]) {
+            createString(row, column, new String((char[]) value));
+        } else if (value instanceof Character) {
+            createString(row, column, String.valueOf(value));
+        } else {
+            final Cell cell = row.createCell(column);
+            if (!KxConnection.isNull(value)) {
+                cell.setCellValue(formatter.objectToString(value, false, false));
+            } else {
+                cell.setCellValue("");
+            }
+        }
+    }
+
+    private void createBoolean(Row row, int column, Boolean value) {
+        row.createCell(column, CellType.BOOLEAN).setCellValue(value);
+    }
+
+    private void createNumber(Row row, int column, Number value) {
+        final Cell cell = row.createCell(column, CellType.NUMERIC);
+        if (value != null && !KxConnection.isNull(value)) {
+            cell.setCellValue(value.doubleValue());
+        } else {
+            cell.setCellValue("");
+        }
+    }
+
+    private void createString(Row row, int column, String value) {
+        row.createCell(column, CellType.STRING).setCellValue(value);
     }
 }

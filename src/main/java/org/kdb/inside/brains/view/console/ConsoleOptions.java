@@ -15,7 +15,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     private boolean listAsTable = true;
     private ConsoleSplitType splitType = ConsoleSplitType.NO;
 
-    public static final int MAX_DECIMAL_PRECISION = 15;
+    public static final int MAX_DECIMAL_PRECISION = 16;
 
     public ConsoleOptions() {
     }

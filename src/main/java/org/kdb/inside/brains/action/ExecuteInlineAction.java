@@ -102,7 +102,7 @@ public class ExecuteInlineAction extends ExecuteAction implements DumbAware {
                     if (tableResult != null) {
                         showTypedHint(createTableHint(project, formatter, tableResult), editor);
                     } else {
-                        showTypedHint(createTextHint(formatter.resultToString(res), false), editor);
+                        showTypedHint(createTextHint(formatter.resultToString(res, true, true), false), editor);
                     }
                 }
             });

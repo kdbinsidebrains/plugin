@@ -4,6 +4,7 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.speedSearch.SpeedSearchUtil;
 import com.intellij.util.text.DateFormatUtil;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +20,7 @@ public class InstancesTreeRenderer extends ColoredTreeCellRenderer {
 
     public InstancesTreeRenderer(KdbConnectionManager manager) {
         this.manager = manager;
+        this.myUsedCustomSpeedSearchHighlighting = true;
     }
 
     @Override
@@ -40,6 +42,8 @@ public class InstancesTreeRenderer extends ColoredTreeCellRenderer {
         } else if (item instanceof KdbInstance) {
             instanceRenderer((KdbInstance) item, cutting);
         }
+
+        SpeedSearchUtil.applySpeedSearchHighlightingFiltered(tree, value, this, false, selected);
     }
 
     private void scopeRenderer(KdbScope scope) {
