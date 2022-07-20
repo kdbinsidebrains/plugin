@@ -2,6 +2,15 @@
 
 # KdbInsideBrains Changelog
 
+## [1.7.0]
+
+### Added
+
+- Symbol references introduced
+- Renaming variables/symbols by namespaces. For example, in variable: .this.is.my.variable, each token can be renamed
+  separately.
+- Context naming convention checks added: leading do, one level depth and separate spaces count
+
 ## [1.6.1]
 
 ### Fixed
