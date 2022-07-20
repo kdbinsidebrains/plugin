@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [1.6.2]
+
+### Fixed
+
+- Default InstancesToolWindows type is Tabbed instead of Combo as requested by many users
+
 ## [1.6.1]
 
 ### Fixed

@@ -17,20 +17,7 @@ public class InstancesToolWindowFactory implements ToolWindowFactory, DumbAware 
         }
 
         final ToolWindowEx tw = (ToolWindowEx) toolWindow;
-        tw.setDefaultContentUiType(ToolWindowContentUiType.COMBO);
-//        tw.getComponent().putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true");
-//        tw.setTabActions();
-
-//            DefaultActionGroup group = new DefaultActionGroup() {
-//                {
-//                    getTemplatePresentation().setText(IdeBundle.message("group.view.options"));
-//                    setPopup(true);
-//                    add(myAllTodos.createAutoScrollToSourceAction());
-//                    addSeparator();
-//                    addAll(myAllTodos.createGroupByActionGroup());
-//                }
-//            };
-//            ((ToolWindowEx)toolWindow).setAdditionalGearActions(group);
+        tw.setDefaultContentUiType(ToolWindowContentUiType.TABBED);
 
         // Lazy init
         DumbService.getInstance(project).runWhenSmart(() -> project.getService(InstancesToolWindow.class).initToolWindow(tw));
