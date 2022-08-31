@@ -11,6 +11,12 @@
   separately.
 - Context naming convention checks added: leading do, one level depth and separate spaces count
 
+## [1.6.2]
+
+### Fixed
+
+- Default InstancesToolWindows type is Tabbed instead of Combo as requested by many users
+
 ## [1.6.1]
 
 ### Fixed
