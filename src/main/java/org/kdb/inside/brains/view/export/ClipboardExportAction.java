@@ -92,7 +92,6 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
         for (int r = ri.reset(); r != -1 && !indicator.isCanceled(); r = ri.next()) {
             String t = r % 2 == 0 ? "o" : "e";
             htmlStr.append("<tr>\n");
-            ci.reset();
             for (int c = ci.reset(); c != -1 && !indicator.isCanceled(); c = ci.next()) {
                 Object obj = table.getValueAt(r, c);
                 String val = formatter.objectToString(obj);

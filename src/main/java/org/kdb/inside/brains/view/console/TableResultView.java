@@ -24,6 +24,7 @@ import org.kdb.inside.brains.view.chart.ShowChartAction;
 import org.kdb.inside.brains.view.export.ClipboardExportAction;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 import org.kdb.inside.brains.view.export.ExportingType;
+import org.kdb.inside.brains.view.export.OpenInEditorAction;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -155,11 +156,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         myTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
-                    new ClipboardExportAction(null, ExportingType.SELECTION, TableResultView.this).performExport(project, TableResultView.this);
-                } else {
-                    super.mouseReleased(e);
-                }
+                processTableMouseReleased(e);
             }
         });
 
@@ -181,6 +178,20 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         add(scrollPane, BorderLayout.CENTER);
         add(createStatusBar(), BorderLayout.SOUTH);
         add(actionToolbar.getComponent(), BorderLayout.WEST);
+    }
+
+    private void processTableMouseReleased(MouseEvent e) {
+        if (e.getClickCount() != 2) {
+            return;
+        }
+
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            if (e.isAltDown()) {
+                new OpenInEditorAction(null, this).performExport(project, this);
+            } else {
+                new ClipboardExportAction(null, ExportingType.SELECTION, this).performExport(project, this);
+            }
+        }
     }
 
     @NotNull
@@ -218,7 +229,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         group.addAll(ExportDataProvider.createActionGroup(project, this));
 
         group.addSeparator();
-
         group.add(new ShowChartAction("Show chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.copy(myTable)));
 
         return group;

@@ -7,9 +7,9 @@
 ### Added
 
 - Symbol references introduced
-- Renaming variables/symbols by namespaces. For example, in variable: .this.is.my.variable, each token can be renamed
-  separately.
-- Context naming convention checks added: leading do, one level depth and separate spaces count
+- Context naming convention checks added: leading dot, one level depth and spaces are checking
+- Open In Editor action added to TableResultView. You can open content of any cell in separate editor tab
+  by Alt+Enter or Alt+double left click. Can be used to open JSON, XML or any text content for quick view or edit.
 
 ## [1.6.2]
 

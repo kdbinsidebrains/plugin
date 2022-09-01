@@ -48,7 +48,6 @@ public class CsvExportAction extends AnExportAction<VirtualFileWrapper> {
         double totalCount = ri.count() * ci.count();
         indicator.setIndeterminate(false);
         for (int r = ri.reset(); r != -1 && !indicator.isCanceled(); r = ri.next()) {
-            ci.reset();
             for (int c = ci.reset(); c != -1 && !indicator.isCanceled(); c = ci.next()) {
                 final Object val = getValueAt(table, formatter, r, c);
                 plainStr.append(val).append('\t');

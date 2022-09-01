@@ -37,11 +37,14 @@ public interface ExportDataProvider {
         group.add(copyGroup);
 
         group.addSeparator();
-
         group.add(new ExcelExportAction("Open in _Excel", ExportingType.ALL_WITH_HEADER, dataProvider, "Open current table in Excel or compatible application", false));
 
         group.addSeparator();
+        final OpenInEditorAction open_in_editor = new OpenInEditorAction("_Open in Editor", dataProvider, "Open cell content in separate editor tab");
+        open_in_editor.registerCustomShortcutSet(KeyEvent.VK_ENTER, KeyEvent.ALT_DOWN_MASK, table);
+        group.add(open_in_editor);
 
+        group.addSeparator();
         final DefaultActionGroup exportGroup = new PopupActionGroup("Export Data _Into ...", KdbIcons.Console.Export);
         exportGroup.add(new CsvExportAction("CSV format", ExportingType.ALL_WITH_HEADER, dataProvider, "Export current table into Comma Separated File format"));
         exportGroup.add(new ExcelExportAction("Excel xls format", ExportingType.ALL_WITH_HEADER, dataProvider, "Export current table into Excel XLS format", true, null));
@@ -50,7 +53,7 @@ public interface ExportDataProvider {
 
         group.addSeparator();
 
-        final ActionGroup sendTo = new PopupActionGroup("_Send Data Into ...", KdbIcons.Console.SendInto) {
+        final ActionGroup sendTo = new PopupActionGroup("Send Data Into ...", KdbIcons.Console.SendInto) {
             @Override
             public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
                 return KdbConnectionManager.getManager(project).getConnections().stream().map(c -> new SendIntoAction(dataProvider, c)).toArray(AnAction[]::new);

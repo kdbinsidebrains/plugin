@@ -72,6 +72,8 @@ public final class KdbIcons {
         public static final Icon LayoutNo = AllIcons.Actions.MoveToTopLeft;
         public static final Icon LayoutVertical = AllIcons.Actions.SplitVertically;
         public static final Icon LayoutHorizontal = AllIcons.Actions.SplitHorizontally;
+
+        public static final Icon OpenInEditor = AllIcons.Actions.OpenNewTab;
     }
 
     public static final class Node {
