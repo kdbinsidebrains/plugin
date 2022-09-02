@@ -2,8 +2,8 @@ package org.kdb.inside.brains.view.console;
 
 public enum ConsoleSplitType {
     NO("Don't split"),
-    VERTICAL("Split vertically"),
-    HORIZONTAL("Split horizontally");
+    DOWN("Split vertically"),
+    RIGHT("Split horizontally");
 
     private final String label;
 

@@ -168,15 +168,16 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         final ActionGroup contextMenu = createContextMenu();
         PopupHandler.installPopupHandler(myTable, contextMenu, "TableResultView.Context");
 
-        final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Toolbar", contextMenu, false);
-        actionToolbar.setTargetComponent(this);
-
         final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myTable, true);
 
         setLayout(new BorderLayout());
         add(searchSession.getComponent(), BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
+
         add(createStatusBar(), BorderLayout.SOUTH);
+
+        final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Toolbar", contextMenu, false);
+        actionToolbar.setTargetComponent(this);
         add(actionToolbar.getComponent(), BorderLayout.WEST);
     }
 
@@ -224,12 +225,12 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
 
         group.add(searchAction);
-        group.addSeparator();
 
+        group.addSeparator();
         group.addAll(ExportDataProvider.createActionGroup(project, this));
 
         group.addSeparator();
-        group.add(new ShowChartAction("Show chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.copy(myTable)));
+        group.add(new ShowChartAction("Show _Chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.copy(myTable)));
 
         return group;
     }

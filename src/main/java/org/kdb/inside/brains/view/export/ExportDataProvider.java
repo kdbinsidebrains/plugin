@@ -44,6 +44,12 @@ public interface ExportDataProvider {
         open_in_editor.registerCustomShortcutSet(KeyEvent.VK_ENTER, KeyEvent.ALT_DOWN_MASK, table);
         group.add(open_in_editor);
 
+        /*
+        deprecated
+        group.addSeparator();
+        group.add(new TransposeExportAction("_Flip Selected Rows", ExportingType.ROWS, dataProvider, "Flips selected row in separate dialog"));
+        */
+
         group.addSeparator();
         final DefaultActionGroup exportGroup = new PopupActionGroup("Export Data _Into ...", KdbIcons.Console.Export);
         exportGroup.add(new CsvExportAction("CSV format", ExportingType.ALL_WITH_HEADER, dataProvider, "Export current table into Comma Separated File format"));

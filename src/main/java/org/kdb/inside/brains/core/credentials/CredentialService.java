@@ -29,10 +29,11 @@ import java.util.stream.Stream;
 
 @com.intellij.openapi.components.State(name = "ConnectionProviders", storages = {@Storage("kdb-settings.xml")})
 public class CredentialService implements PersistentStateComponent<Element> {
-    private static final Logger log = Logger.getInstance(CredentialService.class);
-    private static CredentialService instance = null;
     private final File credentialsDir;
     private final List<CredentialPlugin> my_plugins = new ArrayList<>();
+
+    private static final Logger log = Logger.getInstance(CredentialService.class);
+    private static CredentialService instance = null;
 
     private CredentialService() {
         credentialsDir = new File(PathManager.getSystemPath(), "KdbInsideBrains");

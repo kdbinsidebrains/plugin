@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.export;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -17,6 +18,8 @@ import java.io.IOException;
 public abstract class AnExportAction<Config> extends AnAction {
     private final ExportingType type;
     private final ExportDataProvider exportingView;
+
+    private final Logger log = Logger.getInstance(getClass());
 
     public AnExportAction(String text, ExportingType type, ExportDataProvider exportingView) {
         this(text, type, exportingView, null);
@@ -76,7 +79,8 @@ public abstract class AnExportAction<Config> extends AnAction {
                     final KdbOutputFormatter formatter = KdbOutputFormatter.getInstance();
                     exportResultView(project, type, config, dataProvider, formatter, indicator);
                 } catch (Exception ex) {
-                    Messages.showErrorDialog(project, ex.getMessage(), "Data Can't Be Exported");
+                    log.error("Data Can't Be Exported", ex);
+                    SwingUtilities.invokeLater(() -> Messages.showErrorDialog(project, ex.getMessage(), "Data Can't Be Exported"));
                 }
             }
         }.queue();

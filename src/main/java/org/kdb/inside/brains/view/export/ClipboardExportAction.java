@@ -4,6 +4,7 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.jdesktop.swingx.plaf.basic.core.BasicTransferable;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.UIUtils;
@@ -97,7 +98,9 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
                 String val = formatter.objectToString(obj);
                 plainStr.append(val).append('\t');
 
-                htmlStr.append("  <td class=\"").append(t).append(c).append("\">").append(val).append("</td>\n");
+                htmlStr.append("  <td class=\"").append(t).append(c).append("\">");
+                htmlStr.append(StringEscapeUtils.escapeXml(val));
+                htmlStr.append("</td>\n");
                 indicator.setFraction(count++ / totalCount);
             }
             // we want a newline at the end of each line and not a tab

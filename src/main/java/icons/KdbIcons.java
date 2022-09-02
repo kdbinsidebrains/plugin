@@ -70,10 +70,11 @@ public final class KdbIcons {
 
         public static final Icon Layout = AllIcons.Debugger.RestoreLayout;
         public static final Icon LayoutNo = AllIcons.Actions.MoveToTopLeft;
-        public static final Icon LayoutVertical = AllIcons.Actions.SplitVertically;
-        public static final Icon LayoutHorizontal = AllIcons.Actions.SplitHorizontally;
+        public static final Icon LayoutDown = AllIcons.Actions.SplitVertically;
+        public static final Icon LayoutRight = AllIcons.Actions.SplitHorizontally;
 
-        public static final Icon OpenInEditor = AllIcons.Actions.OpenNewTab;
+        public static final Icon OpenInEditor = AllIcons.General.FitContent;
+        public static final Icon FlipTable = load("/org/kdb/inside/brains/icons/flipTable.svg");
     }
 
     public static final class Node {
