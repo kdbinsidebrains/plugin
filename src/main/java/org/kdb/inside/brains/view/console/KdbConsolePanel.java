@@ -419,7 +419,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     }
 
     private TabInfo createNewResultViewTab(String name, TableResult tableResult) {
-        final TableResultView tableResultView = new TableResultView(project, formatter, this::execute);
+        final TableResultView tableResultView = new TableResultView(project, formatter, false, this::execute);
         tableResultView.showResult(tableResult);
 
         final TabInfo info = new TabInfo(tableResultView);

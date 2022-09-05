@@ -41,14 +41,9 @@ public interface ExportDataProvider {
 
         group.addSeparator();
         final OpenInEditorAction open_in_editor = new OpenInEditorAction("_Open in Editor", dataProvider, "Open cell content in separate editor tab");
-        open_in_editor.registerCustomShortcutSet(KeyEvent.VK_ENTER, KeyEvent.ALT_DOWN_MASK, table);
         group.add(open_in_editor);
 
-        /*
-        deprecated
-        group.addSeparator();
-        group.add(new TransposeExportAction("_Flip Selected Rows", ExportingType.ROWS, dataProvider, "Flips selected row in separate dialog"));
-        */
+        group.add(new FlipTableExportAction("Flip Select Rows", ExportingType.ROWS, dataProvider, "Flip and show selected rows in separate dialog"));
 
         group.addSeparator();
         final DefaultActionGroup exportGroup = new PopupActionGroup("Export Data _Into ...", KdbIcons.Console.Export);

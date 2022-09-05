@@ -2,11 +2,12 @@ package org.kdb.inside.brains.view.export;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.FrameWrapper;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import icons.KdbIcons;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
@@ -16,10 +17,6 @@ import org.kdb.inside.brains.view.console.TableResultView;
 import javax.swing.*;
 import java.awt.*;
 
-@Deprecated
-/**
- * I'm not happy with this functionality. See no reason. Probably more useful is show/hide columns instead.
- */
 public class FlipTableExportAction extends AnExportAction<Boolean> {
     public FlipTableExportAction(String text, ExportingType type, ExportDataProvider exportingView, String description) {
         super(text, type, exportingView, description, KdbIcons.Console.FlipTable);
@@ -63,20 +60,39 @@ public class FlipTableExportAction extends AnExportAction<Boolean> {
         }
 
         final c.Flip data = new c.Flip(new c.Dict(columns, values));
-        SwingUtilities.invokeAndWait(() -> {
-            final TableResultView view = new TableResultView(project, formatter, null); // Compact mode is required here
+        SwingUtilities.invokeLater(() -> {
+            final TableResultView view = new TableResultView(project, formatter, true, null); // Compact mode is required here
             view.showResult(TableResult.from(new KdbQuery(""), KdbResult.with(data)));
 
-            final FrameWrapper frame = new FrameWrapper(project, "TableResultView.FlipTable", true, "Flipped Table Result", view);
-            frame.closeOnEsc();
+            final ResultDialog dlg = new ResultDialog(project, view);
             var ideFrame = WindowManagerEx.getInstanceEx().getIdeFrame(project);
             if (ideFrame != null) {
                 final Rectangle rectangle = ideFrame.suggestChildFrameBounds();
-                frame.setSize(rectangle.getSize());
-                frame.setLocation(rectangle.getLocation());
+                dlg.setSize((int) rectangle.getWidth(), (int) rectangle.getHeight());
+                dlg.setLocation(rectangle.getLocation());
             }
-            frame.setTitle("");
-            frame.show(false);
+            dlg.show();
         });
+    }
+
+    private static class ResultDialog extends DialogWrapper {
+        private final TableResultView resultView;
+
+        public ResultDialog(@Nullable Project project, TableResultView resultView) {
+            super(project, false, DialogWrapper.IdeModalityType.PROJECT);
+            this.resultView = resultView;
+            setOKButtonText("Close");
+            init();
+        }
+
+        @Override
+        protected @Nullable JComponent createCenterPanel() {
+            return resultView;
+        }
+
+        @Override
+        protected Action @NotNull [] createActions() {
+            return new Action[]{getOKAction()};
+        }
     }
 }

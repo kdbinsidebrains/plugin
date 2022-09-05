@@ -55,7 +55,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private final JBTable myTable;
     private final TableResultSearchSession searchSession;
 
-    public TableResultView(Project project, KdbOutputFormatter formatter, BiConsumer<KdbQuery, TableResultView> repeater) {
+    public TableResultView(Project project, KdbOutputFormatter formatter, boolean compactForm, BiConsumer<KdbQuery, TableResultView> repeater) {
         this.project = project;
         this.formatter = formatter;
         this.repeater = repeater;
@@ -174,7 +174,9 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         add(searchSession.getComponent(), BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
 
-        add(createStatusBar(), BorderLayout.SOUTH);
+        if (!compactForm) {
+            add(createStatusBar(), BorderLayout.SOUTH);
+        }
 
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Toolbar", contextMenu, false);
         actionToolbar.setTargetComponent(this);

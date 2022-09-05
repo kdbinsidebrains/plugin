@@ -7,11 +7,12 @@
 ### Added
 
 - Symbol references introduced
-- Context naming convention checks added: leading dot, one level depth and spaces are checking
-- Open TableResultView in separate frame with a tab context menu
+- Open TableResultView in separate frame actin added
+- Flip selected rows in separate table view action added
 - Open In Editor action added to TableResultView. You can open content of any cell in separate editor tab
   by Alt+Enter or Alt+double left click. Can be used to open JSON, XML or any text content for quick view or edit.
 - Import/Export Scopes and instances added
+- Context naming convention checks added: leading dot, one level depth and spaces are checking
 
 ### Fixed
 
