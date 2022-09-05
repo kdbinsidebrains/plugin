@@ -215,7 +215,17 @@
 
             <separator/>
 
-            <group id="Kdb.InstancesScopeView.Import" text="Import..." popup="true">
+            <action id="Kdb.InstancesScopeView.ExportItems"
+                    icon="AllIcons.ToolbarDecorator.Export"
+                    class="org.kdb.inside.brains.view.treeview.actions.ExportInstancesAction"/>
+
+            <group id="Kdb.InstancesScopeView.Import" text="Import..." popup="true"
+                   icon="AllIcons.ToolbarDecorator.Import">
+                <action id="Kdb.InstancesScopeView.ImportItems"
+                        text="_Import Items"
+                        description="Import items from XML file"
+                        class="org.kdb.inside.brains.view.treeview.actions.ImportInstancesAction"/>
+
                 <action id="Kdb.Instances.Import.QPad"
                         class="org.kdb.inside.brains.view.treeview.actions.ImportQPadAction"
                         text="Import from QPad"
@@ -314,12 +324,6 @@
         <lang.syntaxHighlighterFactory language="q"
                                        implementationClass="org.kdb.inside.brains.lang.QSyntaxHighlighterFactory"/>
 
-        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QVariable"
-                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QVariableElementManipulator"/>
-
-        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QImport"
-                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QImportElementManipulator"/>
-
         <spellchecker.support language="q" implementationClass="org.kdb.inside.brains.lang.QSpellcheckingStrategy"/>
 
 
@@ -346,38 +350,45 @@
         <!-- Inspections -->
         <localInspection language="q" id="UndefinedVariable" shortName="UndefinedVariable"
                          displayName="Undefined variable"
-                         groupName="KDB+Q" enabledByDefault="true" level="ERROR" order="first"
+                         groupName="KDB+Q" enabledByDefault="true" level="ERROR"
                          implementationClass="org.kdb.inside.brains.lang.inspection.UndefinedVariableInspection"/>
 
         <localInspection language="q" id="UnusedLocalVariable" shortName="UnusedLocalVariable"
                          displayName="Unused local variable"
-                         groupName="KDB+Q" enabledByDefault="true" level="WARNING" order="after UndefinedVariable"
+                         groupName="KDB+Q" enabledByDefault="true" level="WARNING"
                          implementationClass="org.kdb.inside.brains.lang.inspection.UnusedLocalVariableInspection"/>
 
         <localInspection language="q" id="UnresolvedImport" shortName="UnresolvedImport"
                          displayName="Unresolved loaded file"
-                         groupName="KDB+Q" enabledByDefault="true" level="ERROR" order="after UnusedLocalVariable"
+                         groupName="KDB+Q" enabledByDefault="true" level="ERROR"
                          implementationClass="org.kdb.inside.brains.lang.inspection.UnresolvedImportInspection"/>
 
         <localInspection language="q" id="MixinLambdaVarDeclaration" shortName="MixinLambdaVarDeclaration"
                          displayName="Mixin lambda variables declaration"
-                         groupName="KDB+Q" enabledByDefault="true" level="ERROR" order="after UnresolvedImport"
+                         groupName="KDB+Q" enabledByDefault="true" level="ERROR"
                          implementationClass="org.kdb.inside.brains.lang.inspection.MixinLambdaVarDeclaration"/>
 
         <!-- Usage and references -->
-        <usageTypeProvider implementation="org.kdb.inside.brains.lang.usage.QUsageTypeProvider"/>
+        <usageTypeProvider implementation="org.kdb.inside.brains.lang.usages.QUsageTypeProvider"/>
+        <!--        <elementDescriptionProvider implementation="org.kdb.inside.brains.lang.usages.QUsageViewDescriptionProvider"/>-->
+        <lang.findUsagesProvider language="q"
+                                 implementationClass="org.kdb.inside.brains.lang.usages.QFindUsagesProvider"/>
+
         <psi.referenceContributor language="q" implementation="org.kdb.inside.brains.psi.refs.QReferenceContributor"/>
-        <renamePsiElementProcessor
-                implementation="org.kdb.inside.brains.lang.refactoring.QRenamePsiElementProcessor"/>
+        <renamePsiElementProcessor implementation="org.kdb.inside.brains.lang.refactoring.QRenamePsiElementProcessor"/>
+        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QSymbol"
+                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QSymbolElementManipulator"/>
+        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QVariable"
+                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QVariableElementManipulator"/>
+        <lang.elementManipulator forClass="org.kdb.inside.brains.psi.QImport"
+                                 implementationClass="org.kdb.inside.brains.psi.manipulators.QImportElementManipulator"/>
+
 
         <codeInsight.parameterInfo language="q" implementationClass="org.kdb.inside.brains.lang.QParameterInfoHandler"/>
 
         <completion.contributor language="q"
                                 order="first"
                                 implementationClass="org.kdb.inside.brains.lang.completion.QCompletionContributor"/>
-
-        <lang.findUsagesProvider language="q"
-                                 implementationClass="org.kdb.inside.brains.lang.usage.QFindUsagesProvider"/>
 
         <typedHandler implementation="org.kdb.inside.brains.lang.completion.QTypedHandler"/>
 

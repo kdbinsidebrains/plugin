@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @State(name = "KdbScopesManager", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
 public class KdbScopesManager implements PersistentStateComponent<KdbScopesManager.State>, DumbAware {
@@ -76,6 +77,10 @@ public class KdbScopesManager implements PersistentStateComponent<KdbScopesManag
 
     public boolean containsScope(KdbScope scope) {
         return scopes.contains(scope);
+    }
+
+    public List<String> getNames() {
+        return getScopes().stream().map(KdbScope::getName).collect(Collectors.toList());
     }
 
     public List<KdbScope> getScopes() {

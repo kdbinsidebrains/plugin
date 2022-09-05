@@ -45,11 +45,11 @@ public enum ExportingType {
     }
 
     public IndexIterator rowsIterator(JTable table) {
-        return newIterator(table.getSelectionModel(), table.getRowCount() - 1, true);
+        return newIterator(table, true);
     }
 
     public IndexIterator columnsIterator(JTable table) {
-        return newIterator(table.getColumnModel().getSelectionModel(), table.getColumnCount() - 1, false);
+        return newIterator(table, false);
     }
 
     private boolean iterateAllIndexes(ListSelectionModel selectionModel, boolean rowsIterator) {
@@ -63,41 +63,48 @@ public enum ExportingType {
         }
     }
 
-    private IndexIterator newIterator(ListSelectionModel selectionModel, int totalMax, boolean rowsIterator) {
-        return new IndexIterator() {
-            private int i;
-            private int maxIndex;
-            private final boolean iterateAllIndexes = iterateAllIndexes(selectionModel, rowsIterator);
-
-            @Override
-            public int next() {
-                if (!iterateAllIndexes) {
-                    while (i < maxIndex && !selectionModel.isSelectedIndex(i)) {
+    private IndexIterator newIterator(JTable table, boolean rowsIterator) {
+        final ListSelectionModel selectionModel = rowsIterator ? table.getSelectionModel() : table.getColumnModel().getSelectionModel();
+        if (iterateAllIndexes(selectionModel, rowsIterator)) {
+            final int count = rowsIterator ? table.getRowCount() : table.getColumnCount();
+            return new IndexIterator(count) {
+                @Override
+                public int next() {
+                    return i < count ? i++ : -1;
+                }
+            };
+        } else {
+            final int[] indexes = selectionModel.getSelectedIndices();
+            return new IndexIterator(indexes.length) {
+                @Override
+                public int next() {
+                    try {
+                        return i < count ? indexes[i] : -1;
+                    } finally {
                         i++;
                     }
                 }
-                return i <= maxIndex ? i++ : -1;
-            }
-
-            @Override
-            public int reset() {
-                i = iterateAllIndexes ? 0 : selectionModel.getMinSelectionIndex();
-                maxIndex = iterateAllIndexes ? totalMax : selectionModel.getMaxSelectionIndex();
-                return next();
-            }
-
-            @Override
-            public int count() {
-                return totalMax;
-            }
-        };
+            };
+        }
     }
 
-    public interface IndexIterator {
-        int next();
+    public abstract static class IndexIterator {
+        protected final int count;
+        protected int i;
 
-        int reset();
+        public IndexIterator(int count) {
+            this.count = count;
+        }
 
-        int count();
+        public abstract int next();
+
+        public final int reset() {
+            i = 0;
+            return next();
+        }
+
+        public final int count() {
+            return count;
+        }
     }
 }

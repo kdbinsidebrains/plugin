@@ -6,7 +6,6 @@ import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
@@ -24,7 +23,7 @@ public class CsvExportAction extends AnExportAction<VirtualFileWrapper> {
     protected VirtualFileWrapper getExportConfig(Project project, ExportDataProvider dataProvider) {
         final FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Export to CSV", "Exporting data into tab separated file format", "csv");
         final FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, project);
-        return saveFileDialog.save((VirtualFile) null, "Table Result");
+        return saveFileDialog.save("Table Result");
     }
 
     @Override
@@ -48,7 +47,6 @@ public class CsvExportAction extends AnExportAction<VirtualFileWrapper> {
         double totalCount = ri.count() * ci.count();
         indicator.setIndeterminate(false);
         for (int r = ri.reset(); r != -1 && !indicator.isCanceled(); r = ri.next()) {
-            ci.reset();
             for (int c = ci.reset(); c != -1 && !indicator.isCanceled(); c = ci.next()) {
                 final Object val = getValueAt(table, formatter, r, c);
                 plainStr.append(val).append('\t');

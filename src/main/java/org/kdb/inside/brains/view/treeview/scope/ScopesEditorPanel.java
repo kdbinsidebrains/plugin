@@ -21,15 +21,20 @@ import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.*;
+import org.kdb.inside.brains.view.treeview.actions.ExportScopesAction;
+import org.kdb.inside.brains.view.treeview.actions.ImportScopesAction;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ScopesEditorPanel extends MasterDetailsComponent implements SearchableConfigurable {
     private final Project project;
@@ -84,6 +89,16 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
         return null;
     }
 
+    public List<KdbScope> getSelectedScopes() {
+        final TreePath[] selectionPaths = myTree.getSelectionPaths();
+        if (selectionPaths == null) {
+            return List.of();
+        }
+        return Stream.of(selectionPaths).map(c -> (MyNode) c.getLastPathComponent())
+                .map(c -> (ScopeConfigurable) c.getConfigurable())
+                .map(ScopeConfigurable::getOriginalScope).collect(Collectors.toList());
+    }
+
     @Override
     protected ArrayList<AnAction> createActions(final boolean fromPopup) {
         final ArrayList<AnAction> result = new ArrayList<>();
@@ -99,6 +114,9 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
         result.add(new MyCopyAction());
         result.add(new MyMoveAction("Move Up", IconUtil.getMoveUpIcon(), -1));
         result.add(new MyMoveAction("Move Down", IconUtil.getMoveDownIcon(), 1));
+        result.add(Separator.create());
+        result.add(new ExportScopesAction("Export Scopes", "Exports selected scopes to xml", this::getSelectedScopes));
+        result.add(new ImportScopesAction("Import Scopes", "Import scopes from a file", this::importScope, this::collectScopeNames));
         return result;
     }
 
@@ -115,20 +133,23 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
             cellRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
             if (value instanceof MyNode && ((MyNode) value).getConfigurable() != null) {
                 final MyNode node = (MyNode) value;
-                final Object editableObject = node.getConfigurable().getEditableObject();
-                if (editableObject instanceof KdbScope) {
-                    final KdbScope scope = (KdbScope) editableObject;
-                    final String note = instancesCount.computeIfAbsent(scope, s -> {
-                        final int i = calculateInstancesCount(scope);
-                        if (i == 0) {
-                            return " (no instances)";
-                        } else if (i == 1) {
-                            return " (1 instance)";
-                        }
-                        return " (" + i + " instances)";
-                    });
-                    cellRenderer.append(note, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+                final Object editableObject = node.getConfigurable();
+                if (!(editableObject instanceof ScopeConfigurable)) {
+                    return cellRenderer;
                 }
+
+                final ScopeConfigurable scopeConfigurable = (ScopeConfigurable) editableObject;
+                final KdbScope scope = scopeConfigurable.getOriginalScope();
+                final String note = instancesCount.computeIfAbsent(scope, s -> {
+                    final int i = calculateInstancesCount(scope);
+                    if (i == 0) {
+                        return " (no instances)";
+                    } else if (i == 1) {
+                        return " (1 instance)";
+                    }
+                    return " (" + i + " instances)";
+                });
+                cellRenderer.append(note, SimpleTextAttributes.GRAYED_ATTRIBUTES);
             }
             return cellRenderer;
         });
@@ -169,12 +190,12 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
         oldScopes.removeAll(newScopes);
         oldScopes.forEach(scopesManager::removeScope);
 
-        scopesManager.reorderScopes(collectCurrentScopeNames());
+        scopesManager.reorderScopes(collectScopeNames());
     }
 
     @Override
     public boolean isModified() {
-        final List<String> strings = collectCurrentScopeNames();
+        final List<String> strings = collectScopeNames();
         final List<KdbScope> scopes = scopesManager.getScopes();
         if (scopes.size() != strings.size()) {
             return true;
@@ -196,18 +217,17 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
     }
 
     private void createScope(ScopeType type) {
-        final String newName = Messages.showInputDialog(myTree, "Name", "Add New Scope",
-                Messages.getInformationIcon(), createUniqueName(type == ScopeType.LOCAL ? "Local Scope" : "Shared Scope"), new InputValidator() {
-                    @Override
-                    public boolean checkInput(String inputString) {
-                        return !inputString.isBlank();
-                    }
+        final String newName = Messages.showInputDialog(myTree, "Name", "Add New Scope", Messages.getInformationIcon(), createUniqueName(type == ScopeType.LOCAL ? "Local Scope" : "Shared Scope"), new InputValidator() {
+            @Override
+            public boolean checkInput(String inputString) {
+                return !inputString.isBlank();
+            }
 
-                    @Override
-                    public boolean canClose(String inputString) {
-                        return checkInput(inputString);
-                    }
-                });
+            @Override
+            public boolean canClose(String inputString) {
+                return checkInput(inputString);
+            }
+        });
 
         if (newName == null) {
             return;
@@ -216,7 +236,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
     }
 
     private String createUniqueName(String prefix) {
-        final Collection<String> treeScopes = collectCurrentScopeNames();
+        final List<String> treeScopes = collectScopeNames();
         if (!treeScopes.contains(prefix)) {
             return prefix;
         }
@@ -230,7 +250,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
         }
     }
 
-    private List<String> collectCurrentScopeNames() {
+    private List<String> collectScopeNames() {
         return collectScopeConfigurable().stream().map(ScopeConfigurable::getEditableObject).map(InstanceItem::getName).collect(Collectors.toList());
     }
 
@@ -242,6 +262,10 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
             res.add((ScopeConfigurable) node.getConfigurable());
         }
         return res;
+    }
+
+    private void importScope(KdbScope scope) {
+        addNewScope(scope);
     }
 
     private void addNewScope(final KdbScope scope) {
@@ -275,20 +299,17 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
         @NotNull
         public AnAction[] getChildren(@Nullable AnActionEvent e) {
             if (myChildren == null) {
-                myChildren = new AnAction[]{
-                        new DumbAwareAction("Local", "Local", KdbIcons.Scope.Local) {
-                            @Override
-                            public void actionPerformed(@NotNull AnActionEvent e) {
-                                createScope(ScopeType.LOCAL);
-                            }
-                        },
-                        new DumbAwareAction("Shared", "Shared", KdbIcons.Scope.Shared) {
-                            @Override
-                            public void actionPerformed(@NotNull AnActionEvent e) {
-                                createScope(ScopeType.SHARED);
-                            }
-                        }
-                };
+                myChildren = new AnAction[]{new DumbAwareAction("Local", "Local", KdbIcons.Scope.Local) {
+                    @Override
+                    public void actionPerformed(@NotNull AnActionEvent e) {
+                        createScope(ScopeType.LOCAL);
+                    }
+                }, new DumbAwareAction("Shared", "Shared", KdbIcons.Scope.Shared) {
+                    @Override
+                    public void actionPerformed(@NotNull AnActionEvent e) {
+                        createScope(ScopeType.SHARED);
+                    }
+                }};
             }
             if (fromPopup) {
                 final AnAction action = myChildren[getDefaultIndex()];
@@ -323,15 +344,62 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
             return 0;
         }
     }
+/*
+    private class ExportAction extends DumbAwareAction {
+        public ExportAction() {
+            super("Export Scopes", "Exports selected scopes to xml", AllIcons.ToolbarDecorator.Export);
+        }
+
+        @Override
+        public void update(@NotNull AnActionEvent e) {
+            final Presentation presentation = e.getPresentation();
+            presentation.setEnabled(myTree.getSelectionCount() > 0);
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+            final TreePath[] selectionPaths = myTree.getSelectionPaths();
+            if (selectionPaths == null || selectionPaths.length == 0) {
+                return;
+            }
+
+            final List<KdbScope> scopes = Stream.of(selectionPaths).map(c -> (MyNode) c.getLastPathComponent()).map(c -> (ScopeConfigurable) c.getConfigurable()).map(ScopeConfigurable::getOriginalScope).collect(Collectors.toList());
+
+            if (scopes.isEmpty()) {
+                return;
+            }
+
+            final FileSaverDescriptor descriptor = new FileSaverDescriptor("Export Kdb Scopes", "Exporting " + scopes.size() + " scope(s) into external xml file", "xml");
+            final FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project);
+
+            final VirtualFileWrapper file = dialog.save("KdbScopes");
+            if (file == null) {
+                return;
+            }
+
+            final MessageDialogBuilder.YesNo credentials = MessageDialogBuilder.yesNo("Export Credentials?", "Your credentials will be included in the exported file");
+            final boolean ask = credentials.ask(project);
+
+            final Element element = new KdbScopeHelper().writeScopes(scopes, ask);
+
+            final XMLOutputter out = new XMLOutputter();
+            out.setFormat(Format.getPrettyFormat());
+
+            try (final FileWriter writer = new FileWriter(file.getFile())) {
+                out.output(element, writer);
+            } catch (Exception ex) {
+                log.error("Scopes can't be exported to: " + file, ex);
+                Messages.showErrorDialog(project, IoErrorText.message(ex), "Scopes Exporting Error");
+            }
+        }
+    }*/
 
     private class MyMoveAction extends AnAction {
         private final int myDirection;
 
         protected MyMoveAction(String text, Icon icon, int direction) {
             super(text, text, icon);
-            final ShortcutSet shortcutSet = direction < 0
-                    ? CommonActionsPanel.getCommonShortcut(CommonActionsPanel.Buttons.UP)
-                    : CommonActionsPanel.getCommonShortcut(CommonActionsPanel.Buttons.DOWN);
+            final ShortcutSet shortcutSet = direction < 0 ? CommonActionsPanel.getCommonShortcut(CommonActionsPanel.Buttons.UP) : CommonActionsPanel.getCommonShortcut(CommonActionsPanel.Buttons.DOWN);
             registerCustomShortcutSet(shortcutSet, myTree);
             myDirection = direction;
         }

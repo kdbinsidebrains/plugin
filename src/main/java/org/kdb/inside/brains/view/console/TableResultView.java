@@ -24,6 +24,7 @@ import org.kdb.inside.brains.view.chart.ShowChartAction;
 import org.kdb.inside.brains.view.export.ClipboardExportAction;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 import org.kdb.inside.brains.view.export.ExportingType;
+import org.kdb.inside.brains.view.export.OpenInEditorAction;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -54,7 +55,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private final JBTable myTable;
     private final TableResultSearchSession searchSession;
 
-    public TableResultView(Project project, KdbOutputFormatter formatter, BiConsumer<KdbQuery, TableResultView> repeater) {
+    public TableResultView(Project project, KdbOutputFormatter formatter, boolean compactForm, BiConsumer<KdbQuery, TableResultView> repeater) {
         this.project = project;
         this.formatter = formatter;
         this.repeater = repeater;
@@ -155,11 +156,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         myTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
-                    new ClipboardExportAction(null, ExportingType.SELECTION, TableResultView.this).performExport(project, TableResultView.this);
-                } else {
-                    super.mouseReleased(e);
-                }
+                processTableMouseReleased(e);
             }
         });
 
@@ -171,16 +168,33 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         final ActionGroup contextMenu = createContextMenu();
         PopupHandler.installPopupHandler(myTable, contextMenu, "TableResultView.Context");
 
-        final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Toolbar", contextMenu, false);
-        actionToolbar.setTargetComponent(this);
-
         final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myTable, true);
 
         setLayout(new BorderLayout());
         add(searchSession.getComponent(), BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
-        add(createStatusBar(), BorderLayout.SOUTH);
+
+        if (!compactForm) {
+            add(createStatusBar(), BorderLayout.SOUTH);
+        }
+
+        final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Toolbar", contextMenu, false);
+        actionToolbar.setTargetComponent(this);
         add(actionToolbar.getComponent(), BorderLayout.WEST);
+    }
+
+    private void processTableMouseReleased(MouseEvent e) {
+        if (e.getClickCount() != 2) {
+            return;
+        }
+
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            if (e.isAltDown()) {
+                new OpenInEditorAction(null, this).performExport(project, this);
+            } else {
+                new ClipboardExportAction(null, ExportingType.SELECTION, this).performExport(project, this);
+            }
+        }
     }
 
     @NotNull
@@ -213,13 +227,12 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
 
         group.add(searchAction);
-        group.addSeparator();
 
+        group.addSeparator();
         group.addAll(ExportDataProvider.createActionGroup(project, this));
 
         group.addSeparator();
-
-        group.add(new ShowChartAction("Show chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.copy(myTable)));
+        group.add(new ShowChartAction("Show _Chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.copy(myTable)));
 
         return group;
     }

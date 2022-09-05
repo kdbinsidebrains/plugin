@@ -136,6 +136,9 @@ public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
         if (scopesManager.containsScope(originalScope)) {
             originalScope.update(editableScope);
         } else {
+            // It's new scope, let's copy all items (imported scope?)
+            originalScope.forEach(editableScope::copyItem);
+
             scopesManager.addScope(editableScope);
             originalScope = editableScope;
         }

@@ -4,6 +4,7 @@ import com.intellij.ide.CommonActionsManager;
 import com.intellij.ide.util.treeView.TreeState;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -23,7 +24,7 @@ import javax.swing.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class InstancesScopeView extends SimpleToolWindowPanel implements Disposable, DataProvider {  // implements DataProvider, DockContainer
+public class InstancesScopeView extends SimpleToolWindowPanel implements Disposable, DataProvider, DumbAware {  // implements DataProvider, DockContainer
     private final KdbScope scope;
 
     private final InstancesTree tree;

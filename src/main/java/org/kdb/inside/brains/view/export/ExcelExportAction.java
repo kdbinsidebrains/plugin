@@ -5,7 +5,6 @@ import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import icons.KdbIcons;
 import kx.KxConnection;
@@ -41,7 +40,7 @@ public class ExcelExportAction extends AnExportAction<File> {
             final FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Export to Excel", "Exporting data into Excel file format", "xlsx");
             final FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, project);
 
-            final VirtualFileWrapper vfw = saveFileDialog.save((VirtualFile) null, "Table Result");
+            final VirtualFileWrapper vfw = saveFileDialog.save("Table Result");
             return vfw == null ? null : vfw.getFile();
         } else {
             return File.createTempFile("kdbinsidebrains_exel_export_", ".xlsx");

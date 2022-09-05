@@ -29,7 +29,7 @@ public class ExecuteInlineAction extends ExecuteAction implements DumbAware {
     public static final Dimension MAX_SIZE = new Dimension(800, 500);
 
     private TableResultView createTableHint(Project project, KdbOutputFormatter formatter, TableResult result) {
-        final TableResultView view = new TableResultView(project, formatter, null);
+        final TableResultView view = new TableResultView(project, formatter, false, null);
         view.showResult(result);
         view.setPreferredSize(MAX_SIZE);
         return view;

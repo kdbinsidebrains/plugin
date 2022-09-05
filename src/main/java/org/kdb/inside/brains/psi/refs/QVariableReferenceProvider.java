@@ -1,13 +1,13 @@
 package org.kdb.inside.brains.psi.refs;
 
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.ResolveResult;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.*;
-import org.kdb.inside.brains.psi.index.QIndexService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,71 +16,42 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class QVariableReferenceProvider extends QReferenceProvider<QVariable> {
-    protected QVariableReferenceProvider() {
+public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable> {
+    public QVariableReferenceProvider() {
         super(QVariable.class);
     }
 
     @Override
     protected PsiReference @NotNull [] getElementReferences(@NotNull QVariable var, @NotNull ProcessingContext context) {
         if (var instanceof QVarReference) {
-            return createReference(var);
+            return QVariableReference.of(var);
         }
 
         final ElementScope scope = var.getVariableContext().getScope();
-        if (scope == ElementScope.PARAMETERS || scope == ElementScope.TABLE || scope == ElementScope.QUERY) {
-            return PsiReference.EMPTY_ARRAY;
+        if (scope != ElementScope.PARAMETERS && scope != ElementScope.TABLE && scope != ElementScope.QUERY) {
+            return QVariableReference.of(var);
         }
-        return createReference(var);
+
+        return PsiReference.EMPTY_ARRAY;
     }
 
-    @NotNull
-    private PsiReference[] createReference(QVariable var) {
-        return new PsiReference[]{new QVariableReference(var)};
-    }
-
-    public static class QVariableReference extends PsiPolyVariantReferenceBase<QVariable> {
+    public static class QVariableReference extends QBaseReference<QVariable> {
         public QVariableReference(@NotNull QVariable element) {
             super(element);
         }
 
         @Override
-        public boolean isReferenceTo(@NotNull PsiElement element) {
-            if (!element.isValid() || !(element instanceof QVariable)) {
-                return false;
-            }
+        public ResolveResult @NotNull [] multiResolve(boolean incompleteCode) {
+            return resolveVariable(myElement, QPsiUtil.getElementContext(myElement));
+        }
 
-            final ResolveResult[] resolveResults = multiResolve(false);
-            for (ResolveResult resolveResult : resolveResults) {
-                if (!resolveResult.isValidResult()) {
-                    continue;
-                }
-                final PsiElement el = resolveResult.getElement();
-                if (el == null) {
-                    continue;
-                }
-
-                if (element.equals(el)) {
-                    return true;
-                }
-            }
-
-            final PsiReference myRef = myElement.getReference();
-            final PsiReference otherRef = element.getReference();
-            if (myRef != null && otherRef != null) {
-                final PsiElement myR = myRef.resolve();
-                final PsiElement otR = otherRef.resolve();
-                if (myElement == otR) {
-                    return true;
-                }
-                return otR != null && myR != null && Objects.equals(otR, myR);
-            }
-            return false;
+        public static PsiReference[] of(QVariable var) {
+            return new PsiReference[]{new QVariableReference(var)};
         }
 
         @Override
-        public ResolveResult @NotNull [] multiResolve(boolean incompleteCode) {
-            return resolveVariable(myElement, QPsiUtil.getElementContext(myElement));
+        protected String getQualifiedName(QVariable element) {
+            return element.getQualifiedName();
         }
 
         private ResolveResult[] resolveVariable(QVariable variable, ElementContext context) {
@@ -90,7 +61,7 @@ public class QVariableReferenceProvider extends QReferenceProvider<QVariable> {
                 case LAMBDA:
                     return resolveLambda(variable, context.lambda());
                 default:
-                    return resolveGlobal(variable);
+                    return resolveElement(variable);
             }
         }
 
@@ -115,7 +86,7 @@ public class QVariableReferenceProvider extends QReferenceProvider<QVariable> {
             final ElementContext queryContext = QPsiUtil.getElementContext(query);
 
             // It's the table definition
-            if (refs.contains(var)) {
+            if (var instanceof QVarReference && refs.contains(var)) {
                 return resolveVariable(var, queryContext);
             }
 
@@ -151,59 +122,24 @@ public class QVariableReferenceProvider extends QReferenceProvider<QVariable> {
 
         private ResolveResult[] resolveLambda(QVariable var, QLambdaExpr lambda) {
             if (QPsiUtil.isImplicitVariable(var) && lambda.getParameters() == null) {
-                return single(lambda);
-            }
-
-            final String qualifiedName = var.getQualifiedName();
-            final Optional<QVarDeclaration> first = firstFirstInLambda(qualifiedName, lambda);
-            if (first.isPresent()) {
-                final QVarDeclaration el = first.get();
-                if (QPsiUtil.isGlobalDeclaration(el)) {
-                    return resolveGlobal(var);
-                } else {
-                    return single(el);
-                }
-            }
-            return resolveGlobal(var);
-        }
-
-        private ResolveResult[] resolveGlobal(QVariable var) {
-            final PsiFile file = var.getContainingFile();
-            if (file == null) {
                 return ResolveResult.EMPTY_ARRAY;
             }
 
             final String qualifiedName = var.getQualifiedName();
-            final QIndexService index = QIndexService.getInstance(myElement);
-            final QVarDeclaration initial = index.findFirstInFile(qualifiedName, file);
-            if (initial == null) {
-                return multi(findGlobalVariables(qualifiedName, GlobalSearchScope.allScope(var.getProject())));
-            }
-            return single(initial);
-        }
-
-        private List<QVarDeclaration> findGlobalVariables(String qualifiedName, @NotNull GlobalSearchScope scope) {
-            final List<QVarDeclaration> elements = new ArrayList<>();
-            final QIndexService index = QIndexService.getInstance(myElement);
-            index.processVariables(s -> s.equals(qualifiedName), scope, (key, file, descriptor, variable) -> {
-                if (QPsiUtil.isGlobalDeclaration(variable)) {
-                    elements.add(variable);
+            final Optional<QVarDeclaration> first = findFirstInLambda(qualifiedName, lambda);
+            if (first.isPresent()) {
+                final QVarDeclaration el = first.get();
+                if (QPsiUtil.isGlobalDeclaration(el)) {
+                    return resolveElement(var);
+                } else {
+                    return single(el);
                 }
-            });
-            return elements;
+            }
+            return resolveElement(var);
         }
 
         @NotNull
-        private ResolveResult[] single(QPsiElement el) {
-            return new ResolveResult[]{new PsiElementResolveResult(el)};
-        }
-
-        private ResolveResult[] multi(List<QVarDeclaration> allGlobal) {
-            return allGlobal.stream().map(PsiElementResolveResult::new).toArray(ResolveResult[]::new);
-        }
-
-        @NotNull
-        private Optional<QVarDeclaration> firstFirstInLambda(String qualifiedName, QLambdaExpr lambda) {
+        private Optional<QVarDeclaration> findFirstInLambda(String qualifiedName, QLambdaExpr lambda) {
             return PsiTreeUtil.findChildrenOfType(lambda, QVarDeclaration.class).stream().
                     filter(v -> v.getQualifiedName().equals(qualifiedName)).
                     filter(v -> ElementContext.of(v).any(ElementScope.LAMBDA, ElementScope.PARAMETERS)).

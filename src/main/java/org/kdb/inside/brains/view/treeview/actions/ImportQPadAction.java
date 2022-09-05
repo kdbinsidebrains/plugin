@@ -5,9 +5,9 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.IoErrorText;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.core.InstanceItem;
 import org.kdb.inside.brains.core.KdbInstance;
@@ -29,12 +29,7 @@ public class ImportQPadAction extends SingleItemAction {
         final FileChooserDescriptor chooser = new FileChooserDescriptor(true, false, false, true, false, false)
                 .withTitle("Select QPad Configuration")
                 .withDescription("Select QPad Servers.cfg configuration file for importing tree structure.")
-                .withFileFilter(new Condition<VirtualFile>() {
-                    @Override
-                    public boolean value(VirtualFile file) {
-                        return "Servers.cfg".equalsIgnoreCase(file.getName());
-                    }
-                });
+                .withFileFilter(file -> "Servers.cfg".equalsIgnoreCase(file.getName()));
 
         final InstancesScopeView instancesScopeView = getInstancesScopeView(e);
         final FileChooserDialog fileChooser = FileChooserFactory.getInstance().createFileChooser(chooser, e.getProject(), instancesScopeView);
@@ -49,7 +44,7 @@ public class ImportQPadAction extends SingleItemAction {
             final String text = VfsUtil.loadText(choose[0]);
             importData(text, s);
         } catch (Exception ex) {
-            Messages.showErrorDialog(instancesScopeView, ex.getMessage(), "QPad Configs Can't Be Imported");
+            Messages.showErrorDialog(instancesScopeView, IoErrorText.message(ex), "QPad Configs Can't Be Imported");
         }
     }
 
