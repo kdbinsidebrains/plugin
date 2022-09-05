@@ -215,7 +215,17 @@
 
             <separator/>
 
-            <group id="Kdb.InstancesScopeView.Import" text="Import..." popup="true">
+            <action id="Kdb.InstancesScopeView.ExportItems"
+                    icon="AllIcons.ToolbarDecorator.Export"
+                    class="org.kdb.inside.brains.view.treeview.actions.ExportInstancesAction"/>
+
+            <group id="Kdb.InstancesScopeView.Import" text="Import..." popup="true"
+                   icon="AllIcons.ToolbarDecorator.Import">
+                <action id="Kdb.InstancesScopeView.ImportItems"
+                        text="_Import Items"
+                        description="Import items from XML file"
+                        class="org.kdb.inside.brains.view.treeview.actions.ImportInstancesAction"/>
+
                 <action id="Kdb.Instances.Import.QPad"
                         class="org.kdb.inside.brains.view.treeview.actions.ImportQPadAction"
                         text="Import from QPad"

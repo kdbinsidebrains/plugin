@@ -10,6 +10,7 @@ import com.intellij.ui.TableUtil;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.ComponentWithEmptyText;
+import com.intellij.util.ui.IoErrorText;
 import com.intellij.util.ui.StatusText;
 import org.jetbrains.annotations.NotNull;
 
@@ -164,7 +165,7 @@ public class CredentialPluginsPanel extends JPanel implements ComponentWithEmpty
                 myTableModel.fireTableRowsUpdated(index, index);
             }
         } catch (Exception ex) {
-            Messages.showErrorDialog(this, ex.getMessage(), "Incorrect Plugin Resource");
+            Messages.showErrorDialog(this, IoErrorText.message(ex), "Incorrect Plugin Resource");
         }
     }
 

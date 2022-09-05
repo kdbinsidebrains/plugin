@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.KdbScope;
 import org.kdb.inside.brains.core.KdbScopesListener;
 import org.kdb.inside.brains.core.KdbScopesManager;
+import org.kdb.inside.brains.view.treeview.actions.ExportScopesAction;
+import org.kdb.inside.brains.view.treeview.actions.ImportScopesAction;
 import org.kdb.inside.brains.view.treeview.scope.ScopesEditorDialog;
 
 import javax.swing.*;
@@ -73,8 +75,17 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
                 }
             }
         };
+
         toolWindow.setTitleActions(List.of(manageScopes));
-        toolWindow.setAdditionalGearActions(new DefaultActionGroup(manageScopes));
+
+        final DefaultActionGroup group = new DefaultActionGroup();
+        group.add(manageScopes);
+        group.addSeparator();
+
+        group.add(new ExportScopesAction("Export Scopes", "Export all scopes into xml file", scopesManager::getScopes));
+        group.add(new ImportScopesAction("Import Scopes", "Import scopes from xml file", scopesManager::addScope, scopesManager::getNames));
+
+        toolWindow.setAdditionalGearActions(group);
 
         final List<KdbScope> scopes = scopesManager.getScopes();
         if (scopes.isEmpty()) {
@@ -127,7 +138,6 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
         final Content content = contentFactory.createContent(new DummyPage(project), "KDB Instances", false);
         contentManager.addContent(content);
     }
-
 
     private KdbScope getActiveScope() {
         final Content selectedContent = contentManager.getSelectedContent();

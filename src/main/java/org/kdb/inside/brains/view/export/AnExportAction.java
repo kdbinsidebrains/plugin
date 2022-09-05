@@ -8,6 +8,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.ui.IoErrorText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
@@ -67,7 +68,7 @@ public abstract class AnExportAction<Config> extends AnAction {
                 return;
             }
         } catch (Exception ex) {
-            Messages.showErrorDialog(project, ex.getMessage(), "Data Can't Be Exported");
+            Messages.showErrorDialog(project, IoErrorText.message(ex), "Data Can't Be Exported");
             return;
         }
 
@@ -80,7 +81,7 @@ public abstract class AnExportAction<Config> extends AnAction {
                     exportResultView(project, type, config, dataProvider, formatter, indicator);
                 } catch (Exception ex) {
                     log.error("Data Can't Be Exported", ex);
-                    SwingUtilities.invokeLater(() -> Messages.showErrorDialog(project, ex.getMessage(), "Data Can't Be Exported"));
+                    SwingUtilities.invokeLater(() -> Messages.showErrorDialog(project, IoErrorText.message(ex), "Data Can't Be Exported"));
                 }
             }
         }.queue();

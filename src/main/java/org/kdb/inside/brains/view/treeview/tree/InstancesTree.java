@@ -11,6 +11,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.awt.RelativeRectangle;
 import com.intellij.util.NullableFunction;
@@ -326,6 +327,9 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
 
     @Override
     public void deleteElement(@NotNull DataContext dataContext) {
+        if (!MessageDialogBuilder.yesNo("Are you sure?", "Selected items will be removed and it can't be cancelled").guessWindowAndAsk()) {
+            return;
+        }
         model.setCuttingItems(null);
         getSelectedItems().forEach(item -> item.getParent().removeItem(item));
     }

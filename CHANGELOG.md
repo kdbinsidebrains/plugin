@@ -11,10 +11,12 @@
 - Open TableResultView in separate frame with a tab context menu
 - Open In Editor action added to TableResultView. You can open content of any cell in separate editor tab
   by Alt+Enter or Alt+double left click. Can be used to open JSON, XML or any text content for quick view or edit.
+- Import/Export Scopes and instances added
 
 ### Fixed
 
 - Clipboard XML exporting fixed for XML text in a cell
+- Removing items from instances tree requires additional approval
 
 ## [1.6.2]
 
