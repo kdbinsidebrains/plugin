@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.view.export;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -60,7 +61,7 @@ public class FlipTableExportAction extends AnExportAction<Boolean> {
         }
 
         final c.Flip data = new c.Flip(new c.Dict(columns, values));
-        SwingUtilities.invokeLater(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
             final TableResultView view = new TableResultView(project, formatter, true, null); // Compact mode is required here
             view.showResult(TableResult.from(new KdbQuery(""), KdbResult.with(data)));
 

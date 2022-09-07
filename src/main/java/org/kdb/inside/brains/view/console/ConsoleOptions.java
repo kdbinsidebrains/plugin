@@ -11,6 +11,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     private boolean prefixSymbols = true;
     private boolean striped = true;
     private boolean showGrid = true;
+    private boolean indexColumn = false;
     private boolean dictAsTable = true;
     private boolean listAsTable = true;
     private ConsoleSplitType splitType = ConsoleSplitType.NO;
@@ -92,6 +93,14 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.splitType = splitType == null ? ConsoleSplitType.NO : splitType;
     }
 
+    public boolean isIndexColumn() {
+        return indexColumn;
+    }
+
+    public void setIndexColumn(boolean indexColumn) {
+        this.indexColumn = indexColumn;
+    }
+
     @Override
     public void copyFrom(ConsoleOptions options) {
         this.enlistArrays = options.enlistArrays;
@@ -103,6 +112,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.listAsTable = options.listAsTable;
         this.dictAsTable = options.dictAsTable;
         this.splitType = options.splitType;
+        this.indexColumn = options.indexColumn;
     }
 
     @Override
@@ -110,26 +120,16 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ConsoleOptions that = (ConsoleOptions) o;
-        return floatPrecision == that.floatPrecision && enlistArrays == that.enlistArrays && wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && striped == that.striped && showGrid == that.showGrid && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable && splitType == that.splitType;
+        return floatPrecision == that.floatPrecision && enlistArrays == that.enlistArrays && wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && striped == that.striped && showGrid == that.showGrid && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable && splitType == that.splitType && indexColumn == that.indexColumn;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(floatPrecision, enlistArrays, wrapStrings, prefixSymbols, striped, showGrid, dictAsTable, listAsTable, splitType);
+        return Objects.hash(floatPrecision, enlistArrays, wrapStrings, prefixSymbols, striped, showGrid, dictAsTable, listAsTable, splitType, indexColumn);
     }
 
     @Override
     public String toString() {
-        return "ConsoleOptions{" +
-                "floatPrecision=" + floatPrecision +
-                ", enlistArrays=" + enlistArrays +
-                ", wrapStrings=" + wrapStrings +
-                ", prefixSymbols=" + prefixSymbols +
-                ", striped=" + striped +
-                ", showGrid=" + showGrid +
-                ", dictAsTable=" + dictAsTable +
-                ", listAsTable=" + listAsTable +
-                ", splitType=" + splitType +
-                '}';
+        return "ConsoleOptions{" + "floatPrecision=" + floatPrecision + ", enlistArrays=" + enlistArrays + ", wrapStrings=" + wrapStrings + ", prefixSymbols=" + prefixSymbols + ", striped=" + striped + ", showGrid=" + showGrid + ", dictAsTable=" + dictAsTable + ", listAsTable=" + listAsTable + ", splitType=" + splitType + ", indexColumn=" + indexColumn + '}';
     }
 }

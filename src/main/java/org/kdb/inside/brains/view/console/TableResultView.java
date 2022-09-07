@@ -12,6 +12,7 @@ import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.GridBag;
 import com.intellij.util.ui.UIUtil;
+import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
@@ -53,7 +54,9 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private final BiConsumer<KdbQuery, TableResultView> repeater;
 
     private final JBTable myTable;
+    public static final DataKey<TableResultView> DATA_KEY = DataKey.create("KdbConsole.TableResultView");
     private final TableResultSearchSession searchSession;
+    private final JScrollPane scrollPane;
 
     public TableResultView(Project project, KdbOutputFormatter formatter, boolean compactForm, BiConsumer<KdbQuery, TableResultView> repeater) {
         this.project = project;
@@ -168,7 +171,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         final ActionGroup contextMenu = createContextMenu();
         PopupHandler.installPopupHandler(myTable, contextMenu, "TableResultView.Context");
 
-        final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myTable, true);
+        scrollPane = ScrollPaneFactory.createScrollPane(myTable, true);
+        if (options.isIndexColumn()) {
+            scrollPane.setRowHeaderView(new RowNumberTable(myTable));
+        }
 
         setLayout(new BorderLayout());
         add(searchSession.getComponent(), BorderLayout.NORTH);
@@ -181,6 +187,32 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Toolbar", contextMenu, false);
         actionToolbar.setTargetComponent(this);
         add(actionToolbar.getComponent(), BorderLayout.WEST);
+    }
+
+    public boolean isShowIndexColumn() {
+        return getNumberTable() != null;
+    }
+
+    public void setShowIndexColumn(boolean show) {
+        final RowNumberTable numberTable = getNumberTable();
+        if (show) {
+            if (numberTable == null) {
+                scrollPane.setRowHeaderView(new RowNumberTable(myTable));
+            }
+        } else {
+            if (numberTable != null) {
+                numberTable.dispose();
+                scrollPane.setRowHeaderView(null);
+            }
+        }
+    }
+
+    private RowNumberTable getNumberTable() {
+        final JViewport rowHeader = scrollPane.getRowHeader();
+        if (rowHeader == null) {
+            return null;
+        }
+        return (RowNumberTable) rowHeader.getView();
     }
 
     private void processTableMouseReleased(MouseEvent e) {
@@ -199,11 +231,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
     @NotNull
     private JPanel createStatusBar() {
-        final GridBag c = new GridBag()
-                .setDefaultAnchor(0, GridBagConstraints.LINE_START)
-                .setDefaultWeightX(0, 1)
-                .setDefaultFill(GridBagConstraints.HORIZONTAL)
-                .setDefaultInsets(3, 10, 3, 3);
+        final GridBag c = new GridBag().setDefaultAnchor(0, GridBagConstraints.LINE_START).setDefaultWeightX(0, 1).setDefaultFill(GridBagConstraints.HORIZONTAL).setDefaultInsets(3, 10, 3, 3);
 
 
         final JPanel statusBar = new JPanel(new GridBagLayout());
@@ -227,6 +255,21 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
 
         group.add(searchAction);
+        group.addSeparator();
+
+        final ToggleAction action = new ToggleAction("Show Index Column", "Show column with row indexes", KdbIcons.Console.TableIndex) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return isShowIndexColumn();
+            }
+
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                setShowIndexColumn(state);
+            }
+        };
+        action.registerCustomShortcutSet(KeyEvent.VK_I, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
+        group.add(action);
 
         group.addSeparator();
         group.addAll(ExportDataProvider.createActionGroup(project, this));
@@ -300,7 +343,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     @Nullable
     @Override
     public Object getData(@NotNull String dataId) {
-        if (ExportDataProvider.DATA_KEY.is(dataId)) {
+        if (DATA_KEY.is(dataId) || ExportDataProvider.DATA_KEY.is(dataId)) {
             return this;
         }
         return null;

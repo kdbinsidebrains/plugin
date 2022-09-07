@@ -2,6 +2,18 @@
 
 # KdbInsideBrains Changelog
 
+## [1.7.1]
+
+### Added
+
+- Show row indexes column in a TableResult has been added. Can be individually enabled per TableResult and
+  enable/disabled on KDB+Q Settings panel. Disabled by default.
+
+### Fixed
+
+- Typos in some labels
+- An exception at 'Flip Table' action
+
 ## [1.7.0]
 
 ### Added
