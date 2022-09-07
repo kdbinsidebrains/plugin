@@ -43,7 +43,7 @@ public interface ExportDataProvider {
         final OpenInEditorAction open_in_editor = new OpenInEditorAction("_Open in Editor", dataProvider, "Open cell content in separate editor tab");
         group.add(open_in_editor);
 
-        group.add(new FlipTableExportAction("Flip Select Rows", ExportingType.ROWS, dataProvider, "Flip and show selected rows in separate dialog"));
+        group.add(new FlipTableExportAction("Flip Selected Rows", ExportingType.ROWS, dataProvider, "Flip and show selected rows in separate dialog"));
 
         group.addSeparator();
         final DefaultActionGroup exportGroup = new PopupActionGroup("Export Data _Into ...", KdbIcons.Console.Export);
@@ -53,7 +53,6 @@ public interface ExportDataProvider {
         group.add(exportGroup);
 
         group.addSeparator();
-
         final ActionGroup sendTo = new PopupActionGroup("Send Data Into ...", KdbIcons.Console.SendInto) {
             @Override
             public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
@@ -61,6 +60,7 @@ public interface ExportDataProvider {
             }
         };
         group.add(sendTo);
+
         return group;
     }
 
