@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [1.7.2]
+
+### Fixed
+
+- The plugin icon has been changed to resolve conflict with another plugin
+
 ## [1.7.1]
 
 ### Added
