@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.console;
 
 import com.intellij.util.ui.ColumnInfo;
 import kx.c;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.KdbType;
@@ -56,10 +57,19 @@ public class TableResult {
             model = new SimpleTableModel((c.Flip) k);
         } else if (k instanceof c.Dict) {
             final c.Dict dict = (c.Dict) k;
-            if (dict.x instanceof c.Flip && dict.y instanceof c.Flip) {
-                model = new KeyedTableModel((c.Flip) dict.x, (c.Flip) dict.y);
-            } else if (KdbSettingsService.getInstance().getConsoleOptions().isDictAsTable()) {
-                model = new DictTableModel(dict);
+            final Object x = dict.x;
+            final Object y = dict.y;
+
+            final boolean xa = x.getClass().isArray();
+            final boolean ya = y.getClass().isArray();
+            if (xa && ya) {
+                if (KdbSettingsService.getInstance().getConsoleOptions().isDictAsTable()) {
+                    model = new DictTableModel(x, y);
+                }
+            } else {
+                if ((x instanceof c.Flip || xa) && (y instanceof c.Flip || ya)) {
+                    model = new DictTableModel(x, y);
+                }
             }
         } else if (k.getClass().isArray() && KdbSettingsService.getInstance().getConsoleOptions().isListAsTable() && !(k instanceof char[])) {
             model = new ListTableModel(k);
@@ -133,6 +143,7 @@ public class TableResult {
 
     public static class ListTableModel extends QTableModel {
         private final Object array;
+        private final int rowsCount;
 
         protected ListTableModel(Object array) {
             this(array, array.getClass().getComponentType());
@@ -141,11 +152,12 @@ public class TableResult {
         private ListTableModel(Object array, Class<?> type) {
             super(new QColumnInfo[]{new QColumnInfo(KdbType.typeOf(type).getTypeName(), type, false)});
             this.array = array;
+            this.rowsCount = Array.getLength(array);
         }
 
         @Override
         public int getRowCount() {
-            return Array.getLength(array);
+            return rowsCount;
         }
 
         @Override
@@ -155,58 +167,69 @@ public class TableResult {
     }
 
     public static class DictTableModel extends QTableModel {
-        final c.Dict dict;
+        private final Object keys;
+        private final Object values;
 
-        private DictTableModel(c.Dict dict) {
-            super(QColumnInfo.of(dict));
-            this.dict = dict;
+        private final int keysCount;
+        private final int rowsCount;
+
+        private DictTableModel(Object keys, Object values) {
+            this(keys, cols(keys, true), values, cols(values, false));
         }
 
-        @Override
-        public int getRowCount() {
-            return Array.getLength(dict.x);
-        }
-
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            Object row = columnIndex == 0 ? dict.x : dict.y;
-            return Array.get(row, rowIndex);
-        }
-    }
-
-    public static class KeyedTableModel extends QTableModel {
-        final c.Flip keys;
-        final c.Flip values;
-
-        public KeyedTableModel(c.Flip keys, c.Flip values) {
-            super(QColumnInfo.of(keys, values));
+        private DictTableModel(Object keys, QColumnInfo[] keysInfo, Object values, QColumnInfo[] valuesInfo) {
+            super(ArrayUtils.addAll(keysInfo, valuesInfo));
             this.keys = keys;
             this.values = values;
+
+            keysCount = keysInfo.length;
+            rowsCount = Array.getLength(keys instanceof c.Flip ? ((c.Flip) keys).y[0] : keys);
+        }
+
+        private static QColumnInfo[] cols(Object v, boolean key) {
+            if (v instanceof c.Flip) {
+                return QColumnInfo.of((c.Flip) v, key);
+            }
+            return new QColumnInfo[]{
+                    new QColumnInfo(key ? "Key" : "Value", v.getClass().getComponentType(), key)
+            };
         }
 
         @Override
         public int getRowCount() {
-            return Array.getLength(keys.y[0]);
+            return rowsCount;
         }
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            Object row = columnIndex < keys.x.length ? keys.y[columnIndex] : values.y[columnIndex - keys.y.length];
+            final Object row = getRow(columnIndex);
             return Array.get(row, rowIndex);
+        }
+
+        public Object getRow(int columnIndex) {
+            final Object o = columnIndex < keysCount ? keys : values;
+            if (o instanceof c.Flip) {
+                final c.Flip flip = (c.Flip) o;
+                final int index = columnIndex < keysCount ? columnIndex : columnIndex - keysCount;
+                return flip.y[index];
+            }
+            return o;
         }
     }
 
     public static class SimpleTableModel extends QTableModel {
         final c.Flip flip;
+        final int rowsCount;
 
         private SimpleTableModel(c.Flip flip) {
-            super(QColumnInfo.of(flip));
+            super(QColumnInfo.of(flip, false));
             this.flip = flip;
+            this.rowsCount = Array.getLength(flip.y[0]);
         }
 
         @Override
         public int getRowCount() {
-            return Array.getLength(flip.y[0]);
+            return rowsCount;
         }
 
         @Override
@@ -253,38 +276,13 @@ public class TableResult {
             return comparator;
         }
 
-        static QColumnInfo[] of(c.Dict dict) {
-            return new QColumnInfo[]{
-                    new QColumnInfo("Key", dict.x.getClass().getComponentType(), true),
-                    new QColumnInfo("Value", dict.y.getClass().getComponentType(), false)
-            };
-        }
-
-        static QColumnInfo[] of(c.Flip flip) {
+        static QColumnInfo[] of(c.Flip flip, boolean key) {
             final int length = flip.x.length;
             QColumnInfo[] res = new QColumnInfo[length];
             for (int i = 0; i < length; i++) {
-                res[i] = QColumnInfo.from(flip, i, false);
+                res[i] = new QColumnInfo(flip.x[i], flip.y[i].getClass().getComponentType(), key);
             }
             return res;
-        }
-
-        static QColumnInfo[] of(c.Flip keys, c.Flip vals) {
-            final int kl = keys.x.length;
-            final int vl = vals.x.length;
-
-            QColumnInfo[] res = new QColumnInfo[kl + vl];
-            for (int i = 0; i < kl; i++) {
-                res[i] = QColumnInfo.from(keys, i, true);
-            }
-            for (int i = 0; i < vl; i++) {
-                res[kl + i] = QColumnInfo.from(vals, i, false);
-            }
-            return res;
-        }
-
-        static QColumnInfo from(c.Flip flip, int index, boolean key) {
-            return new QColumnInfo(flip.x[index], flip.y[index].getClass().getComponentType(), key);
         }
     }
 }

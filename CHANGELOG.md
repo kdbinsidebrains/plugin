@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [1.8.1]
+
+### Fixed
+
+- Show dictionaries with a table as keys or values in TableResult view
+
 ## [1.8.0]
 
 ### Added
