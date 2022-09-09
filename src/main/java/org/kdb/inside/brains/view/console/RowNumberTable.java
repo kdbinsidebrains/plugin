@@ -3,10 +3,7 @@ package org.kdb.inside.brains.view.console;
 import com.intellij.openapi.Disposable;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+import javax.swing.event.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
@@ -33,7 +30,7 @@ class RowNumberTable extends JTable implements Disposable {
 
         setFocusable(false);
         setAutoCreateColumnsFromModel(false);
-        setSelectionModel(main.getSelectionModel());
+        setSelectionModel(new ListSelectionModelWrapper(main));
 
         final TableColumn column = new TableColumn();
         column.setHeaderValue("#");
@@ -169,6 +166,129 @@ class RowNumberTable extends JTable implements Disposable {
         public void tableChanged(TableModelEvent e) {
             recalculateWidth((TableModel) e.getSource());
             revalidate();
+        }
+    }
+
+    private static class ListSelectionModelWrapper implements ListSelectionModel {
+        private final JTable main;
+        private final ListSelectionModel mainModel;
+
+        public ListSelectionModelWrapper(JTable main) {
+            this.main = main;
+            mainModel = main.getSelectionModel();
+        }
+
+        @Override
+        public void addSelectionInterval(int index0, int index1) {
+            mainModel.addSelectionInterval(index0, index1);
+            invalidateColsSelection();
+        }
+
+        @Override
+        public void removeSelectionInterval(int index0, int index1) {
+            mainModel.removeSelectionInterval(index0, index1);
+            invalidateColsSelection();
+        }
+
+        @Override
+        public void insertIndexInterval(int index, int length, boolean before) {
+            mainModel.insertIndexInterval(index, length, before);
+            invalidateColsSelection();
+        }
+
+        @Override
+        public void removeIndexInterval(int index0, int index1) {
+            mainModel.removeIndexInterval(index0, index1);
+            invalidateColsSelection();
+        }
+
+        @Override
+        public void setSelectionInterval(int index0, int index1) {
+            mainModel.setSelectionInterval(index0, index1);
+            invalidateColsSelection();
+        }
+
+        @Override
+        public int getMinSelectionIndex() {
+            return mainModel.getMinSelectionIndex();
+        }
+
+        @Override
+        public int getMaxSelectionIndex() {
+            return mainModel.getMaxSelectionIndex();
+        }
+
+        @Override
+        public boolean isSelectedIndex(int index) {
+            return mainModel.isSelectedIndex(index);
+        }
+
+        @Override
+        public int getAnchorSelectionIndex() {
+            return mainModel.getAnchorSelectionIndex();
+        }
+
+        @Override
+        public void setAnchorSelectionIndex(int index) {
+            mainModel.setAnchorSelectionIndex(index);
+        }
+
+        @Override
+        public int getLeadSelectionIndex() {
+            return mainModel.getLeadSelectionIndex();
+        }
+
+        @Override
+        public void setLeadSelectionIndex(int index) {
+            mainModel.setLeadSelectionIndex(index);
+        }
+
+        @Override
+        public void clearSelection() {
+            mainModel.clearSelection();
+        }
+
+        @Override
+        public boolean isSelectionEmpty() {
+            return mainModel.isSelectionEmpty();
+        }
+
+        @Override
+        public boolean getValueIsAdjusting() {
+            return mainModel.getValueIsAdjusting();
+        }
+
+        @Override
+        public void setValueIsAdjusting(boolean valueIsAdjusting) {
+            mainModel.setValueIsAdjusting(valueIsAdjusting);
+        }
+
+        @Override
+        public int getSelectionMode() {
+            return mainModel.getSelectionMode();
+        }
+
+        @Override
+        public void setSelectionMode(int selectionMode) {
+            mainModel.setSelectionMode(selectionMode);
+        }
+
+        @Override
+        public void addListSelectionListener(ListSelectionListener x) {
+            mainModel.addListSelectionListener(x);
+        }
+
+        @Override
+        public void removeListSelectionListener(ListSelectionListener x) {
+            mainModel.removeListSelectionListener(x);
+        }
+
+        private void invalidateColsSelection() {
+            final int columnCount = main.getColumnCount();
+            final ListSelectionModel colSelectionModel = main.getColumnModel().getSelectionModel();
+            if (columnCount != colSelectionModel.getSelectedItemsCount()) {
+                colSelectionModel.setSelectionInterval(0, columnCount - 1);
+            }
         }
     }
 }

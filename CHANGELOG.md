@@ -2,16 +2,11 @@
 
 # KdbInsideBrains Changelog
 
-## [1.7.2]
-
-### Fixed
-
-- The plugin icon has been changed to resolve conflict with another plugin
-
-## [1.7.1]
+## [1.8.0]
 
 ### Added
 
+- The plugin icon has been changed to resolve conflict with another plugin
 - Show row indexes column in a TableResult has been added. Can be individually enabled per TableResult and
   enable/disabled on KDB+Q Settings panel. Disabled by default.
 
