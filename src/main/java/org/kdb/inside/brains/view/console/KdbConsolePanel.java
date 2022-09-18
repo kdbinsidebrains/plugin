@@ -46,8 +46,6 @@ import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -133,25 +131,6 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         });
 
         tabs.getPresentation().setTabDraggingEnabled(true);
-        tabs.getComponent().setTransferHandler(new TransferHandler(null) {
-            public boolean importData(JComponent comp, Transferable t) {
-                System.out.println("importData: " + t);
-/*
-                if (myFileDropHandler.canHandleDrop(t.getTransferDataFlavors())) {
-                    myFileDropHandler.handleDrop(t, myProject, myWindow);
-                    return true;
-                }
-*/
-                return false;
-            }
-
-            @Override
-            public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
-                System.out.println("canImport: " + comp);
-                return false;
-//                return myFileDropHandler.canHandleDrop(transferFlavors);
-            }
-        });
 
         splitter = createSplitter();
         consoleTabs = JBTabsFactory.createTabs(project, this);
