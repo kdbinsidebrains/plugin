@@ -10,14 +10,13 @@ import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.TabInfo;
-import com.intellij.util.ui.GridBag;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.core.KdbQuery;
-import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
@@ -28,12 +27,12 @@ import org.kdb.inside.brains.view.export.ExportingType;
 import org.kdb.inside.brains.view.export.OpenInEditorAction;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.sql.Timestamp;
 import java.util.Comparator;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
@@ -45,22 +44,19 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private TableResult tableResult;
     private ToggleAction searchAction;
 
-    private final JLabel statusTime = new JLabel();
-    private final JLabel statusSize = new JLabel();
-    private final JLabel statusQuery = new JLabel();
-
     private final Project project;
-    private final KdbOutputFormatter formatter;
     private final BiConsumer<KdbQuery, TableResultView> repeater;
 
     private final JBTable myTable;
-    public static final DataKey<TableResultView> DATA_KEY = DataKey.create("KdbConsole.TableResultView");
-    private final TableResultSearchSession searchSession;
     private final JScrollPane scrollPane;
+    private final TableResultSearchSession searchSession;
+
+    private TableResultStatus statusBar;
+
+    public static final DataKey<TableResultView> DATA_KEY = DataKey.create("KdbConsole.TableResultView");
 
     public TableResultView(Project project, KdbOutputFormatter formatter, boolean compactForm, BiConsumer<KdbQuery, TableResultView> repeater) {
         this.project = project;
-        this.formatter = formatter;
         this.repeater = repeater;
 
         final var options = KdbSettingsService.getInstance().getConsoleOptions();
@@ -163,6 +159,8 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             }
         });
 
+        initializeColumnHighlither();
+
         searchSession = new TableResultSearchSession(myTable, project, new FindModel());
         searchSession.getFindModel().addObserver(this::modelBeenUpdated);
 
@@ -181,12 +179,34 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         add(scrollPane, BorderLayout.CENTER);
 
         if (!compactForm) {
-            add(createStatusBar(), BorderLayout.SOUTH);
+            statusBar = new TableResultStatus(myTable, formatter);
+            add(statusBar, BorderLayout.SOUTH);
         }
 
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Toolbar", contextMenu, false);
         actionToolbar.setTargetComponent(this);
         add(actionToolbar.getComponent(), BorderLayout.WEST);
+    }
+
+    private void initializeColumnHighlither() {
+        final JTableHeader header = myTable.getTableHeader();
+
+        final Border normalBorder = JBUI.Borders.emptyBottom(1);
+        final Border selectedBorder = JBUI.Borders.customLineBottom(myTable.getSelectionBackground());
+
+        final TableCellRenderer defaultRenderer = header.getDefaultRenderer();
+        header.setDefaultRenderer((table, value, isSelected, hasFocus, row, column) -> {
+            final Component cmp = defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (cmp instanceof JComponent) {
+                final JComponent component = (JComponent) cmp;
+                final boolean selectedIndex = table.getColumnModel().getSelectionModel().isSelectedIndex(column);
+                final Border border = selectedIndex ? selectedBorder : normalBorder;
+                final Border merge = JBUI.Borders.merge(component.getBorder(), border, true);
+                component.setBorder(merge);
+            }
+            return cmp;
+        });
+        myTable.getColumnModel().getSelectionModel().addListSelectionListener(e -> header.repaint());
     }
 
     public boolean isShowIndexColumn() {
@@ -227,18 +247,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
                 new ClipboardExportAction(null, ExportingType.SELECTION, this).performExport(project, this);
             }
         }
-    }
-
-    @NotNull
-    private JPanel createStatusBar() {
-        final GridBag c = new GridBag().setDefaultAnchor(0, GridBagConstraints.LINE_START).setDefaultWeightX(0, 1).setDefaultFill(GridBagConstraints.HORIZONTAL).setDefaultInsets(3, 10, 3, 3);
-
-
-        final JPanel statusBar = new JPanel(new GridBagLayout());
-        statusBar.add(statusQuery, c.next());
-        statusBar.add(statusTime, c.next());
-        statusBar.add(statusSize, c.next());
-        return statusBar;
     }
 
     public ActionGroup createContextMenu() {
@@ -336,10 +344,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
     }
 
-    private void updateSizeStatus() {
-        statusSize.setText(myTable.getRowCount() + " of " + myTable.getModel().getRowCount() + " rows");
-    }
-
     @Nullable
     @Override
     public Object getData(@NotNull String dataId) {
@@ -391,26 +395,20 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
         if (tableResult == null) {
             myTable.setModel(TableResult.EMPTY_MODEL);
-            statusTime.setText("");
-            statusSize.setText("Empty");
-            statusQuery.setText("");
             searchSession.setDelaySearchEnabled(false);
         } else {
             final TableResult.QTableModel tableModel = tableResult.getTableModel();
             myTable.setModel(tableModel);
 
-            final KdbResult result = tableResult.getResult();
-
-            final double v = result.getRoundtripMillis() / 1000d;
-            final double v1 = ((int) (v * 100)) / 100d;
-            statusTime.setText(formatter.formatTimestamp(new Timestamp(result.getFinishedMillis())) + " (" + v1 + "sec)");
-            statusQuery.setText(tableResult.getQuery().getExpression());
             // 10_000 rows by 20 columns can be sorted fast. No reason for delay
             searchSession.setDelaySearchEnabled(tableModel.getRowCount() * tableModel.getColumnCount() > 200_000);
 
-            updateSizeStatus();
             updateHeaderWidth();
             modelBeenUpdated(searchSession.getFindModel());
+        }
+
+        if (statusBar != null) {
+            statusBar.showResult(tableResult);
         }
     }
 
@@ -430,7 +428,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private void modelBeenUpdated(FindModel findModel) {
         final RowFilter<TableModel, Integer> filter = createFilter(findModel);
         ((TableRowSorter<? extends TableModel>) myTable.getRowSorter()).setRowFilter(filter);
-        updateSizeStatus();
+
+        if (statusBar != null) {
+            statusBar.invalidateRowsCount();
+        }
     }
 
     static class TableRowFilter extends RowFilter<TableModel, Integer> {

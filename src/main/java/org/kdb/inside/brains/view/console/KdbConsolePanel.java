@@ -8,6 +8,7 @@ import com.intellij.execution.console.LanguageConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeEventQueue;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction;
@@ -21,7 +22,10 @@ import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.docking.DockableContent;
+import com.intellij.ui.docking.impl.DockManagerImpl;
 import com.intellij.ui.tabs.JBTabs;
+import com.intellij.ui.tabs.JBTabsEx;
 import com.intellij.ui.tabs.JBTabsFactory;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.UIUtil;
@@ -41,6 +45,9 @@ import org.kdb.inside.brains.view.export.ExportDataProvider;
 import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -52,7 +59,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvider, Disposable {
-    private final JBTabs tabs;
+    private final JBTabsEx tabs;
     private final JBTabs consoleTabs;
 
     private final TabInfo consoleTab;
@@ -101,7 +108,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         connectionManager = KdbConnectionManager.getManager(project);
         connectionManager.addConnectionListener(connectionListener);
 
-        tabs = JBTabsFactory.createTabs(project, this);
+        tabs = (JBTabsEx) JBTabsFactory.createTabs(project, this);
         // We can't use Supplier here as it's been Getter before and some versions are not compatiable anymore.
         tabs.setPopupGroup(new ActionGroup() {
             @Override
@@ -125,6 +132,27 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             }
         });
 
+        tabs.getPresentation().setTabDraggingEnabled(true);
+        tabs.getComponent().setTransferHandler(new TransferHandler(null) {
+            public boolean importData(JComponent comp, Transferable t) {
+                System.out.println("importData: " + t);
+/*
+                if (myFileDropHandler.canHandleDrop(t.getTransferDataFlavors())) {
+                    myFileDropHandler.handleDrop(t, myProject, myWindow);
+                    return true;
+                }
+*/
+                return false;
+            }
+
+            @Override
+            public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
+                System.out.println("canImport: " + comp);
+                return false;
+//                return myFileDropHandler.canHandleDrop(transferFlavors);
+            }
+        });
+
         splitter = createSplitter();
         consoleTabs = JBTabsFactory.createTabs(project, this);
         splitter.setFirstComponent(consoleTabs.getComponent());
@@ -133,6 +161,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         tabs.addTab(consoleTab, 0);
         setContent(tabs.getComponent());
+
 
         changeSplitting(splitType);
         setToolbar(createMainToolbar().getComponent());
@@ -438,7 +467,138 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         closeAction.getTemplatePresentation().setHoveredIcon(AllIcons.Actions.CloseHovered);
         info.setTabLabelActions(new DefaultActionGroup(closeAction), "KdbConsolePanel");
 
+/*        info.setDragOutDelegate(new TabInfo.DragOutDelegate() {
+            private DragSession mySession;
+
+
+            @Override
+            public void dragOutStarted(@NotNull MouseEvent mouseEvent, @NotNull TabInfo info) {
+                TabInfo previousSelection = info.getPreviousSelection();
+                Image img = JBTabsImpl.getComponentImage(info);
+                if (previousSelection == null) {
+                    previousSelection = tabs.getToSelectOnRemoveOf(info);
+                }
+                int dragStartIndex = tabs.getIndexOf(info);
+                boolean isPinnedAtStart = info.isPinned();
+                info.setHidden(true);
+                if (previousSelection != null) {
+                    tabs.select(previousSelection, true);
+                }
+
+//                myFile = (VirtualFile) info.getObject();
+//                myFile.putUserData(EditorWindow.DRAG_START_INDEX_KEY, dragStartIndex);
+//                myFile.putUserData(EditorWindow.DRAG_START_LOCATION_HASH_KEY, System.identityHashCode(myTabs));
+//                myFile.putUserData(EditorWindow.DRAG_START_PINNED_KEY, isPinnedAtStart);
+//                Presentation presentation = new Presentation(info.getText());
+//                if (DockManagerImpl.REOPEN_WINDOW.isIn(myFile)) {
+//                    presentation.putClientProperty(DockManagerImpl.REOPEN_WINDOW, DockManagerImpl.REOPEN_WINDOW.get(myFile, true));
+//                }
+//                presentation.setIcon(info.getIcon());
+//                EditorComposite composite = myWindow.getComposite(myFile);
+//                FileEditor[] editors = composite != null ? composite.getAllEditors().toArray(FileEditor.EMPTY_ARRAY) : FileEditor.EMPTY_ARRAY;
+//                boolean isNorthPanelAvailable = DockManagerImpl.isNorthPanelAvailable(editors);
+
+                final Presentation presentation = new Presentation(info.getText());
+                presentation.setIcon(info.getIcon());
+
+                final DockableView view = new DockableView(img, (TableResultView) info.getObject(), presentation, new Dimension(), info.isPinned());
+                mySession = getDockManager().createDragSession(mouseEvent, view);
+            }
+
+            private DockManager getDockManager() {
+                return DockManager.getInstance(project);
+            }
+
+            @Override
+            public void processDragOut(@NotNull MouseEvent event, @NotNull TabInfo source) {
+                mySession.process(event);
+            }
+
+            @Override
+            public void dragOutFinished(@NotNull MouseEvent event, TabInfo source) {
+                boolean copy = UIUtil.isControlKeyDown(event) || mySession.getResponse(event) == DockContainer.ContentResponse.ACCEPT_COPY;
+                if (!copy) {
+//                    myFile.putUserData(FileEditorManagerImpl.CLOSING_TO_REOPEN, Boolean.TRUE);
+//                    FileEditorManagerEx.getInstanceEx(myProject).closeFile(myFile, myWindow);
+                } else {
+                    source.setHidden(false);
+                }
+                mySession.process(event);
+                mySession = null;
+            }
+
+            @Override
+            public void dragOutCancelled(TabInfo source) {
+                source.setHidden(false);
+                if (mySession != null) {
+                    mySession.cancel();
+                }
+                mySession = null;
+            }
+        });*/
+
         return info;
+    }
+
+    public static class DockableView implements DockableContent<TableResultView> {
+        final Image myImg;
+        private final Presentation myPresentation;
+        private final Dimension myPreferredSize;
+        private final boolean myPinned;
+        private final boolean myNorthPanelAvailable;
+        private final TableResultView myResultView;
+
+        public DockableView(Image img,
+                            TableResultView resultView,
+                            Presentation presentation,
+                            Dimension preferredSize,
+                            boolean isFilePinned) {
+            this(img, resultView, presentation, preferredSize, isFilePinned, DockManagerImpl.isNorthPanelVisible(UISettings.getInstance()));
+        }
+
+        public DockableView(Image img,
+                            TableResultView resultView,
+                            Presentation presentation,
+                            Dimension preferredSize,
+                            boolean isFilePinned,
+                            boolean isNorthPanelAvailable) {
+            myImg = img;
+            myResultView = resultView;
+            myPresentation = presentation;
+            myPreferredSize = preferredSize;
+            myPinned = isFilePinned;
+            myNorthPanelAvailable = isNorthPanelAvailable;
+        }
+
+        @NotNull
+        @Override
+        public TableResultView getKey() {
+            return myResultView;
+        }
+
+        @Override
+        public Image getPreviewImage() {
+            return myImg;
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            return myPreferredSize;
+        }
+
+        @Override
+        public String getDockContainerType() {
+            return "kdb-tablerevultview-contains";
+        }
+
+        @Override
+        public Presentation getPresentation() {
+            return myPresentation;
+        }
+
+        @Override
+        public void close() {
+        }
     }
 
     private void clearHistory() {
@@ -590,7 +750,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
     private class OpenInFrameAction extends AnAction {
         public OpenInFrameAction() {
-            super("Open the Tab in a Frame", "Open the tab in a separate frame", null);
+            super("Open in Frame", "Open the tab in a separate frame", null);
             registerCustomShortcutSet(KeyEvent.VK_F, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, KdbConsolePanel.this);
         }
 
