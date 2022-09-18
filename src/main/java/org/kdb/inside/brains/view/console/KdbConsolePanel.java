@@ -8,7 +8,6 @@ import com.intellij.execution.console.LanguageConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeEventQueue;
-import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction;
@@ -22,8 +21,6 @@ import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.docking.DockableContent;
-import com.intellij.ui.docking.impl.DockManagerImpl;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.JBTabsEx;
 import com.intellij.ui.tabs.JBTabsFactory;
@@ -45,7 +42,6 @@ import org.kdb.inside.brains.view.export.ExportDataProvider;
 import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -518,7 +514,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         return info;
     }
-
+/*
     public static class DockableView implements DockableContent<TableResultView> {
         final Image myImg;
         private final Presentation myPresentation;
@@ -578,7 +574,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         @Override
         public void close() {
         }
-    }
+    }*/
 
     private void clearHistory() {
         console.getHistoryViewer().getDocument().setText("");

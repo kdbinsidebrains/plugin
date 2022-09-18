@@ -192,7 +192,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         final JTableHeader header = myTable.getTableHeader();
 
         final Border normalBorder = JBUI.Borders.emptyBottom(1);
-        final Border selectedBorder = JBUI.Borders.customLineBottom(myTable.getSelectionBackground());
+        final Border selectedBorder = JBUI.Borders.customLine(myTable.getSelectionBackground(), 0, 0, 1, 0);
 
         final TableCellRenderer defaultRenderer = header.getDefaultRenderer();
         header.setDefaultRenderer((table, value, isSelected, hasFocus, row, column) -> {

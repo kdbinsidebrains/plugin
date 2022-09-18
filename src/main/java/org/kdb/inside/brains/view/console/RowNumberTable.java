@@ -118,7 +118,7 @@ class RowNumberTable extends JTable implements Disposable {
             setHorizontalAlignment(JLabel.CENTER);
 
             unselectedBorder = JBUI.Borders.emptyRight(1);
-            selectedBorder = JBUI.Borders.customLineRight(table.getSelectionBackground());
+            selectedBorder = JBUI.Borders.customLine(table.getSelectionBackground(), 0, 0, 0, 1);
 
             final JTableHeader header = table.getTableHeader();
             if (header != null) {
