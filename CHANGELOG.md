@@ -2,6 +2,13 @@
 
 # KdbInsideBrains Changelog
 
+## [1.9.0]
+
+### Added
+
+- Average/Count/Sum in TableResult for selected cells: for all numerical cells in selection average and sum
+  is calculated as well as number of total selected cells
+
 ## [1.8.1]
 
 ### Fixed

@@ -1,8 +1,10 @@
 package org.kdb.inside.brains.view.console;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
@@ -36,10 +38,11 @@ class RowNumberTable extends JTable implements Disposable {
         column.setHeaderValue("#");
         addColumn(column);
 
-        cellRenderer = new RowNumberRenderer(main.getTableHeader());
+        cellRenderer = new RowNumberRenderer(main);
         column.setCellRenderer(cellRenderer);
 
         recalculateWidth(main.getModel());
+
     }
 
     private void recalculateWidth(TableModel model) {
@@ -108,9 +111,16 @@ class RowNumberTable extends JTable implements Disposable {
         private final Font normal;
         private final Font selected;
 
-        public RowNumberRenderer(JTableHeader header) {
+        private final Border selectedBorder;
+        private final Border unselectedBorder;
+
+        public RowNumberRenderer(JTable table) {
             setHorizontalAlignment(JLabel.CENTER);
 
+            unselectedBorder = JBUI.Borders.emptyRight(1);
+            selectedBorder = JBUI.Borders.customLine(table.getSelectionBackground(), 0, 0, 0, 1);
+
+            final JTableHeader header = table.getTableHeader();
             if (header != null) {
                 setForeground(header.getForeground());
                 setBackground(header.getBackground());
@@ -123,6 +133,7 @@ class RowNumberTable extends JTable implements Disposable {
 
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             setFont(isSelected ? selected : normal);
+            setBorder(isSelected ? selectedBorder : unselectedBorder);
             setText(value == null ? "" : value.toString());
             return this;
         }
