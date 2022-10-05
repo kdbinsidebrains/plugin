@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.console;
+package org.kdb.inside.brains.view.console.table;
 
 import com.intellij.find.FindModel;
 import com.intellij.icons.AllIcons;
@@ -51,7 +51,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private final JScrollPane scrollPane;
     private final TableResultSearchSession searchSession;
 
-    private TableResultStatus statusBar;
+    private TableResultStatusPanel statusBar;
 
     public static final DataKey<TableResultView> DATA_KEY = DataKey.create("KdbConsole.TableResultView");
 
@@ -123,9 +123,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
                             return formatter.objectToString(valueAt);
                         }
                     });
-                    for (int i = 0; i < qModel.columns.length; i++) {
-                        final TableResult.QColumnInfo column = qModel.columns[i];
-                        final Comparator<Object> comparator = column.getComparator();
+
+                    final TableResult.QColumnInfo[] columns = qModel.getColumns();
+                    for (int i = 0; i < columns.length; i++) {
+                        final Comparator<Object> comparator = columns[i].getComparator();
                         if (comparator != null) {
                             sorter.setComparator(i, comparator);
                         }
@@ -171,7 +172,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
         scrollPane = ScrollPaneFactory.createScrollPane(myTable, true);
         if (options.isIndexColumn()) {
-            scrollPane.setRowHeaderView(new RowNumberTable(myTable));
+            scrollPane.setRowHeaderView(new RowNumberView(myTable));
         }
 
         setLayout(new BorderLayout());
@@ -179,7 +180,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         add(scrollPane, BorderLayout.CENTER);
 
         if (!compactForm) {
-            statusBar = new TableResultStatus(myTable, formatter);
+            statusBar = new TableResultStatusPanel(myTable, formatter);
             add(statusBar, BorderLayout.SOUTH);
         }
 
@@ -214,10 +215,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     }
 
     public void setShowIndexColumn(boolean show) {
-        final RowNumberTable numberTable = getNumberTable();
+        final RowNumberView numberTable = getNumberTable();
         if (show) {
             if (numberTable == null) {
-                scrollPane.setRowHeaderView(new RowNumberTable(myTable));
+                scrollPane.setRowHeaderView(new RowNumberView(myTable));
             }
         } else {
             if (numberTable != null) {
@@ -227,12 +228,12 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
     }
 
-    private RowNumberTable getNumberTable() {
+    private RowNumberView getNumberTable() {
         final JViewport rowHeader = scrollPane.getRowHeader();
         if (rowHeader == null) {
             return null;
         }
-        return (RowNumberTable) rowHeader.getView();
+        return (RowNumberView) rowHeader.getView();
     }
 
     private void processTableMouseReleased(MouseEvent e) {

@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.console;
+package org.kdb.inside.brains.view.console.table;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.util.ui.JBUI;
@@ -19,13 +19,13 @@ import java.beans.PropertyChangeListener;
  *  This table must be added to the row header of the scrollpane that
  *  contains the main table.
  */
-class RowNumberTable extends JTable implements Disposable {
+class RowNumberView extends JTable implements Disposable {
     private final JTable main;
     private final RowNumberRenderer cellRenderer;
 
     private final TheListener listener = new TheListener();
 
-    public RowNumberTable(JTable table) {
+    public RowNumberView(JTable table) {
         main = table;
         main.addPropertyChangeListener(listener);
         main.getModel().addTableModelListener(listener);

@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.console;
+package org.kdb.inside.brains.view.console.table;
 
 import com.intellij.util.ui.GridBag;
 import org.kdb.inside.brains.core.KdbResult;
@@ -8,7 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.Timestamp;
 
-public class TableResultStatus extends JPanel {
+class TableResultStatusPanel extends JPanel {
     private final JTable myTable;
     private final KdbOutputFormatter formatter;
 
@@ -19,7 +19,7 @@ public class TableResultStatus extends JPanel {
     private final JLabel sizeLabel = new JLabel();
     private final JLabel queryLabel = new JLabel();
 
-    public TableResultStatus(JTable table, KdbOutputFormatter formatter) {
+    public TableResultStatusPanel(JTable table, KdbOutputFormatter formatter) {
         this.myTable = table;
         this.formatter = formatter;
 

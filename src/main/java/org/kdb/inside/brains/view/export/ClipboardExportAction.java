@@ -11,7 +11,7 @@ import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
-import org.kdb.inside.brains.view.console.TableResult;
+import org.kdb.inside.brains.view.console.table.TableResult;
 
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
