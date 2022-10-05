@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.console;
+package org.kdb.inside.brains.view.console.table;
 
 import com.intellij.util.ui.ColumnInfo;
 import kx.c;
@@ -107,6 +107,10 @@ public class TableResult {
         @Override
         public int getColumnCount() {
             return columns.length;
+        }
+
+        public QColumnInfo[] getColumns() {
+            return columns;
         }
 
         @Nls
@@ -238,7 +242,7 @@ public class TableResult {
         }
     }
 
-    protected static class QColumnInfo extends ColumnInfo<Object, Object> {
+    public static class QColumnInfo extends ColumnInfo<Object, Object> {
         private final boolean key;
         private final Class<?> columnClass;
         private final Comparator<Object> comparator;

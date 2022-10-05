@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.console;
+package org.kdb.inside.brains.view.console.table;
 
 import com.intellij.find.FindBundle;
 import com.intellij.find.FindModel;
@@ -25,7 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class TableResultSearchSession implements SearchSession {
+class TableResultSearchSession implements SearchSession {
     private static final int DELAY_TIMEOUT = 300;
     private final Lock delayLock = new ReentrantLock();
     private Timer searchTime;

@@ -15,8 +15,8 @@ import com.intellij.ui.components.JBScrollPane;
 import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
-import org.kdb.inside.brains.view.console.TableResult;
-import org.kdb.inside.brains.view.console.TableResultView;
+import org.kdb.inside.brains.view.console.table.TableResult;
+import org.kdb.inside.brains.view.console.table.TableResultView;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;

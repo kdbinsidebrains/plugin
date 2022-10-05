@@ -2,6 +2,17 @@
 
 # KdbInsideBrains Changelog
 
+## [1.10.0]
+
+### Added
+
+- "Open TableResultView in separate frame" action has been removed and replaced by DragAndDrop/Docking. You can now
+  just drag out a Table Result tab anywhere to detach it or drag it back, if required.
+
+### Deprecated
+
+- Supporting of IDE **2020.3.x** will be removed soon due to high volume of marked for removal APIs.
+
 ## [1.9.0]
 
 ### Added
