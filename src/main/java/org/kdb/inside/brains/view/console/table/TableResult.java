@@ -9,6 +9,7 @@ import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.settings.KdbSettingsService;
+import org.kdb.inside.brains.view.console.ConsoleOptions;
 
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
@@ -42,6 +43,7 @@ public class TableResult {
         return tableModel;
     }
 
+
     public TableResult copy() {
         return new TableResult(query, result, tableModel);
     }
@@ -52,10 +54,22 @@ public class TableResult {
             return null;
         }
 
-        QTableModel model = null;
+        QTableModel model = createModel(k);
+        return model == null ? null : new TableResult(query, result, model);
+    }
+
+    @Nullable
+    private static QTableModel createModel(Object k) {
         if (k instanceof c.Flip) {
-            model = new SimpleTableModel((c.Flip) k);
-        } else if (k instanceof c.Dict) {
+            return new SimpleTableModel((c.Flip) k);
+        }
+
+        final ConsoleOptions options = KdbSettingsService.getInstance().getConsoleOptions();
+        if (isList(k) && options.isListAsTable()) {
+            return new ListTableModel(k);
+        }
+
+        if (k instanceof c.Dict) {
             final c.Dict dict = (c.Dict) k;
             final Object x = dict.x;
             final Object y = dict.y;
@@ -63,18 +77,31 @@ public class TableResult {
             final boolean xa = x.getClass().isArray();
             final boolean ya = y.getClass().isArray();
             if (xa && ya) {
-                if (KdbSettingsService.getInstance().getConsoleOptions().isDictAsTable()) {
-                    model = new DictTableModel(x, y);
+                if (options.isDictAsTable()) {
+                    return new DictTableModel(x, y);
                 }
             } else {
                 if ((x instanceof c.Flip || xa) && (y instanceof c.Flip || ya)) {
-                    model = new DictTableModel(x, y);
+                    return new DictTableModel(x, y);
                 }
             }
-        } else if (k.getClass().isArray() && KdbSettingsService.getInstance().getConsoleOptions().isListAsTable() && !(k instanceof char[])) {
-            model = new ListTableModel(k);
         }
-        return model == null ? null : new TableResult(query, result, model);
+        return null;
+    }
+
+    public static boolean isTable(Object o) {
+        if (o instanceof c.Flip) {
+            return true;
+        }
+        if (o instanceof c.Dict) {
+            final c.Dict d = (c.Dict) o;
+            return (d.x instanceof c.Flip || d.x.getClass().isArray()) && (d.y instanceof c.Flip || d.y.getClass().isArray());
+        }
+        return false;
+    }
+
+    public static boolean isList(Object o) {
+        return o.getClass().isArray() && !(o instanceof char[]);
     }
 
     public static abstract class QTableModel implements TableModel {

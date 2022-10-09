@@ -43,7 +43,7 @@ public interface ExportDataProvider {
         final OpenInEditorAction open_in_editor = new OpenInEditorAction("_Open in Editor", dataProvider, "Open cell content in separate editor tab");
         group.add(open_in_editor);
 
-        group.add(new FlipTableExportAction("Flip Selected Rows", ExportingType.ROWS, dataProvider, "Flip and show selected rows in separate dialog"));
+        group.add(new FlipTableExportAction(dataProvider));
 
         group.addSeparator();
         final DefaultActionGroup exportGroup = new PopupActionGroup("Export Data _Into ...", KdbIcons.Console.Export);

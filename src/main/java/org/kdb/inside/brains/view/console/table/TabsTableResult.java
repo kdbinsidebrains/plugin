@@ -11,6 +11,7 @@ import com.intellij.openapi.wm.IdeGlassPaneUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.awt.RelativeRectangle;
+import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.docking.DockContainer;
 import com.intellij.ui.docking.DockableContent;
 import com.intellij.ui.docking.DragSession;
@@ -38,19 +39,21 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-public class TabsTableResult implements DockContainer, Disposable {
-    private final JBTabsEx tabs;
-    private final Project project;
-    private final KdbOutputFormatter formatter;
-    private final AnAction renameAction;
-    private final CopyOnWriteArraySet<Listener> listeners = new CopyOnWriteArraySet<>();
+public class TabsTableResult extends NonOpaquePanel implements DockContainer, Disposable {
     private TabInfo tableTab;
     private TabInfo consoleTab;
-    private JBTabs myCurrentOver;
+
+    private final JBTabsEx tabs;
     private Image myCurrentOverImg;
     private TabInfo myCurrentOverInfo;
     private MyDropAreaPainter myCurrentPainter;
     private Disposable myGlassPaneListenersDisposable = Disposer.newDisposable();
+    private final Project project;
+    private final AnAction renameAction;
+    private final KdbOutputFormatter formatter;
+    private final CopyOnWriteArraySet<Listener> listeners = new CopyOnWriteArraySet<>();
+    // Docking
+    private JBTabs myCurrentOver;
 
     public TabsTableResult(Project project, Disposable parent) {
         this.project = project;
@@ -94,10 +97,9 @@ public class TabsTableResult implements DockContainer, Disposable {
         });
 
         TabsDockingManager.getInstance(project).register(this, parent);
-    }
 
-    public JComponent getComponent() {
-        return tabs.getComponent();
+        setLayout(new BorderLayout());
+        add(BorderLayout.CENTER, tabs.getComponent());
     }
 
     public void showConsole(TabInfo consoleTab) {
@@ -168,9 +170,12 @@ public class TabsTableResult implements DockContainer, Disposable {
         return ContentResponse.ACCEPT_MOVE;
     }
 
-    @Override
-    public JComponent getContainerComponent() {
-        return tabs.getComponent();
+    public static TabsTableResult findParentTabs(Component component) {
+        Component p = component;
+        while (p != null && !(p instanceof TabsTableResult)) {
+            p = p.getParent();
+        }
+        return (TabsTableResult) p;
     }
 
     @Override
@@ -241,11 +246,15 @@ public class TabsTableResult implements DockContainer, Disposable {
         }
     }
 
+    @Override
+    public JComponent getContainerComponent() {
+        return this;
+    }
 
     private @Nullable JBTabs getTabsAt(DockableContent<?> content, RelativePoint point) {
         if (content instanceof TableResultContent) {
-            final Point p = point.getPoint(getComponent());
-            Component c = SwingUtilities.getDeepestComponentAt(getComponent(), p.x, p.y);
+            final Point p = point.getPoint(tabs.getComponent());
+            Component c = SwingUtilities.getDeepestComponentAt(tabs.getComponent(), p.x, p.y);
             while (c != null) {
                 if (c instanceof JBTabs) {
                     return (JBTabs) c;
@@ -256,23 +265,29 @@ public class TabsTableResult implements DockContainer, Disposable {
         return null;
     }
 
-    public void showTableResult(TableResultView resultView, TableResult tableResult, BiConsumer<KdbQuery, TableResultView> repeater) {
-        if (resultView != null) {
-            resultView.showResult(tableResult);
+    public void showTab(String name, TableResult tableResult) {
+        showTab(name, tableResult, -1);
+    }
 
-            final TabInfo info = tabs.findInfo(resultView);
-            if (info != null) {
-                tabs.select(info, false);
-            }
-        } else {
-            if (tableTab != null) {
-                ((TableResultView) tableTab.getObject()).showResult(tableResult);
-                tabs.select(tableTab, false);
-            } else {
-                tableTab = createResultTabInfo("Table Result", tableResult, repeater);
-                insertNewTab(tableTab, consoleTab != null ? 1 : 0);
-            }
+    public void showTab(String name, TableResult result, int index) {
+        showTab(name, result, TableMode.NORMAL, index);
+    }
+
+    public void showTab(String name, TableResult result, TableMode mode, int index) {
+        insertNewTab(createResultTabInfo(name, result, mode, null), index);
+    }
+
+    public void showTabAfter(String name, TableResult result) {
+        showTabAfter(name, result, TableMode.NORMAL);
+    }
+
+    public void showTabAfter(String name, TableResult result, TableMode mode) {
+        int index = -1;
+        final TabInfo selectedInfo = tabs.getSelectedInfo();
+        if (selectedInfo != null) {
+            index = tabs.getIndexOf(selectedInfo) + 1;
         }
+        showTab(name, result, mode, index);
     }
 
     private void insertNewTab(TabInfo info, int index) {
@@ -304,12 +319,23 @@ public class TabsTableResult implements DockContainer, Disposable {
         return info;
     }
 
-    @NotNull
-    private TabInfo createResultTabInfo(String name, TableResult tableResult, BiConsumer<KdbQuery, TableResultView> repeater) {
-        final TableResultView tableResultView = new TableResultView(project, formatter, false, repeater);
-        tableResultView.showResult(tableResult);
+    public void updateTableResult(TableResult tableResult, TableResultView resultView, BiConsumer<KdbQuery, TableResultView> repeater) {
+        if (resultView != null) {
+            resultView.showResult(tableResult);
 
-        return createResultTabInfo(name, tableResultView);
+            final TabInfo info = tabs.findInfo(resultView);
+            if (info != null) {
+                tabs.select(info, false);
+            }
+        } else {
+            if (tableTab != null) {
+                ((TableResultView) tableTab.getObject()).showResult(tableResult);
+                tabs.select(tableTab, false);
+            } else {
+                tableTab = createResultTabInfo("Table Result", tableResult, TableMode.NORMAL, repeater);
+                insertNewTab(tableTab, consoleTab != null ? 1 : 0);
+            }
+        }
     }
 
     private void closeTab(TabInfo info) {
@@ -336,8 +362,12 @@ public class TabsTableResult implements DockContainer, Disposable {
         }
     }
 
-    public void openResult(String name, TableResult tableResult) {
-        insertNewTab(createResultTabInfo(name, tableResult, null), -1);
+    @NotNull
+    private TabInfo createResultTabInfo(String name, TableResult tableResult, TableMode mode, BiConsumer<KdbQuery, TableResultView> repeater) {
+        final TableResultView tableResultView = new TableResultView(project, formatter, mode, repeater);
+        tableResultView.showResult(tableResult);
+
+        return createResultTabInfo(name, tableResultView);
     }
 
     public static class TableResultContent implements DockableContent<TabInfo> {
@@ -434,7 +464,7 @@ public class TabsTableResult implements DockContainer, Disposable {
             myBoundingBox = null;
             setNeedsRepaint(true);
 
-            Rectangle r = new Rectangle(getComponent().getSize());
+            Rectangle r = new Rectangle(tabs.getComponent().getSize());
             JBInsets.removeFrom(r, getTabsInsets());
             myBoundingBox = new Rectangle2D.Double(r.x, r.y, r.width, r.height);
         }
