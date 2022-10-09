@@ -18,6 +18,9 @@ public class ConsoleOptionsPanel extends JPanel {
     private final JBCheckBox indexColumn = new JBCheckBox("Show index column");
     private final JBCheckBox listAsTable = new JBCheckBox("Show list as table");
     private final JBCheckBox dictAsTable = new JBCheckBox("Show dict as table");
+    private final JBCheckBox expandList = new JBCheckBox("Vector");
+    private final JBCheckBox expandDict = new JBCheckBox("Dictionary");
+    private final JBCheckBox expandFlip = new JBCheckBox("Table");
     private final JBIntSpinner floatPrecisionEditor = new JBIntSpinner(7, 0, ConsoleOptions.MAX_DECIMAL_PRECISION);
     private final ComboBox<ConsoleSplitType> splitTypes = new ComboBox<>(ConsoleSplitType.values());
 
@@ -37,6 +40,7 @@ public class ConsoleOptionsPanel extends JPanel {
         formBuilder.addComponent(dictAsTable);
         formBuilder.addLabeledComponent("Float precision: ", floatPrecisionEditor);
         createSplitTypes(formBuilder);
+        addExpandPanel(formBuilder);
 
         add(formBuilder.getPanel());
     }
@@ -56,7 +60,19 @@ public class ConsoleOptionsPanel extends JPanel {
         p.add(splitTypes);
 
         formBuilder.addComponent(p);
+    }
 
+
+    private void addExpandPanel(FormBuilder formBuilder) {
+        final JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        p.add(expandList);
+        p.add(expandDict);
+        p.add(expandFlip);
+
+        formBuilder.addComponent(new JBLabel("Expand value by double click: "));
+        formBuilder.setFormLeftIndent(20);
+        formBuilder.addComponent(p);
+        formBuilder.setFormLeftIndent(0);
     }
 
     public ConsoleOptions getConsoleOptions() {
@@ -71,6 +87,9 @@ public class ConsoleOptionsPanel extends JPanel {
         consoleOptions.setDictAsTable(dictAsTable.isSelected());
         consoleOptions.setSplitType(splitTypes.getItem());
         consoleOptions.setIndexColumn(indexColumn.isSelected());
+        consoleOptions.setExpandList(expandList.isSelected());
+        consoleOptions.setExpandDict(expandDict.isSelected());
+        consoleOptions.setExpandTable(expandFlip.isSelected());
         return consoleOptions;
     }
 
@@ -85,5 +104,8 @@ public class ConsoleOptionsPanel extends JPanel {
         dictAsTable.setSelected(consoleOptions.isDictAsTable());
         splitTypes.setItem(consoleOptions.getSplitType());
         indexColumn.setSelected(consoleOptions.isIndexColumn());
+        expandList.setSelected(consoleOptions.isExpandList());
+        expandDict.setSelected(consoleOptions.isExpandDict());
+        expandFlip.setSelected(consoleOptions.isExpandTable());
     }
 }

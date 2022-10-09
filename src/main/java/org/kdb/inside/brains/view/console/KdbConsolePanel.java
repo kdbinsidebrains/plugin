@@ -106,7 +106,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         }, this);
 
         resultTabs.showConsole(consoleTab);
-        setContent(resultTabs.getComponent());
+        setContent(resultTabs);
 
         changeSplitting(splitType);
         setToolbar(createMainToolbar().getComponent());
@@ -115,7 +115,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     private JBSplitter createSplitter() {
         JBSplitter splitter = new JBSplitter(true, 0.5f);
         splitter.setResizeEnabled(true);
-        splitter.setHonorComponentsMinimumSize(true);
+        splitter.setHonorComponentsMinimumSize(false);
         splitter.setHonorComponentsPreferredSize(false);
         splitter.setAndLoadSplitterProportionKey("KdbConsole.Tabs.Splitter");
         return splitter;
@@ -276,13 +276,13 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                 consoleTabs.removeTab(consoleTab);
                 resultTabs.showConsole(consoleTab);
                 splitter.setSecondComponent(null);
-                setContent(resultTabs.getComponent());
+                setContent(resultTabs);
             }
         } else {
             if (activeSplitType == ConsoleSplitType.NO || (!splat && resultTabs.getTabCount() > 1)) {
                 resultTabs.hideConsole(consoleTab);
                 consoleTabs.addTab(consoleTab);
-                splitter.setSecondComponent(resultTabs.getComponent());
+                splitter.setSecondComponent(resultTabs);
                 setContent(splitter);
             }
             splitter.setOrientation(type == ConsoleSplitType.DOWN);
@@ -306,7 +306,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                     throw new IllegalStateException("Incorrect object type: " + deserialize.getClass().getSimpleName());
                 }
 
-                resultTabs.openResult(virtualFile.getNameWithoutExtension(), tr);
+                resultTabs.showTab(virtualFile.getNameWithoutExtension(), tr);
             } catch (Exception ex) {
                 Messages.showErrorDialog(project, "The file can't be loaded: " + ex.getMessage(), "Incorrect KDB Table File");
             }
@@ -361,7 +361,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
                     final TableResult tbl = TableResult.from(query, result);
                     if (tbl != null) {
-                        resultTabs.showTableResult(resultView, tbl, this::execute);
+                        resultTabs.updateTableResult(tbl, resultView, this::execute);
                     } else {
                         selectConsole();
                     }

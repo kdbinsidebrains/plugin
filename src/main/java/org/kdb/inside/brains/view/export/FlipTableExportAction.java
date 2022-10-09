@@ -12,15 +12,17 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
+import org.kdb.inside.brains.view.console.table.TableMode;
 import org.kdb.inside.brains.view.console.table.TableResult;
 import org.kdb.inside.brains.view.console.table.TableResultView;
+import org.kdb.inside.brains.view.console.table.TabsTableResult;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class FlipTableExportAction extends AnExportAction<Boolean> {
-    public FlipTableExportAction(String text, ExportingType type, ExportDataProvider exportingView, String description) {
-        super(text, type, exportingView, description, KdbIcons.Console.FlipTable);
+    public FlipTableExportAction(ExportDataProvider exportingView) {
+        super("Flip Selected Rows", ExportingType.ROWS, exportingView, "Flip and show selected rows in separate dialog", KdbIcons.Console.FlipTable);
     }
 
     @Override
@@ -28,8 +30,22 @@ public class FlipTableExportAction extends AnExportAction<Boolean> {
         return Boolean.TRUE;
     }
 
+    private static void showResultInFrame(Project project, KdbOutputFormatter formatter, TableResult result) {
+        final TableResultView view = new TableResultView(project, formatter, TableMode.COMPACT); // Compact mode is required here
+        view.showResult(result);
+
+        final ResultDialog dlg = new ResultDialog(project, view);
+        var ideFrame = WindowManagerEx.getInstanceEx().getIdeFrame(project);
+        if (ideFrame != null) {
+            final Rectangle rectangle = ideFrame.suggestChildFrameBounds();
+            dlg.setSize((int) rectangle.getWidth(), (int) rectangle.getHeight());
+            dlg.setLocation(rectangle.getLocation());
+        }
+        dlg.show();
+    }
+
     @Override
-    protected void exportResultView(Project project, ExportingType type, Boolean cfg, ExportDataProvider dataProvider, KdbOutputFormatter formatter, @NotNull ProgressIndicator indicator) throws Exception {
+    protected void exportResultView(Project project, ExportingType type, Boolean cfg, ExportDataProvider dataProvider, KdbOutputFormatter formatter, @NotNull ProgressIndicator indicator) {
         final JTable table = dataProvider.getTable();
 
         final ExportingType.IndexIterator ri = type.rowsIterator(table);
@@ -61,18 +77,14 @@ public class FlipTableExportAction extends AnExportAction<Boolean> {
         }
 
         final c.Flip data = new c.Flip(new c.Dict(columns, values));
+        final TableResult result = TableResult.from(new KdbQuery(""), KdbResult.with(data));
         ApplicationManager.getApplication().invokeLater(() -> {
-            final TableResultView view = new TableResultView(project, formatter, true, null); // Compact mode is required here
-            view.showResult(TableResult.from(new KdbQuery(""), KdbResult.with(data)));
-
-            final ResultDialog dlg = new ResultDialog(project, view);
-            var ideFrame = WindowManagerEx.getInstanceEx().getIdeFrame(project);
-            if (ideFrame != null) {
-                final Rectangle rectangle = ideFrame.suggestChildFrameBounds();
-                dlg.setSize((int) rectangle.getWidth(), (int) rectangle.getHeight());
-                dlg.setLocation(rectangle.getLocation());
+            final TabsTableResult tabs = TabsTableResult.findParentTabs(table);
+            if (tabs == null) {
+                showResultInFrame(project, formatter, result);
+            } else {
+                tabs.showTabAfter("Flipped Rows", result);
             }
-            dlg.show();
         });
     }
 
