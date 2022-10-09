@@ -2,6 +2,23 @@
 
 # KdbInsideBrains Changelog
 
+## [1.11.0]
+
+### Added
+
+- Expand a list/dict/table by double-click in TableResult (can be disabled in options)
+- Columns fileter added to TableResult view on the right side: particular columns can be hidden/shown based on the
+  filter.
+
+### Fixed
+
+- TableResult takes almost all space in right spit
+
+### Changed
+
+- 'Flip Selected Rows' is opened as a new tab like new expand action instead of a window now.
+  Ctrl+Dbl Click is hot-click for the action.
+
 ## [1.10.0]
 
 ### Added
