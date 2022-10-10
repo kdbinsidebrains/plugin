@@ -21,6 +21,7 @@ public final class KdbIcons {
 
         public static final Icon ToolWindow = load("/org/kdb/inside/brains/icons/windows/instances.svg");
         public static final Icon ConsoleWindow = load("/org/kdb/inside/brains/icons/windows/console.svg");
+        public static final Icon InspectorWindow = load("/org/kdb/inside/brains/icons/windows/inspector.svg");
     }
 
     public static final class Scope {
@@ -47,6 +48,10 @@ public final class KdbIcons {
         public static final Icon ToolCrosshair = load("/org/kdb/inside/brains/icons/chart/tool_crosshair.svg");
         public static final Icon ToolPoints = load("/org/kdb/inside/brains/icons/chart/tool_points.svg");
         public static final Icon ToolMeasure = load("/org/kdb/inside/brains/icons/chart/tool_measure.svg");
+    }
+
+    public static final class Inspector {
+        public static final Icon Refresh = AllIcons.Actions.Refresh;
     }
 
     public static final class Console {
