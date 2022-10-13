@@ -18,38 +18,63 @@ import org.kdb.inside.brains.lang.annotation.QElementAnnotator;
 import org.kdb.inside.brains.lang.annotation.WriteIntentionAction;
 import org.kdb.inside.brains.psi.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class QTableAnnotator extends QElementAnnotator<QTableExpr> {
     public QTableAnnotator() {
         super(QTableExpr.class);
     }
 
-    private static void validateMissedDeclarations(List<QTableColumn> cols, AnnotationHolder holder) {
-        for (QTableColumn col : cols) {
-            final PsiElement child = col.getFirstChild();
-            if (!(child instanceof QVarDeclaration)) {
-                AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.WARNING, "Column declaration with a name").range(child);
 
-                final PsiElement missedDeclaration = getMissedColumnDeclaration(child);
-                if (missedDeclaration != null) {
-                    builder = builder.withFix(new WriteIntentionAction("Insert declaration colon", (project, editor, file) -> {
-                                final TextRange range = missedDeclaration.getTextRange();
-                                editor.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), ":");
-                            })
-                    );
-                } else {
-                    builder = builder.withFix(new WriteIntentionAction("Insert column name", (project, editor, file) -> {
-                                final TextRange range = child.getTextRange();
-                                editor.getDocument().replaceString(range.getStartOffset(), range.getStartOffset(), ":");
-                                editor.getCaretModel().moveToOffset(range.getStartOffset());
-                            })
-                    );
+    private static void validateTailSemicolon(PsiElement element, AnnotationHolder holder) {
+        if (element == null) {
+            return;
+        }
 
+        PsiElement semicolon = null;
+        PsiElement child = QPsiUtil.getFirstNonWhitespaceAndCommentsChild(element);
+        while (child != null) {
+            final IElementType et = child.getNode().getElementType();
+            if (et != QTypes.BRACKET_OPEN && et != QTypes.BRACKET_CLOSE) {
+                if (et == QTypes.TABLE_COLUMN) {
+                    validateMissedDeclarations(child, holder);
                 }
-                builder.create();
+                if (et == QTypes.SEMICOLON) {
+                    if (semicolon != null) {
+                        createSemicolonError(child, holder);
+                    } else {
+                        semicolon = child;
+                    }
+                } else {
+                    semicolon = null;
+                }
             }
+            child = PsiTreeUtil.skipWhitespacesAndCommentsForward(child);
+        }
+
+        if (semicolon != null) {
+            createSemicolonError(semicolon, holder);
+        }
+    }
+
+    private static void validateMissedDeclarations(PsiElement column, AnnotationHolder holder) {
+        final PsiElement child = column.getFirstChild();
+        if (!(child instanceof QVarDeclaration)) {
+            AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.WARNING, "Column declaration with a name").range(child);
+
+            final PsiElement missedDeclaration = getMissedColumnDeclaration(child);
+            if (missedDeclaration != null) {
+                builder = builder.withFix(new WriteIntentionAction("Insert declaration colon", (project, editor, file) -> {
+                            final TextRange range = missedDeclaration.getTextRange();
+                            editor.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), ":");
+                        })
+                );
+            }
+            builder = builder.withFix(new WriteIntentionAction("Insert column name", (project, editor, file) -> {
+                        final TextRange range = child.getTextRange();
+                        editor.getDocument().replaceString(range.getStartOffset(), range.getStartOffset(), ":");
+                        editor.getCaretModel().moveToOffset(range.getStartOffset());
+                    })
+            );
+            builder.create();
         }
     }
 
@@ -72,36 +97,11 @@ public class QTableAnnotator extends QElementAnnotator<QTableExpr> {
         return first.getNextSibling();
     }
 
-    private static void validateTailSemicolon(PsiElement element, AnnotationHolder holder, List<QTableColumn> columns) {
-        if (element == null) {
-            return;
-        }
-
-        PsiElement semicolon = null;
-        PsiElement child = QPsiUtil.getFirstNonWhitespaceAndCommentsChild(element);
-        while (child != null) {
-            final IElementType et = child.getNode().getElementType();
-            if (et != QTypes.BRACKET_OPEN && et != QTypes.BRACKET_CLOSE) {
-                if (et == QTypes.TABLE_COLUMN) {
-                    columns.add((QTableColumn) child);
-                }
-                if (et == QTypes.SEMICOLON) {
-                    if (semicolon != null) {
-                        createSemicolonError(child, holder);
-                    } else {
-                        semicolon = child;
-                    }
-                } else {
-                    semicolon = null;
-                }
-            }
-            child = PsiTreeUtil.skipWhitespacesAndCommentsForward(child);
-        }
-
-        if (semicolon != null) {
-            createSemicolonError(semicolon, holder);
-        }
-        return;
+    @Override
+    protected void annotate(@NotNull QTableExpr element, @NotNull AnnotationHolder holder) {
+        validateTailSemicolon(element, holder);
+        validateTailSemicolon(element.getKeys(), holder);
+        validateTailSemicolon(element.getValues(), holder);
     }
 
     private static void createSemicolonError(PsiElement el, AnnotationHolder holder) {
@@ -124,15 +124,5 @@ public class QTableAnnotator extends QElementAnnotator<QTableExpr> {
                     }
                 })
                 .create();
-    }
-
-    @Override
-    protected void annotate(@NotNull QTableExpr element, @NotNull AnnotationHolder holder) {
-        validateTailSemicolon(element, holder, null);
-
-        final List<QTableColumn> cols = new ArrayList<>();
-        validateTailSemicolon(element.getKeys(), holder, cols);
-        validateTailSemicolon(element.getValues(), holder, cols);
-        validateMissedDeclarations(cols, holder);
     }
 }
