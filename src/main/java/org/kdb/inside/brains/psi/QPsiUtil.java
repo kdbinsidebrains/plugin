@@ -1,9 +1,7 @@
 package org.kdb.inside.brains.psi;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiParserFacade;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.kdb.inside.brains.QFileType;
@@ -69,6 +67,10 @@ public final class QPsiUtil {
         return isLeafText(el, ":");
     }
 
+    public static boolean isWhitespace(PsiElement el) {
+        return el instanceof PsiWhiteSpace || el instanceof PsiComment;
+    }
+
     public static boolean isSemicolon(PsiElement el) {
         return isLeafText(el, ";");
     }
@@ -79,6 +81,14 @@ public final class QPsiUtil {
 
     public static boolean isLeafText(PsiElement el, Predicate<String> predicate) {
         return el instanceof LeafPsiElement && predicate.test(el.getText());
+    }
+
+    public static PsiElement getFirstNonWhitespaceAndCommentsChild(PsiElement el) {
+        PsiElement c = el.getFirstChild();
+        if (c == null) {
+            return null;
+        }
+        return isWhitespace(c) ? PsiTreeUtil.skipWhitespacesAndCommentsForward(c) : c;
     }
 
     public static PsiElement findRootExpression(PsiElement element) {

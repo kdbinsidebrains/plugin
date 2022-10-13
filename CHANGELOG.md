@@ -2,6 +2,15 @@
 
 # KdbInsideBrains Changelog
 
+## [1.12.0]
+
+### Added
+
+- Table declaration annotations added:
+  - tailing semicolon marked as an error
+  - set of semicolon (empty declarations) marked as an error
+  - even expressions are allowed without column names, they are marked as a warning if it's not declaration
+
 ## [1.11.0]
 
 ### Added
