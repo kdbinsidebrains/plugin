@@ -121,6 +121,11 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             }
 
             @Override
+            protected TableColumnModel createDefaultColumnModel() {
+                return new MyTableColumnModel();
+            }
+
+            @Override
             public void setModel(@NotNull TableModel model) {
                 super.setModel(model);
 
@@ -494,7 +499,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
 
         if (columnsFilter != null) {
-            columnsFilter.updateTable(myTable);
+            columnsFilter.invalidateFilter();
         }
 
         if (statusBar != null) {
