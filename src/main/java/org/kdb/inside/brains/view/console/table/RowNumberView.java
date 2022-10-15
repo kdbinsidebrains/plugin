@@ -11,6 +11,8 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -43,6 +45,17 @@ class RowNumberView extends JTable implements Disposable {
 
         recalculateWidth(main.getModel());
 
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                table.grabFocus();
+            }
+        });
+    }
+
+    @Override
+    public void requestFocus() {
+        super.requestFocus();
     }
 
     private void recalculateWidth(TableModel model) {

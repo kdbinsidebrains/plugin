@@ -2,6 +2,21 @@
 
 # KdbInsideBrains Changelog
 
+## [1.12.0]
+
+### Added
+
+- Table declaration annotations added:
+  - tailing semicolon marked as an error
+  - set of semicolon (empty declarations) marked as an error
+  - even expressions are allowed without column names, they are marked as a warning if it's not declaration
+
+### Fixed
+
+- in TableResult filter Copy action copies component full id instead of text: fixed. Copies column name instead.
+- Hidden columns copied to buffer anyway: fully redesigned and works as expected now
+- Selection by index column does nothing if table is not in focus: the focus is grabbed now
+
 ## [1.11.0]
 
 ### Added
