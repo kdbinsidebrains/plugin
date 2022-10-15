@@ -81,6 +81,11 @@ public final class KdbIcons {
         public static final Icon OpenInEditor = AllIcons.General.FitContent;
         public static final Icon FlipTable = load("/org/kdb/inside/brains/icons/flipTable.svg");
         public static final Icon TableIndex = load("/org/kdb/inside/brains/icons/tableIndex.svg");
+
+        public static final Icon SelectAll = AllIcons.Actions.Selectall;
+        public static final Icon UnselectAll = AllIcons.Actions.Unselectall;
+
+        public static final Icon ColumnsFilter = AllIcons.General.Filter;
     }
 
     public static final class Node {

@@ -4,6 +4,7 @@ import com.intellij.find.FindModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.panels.NonOpaquePanel;
@@ -13,14 +14,17 @@ import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.KdbIcons;
+import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.core.KdbQuery;
+import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.chart.ShowChartAction;
+import org.kdb.inside.brains.view.console.ConsoleOptions;
 import org.kdb.inside.brains.view.export.ClipboardExportAction;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 import org.kdb.inside.brains.view.export.ExportingType;
@@ -45,27 +49,38 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private ToggleAction searchAction;
 
     private final Project project;
+    private final ConsoleOptions consoleOptions;
     private final BiConsumer<KdbQuery, TableResultView> repeater;
 
     private final JBTable myTable;
-    private final JScrollPane scrollPane;
+    private final Splitter splitter;
+    private final JScrollPane tableScroll;
     private final TableResultSearchSession searchSession;
 
+    private ColumnsFilterPanel columnsFilter;
     private TableResultStatusPanel statusBar;
 
     public static final DataKey<TableResultView> DATA_KEY = DataKey.create("KdbConsole.TableResultView");
 
-    public TableResultView(Project project, KdbOutputFormatter formatter, boolean compactForm, BiConsumer<KdbQuery, TableResultView> repeater) {
+    public TableResultView(Project project, KdbOutputFormatter formatter) {
+        this(project, formatter, TableMode.NORMAL);
+    }
+
+    public TableResultView(Project project, KdbOutputFormatter formatter, TableMode mode) {
+        this(project, formatter, mode, null);
+    }
+
+    public TableResultView(Project project, KdbOutputFormatter formatter, TableMode mode, BiConsumer<KdbQuery, TableResultView> repeater) {
         this.project = project;
         this.repeater = repeater;
 
-        final var options = KdbSettingsService.getInstance().getConsoleOptions();
+        consoleOptions = KdbSettingsService.getInstance().getConsoleOptions();
         final var valueColumnRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 final Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 if (!isSelected) {
-                    if (options.isStriped() && row % 2 == 0) {
+                    if (consoleOptions.isStriped() && row % 2 == 0) {
                         c.setBackground(UIUtil.getDecoratedRowColor());
                     } else {
                         c.setBackground(table.getBackground());
@@ -137,7 +152,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         };
 
         myTable.setStriped(false);
-        myTable.setShowGrid(options.isShowGrid());
+        myTable.setShowGrid(consoleOptions.isShowGrid());
 
         myTable.setShowColumns(true);
         myTable.setColumnSelectionAllowed(true);
@@ -156,7 +171,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         myTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                processTableMouseReleased(e);
+                magicMouseActions(e);
             }
         });
 
@@ -167,90 +182,67 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
         createSearchComponent();
 
-        final ActionGroup contextMenu = createContextMenu();
-        PopupHandler.installPopupHandler(myTable, contextMenu, "TableResultView.Context");
-
-        scrollPane = ScrollPaneFactory.createScrollPane(myTable, true);
-        if (options.isIndexColumn()) {
-            scrollPane.setRowHeaderView(new RowNumberView(myTable));
+        tableScroll = ScrollPaneFactory.createScrollPane(myTable, true);
+        if (consoleOptions.isIndexColumn()) {
+            tableScroll.setRowHeaderView(new RowNumberView(myTable));
         }
 
         setLayout(new BorderLayout());
-        add(searchSession.getComponent(), BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
 
-        if (!compactForm) {
+        splitter = new Splitter(false, 1);
+        splitter.setFirstComponent(tableScroll);
+        splitter.setDividerPositionStrategy(Splitter.DividerPositionStrategy.KEEP_SECOND_SIZE);
+        splitter.setLackOfSpaceStrategy(Splitter.LackOfSpaceStrategy.HONOR_THE_SECOND_MIN_SIZE);
+        splitter.setHonorComponentsMinimumSize(true);
+        splitter.setAllowSwitchOrientationByMouseClick(false);
+        splitter.setShowDividerIcon(false);
+        splitter.setShowDividerControls(false);
+
+        add(splitter, BorderLayout.CENTER);
+
+        add(searchSession.getComponent(), BorderLayout.NORTH);
+
+        if (mode.showStatusBar()) {
             statusBar = new TableResultStatusPanel(myTable, formatter);
             add(statusBar, BorderLayout.SOUTH);
         }
 
-        final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Toolbar", contextMenu, false);
-        actionToolbar.setTargetComponent(this);
-        add(actionToolbar.getComponent(), BorderLayout.WEST);
+        add(createFilter(), BorderLayout.EAST);
+        add(createActions(), BorderLayout.WEST);
     }
 
-    private void initializeColumnHighlither() {
-        final JTableHeader header = myTable.getTableHeader();
+    @NotNull
+    private JComponent createFilter() {
+        final DefaultActionGroup group = new DefaultActionGroup();
 
-        final Border normalBorder = JBUI.Borders.emptyBottom(1);
-        final Border selectedBorder = JBUI.Borders.customLine(myTable.getSelectionBackground(), 0, 0, 1, 0);
-
-        final TableCellRenderer defaultRenderer = header.getDefaultRenderer();
-        header.setDefaultRenderer((table, value, isSelected, hasFocus, row, column) -> {
-            final Component cmp = defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            if (cmp instanceof JComponent) {
-                final JComponent component = (JComponent) cmp;
-                final boolean selectedIndex = table.getColumnModel().getSelectionModel().isSelectedIndex(column);
-                final Border border = selectedIndex ? selectedBorder : normalBorder;
-                final Border merge = JBUI.Borders.merge(component.getBorder(), border, true);
-                component.setBorder(merge);
+        final ToggleAction action = new ToggleAction("Filter Columns", "Filter columns list", KdbIcons.Console.ColumnsFilter) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return splitter.getSecondComponent() != null;
             }
-            return cmp;
-        });
-        myTable.getColumnModel().getSelectionModel().addListSelectionListener(e -> header.repaint());
-    }
 
-    public boolean isShowIndexColumn() {
-        return getNumberTable() != null;
-    }
-
-    public void setShowIndexColumn(boolean show) {
-        final RowNumberView numberTable = getNumberTable();
-        if (show) {
-            if (numberTable == null) {
-                scrollPane.setRowHeaderView(new RowNumberView(myTable));
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                if (state) {
+                    columnsFilter = new ColumnsFilterPanel(myTable);
+                    splitter.setSecondComponent(columnsFilter);
+                    columnsFilter.requestFocus();
+                } else {
+                    splitter.setSecondComponent(null);
+                    columnsFilter.destroy();
+                    columnsFilter = null;
+                }
             }
-        } else {
-            if (numberTable != null) {
-                numberTable.dispose();
-                scrollPane.setRowHeaderView(null);
-            }
-        }
+        };
+        group.add(action);
+
+        final ActionToolbar filterToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Filter", group, false);
+        filterToolbar.setTargetComponent(this);
+        return filterToolbar.getComponent();
     }
 
-    private RowNumberView getNumberTable() {
-        final JViewport rowHeader = scrollPane.getRowHeader();
-        if (rowHeader == null) {
-            return null;
-        }
-        return (RowNumberView) rowHeader.getView();
-    }
-
-    private void processTableMouseReleased(MouseEvent e) {
-        if (e.getClickCount() != 2) {
-            return;
-        }
-
-        if (e.getButton() == MouseEvent.BUTTON1) {
-            if (e.isAltDown()) {
-                new OpenInEditorAction(null, this).performExport(project, this);
-            } else {
-                new ClipboardExportAction(null, ExportingType.SELECTION, this).performExport(project, this);
-            }
-        }
-    }
-
-    public ActionGroup createContextMenu() {
+    @NotNull
+    private JComponent createActions() {
         final DefaultActionGroup group = new DefaultActionGroup();
 
         if (repeater != null) {
@@ -286,11 +278,104 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         group.addSeparator();
         group.add(new ShowChartAction("Show _Chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.copy(myTable)));
 
-        return group;
+        PopupHandler.installPopupHandler(myTable, group, "TableResultView.Context");
+
+        final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Actions", group, false);
+        actionToolbar.setTargetComponent(this);
+
+        return actionToolbar.getComponent();
     }
 
-    public TableResult getTableResult() {
-        return tableResult;
+    private void initializeColumnHighlither() {
+        final JTableHeader header = myTable.getTableHeader();
+
+        final Border normalBorder = JBUI.Borders.emptyBottom(1);
+        final Border selectedBorder = JBUI.Borders.customLine(myTable.getSelectionBackground(), 0, 0, 1, 0);
+
+        final TableCellRenderer defaultRenderer = header.getDefaultRenderer();
+        header.setDefaultRenderer((table, value, isSelected, hasFocus, row, column) -> {
+            final Component cmp = defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (cmp instanceof JComponent) {
+                final JComponent component = (JComponent) cmp;
+                final boolean selectedIndex = table.getColumnModel().getSelectionModel().isSelectedIndex(column);
+                final Border border = selectedIndex ? selectedBorder : normalBorder;
+                final Border merge = JBUI.Borders.merge(component.getBorder(), border, true);
+                component.setBorder(merge);
+            }
+            return cmp;
+        });
+        myTable.getColumnModel().getSelectionModel().addListSelectionListener(e -> header.repaint());
+    }
+
+    public boolean isShowIndexColumn() {
+        return getNumberTable() != null;
+    }
+
+    public void setShowIndexColumn(boolean show) {
+        final RowNumberView numberTable = getNumberTable();
+        if (show) {
+            if (numberTable == null) {
+                tableScroll.setRowHeaderView(new RowNumberView(myTable));
+            }
+        } else {
+            if (numberTable != null) {
+                numberTable.dispose();
+                tableScroll.setRowHeaderView(null);
+            }
+        }
+    }
+
+    private RowNumberView getNumberTable() {
+        final JViewport rowHeader = tableScroll.getRowHeader();
+        if (rowHeader == null) {
+            return null;
+        }
+        return (RowNumberView) rowHeader.getView();
+    }
+
+    private void magicMouseActions(MouseEvent e) {
+        if (e.getClickCount() != 2 || e.getButton() != MouseEvent.BUTTON1) {
+            return;
+        }
+
+        if (e.isAltDown()) {
+            new OpenInEditorAction(null, this).performExport(project, this);
+        } else {
+            if (expandSelectedCell()) {
+                return;
+            }
+            new ClipboardExportAction(null, ExportingType.SELECTION, this).performExport(project, this);
+        }
+    }
+
+    private boolean expandSelectedCell() {
+        final int c = myTable.getSelectedColumn();
+        final int r = myTable.getSelectedRow();
+        if (c >= 0 && r >= 0) {
+            final Object v = myTable.getValueAt(r, c);
+            if (isExpandable(v)) {
+                final TabsTableResult owner = TabsTableResult.findParentTabs(this);
+                if (owner != null) {
+                    final TableResult from = TableResult.from(new KdbQuery("Expanded result at row=" + r + ", col=" + c), KdbResult.with(v));
+                    owner.showTabAfter("Expanded Result", from);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isExpandable(Object o) {
+        if (o == null) {
+            return false;
+        }
+        if (TableResult.isList(o) && consoleOptions.isExpandList()) {
+            return true;
+        }
+        if (TableResult.isTable(o) && consoleOptions.isExpandTable()) {
+            return true;
+        }
+        return o instanceof c.Dict && consoleOptions.isExpandDict();
     }
 
     public JComponent getFocusableComponent() {
@@ -408,6 +493,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             modelBeenUpdated(searchSession.getFindModel());
         }
 
+        if (columnsFilter != null) {
+            columnsFilter.updateTable(myTable);
+        }
+
         if (statusBar != null) {
             statusBar.showResult(tableResult);
         }
@@ -444,9 +533,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
         @Override
         public boolean include(Entry<? extends TableModel, ? extends Integer> value) {
-            final TableModel model = value.getModel();
-//            final String columnName = model.getColumnName();
-
             int index = value.getValueCount();
             while (--index >= 0) {
                 final String stringValue = value.getStringValue(index);

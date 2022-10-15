@@ -14,6 +14,9 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     private boolean indexColumn = false;
     private boolean dictAsTable = true;
     private boolean listAsTable = true;
+    private boolean expandList = true;
+    private boolean expandDict = true;
+    private boolean expandTable = true;
     private ConsoleSplitType splitType = ConsoleSplitType.NO;
 
     public static final int MAX_DECIMAL_PRECISION = 16;
@@ -101,6 +104,30 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.indexColumn = indexColumn;
     }
 
+    public boolean isExpandList() {
+        return expandList;
+    }
+
+    public void setExpandList(boolean expandList) {
+        this.expandList = expandList;
+    }
+
+    public boolean isExpandDict() {
+        return expandDict;
+    }
+
+    public void setExpandDict(boolean expandDict) {
+        this.expandDict = expandDict;
+    }
+
+    public boolean isExpandTable() {
+        return expandTable;
+    }
+
+    public void setExpandTable(boolean expandTable) {
+        this.expandTable = expandTable;
+    }
+
     @Override
     public void copyFrom(ConsoleOptions options) {
         this.enlistArrays = options.enlistArrays;
@@ -113,6 +140,9 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.dictAsTable = options.dictAsTable;
         this.splitType = options.splitType;
         this.indexColumn = options.indexColumn;
+        this.expandList = options.expandList;
+        this.expandDict = options.expandDict;
+        this.expandTable = options.expandTable;
     }
 
     @Override
@@ -120,16 +150,30 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ConsoleOptions that = (ConsoleOptions) o;
-        return floatPrecision == that.floatPrecision && enlistArrays == that.enlistArrays && wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && striped == that.striped && showGrid == that.showGrid && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable && splitType == that.splitType && indexColumn == that.indexColumn;
+        return floatPrecision == that.floatPrecision && enlistArrays == that.enlistArrays && wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && striped == that.striped && showGrid == that.showGrid && indexColumn == that.indexColumn && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable && expandList == that.expandList && expandDict == that.expandDict && expandTable == that.expandTable && splitType == that.splitType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(floatPrecision, enlistArrays, wrapStrings, prefixSymbols, striped, showGrid, dictAsTable, listAsTable, splitType, indexColumn);
+        return Objects.hash(floatPrecision, enlistArrays, wrapStrings, prefixSymbols, striped, showGrid, indexColumn, dictAsTable, listAsTable, expandList, expandDict, expandTable, splitType);
     }
 
     @Override
     public String toString() {
-        return "ConsoleOptions{" + "floatPrecision=" + floatPrecision + ", enlistArrays=" + enlistArrays + ", wrapStrings=" + wrapStrings + ", prefixSymbols=" + prefixSymbols + ", striped=" + striped + ", showGrid=" + showGrid + ", dictAsTable=" + dictAsTable + ", listAsTable=" + listAsTable + ", splitType=" + splitType + ", indexColumn=" + indexColumn + '}';
+        return "ConsoleOptions{" +
+                "floatPrecision=" + floatPrecision +
+                ", enlistArrays=" + enlistArrays +
+                ", wrapStrings=" + wrapStrings +
+                ", prefixSymbols=" + prefixSymbols +
+                ", striped=" + striped +
+                ", showGrid=" + showGrid +
+                ", indexColumn=" + indexColumn +
+                ", dictAsTable=" + dictAsTable +
+                ", listAsTable=" + listAsTable +
+                ", expandList=" + expandList +
+                ", expandDict=" + expandDict +
+                ", expandTable=" + expandTable +
+                ", splitType=" + splitType +
+                '}';
     }
 }
