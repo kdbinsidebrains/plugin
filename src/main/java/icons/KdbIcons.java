@@ -98,7 +98,6 @@ public final class KdbIcons {
         public static final Icon NewPackage = AllIcons.Actions.NewFolder;
         public static final Icon NewInstance = load("/org/kdb/inside/brains/icons/newInstance.svg");
 
-
         public static final Icon File = Main.File;
         public static final Icon Import = load("/org/kdb/inside/brains/icons/nodes/import.svg");
         public static final Icon Command = load("/org/kdb/inside/brains/icons/nodes/command.svg");
@@ -109,6 +108,7 @@ public final class KdbIcons {
         public static final Icon Parameter = AllIcons.Nodes.Parameter;
         public static final Icon Function = AllIcons.Nodes.Function;
         public static final Icon Keyword = AllIcons.Nodes.Constant;
+        public static final Icon Namespace = AllIcons.Nodes.Package;
 
         public static final Icon Table = AllIcons.Nodes.DataTables;
         public static final Icon TableKeyColumn = load("/org/kdb/inside/brains/icons/nodes/keyColumn.svg");
@@ -117,9 +117,12 @@ public final class KdbIcons {
         public static final Icon ChangeColor = AllIcons.Actions.Colors;
         public static final Icon ShowConnectionFilter = AllIcons.Actions.Show;
 
-
         public static final Icon PublicItem = AllIcons.Nodes.C_public;
         public static final Icon PrivateItem = AllIcons.Nodes.C_private;
+
+        public static final Icon GroupTables = load("/org/kdb/inside/brains/icons/nodes/groupTables.svg");
+        public static final Icon GroupFunctions = load("/org/kdb/inside/brains/icons/nodes/groupFunctions.svg");
+        public static final Icon GroupVariables = load("/org/kdb/inside/brains/icons/nodes/groupVariables.svg");
     }
 
     public static final class Instance {
