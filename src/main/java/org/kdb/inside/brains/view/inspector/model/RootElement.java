@@ -1,26 +1,59 @@
 package org.kdb.inside.brains.view.inspector.model;
 
+import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.util.treeView.smartTree.TreeElement;
+import com.intellij.navigation.ItemPresentation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class RootElement extends InspectorElement {
-    private NamespaceElement element;
+import javax.swing.*;
+
+public class RootElement implements StructureViewTreeElement, ItemPresentation {
+    private TreeElement[] children = EMPTY_ARRAY;
 
     public RootElement() {
-        super("This is root element", null);
+    }
+
+    void updateInstance(InstanceElement element) {
+        this.children = element == null ? EMPTY_ARRAY : new InstanceElement[]{element};
+    }
+
+    @Override
+    public Object getValue() {
+        return children;
+    }
+
+    @Override
+    public @NotNull ItemPresentation getPresentation() {
+        return this;
     }
 
     @Override
     public TreeElement @NotNull [] getChildren() {
-        return element == null ? TreeElement.EMPTY_ARRAY : new TreeElement[]{element};
-    }
-
-    void updateNamespaces(NamespaceElement element) {
-        this.element = element;
+        return children;
     }
 
     @Override
-    public boolean isAlwaysLeaf() {
+    public void navigate(boolean requestFocus) {
+    }
+
+    @Override
+    public boolean canNavigate() {
         return false;
+    }
+
+    @Override
+    public boolean canNavigateToSource() {
+        return false;
+    }
+
+    @Override
+    public @Nullable String getPresentableText() {
+        return null;
+    }
+
+    @Override
+    public @Nullable Icon getIcon(boolean unused) {
+        return null;
     }
 }

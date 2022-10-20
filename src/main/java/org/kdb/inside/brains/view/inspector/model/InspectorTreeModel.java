@@ -15,11 +15,16 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class InspectorTreeModel implements StructureViewModel, StructureViewModel.ElementInfoProvider {
+    private InstanceElement instanceElement = null;
     private final RootElement root = new RootElement();
 
     private final List<ModelListener> modelListeners = new CopyOnWriteArrayList<>();
 
     public InspectorTreeModel() {
+    }
+
+    public InstanceElement getInstanceElement() {
+        return instanceElement;
     }
 
     @Override
@@ -84,8 +89,9 @@ public class InspectorTreeModel implements StructureViewModel, StructureViewMode
         return false;
     }
 
-    public void updateModel(NamespaceElement namespaceElement) {
-        root.updateNamespaces(namespaceElement);
+    public void updateModel(InstanceElement instanceElement) {
+        this.instanceElement = instanceElement;
+        root.updateInstance(instanceElement);
         modelListeners.forEach(ModelListener::onModelChanged);
     }
 
@@ -96,7 +102,7 @@ public class InspectorTreeModel implements StructureViewModel, StructureViewMode
 
     @Override
     public boolean isAlwaysLeaf(StructureViewTreeElement element) {
-        return ((InspectorElement) element).isAlwaysLeaf();
+        return element instanceof ExecutableElement;
     }
 
     private static class TheElementFilter implements Filter {

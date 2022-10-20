@@ -1,154 +1,361 @@
 package org.kdb.inside.brains.view.inspector;
 
+import com.intellij.ide.CopyProvider;
+import com.intellij.ide.structureView.ModelListener;
 import com.intellij.ide.structureView.newStructureView.StructureViewComponent;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.ide.structureView.newStructureView.TreeActionWrapper;
+import com.intellij.ide.structureView.newStructureView.TreeModelWrapper;
+import com.intellij.ide.util.FileStructurePopup;
+import com.intellij.ide.util.treeView.NodeRenderer;
+import com.intellij.ide.util.treeView.smartTree.SmartTreeStructure;
+import com.intellij.ide.util.treeView.smartTree.TreeAction;
+import com.intellij.ide.util.treeView.smartTree.TreeElementWrapper;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.DoubleClickListener;
+import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import com.intellij.ui.tree.AsyncTreeModel;
+import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
+import com.intellij.util.ui.TextTransferable;
 import com.intellij.util.ui.tree.TreeUtil;
 import icons.KdbIcons;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.core.*;
+import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.core.InstanceConnection;
+import org.kdb.inside.brains.core.InstanceState;
+import org.kdb.inside.brains.core.KdbConnectionListener;
+import org.kdb.inside.brains.core.KdbConnectionManager;
+import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.console.KdbConsoleToolWindow;
-import org.kdb.inside.brains.view.inspector.model.ExecutableElement;
-import org.kdb.inside.brains.view.inspector.model.InspectorTreeModel;
-import org.kdb.inside.brains.view.inspector.model.NamespaceElement;
+import org.kdb.inside.brains.view.inspector.model.*;
 
+import javax.swing.*;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class InspectorToolWindow implements Disposable {
+import static com.intellij.ide.structureView.newStructureView.StructureViewComponent.registerAutoExpandListener;
+
+
+@State(name = "KdbInstanceInspector", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
+public class InspectorToolWindow extends SimpleToolWindowPanel implements PersistentStateComponent<InspectorToolState>, KdbConnectionListener, InstanceScanner.ScanListener, DataProvider, Disposable {
+    public static final String PLACE = "Kdb.InstanceInspectorToolbar";
+
     private final Project project;
-    private static final String SCAN_QUERY = "" +
-            "{\n" +
-            "    / fix for root namespace\n" +
-            "    v:$[x=y; x; ` sv x,y];\n" +
-            "    / list of all inner namespaces - we get all keys and if the first value is (::) - that's namespace\n" +
-            "    ns:l where (::)~'(first')(value') ` sv'v,'l:key[v] except `;\n" +
-            "    / get all functions, tables, variables\n" +
-            "    r:{system y,\" \",x}[string v;] each \"fav\";\n" +
-            "    / return a dict with: table `name`size`meta\n" +
-            "    tbs:{v:$[x=`; y; ` sv x,y]; (y;count value v;0!meta v)}[v;] each r[1];\n" +
-            "    / variables are anything except namespaces and tables. We get `name`type for each\n" +
-            "    vrs:{(y;type get $[x=`; y; ` sv x,y])}[v;] each r[2] except ns,r[1];\n" +
-            "    / return final result\n" +
-            "    (y;r[0];tbs;vrs;.z.s[v;] each ns)\n" +
-            " }[`; `]";
-    private final InspectorTreeModel structureViewModel = new InspectorTreeModel();
-    private final KdbConnectionManager connectionManager;
+    private static final DateTimeFormatter STATUS_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    private final KdbConnectionListener connectionListener = new TheKdbConnectionListener();
     private InstanceConnection connection;
+    private final InstanceScanner scanner;
+    private final KdbConnectionManager connectionManager;
+    private final Tree tree;
+    private final CopyProvider copyProvider;
+    private final SmartTreeStructure smartStructure;
+    private final StructureTreeModel<SmartTreeStructure> structureModel;
+    private final InspectorTreeModel inspectorModel = new InspectorTreeModel();
+    private final Map<InstanceConnection, InstanceElement> instancesCache = new HashMap<>();
+
+    private final JLabel statusBar = new JLabel("", JLabel.RIGHT);
+    private final InspectorToolState settings = new InspectorToolState(this::rebuild);
+    private boolean disposed;
 
     public InspectorToolWindow(@NotNull Project project) {
+        super(true);
         this.project = project;
+        this.scanner = new InstanceScanner(project, this);
         connectionManager = KdbConnectionManager.getManager(project);
-    }
 
-    public void initToolWindow(ToolWindowEx toolWindow) {
-        final ContentManager cm = toolWindow.getContentManager();
+        final TreeModelWrapper myTreeModelWrapper = new TreeModelWrapper(inspectorModel, settings);
+        Disposer.register(this, myTreeModelWrapper);
 
-        connection = connectionManager.getActiveConnection();
-        connectionManager.addConnectionListener(connectionListener);
-
-        StructureViewComponent component = new StructureViewComponent(null, structureViewModel, project, false) {
+        smartStructure = new SmartTreeStructure(project, myTreeModelWrapper) {
             @Override
-            protected @NotNull ActionGroup createActionGroup() {
-                final DefaultActionGroup actionGroup = new DefaultActionGroup();
-                actionGroup.add(new AnAction("Refresh Instance", "Reloads the instance structure", KdbIcons.Inspector.Refresh) {
-                    @Override
-                    public void actionPerformed(@NotNull AnActionEvent e) {
-                        refreshInstance();
-                    }
-
-                    @Override
-                    public void update(@NotNull AnActionEvent e) {
-                        final Presentation presentation = e.getPresentation();
-                        presentation.setEnabled(connectionManager.getActiveConnection() != null);
-                    }
-                });
-                actionGroup.addSeparator();
-                actionGroup.addAll(super.createActionGroup());
-                return actionGroup;
+            public void rebuildTree() {
+                if (disposed) {
+                    return;
+                }
+                super.rebuildTree();
             }
 
             @Override
-            protected boolean showScrollToFromSourceActions() {
-                return false;
+            public boolean isToBuildChildrenInBackground(@NotNull final Object element) {
+                return getRootElement() == element;
+            }
+
+            @NotNull
+            @Override
+            protected TreeElementWrapper createTree() {
+                return StructureViewComponent.createWrapper(myProject, myModel.getRoot(), myModel);
+            }
+
+            @Override
+            public String toString() {
+                return "inspector tree structure(model=" + inspectorModel + ")";
             }
         };
 
-        final Tree tree = (Tree) component.getTree();
-        final StatusText emptyText = tree.getEmptyText();
-        emptyText.setText("Please connect to an instance ").appendText("to scan it's structure", StatusText.DEFAULT_ATTRIBUTES, e -> refreshInstance());
+        structureModel = new StructureTreeModel<>(smartStructure, this);
+        tree = new Tree(new AsyncTreeModel(structureModel, this));
+        tree.setRootVisible(true);
+        tree.setCellRenderer(new NodeRenderer());
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+        tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
+
+        copyProvider = new CopyProvider() {
+            @Override
+            public void performCopy(@NotNull DataContext dataContext) {
+                final TreePath[] selectionPaths = tree.getSelectionPaths();
+                if (selectionPaths == null) {
+                    return;
+                }
+
+                final StringBuilder b = new StringBuilder();
+                for (TreePath path : selectionPaths) {
+                    final String name = getCanonicalName(path);
+                    if (b.length() != 0) {
+                        b.append(System.lineSeparator());
+                    }
+                    b.append(name);
+                }
+                CopyPasteManager.getInstance().setContents(new TextTransferable(b));
+            }
+
+            @Override
+            public boolean isCopyEnabled(@NotNull DataContext dataContext) {
+                return tree.getSelectionCount() != 0;
+            }
+
+            @Override
+            public boolean isCopyVisible(@NotNull DataContext dataContext) {
+                return tree.getSelectionCount() != 0;
+            }
+        };
+
+        registerAutoExpandListener(tree, inspectorModel);
+
+        final ModelListener modelListener = this::rebuild;
+        myTreeModelWrapper.addModelListener(modelListener);
+
+        Disposer.register(this, myTreeModelWrapper);
+        Disposer.register(this, () -> {
+            myTreeModelWrapper.removeModelListener(modelListener);
+        });
+
+        TreeUtil.installActions(tree);
+
+        new TreeSpeedSearch(tree, treePath -> {
+            Object userObject = TreeUtil.getLastUserObject(treePath);
+            return userObject != null ? FileStructurePopup.getSpeedSearchText(userObject) : null;
+        });
+
+        setContent(ScrollPaneFactory.createScrollPane(tree));
+        setToolbar(createToolbar());
+        createStatusBar();
+
+        updateEmptyText(null);
+
         new DoubleClickListener() {
             @Override
             protected boolean onDoubleClick(@NotNull MouseEvent e) {
                 return processDoubleClick(tree.getPathForLocation(e.getPoint().x, e.getPoint().y));
             }
         }.installOn(tree);
+    }
 
-        final Content content = cm.getFactory().createContent(component, "", false);
+    @Nullable
+    private static String getCanonicalName(TreePath path) {
+        final Object[] objects = path.getPath();
+        if (objects.length <= 1) {
+            return null;
+        }
+
+        final int count = objects.length - 1;
+        final Object last = StructureViewComponent.unwrapWrapper(objects[count]);
+        if (!(last instanceof ExecutableElement)) {
+            return null;
+        }
+
+        final StringBuilder b = new StringBuilder();
+        for (int i = 1; i < count; i++) {
+            final Object o = StructureViewComponent.unwrapWrapper(objects[i]);
+            if (o instanceof NamespaceElement) {
+                b.append(".").append(((NamespaceElement) o).getName());
+            }
+        }
+
+        final ExecutableElement ee = (ExecutableElement) last;
+        return b.length() == 0 ? ee.getName() : b.append(".").append(ee.getName()).toString();
+    }
+
+    private void createStatusBar() {
+        statusBar.setBorder(JBUI.Borders.empty(5));
+
+        add(statusBar, BorderLayout.SOUTH);
+    }
+
+    public void initToolWindow(ToolWindowEx toolWindow) {
+        connectionManager.addConnectionListener(this);
+        connection = connectionManager.getActiveConnection();
+
+        final ContentManager cm = toolWindow.getContentManager();
+        final Content content = cm.getFactory().createContent(this, null, false);
         cm.addContent(content);
+    }
+
+    @NotNull
+    private JComponent createToolbar() {
+        final DefaultActionGroup result = new DefaultActionGroup();
+
+        final AnAction refreshAction = new AnAction("Refresh Instance", "Reloads the instance structure", KdbIcons.Inspector.Refresh) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                refreshInstance();
+            }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                final Presentation presentation = e.getPresentation();
+                presentation.setEnabled(connectionManager.getActiveConnection() != null);
+            }
+        };
+
+        result.add(refreshAction);
+        result.addSeparator();
+
+        final List<TreeAction[]> actionsList = List.of(inspectorModel.getSorters(), inspectorModel.getGroupers(), inspectorModel.getFilters());
+        for (TreeAction[] actions : actionsList) {
+            if (actions.length != 0) {
+                result.addSeparator();
+                for (TreeAction action : actions) {
+                    result.add(new TreeActionWrapper(action, settings));
+                }
+            }
+        }
+
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PLACE, result, true);
+        toolbar.setTargetComponent(tree);
+        return toolbar.getComponent();
     }
 
     private boolean processDoubleClick(TreePath path) {
         if (path == null) {
             return false;
         }
-        final AbstractTreeNode<?> node = TreeUtil.getAbstractTreeNode(path);
-        if (node == null) {
+
+        final String query = getCanonicalName(path);
+        if (query == null) {
             return false;
         }
+        KdbConsoleToolWindow.getInstance(project).execute(connection, query);
+        return true;
+    }
 
-        final Object value = node.getValue();
-        if (value instanceof ExecutableElement) {
-            final ExecutableElement ee = (ExecutableElement) value;
-            KdbConsoleToolWindow.getInstance(project).execute(connection, ee.getQuery());
-            return true;
+    @Override
+    public void scanFailed(InstanceConnection connection, Exception exception) {
+        inspectorModel.updateModel(null);
+        updateEmptyText(exception);
+
+    }
+
+    @Override
+    public void scanFinished(InstanceConnection connection, InstanceElement result) {
+        inspectorModel.updateModel(result);
+        instancesCache.put(connection, result);
+    }
+
+    private void updateEmptyText(Exception ex) {
+        final StatusText emptyText = tree.getEmptyText();
+        emptyText.setText("");
+        if (ex == null) {
+            emptyText.appendText("Please connect to an instance to scan it's structure", StatusText.DEFAULT_ATTRIBUTES, e -> refreshInstance());
+        } else {
+            emptyText.appendText("Instance structure can't be loaded: " + ex.getMessage(), SimpleTextAttributes.ERROR_ATTRIBUTES);
+            emptyText.appendSecondaryText("Try to load it once again", StatusText.DEFAULT_ATTRIBUTES, e -> refreshInstance());
         }
-        return false;
+    }
+
+    @Override
+    public @Nullable Object getData(@NotNull @NonNls String dataId) {
+        if (PlatformDataKeys.COPY_PROVIDER.is(dataId)) {
+            return copyProvider;
+        }
+
+        if (CommonDataKeys.PROJECT.is(dataId)) {
+            return project;
+        }
+        return null;
+    }
+
+    @Override
+    public void connectionActivated(InstanceConnection deactivated, InstanceConnection activated) {
+        connection = activated;
+
+        final InstanceElement cached = instancesCache.get(connection);
+        if (cached != null) {
+            inspectorModel.updateModel(cached);
+        } else if (KdbSettingsService.getInstance().getInspectorOptions().isScanOnConnect() && connection.getState() == InstanceState.CONNECTED) {
+            refreshInstance();
+        } else {
+            updateEmptyText(null);
+        }
+    }
+
+    @Override
+    public void dispose() {
+        disposed = true;
+        connectionManager.removeConnectionListener(this);
+    }
+
+    private void rebuild() {
+        final InstanceElement instanceElement = inspectorModel.getInstanceElement();
+        if (instanceElement == null) {
+            statusBar.setText("");
+        } else {
+            statusBar.setText("Updated " + STATUS_FORMATTER.format(instanceElement.getResult().getTime()));
+        }
+
+        structureModel.getInvoker().invoke(() -> {
+            smartStructure.rebuildTree();
+            structureModel.invalidate();
+        });
     }
 
     private void refreshInstance() {
         if (connection == null) {
             return;
         }
-
-        try {
-            final KdbResult result = connection.query(new KdbQuery(SCAN_QUERY));
-            structureViewModel.updateModel(new NamespaceElement((Object[]) result.getObject()));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    protected void instanceSelectionChanged(InstanceConnection activated) {
-        connection = activated;
+        scanner.scanInstance(connection);
     }
 
     @Override
-    public void dispose() {
-        connectionManager.removeConnectionListener(connectionListener);
+    public @Nullable InspectorToolState getState() {
+        return settings;
     }
 
-    private class TheKdbConnectionListener implements KdbConnectionListener {
-        @Override
-        public void connectionActivated(InstanceConnection deactivated, InstanceConnection activated) {
-            instanceSelectionChanged(activated);
-        }
-
-        @Override
-        public void connectionStateChanged(InstanceConnection connection, InstanceState oldState, InstanceState newState) {
-            if (newState != InstanceState.CONNECTED) {
-                // make inactive
-            }
-        }
+    @Override
+    public void loadState(@NotNull InspectorToolState state) {
+        settings.copyFom(state);
     }
 }

@@ -1,5 +1,9 @@
 package org.kdb.inside.brains.view.inspector.model;
 
-public interface ExecutableElement {
-    String getQuery();
+import javax.swing.*;
+
+public class ExecutableElement extends InspectorElement {
+    public ExecutableElement(String name, Icon icon) {
+        super(name, icon);
+    }
 }

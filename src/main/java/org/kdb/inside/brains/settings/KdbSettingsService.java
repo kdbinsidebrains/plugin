@@ -4,24 +4,27 @@ import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.ExecutionOptions;
 import org.kdb.inside.brains.core.InstanceOptions;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
+import org.kdb.inside.brains.view.inspector.InspectorOptions;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-@com.intellij.openapi.components.State(name = "KdbSettings", storages = {@Storage("kdb-settings.xml")})
+@State(name = "KdbSettings", storages = {@Storage("kdb-settings.xml")})
 public class KdbSettingsService implements PersistentStateComponent<KdbSettingsService.State> {
     private final State myState = new State();
 
     private final List<KdbSettingsListener> listeners = new CopyOnWriteArrayList<>();
 
     private static KdbSettingsService instance;
+
     private static final String DEFAULT_CREDENTIALS = "${user.name}";
     private static final String CREDENTIAL_ATTRIBUTE = "KdbInsideBrainsGlobalCredentials";
 
@@ -86,6 +89,17 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         }
     }
 
+    public InspectorOptions getInspectorOptions() {
+        return myState.inspectorOptions;
+    }
+
+    public void setInspectorOptions(InspectorOptions options) {
+        if (!myState.inspectorOptions.equals(options)) {
+            myState.inspectorOptions.copyFrom(options);
+            notifySettingsChanged(myState.inspectorOptions);
+        }
+    }
+
     private void notifySettingsChanged(SettingsBean<?> bean) {
         listeners.forEach(l -> l.settingsChanged(this, bean));
     }
@@ -102,6 +116,7 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         myState.setEditorOptions(state.executionOptions);
         myState.setInstanceOptions(state.instanceOptions);
         myState.setCredentialPlugins(state.credentialPlugins);
+        myState.setInspectorOptions(state.inspectorOptions);
     }
 
     public static KdbSettingsService getInstance() {
@@ -116,6 +131,7 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         private final ConsoleOptions consoleOptions = new ConsoleOptions();
         private final InstanceOptions instanceOptions = new InstanceOptions();
         private final ExecutionOptions executionOptions = new ExecutionOptions();
+        private final InspectorOptions inspectorOptions = new InspectorOptions();
 
         public List<String> getCredentialPlugins() {
             return credentialPlugins;
@@ -150,6 +166,14 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
 
         public void setEditorOptions(ExecutionOptions executionOptions) {
             this.executionOptions.copyFrom(executionOptions);
+        }
+
+        public InspectorOptions getInspectorOptions() {
+            return inspectorOptions;
+        }
+
+        public void setInspectorOptions(InspectorOptions inspectorOptions) {
+            this.inspectorOptions.copyFrom(inspectorOptions);
         }
     }
 }
