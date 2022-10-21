@@ -102,6 +102,8 @@ UnaryFunction=(abs|all|any|asc|iasc|attr|avg|avgs|ceiling|count|
     asin|sqrt|string|sum|sums|system|tables|tan|atan|til|trim|ltrim|rtrim|
     type|value|var|svar|view|views|fills)
 
+UnaryPrimitive="#:"|"?:"|"*:"|"+:"|"_:"|".:"|"=:"|"%:"|"~:"|">:"|"!:"|"!:"|"|\\"|"&\\"|"-:"|"~:"|"^:"|"*\\"|",/"|"%:"|"|:"|"$:"|"+\\"|"@:"|".:"|"1::"|"2::"
+
 // and[x;y] or (x and y)
 BinaryFunction=(and|xasc|asof|mavg|wavg|bin|binr|mcount|xcol|
     xcols|cor|cov|scov|cross|csv|xdesc|mdev|div|dsave|each|peach|ema|except|xexp|fby|set|setenv|
@@ -329,6 +331,7 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 
   {Where}                                    { return UNARY_FUNCTION; }
   {UnaryFunction}                            { return UNARY_FUNCTION; }
+  {UnaryPrimitive}                           { return UNARY_FUNCTION; }
   {BinaryFunction}                           { return BINARY_FUNCTION; }
   {ComplexFunction}                          { return COMPLEX_FUNCTION; }
 

@@ -2,6 +2,67 @@
 
 # KdbInsideBrains Changelog
 
+## [1.13.0]
+
+### Added
+
+- New KdbInspector tool windows has been added that discovers dynamic structure of an instance.
+  The function still experimental so please use carefully. Auto-discovery (discovery after connection) can be enabled
+  in options but disabled by default.
+  <br><br>
+  Related Q query for discovery can be found in
+  Git: https://github.com/kdbinsidebrains/plugin/blob/main/src/main/resources/org/kdb/inside/brains/inspector.q
+
+### Fixed
+
+- Unary primitive functions formatting incorrect. All added into grammar logic as UnaryFunction. They are inner
+  implementation of some functions:
+
+<pre>
+  count=#:
+  distinct=?:
+  first=*:
+  flip=+:
+  floor=_:
+  get=.:
+  group==:
+  ltime=%:
+  hdel=~:
+  hclose=>:
+  inv=!:
+  key=!:
+  maxs=|\
+  mins=&\
+  neg=-:
+  not=~:
+  null=^:
+  prds=*\
+  raze=,/
+  reciprocal=%:
+  reverse=|:
+  string=$:
+  sums=+\
+  type=@:
+  value=.:
+  read0=0::
+  read1=1::
+</pre>
+
+## [1.12.0]
+
+### Added
+
+- Table declaration annotations added:
+  - tailing semicolon marked as an error
+  - set of semicolon (empty declarations) marked as an error
+  - even expressions are allowed without column names, they are marked as a warning if it's not declaration
+
+### Fixed
+
+- in TableResult filter Copy action copies component full id instead of text: fixed. Copies column name instead.
+- Hidden columns copied to buffer anyway: fully redesigned and works as expected now
+- Selection by index column does nothing if table is not in focus: the focus is grabbed now
+
 ## [1.11.0]
 
 ### Added

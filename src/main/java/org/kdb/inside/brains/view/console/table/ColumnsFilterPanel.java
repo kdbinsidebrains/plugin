@@ -1,6 +1,8 @@
 package org.kdb.inside.brains.view.console.table;
 
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.ScrollPaneFactory;
@@ -10,27 +12,47 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 class ColumnsFilterPanel extends NonOpaquePanel {
+    private final MyTableColumnModel columnModel;
     private final CheckBoxList<TableColumn> columnsFilterList;
-    private final Map<TableColumn, ColumnWidth> columnSizes = new HashMap<>();
 
     public ColumnsFilterPanel(JTable table) {
         super(new BorderLayout());
+        this.columnModel = (MyTableColumnModel) table.getColumnModel();
 
-        columnsFilterList = new CheckBoxList<>();
+        columnsFilterList = new CheckBoxList<>() {
+            @Override
+            protected void doCopyToClipboardAction() {
+                ArrayList<String> selected = new ArrayList<>();
+                for (int index : getSelectedIndices()) {
+                    final TableColumn itemAt = columnsFilterList.getItemAt(index);
+                    if (itemAt != null) {
+                        String text = String.valueOf(itemAt.getHeaderValue());
+                        if (text != null) {
+                            selected.add(text);
+                        }
+                    }
+                }
+
+                if (selected.size() > 0) {
+                    String text = StringUtil.join(selected, "\n");
+                    CopyPasteManager.getInstance().setContents(new StringSelection(text));
+                }
+            }
+        };
         columnsFilterList.setCheckBoxListListener((index, value) -> {
             final TableColumn col = columnsFilterList.getItemAt(index);
             if (col == null) {
                 return;
             }
-
             changeColumnState(col, value);
         });
 
@@ -38,11 +60,10 @@ class ColumnsFilterPanel extends NonOpaquePanel {
         group.add(new AnAction("Select All", "Select all columns", KdbIcons.Console.SelectAll) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                final Enumeration<TableColumn> columns = table.getColumnModel().getColumns();
-                while (columns.hasMoreElements()) {
-                    final TableColumn item = columns.nextElement();
-                    columnsFilterList.setItemSelected(item, true);
-                    changeColumnState(item, true);
+                final List<TableColumn> columns = columnModel.getColumns(true);
+                for (TableColumn column : columns) {
+                    columnsFilterList.setItemSelected(column, true);
+                    changeColumnState(column, true);
                 }
                 columnsFilterList.repaint();
             }
@@ -50,11 +71,10 @@ class ColumnsFilterPanel extends NonOpaquePanel {
         group.add(new AnAction("Unselect All", "Unselect all columns", KdbIcons.Console.UnselectAll) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                final Enumeration<TableColumn> columns = table.getColumnModel().getColumns();
-                while (columns.hasMoreElements()) {
-                    final TableColumn item = columns.nextElement();
-                    columnsFilterList.setItemSelected(item, false);
-                    changeColumnState(item, false);
+                final List<TableColumn> columns = columnModel.getColumns(true);
+                for (TableColumn column : columns) {
+                    columnsFilterList.setItemSelected(column, false);
+                    changeColumnState(column, false);
                 }
                 columnsFilterList.repaint();
             }
@@ -65,7 +85,7 @@ class ColumnsFilterPanel extends NonOpaquePanel {
         add(filterToolbar.getComponent(), BorderLayout.NORTH);
         add(ScrollPaneFactory.createScrollPane(columnsFilterList, true), BorderLayout.CENTER);
 
-        updateTable(table);
+        invalidateFilter();
 
         new ListSpeedSearch<>(columnsFilterList, AbstractButton::getText);
 
@@ -74,65 +94,31 @@ class ColumnsFilterPanel extends NonOpaquePanel {
         setMinimumSize(s);
     }
 
+    @NotNull
+    private static Set<Object> getColumnNames(List<TableColumn> oldCols) {
+        return oldCols.stream().map(TableColumn::getHeaderValue).collect(Collectors.toSet());
+    }
+
     private void changeColumnState(TableColumn col, boolean enabled) {
-        if (enabled) {
-            final ColumnWidth remove = columnSizes.remove(col);
-            if (remove != null) {
-                remove.restore(col);
-            }
-        } else {
-            if (!columnSizes.containsKey(col)) {
-                columnSizes.put(col, new ColumnWidth(col));
-            }
+        columnModel.setVisible(col, enabled);
+    }
+
+    public void invalidateFilter() {
+        columnsFilterList.clear();
+        final Enumeration<TableColumn> columns = columnModel.getColumns();
+        while (columns.hasMoreElements()) {
+            final TableColumn tableColumn = columns.nextElement();
+            columnsFilterList.addItem(tableColumn, String.valueOf(tableColumn.getHeaderValue()), true);
         }
     }
 
-    public void updateTable(JTable table) {
-        if (isTheSameTable(table)) {
-            final TableColumnModel columnModel = table.getColumnModel();
-            final int cnt = columnModel.getColumnCount();
-            for (int i = 0; i < cnt; i++) {
-                final TableColumn column = columnModel.getColumn(i);
-                final TableColumn old = columnsFilterList.getItemAt(i);
-                if (old != null) {
-                    columnsFilterList.updateItem(old, column, String.valueOf(column.getHeaderValue()));
-                    final ColumnWidth remove = columnSizes.remove(old);
-                    if (remove != null) {
-                        columnSizes.put(column, new ColumnWidth(column));
-                    }
-                }
-            }
-        } else {
-            columnSizes.clear();
-            columnsFilterList.clear();
-            final Enumeration<TableColumn> columns = table.getColumnModel().getColumns();
-            while (columns.hasMoreElements()) {
-                final TableColumn tableColumn = columns.nextElement();
-                columnsFilterList.addItem(tableColumn, String.valueOf(tableColumn.getHeaderValue()), true);
-            }
+    private List<TableColumn> getListItems() {
+        final int size = columnsFilterList.getModel().getSize();
+        final List<TableColumn> res = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            res.add(columnsFilterList.getItemAt(i));
         }
-    }
-
-    private boolean isTheSameTable(JTable table) {
-        final TableColumnModel tm = table.getColumnModel();
-        final ListModel<JCheckBox> lm = columnsFilterList.getModel();
-        if (tm.getColumnCount() != lm.getSize()) {
-            return false;
-        }
-
-        int c = tm.getColumnCount();
-        for (int i = 0; i < c; i++) {
-            final Object tn = tm.getColumn(i).getHeaderValue();
-            final TableColumn itemAt = columnsFilterList.getItemAt(i);
-            if (itemAt == null) {
-                return false;
-            }
-            final Object lv = itemAt.getHeaderValue();
-            if (!Objects.equals(lv, tn)) {
-                return false;
-            }
-        }
-        return true;
+        return res;
     }
 
     @Override
@@ -141,29 +127,6 @@ class ColumnsFilterPanel extends NonOpaquePanel {
     }
 
     public void destroy() {
-        columnSizes.forEach((c, w) -> w.restore(c));
-        columnSizes.clear();
-    }
-
-    private static class ColumnWidth {
-        private final int min;
-        private final int max;
-        private final int pref;
-
-        public ColumnWidth(TableColumn c) {
-            this.min = c.getMinWidth();
-            this.max = c.getMaxWidth();
-            this.pref = c.getPreferredWidth();
-
-            c.setMinWidth(0);
-            c.setMaxWidth(0);
-            c.setPreferredWidth(0);
-        }
-
-        void restore(TableColumn c) {
-            c.setMinWidth(min);
-            c.setMaxWidth(max);
-            c.setPreferredWidth(pref);
-        }
+        columnModel.reset();
     }
 }

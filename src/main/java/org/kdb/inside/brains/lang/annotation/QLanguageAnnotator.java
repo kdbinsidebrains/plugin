@@ -4,10 +4,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.lang.annotation.impl.QContextAnnotator;
-import org.kdb.inside.brains.lang.annotation.impl.QImportAnnotator;
-import org.kdb.inside.brains.lang.annotation.impl.QLambdaAnnotator;
-import org.kdb.inside.brains.lang.annotation.impl.QTypeCastAnnotator;
+import org.kdb.inside.brains.lang.annotation.impl.*;
 import org.kdb.inside.brains.psi.QPsiElement;
 
 import java.util.HashMap;
@@ -19,7 +16,8 @@ public class QLanguageAnnotator implements Annotator {
             new QLambdaAnnotator(),
             new QContextAnnotator(),
             new QTypeCastAnnotator(),
-            new QImportAnnotator()
+            new QImportAnnotator(),
+            new QTableAnnotator()
     );
 
     private final Map<Class<? extends PsiElement>, QElementAnnotator<?>> annotators = new HashMap<>();

@@ -41,7 +41,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@State(name = "KdbInstancesView", storages = {@Storage(StoragePathMacros.WORKSPACE_FILE)})
+@State(name = "KdbInstancesView", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
 public class InstancesToolWindow implements Disposable, PersistentStateComponent<Element>, DumbAware {
     private final Project project;
 

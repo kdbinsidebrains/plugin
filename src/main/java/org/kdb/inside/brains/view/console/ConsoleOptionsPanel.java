@@ -75,7 +75,7 @@ public class ConsoleOptionsPanel extends JPanel {
         formBuilder.setFormLeftIndent(0);
     }
 
-    public ConsoleOptions getConsoleOptions() {
+    public ConsoleOptions getOptions() {
         final ConsoleOptions consoleOptions = new ConsoleOptions();
         consoleOptions.setEnlistArrays(enlistArrays.isSelected());
         consoleOptions.setFloatPrecision(floatPrecisionEditor.getNumber());
@@ -93,7 +93,7 @@ public class ConsoleOptionsPanel extends JPanel {
         return consoleOptions;
     }
 
-    public void setConsoleOptions(ConsoleOptions consoleOptions) {
+    public void setOptions(ConsoleOptions consoleOptions) {
         floatPrecisionEditor.setNumber(consoleOptions.getFloatPrecision());
         enlistArrays.setSelected(consoleOptions.isEnlistArrays());
         wrapString.setSelected(consoleOptions.isWrapStrings());

@@ -193,16 +193,17 @@ private invoke_group ::= invoke_prefix | invoke_function | invoke_parentheses
 type_cast_expr ::= TYPE_CAST_PATTERN expression? {pin = 1 methods=[typeCast="TYPE_CAST_PATTERN"]}
 
 table_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
-private table_columns_group ::= table_column (SEMICOLON table_column)* {
-    pin(".*")="SEMICOLON"
+private table_columns_group ::= table_column (SEMICOLON+ table_column)* SEMICOLON* {
+//    pin(".*")="SEMICOLON"
     recoverWhile=table_columns_recover
  }
 private table_columns_recover ::= !(PAREN_CLOSE | BRACKET_CLOSE)
 fake table_columns ::= table_columns_group { methods=[columns="table_column"] }
-table_keys ::= BRACKET_OPEN [table_columns_group] BRACKET_CLOSE { pin=1 extends=table_columns methods=[table_column]
+table_keys ::= BRACKET_OPEN [table_columns_group] BRACKET_CLOSE {
+    pin=1 extends=table_columns methods=[table_column]
  }
 table_values ::= [table_columns_group] { extends=table_columns }
-table_expr ::= PAREN_OPEN  table_keys  SEMICOLON? table_values PAREN_CLOSE {
+table_expr ::= PAREN_OPEN  table_keys  SEMICOLON* table_values PAREN_CLOSE {
     pin=2 methods=[table_columns keys="table_columns[0]" values="table_columns[1]"]
 }
 
