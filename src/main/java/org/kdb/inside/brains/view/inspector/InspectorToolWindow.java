@@ -324,10 +324,13 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         final InstanceElement cached = instancesCache.get(connection);
         if (cached != null) {
             inspectorModel.updateModel(cached);
-        } else if (KdbSettingsService.getInstance().getInspectorOptions().isScanOnConnect() && connection.getState() == InstanceState.CONNECTED) {
-            refreshInstance();
         } else {
+            inspectorModel.updateModel(null);
             updateEmptyText(null);
+
+            if (KdbSettingsService.getInstance().getInspectorOptions().isScanOnConnect() && connection.getState() != InstanceState.DISCONNECTED) {
+                refreshInstance();
+            }
         }
     }
 

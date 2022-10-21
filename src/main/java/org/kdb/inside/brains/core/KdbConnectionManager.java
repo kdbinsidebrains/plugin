@@ -84,7 +84,6 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         }
     }
 
-
     public void activate(KdbInstance instance) {
         InstanceConnection old = activeConnection;
         this.activeConnection = register(instance);
