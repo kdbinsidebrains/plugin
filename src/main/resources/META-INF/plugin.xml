@@ -298,15 +298,13 @@
 
         <projectService serviceImplementation="org.kdb.inside.brains.view.inspector.InspectorToolWindow"/>
 
-        <facet.toolWindow id="KDB Instances"
+        <facet.toolWindow id="KDB Instances" icon="KdbIcons.Main.ToolWindow"
                           facetIdList="KDB_FACET_TYPE"
-                          icon="KdbIcons.Main.ToolWindow"
                           anchor="right"
                           factoryClass="org.kdb.inside.brains.view.treeview.InstancesToolWindowFactory"/>
 
-        <facet.toolWindow id="KDB Inspector"
+        <facet.toolWindow id="KDB Inspector" icon="KdbIcons.Main.InspectorWindow"
                           facetIdList="KDB_FACET_TYPE"
-                          icon="KdbIcons.Main.InspectorWindow"
                           anchor="right"
                           secondary="true"
                           canCloseContents="false"

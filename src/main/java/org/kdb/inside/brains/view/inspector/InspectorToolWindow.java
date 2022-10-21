@@ -20,7 +20,10 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
@@ -58,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.intellij.ide.structureView.newStructureView.StructureViewComponent.registerAutoExpandListener;
+import static com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.HideToolWindow;
 
 
 @State(name = "KdbInstanceInspector", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
@@ -79,6 +83,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
     private final JLabel statusBar = new JLabel("", JLabel.RIGHT);
     private final InspectorToolState settings = new InspectorToolState(this::rebuild);
+    private boolean visible;
     private boolean disposed;
 
     private static final KeyStroke ENTER = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
@@ -225,12 +230,29 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     }
 
     public void initToolWindow(ToolWindowEx toolWindow) {
-        connectionManager.addConnectionListener(this);
-        connection = connectionManager.getActiveConnection();
-
         final ContentManager cm = toolWindow.getContentManager();
         final Content content = cm.getFactory().createContent(this, null, false);
         cm.addContent(content);
+
+        connectionManager.addConnectionListener(this);
+
+        project.getMessageBus().connect(this).subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
+            @Override
+            public void toolWindowShown(@NotNull ToolWindow tw) {
+                if (toolWindow == tw) {
+                    visible = true;
+                    connectionActivated(connection, connectionManager.getActiveConnection());
+                }
+            }
+
+            @Override
+            public void stateChanged(@NotNull ToolWindowManager toolWindowManager, @NotNull ToolWindowManagerEventType changeType) {
+                if (changeType == HideToolWindow && visible && !toolWindow.isVisible()) {
+                    connectionActivated(connection, null);
+                    visible = false;
+                }
+            }
+        });
     }
 
     @NotNull
@@ -319,6 +341,10 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
     @Override
     public void connectionActivated(InstanceConnection deactivated, InstanceConnection activated) {
+        if (!visible) {
+            return;
+        }
+
         connection = activated;
 
         final InstanceElement cached = instancesCache.get(connection);
@@ -328,7 +354,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             inspectorModel.updateModel(null);
             updateEmptyText(null);
 
-            if (KdbSettingsService.getInstance().getInspectorOptions().isScanOnConnect() && connection.getState() != InstanceState.DISCONNECTED) {
+            if (connection != null && KdbSettingsService.getInstance().getInspectorOptions().isScanOnConnect() && connection.getState() != InstanceState.DISCONNECTED) {
                 refreshInstance();
             }
         }
@@ -336,6 +362,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
     @Override
     public void dispose() {
+        visible = false;
         disposed = true;
         connectionManager.removeConnectionListener(this);
     }
