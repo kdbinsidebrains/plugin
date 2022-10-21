@@ -61,7 +61,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.intellij.ide.structureView.newStructureView.StructureViewComponent.registerAutoExpandListener;
-import static com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.HideToolWindow;
 
 
 @State(name = "KdbInstanceInspector", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
@@ -246,8 +245,8 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             }
 
             @Override
-            public void stateChanged(@NotNull ToolWindowManager toolWindowManager, @NotNull ToolWindowManagerEventType changeType) {
-                if (changeType == HideToolWindow && visible && !toolWindow.isVisible()) {
+            public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+                if (visible && !toolWindow.isVisible()) {
                     connectionActivated(connection, null);
                     visible = false;
                 }
