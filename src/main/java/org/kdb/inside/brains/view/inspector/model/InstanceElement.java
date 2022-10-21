@@ -15,6 +15,11 @@ public class InstanceElement extends InspectorElement {
         this.result = result;
     }
 
+    @Override
+    public String getLocationString() {
+        return connection.getDetails();
+    }
+
     public KdbResult getResult() {
         return result;
     }

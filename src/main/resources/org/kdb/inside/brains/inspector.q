@@ -5,10 +5,12 @@
     ns:l where (::)~'(first')(value') ` sv'v,'l:key[v] except `;
     / get all functions, tables, variables
     r:{system y," ",x}[string v;] each "fav";
-    / return a dict with: table `name`size`meta
+    / Functions
+    fns:{v:$[x=`; y; ` sv x,y]; t:type value v; s:2 value/v; a:$[4h=type first s; s 1; $[t in 101 103h; enlist `x; t in 102 106 107 108 109 110 111h; `x`y; enlist `]]; (y;t;a)}[v;] each r[0];
+    / return the table details in format (name;size;meta)
     tbs:{v:$[x=`; y; ` sv x,y]; (y;count value v;0!meta v)}[v;] each r[1];
-    / variables are anything except namespaces and tables. We get `name`type for each
+    / variables are anything except namespaces and tables. We get (name;type) for each
     vrs:{(y;type get $[x=`; y; ` sv x,y])}[v;] each r[2] except ns,r[1];
     / return final result
-    (y;r[0];tbs;vrs;.z.s[v;] each ns)
+    (y;fns;tbs;vrs;.z.s[v;] each ns)
  }[`; `]

@@ -29,6 +29,11 @@ public class RootElement implements StructureViewTreeElement, ItemPresentation {
     }
 
     @Override
+    public String getLocationString() {
+        return null;
+    }
+
+    @Override
     public TreeElement @NotNull [] getChildren() {
         return children;
     }

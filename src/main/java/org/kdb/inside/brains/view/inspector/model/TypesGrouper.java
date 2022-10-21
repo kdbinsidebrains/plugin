@@ -58,6 +58,11 @@ public class TypesGrouper implements Grouper {
         }
 
         @Override
+        public String getLocationString() {
+            return null;
+        }
+
+        @Override
         public @Nullable Icon getIcon(boolean unused) {
             return type.getIcon();
         }

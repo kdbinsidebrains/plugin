@@ -2,6 +2,48 @@
 
 # KdbInsideBrains Changelog
 
+## [1.13.0]
+
+### Added
+
+- New Kdb Inspector tool windows has been added that discovers an instance structure after connection (or manually, if
+  disabled in configs).
+
+### Fixed
+
+- Unary primitive functions formatting incorrect. All added into grammar logic as UnaryFunction. They are inner
+  implementation of some functions:
+
+<pre>
+  count=#:
+  distinct=?:
+  first=*:
+  flip=+:
+  floor=_:
+  get=.:
+  group==:
+  ltime=%:
+  hdel=~:
+  hclose=>:
+  inv=!:
+  key=!:
+  maxs=|\
+  mins=&\
+  neg=-:
+  not=~:
+  null=^:
+  prds=*\
+  raze=,/
+  reciprocal=%:
+  reverse=|:
+  string=$:
+  sums=+\
+  type=@:
+  value=.:
+  read0=0::
+  read1=1::
+</pre>
+
 ## [1.12.0]
 
 ### Added

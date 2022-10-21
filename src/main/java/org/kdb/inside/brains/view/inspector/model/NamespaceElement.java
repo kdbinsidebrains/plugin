@@ -18,7 +18,7 @@ public class NamespaceElement extends InspectorElement {
     @Override
     protected TreeElement[] buildChildren() {
         final List<TreeElement> children = new ArrayList<>();
-        Stream.of((String[]) item[1]).forEach(s -> children.add(new FunctionElement(s)));
+        Stream.of((Object[]) item[1]).forEach(s -> children.add(new FunctionElement((Object[]) s)));
         Stream.of((Object[]) item[2]).forEach(s -> children.add(new TableElement((Object[]) s)));
         Stream.of((Object[]) item[3]).forEach(s -> children.add(new VariableElement((Object[]) s)));
         Stream.of((Object[]) item[4]).forEach(s -> children.add(new NamespaceElement((Object[]) s)));

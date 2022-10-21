@@ -29,7 +29,12 @@ public abstract class InspectorElement implements StructureViewTreeElement, Item
     }
 
     @Override
-    public final @Nullable Icon getIcon(boolean unused) {
+    public String getLocationString() {
+        return null;
+    }
+
+    @Override
+    public @Nullable Icon getIcon(boolean unused) {
         return icon;
     }
 
