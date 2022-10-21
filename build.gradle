@@ -108,5 +108,4 @@ runPluginVerifier {
 
 publishPlugin {
     token = System.getenv("KDBINSIDEBRAINS_RELEASE_PLUGIN_TOKEN")
-    channels = ['beta']
 }
