@@ -8,7 +8,6 @@ import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.KdbQuery;
@@ -82,8 +81,8 @@ public class InstanceScanner {
 
             final KdbResult result = connection.query(new KdbQuery(query));
             final Object object = result.getObject();
-            if (object instanceof c.KException) {
-                processError(connection, (c.KException) object);
+            if (object instanceof Exception) {
+                processError(connection, (Exception) object);
             } else {
                 processResponse(connection, result);
             }

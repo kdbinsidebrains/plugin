@@ -50,6 +50,7 @@ import javax.swing.*;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -79,6 +80,8 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     private final JLabel statusBar = new JLabel("", JLabel.RIGHT);
     private final InspectorToolState settings = new InspectorToolState(this::rebuild);
     private boolean disposed;
+
+    private static final KeyStroke ENTER = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
 
     public InspectorToolWindow(@NotNull Project project) {
         super(true);
@@ -119,7 +122,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         tree = new Tree(new AsyncTreeModel(structureModel, this));
         tree.setRootVisible(true);
         tree.setCellRenderer(new NodeRenderer());
-        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
 
@@ -179,9 +182,11 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         new DoubleClickListener() {
             @Override
             protected boolean onDoubleClick(@NotNull MouseEvent e) {
-                return processDoubleClick(tree.getPathForLocation(e.getPoint().x, e.getPoint().y));
+                return executeSelectedPath(tree.getPathForLocation(e.getPoint().x, e.getPoint().y));
             }
         }.installOn(tree);
+
+        tree.registerKeyboardAction(event -> executeSelectedPath(tree.getSelectionPath()), ENTER, JComponent.WHEN_FOCUSED);
     }
 
     @Nullable
@@ -194,6 +199,10 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         final int count = objects.length - 1;
         final Object last = StructureViewComponent.unwrapWrapper(objects[count]);
         if (!(last instanceof ExecutableElement)) {
+            return null;
+        }
+
+        if (last instanceof TableElement && ((TableElement) last).isHistorical()) {
             return null;
         }
 
@@ -259,7 +268,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         return toolbar.getComponent();
     }
 
-    private boolean processDoubleClick(TreePath path) {
+    private boolean executeSelectedPath(TreePath path) {
         if (path == null) {
             return false;
         }

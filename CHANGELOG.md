@@ -6,8 +6,12 @@
 
 ### Added
 
-- New Kdb Inspector tool windows has been added that discovers an instance structure after connection (or manually, if
-  disabled in configs).
+- New KdbInspector tool windows has been added that discovers dynamic structure of an instance.
+  The function still experimental so please use carefully. Auto-discovery (discovery after connection) can be enabled
+  in options but disabled by default.
+  <br><br>
+  Related Q query for discovery can be found in
+  Git: https://github.com/kdbinsidebrains/plugin/blob/main/src/main/resources/org/kdb/inside/brains/inspector.q
 
 ### Fixed
 

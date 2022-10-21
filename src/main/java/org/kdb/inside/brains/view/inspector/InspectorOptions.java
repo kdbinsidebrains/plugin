@@ -5,7 +5,7 @@ import org.kdb.inside.brains.settings.SettingsBean;
 import java.util.Objects;
 
 public class InspectorOptions implements SettingsBean<InspectorOptions> {
-    private boolean scanOnConnect = true;
+    private boolean scanOnConnect = false;
 
     public boolean isScanOnConnect() {
         return scanOnConnect;
