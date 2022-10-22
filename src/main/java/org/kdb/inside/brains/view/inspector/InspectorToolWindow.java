@@ -5,7 +5,6 @@ import com.intellij.ide.structureView.ModelListener;
 import com.intellij.ide.structureView.newStructureView.StructureViewComponent;
 import com.intellij.ide.structureView.newStructureView.TreeActionWrapper;
 import com.intellij.ide.structureView.newStructureView.TreeModelWrapper;
-import com.intellij.ide.util.FileStructurePopup;
 import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.ide.util.treeView.smartTree.SmartTreeStructure;
 import com.intellij.ide.util.treeView.smartTree.TreeAction;
@@ -173,9 +172,12 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         TreeUtil.installActions(tree);
 
         new TreeSpeedSearch(tree, treePath -> {
-            Object userObject = TreeUtil.getLastUserObject(treePath);
-            return userObject != null ? FileStructurePopup.getSpeedSearchText(userObject) : null;
-        });
+            Object userObject = StructureViewComponent.unwrapWrapper(TreeUtil.getLastUserObject(treePath));
+            if (userObject instanceof InspectorElement) {
+                return ((InspectorElement) userObject).getName();
+            }
+            return null;
+        }, true);
 
         setContent(ScrollPaneFactory.createScrollPane(tree));
         setToolbar(createToolbar());
