@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.psi;
 
 import com.intellij.ide.IconProvider;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.ui.IconManager;
@@ -15,7 +16,7 @@ import javax.swing.*;
 
 import static com.intellij.openapi.util.Iconable.ICON_FLAG_VISIBILITY;
 
-public class QIconProvider extends IconProvider {
+public class QIconProvider extends IconProvider implements DumbAware {
     @Override
     public @Nullable Icon getIcon(@NotNull PsiElement element, int flags) {
         final boolean visibility = BitUtil.isSet(flags, ICON_FLAG_VISIBILITY);

@@ -1,9 +1,9 @@
 package org.kdb.inside.brains.view.chart.tools;
 
 import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.ui.JBColor;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.jetbrains.annotations.NotNull;
@@ -85,7 +85,7 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
 
         return new DefaultActionGroup("Measure",
                 List.of(
-                        new AnAction("Remove Measure") {
+                        new DumbAwareAction("Remove Measure") {
                             @Override
                             public void update(@NotNull AnActionEvent e) {
                                 e.getPresentation().setEnabled(highlighted != null);
@@ -97,7 +97,7 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
                             }
                         },
 
-                        new AnAction("Clear Measures") {
+                        new DumbAwareAction("Clear Measures") {
                             @Override
                             public void update(@NotNull AnActionEvent e) {
                                 e.getPresentation().setEnabled(!pinnedAreas.isEmpty());

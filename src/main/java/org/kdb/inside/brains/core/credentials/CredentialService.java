@@ -2,7 +2,6 @@ package org.kdb.inside.brains.core.credentials;
 
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -10,6 +9,7 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.twelvemonkeys.io.FileUtil;
 import org.apache.commons.lang.text.StrSubstitutor;
@@ -192,7 +192,7 @@ public class CredentialService implements PersistentStateComponent<Element> {
 
     private void notifyPluginFailedPlugin(String url, Throwable ex) {
         final String content = "Credentials plugin can't be loaded from " + url + ": " + ex.getMessage();
-        NotificationGroupManager.getInstance().getNotificationGroup("Kdb.CredentialsService").createNotification(content, NotificationType.ERROR).addAction(new AnAction("Change Settings") {
+        NotificationGroupManager.getInstance().getNotificationGroup("Kdb.CredentialsService").createNotification(content, NotificationType.ERROR).addAction(new DumbAwareAction("Change Settings") {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 final Project project = e.getProject();

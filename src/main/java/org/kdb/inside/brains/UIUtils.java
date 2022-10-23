@@ -1,10 +1,10 @@
 package org.kdb.inside.brains;
 
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.Experiments;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
@@ -93,7 +93,7 @@ public final class UIUtils {
 
         final JBPopup popup = componentPopupBuilder.createPopup();
 
-        new AnAction() {
+        new DumbAwareAction() {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 final String text = textField.getText();

@@ -20,6 +20,11 @@ public class InspectorTreeModel implements StructureViewModel, StructureViewMode
 
     private final List<ModelListener> modelListeners = new CopyOnWriteArrayList<>();
 
+    public static final String SHOW_TABLES = "SHOW_TABLES";
+    public static final String SHOW_FUNCTIONS = "SHOW_FUNCTIONS";
+    public static final String SHOW_VARIABLES = "SHOW_VARIABLES";
+    public static final String SHOW_SYSTEM_NAMESPACES = "SHOW_SYSTEM_NAMESPACES";
+
     public InspectorTreeModel() {
     }
 
@@ -74,9 +79,22 @@ public class InspectorTreeModel implements StructureViewModel, StructureViewMode
     @Override
     public Filter @NotNull [] getFilters() {
         return new Filter[]{
-                new TheElementFilter("SHOW_TABLES", "Show Tables", KdbIcons.Node.Table, TableElement.class),
-                new TheElementFilter("SHOW_FUNCTIONS", "Show Functions", KdbIcons.Node.Function, FunctionElement.class),
-                new TheElementFilter("SHOW_VARIABLES", "Show Variables", KdbIcons.Node.Variable, VariableElement.class),
+                new TheElementFilter(SHOW_SYSTEM_NAMESPACES, "Show System Namespaces", KdbIcons.Node.SystemNamespaces, NamespaceElement.class) {
+                    @Override
+                    public boolean isVisible(TreeElement treeNode) {
+                        if (treeNode instanceof NamespaceElement) {
+                            final String n = ((NamespaceElement) treeNode).getCanonicalName();
+                            if (n.length() == 2 && '.' == n.charAt(0)) {
+                                final char ch = n.charAt(1);
+                                return 'q' != ch && 'Q' != ch && 'z' != ch && 'h' != ch && 'j' != ch && 'o' != ch;
+                            }
+                        }
+                        return true;
+                    }
+                },
+                new TheElementFilter(SHOW_TABLES, "Show Tables", KdbIcons.Node.Table, TableElement.class),
+                new TheElementFilter(SHOW_FUNCTIONS, "Show Functions", KdbIcons.Node.Function, FunctionElement.class),
+                new TheElementFilter(SHOW_VARIABLES, "Show Variables", KdbIcons.Node.Variable, VariableElement.class),
         };
     }
 

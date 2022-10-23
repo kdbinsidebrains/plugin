@@ -9,18 +9,30 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public abstract class InspectorElement implements StructureViewTreeElement, ItemPresentation {
-    private final String name;
     private final Icon icon;
+    private final String name;
+    private final String namespace;
+    private final String canonicalName;
 
     private TreeElement[] children;
 
-    public InspectorElement(String name, Icon icon) {
+    public InspectorElement(String name, String namespace, Icon icon) {
         this.name = name;
+        this.namespace = namespace;
         this.icon = icon;
+        this.canonicalName = namespace == null ? name : namespace + "." + name;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public String getCanonicalName() {
+        return canonicalName;
     }
 
     @Override

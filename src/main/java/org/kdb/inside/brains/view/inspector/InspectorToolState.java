@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.view.inspector;
 
 import com.intellij.ide.structureView.newStructureView.TreeActionsOwner;
+import org.kdb.inside.brains.view.inspector.model.InspectorTreeModel;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,6 +17,7 @@ public class InspectorToolState implements TreeActionsOwner {
 
     public InspectorToolState(Runnable runnable) {
         this.runnable = runnable;
+        enabledActions.add(InspectorTreeModel.SHOW_SYSTEM_NAMESPACES);
     }
 
     public Set<String> getEnabledActions() {

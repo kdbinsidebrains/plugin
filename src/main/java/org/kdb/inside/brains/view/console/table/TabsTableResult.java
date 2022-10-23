@@ -4,6 +4,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.AbstractPainter;
 import com.intellij.openapi.util.Disposer;
@@ -307,7 +308,7 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
 
         info.setDragOutDelegate(new MyDragOutDelegate());
 
-        final AnAction closeAction = new AnAction("Close", "Close current result tab", AllIcons.Actions.Close) {
+        final AnAction closeAction = new DumbAwareAction("Close", "Close current result tab", AllIcons.Actions.Close) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 closeTab(info);

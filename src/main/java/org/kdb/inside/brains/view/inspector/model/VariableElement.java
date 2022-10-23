@@ -29,8 +29,8 @@ public class VariableElement extends ExecutableElement {
     };
     private final String location;
 
-    public VariableElement(Object[] item) {
-        super((String) item[0], KdbIcons.Node.Variable);
+    public VariableElement(String namespace, Object[] item) {
+        super((String) item[0], namespace, KdbIcons.Node.Variable);
         type = (Short) item[1];
         location = typeName(type);
     }

@@ -1,7 +1,11 @@
 package org.kdb.inside.brains.view.console.table;
 
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.ListSpeedSearch;
@@ -57,7 +61,7 @@ class ColumnsFilterPanel extends NonOpaquePanel {
         });
 
         final DefaultActionGroup group = new DefaultActionGroup();
-        group.add(new AnAction("Select All", "Select all columns", KdbIcons.Console.SelectAll) {
+        group.add(new DumbAwareAction("Select All", "Select all columns", KdbIcons.Console.SelectAll) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 final List<TableColumn> columns = columnModel.getColumns(true);
@@ -68,7 +72,7 @@ class ColumnsFilterPanel extends NonOpaquePanel {
                 columnsFilterList.repaint();
             }
         });
-        group.add(new AnAction("Unselect All", "Unselect all columns", KdbIcons.Console.UnselectAll) {
+        group.add(new DumbAwareAction("Unselect All", "Unselect all columns", KdbIcons.Console.UnselectAll) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 final List<TableColumn> columns = columnModel.getColumns(true);

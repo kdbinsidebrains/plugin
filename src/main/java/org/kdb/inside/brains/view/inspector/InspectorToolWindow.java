@@ -16,6 +16,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.Disposer;
@@ -139,7 +140,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
                 final StringBuilder b = new StringBuilder();
                 for (TreePath path : selectionPaths) {
-                    final String name = getCanonicalName(path);
+                    final String name = getCanonicalName(path, false);
                     if (b.length() != 0) {
                         b.append(System.lineSeparator());
                     }
@@ -196,7 +197,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     }
 
     @Nullable
-    private static String getCanonicalName(TreePath path) {
+    private static String getCanonicalName(TreePath path, boolean executable) {
         final Object[] objects = path.getPath();
         if (objects.length <= 1) {
             return null;
@@ -204,24 +205,20 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
         final int count = objects.length - 1;
         final Object last = StructureViewComponent.unwrapWrapper(objects[count]);
-        if (!(last instanceof ExecutableElement)) {
+        if (!(last instanceof InspectorElement)) {
             return null;
         }
 
-        if (last instanceof TableElement && ((TableElement) last).isHistorical()) {
-            return null;
-        }
+        if (executable) {
+            if (!(last instanceof ExecutableElement)) {
+                return null;
+            }
 
-        final StringBuilder b = new StringBuilder();
-        for (int i = 1; i < count; i++) {
-            final Object o = StructureViewComponent.unwrapWrapper(objects[i]);
-            if (o instanceof NamespaceElement) {
-                b.append(".").append(((NamespaceElement) o).getName());
+            if (last instanceof TableElement && ((TableElement) last).isHistorical()) {
+                return null;
             }
         }
-
-        final ExecutableElement ee = (ExecutableElement) last;
-        return b.length() == 0 ? ee.getName() : b.append(".").append(ee.getName()).toString();
+        return ((InspectorElement) last).getCanonicalName();
     }
 
     private void createStatusBar() {
@@ -234,6 +231,8 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         final ContentManager cm = toolWindow.getContentManager();
         final Content content = cm.getFactory().createContent(this, null, false);
         cm.addContent(content);
+
+        visible = toolWindow.isVisible();
 
         connectionManager.addConnectionListener(this);
 
@@ -260,7 +259,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     private JComponent createToolbar() {
         final DefaultActionGroup result = new DefaultActionGroup();
 
-        final AnAction refreshAction = new AnAction("Refresh Instance", "Reloads the instance structure", KdbIcons.Inspector.Refresh) {
+        final AnAction refreshAction = new DumbAwareAction("Refresh Instance", "Reloads the instance structure", KdbIcons.Inspector.Refresh) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 refreshInstance();
@@ -281,7 +280,11 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             if (actions.length != 0) {
                 result.addSeparator();
                 for (TreeAction action : actions) {
-                    result.add(new TreeActionWrapper(action, settings));
+                    if (action == null) {
+                        result.addSeparator();
+                    } else {
+                        result.add(new TreeActionWrapper(action, settings));
+                    }
                 }
             }
         }
@@ -296,7 +299,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             return false;
         }
 
-        final String query = getCanonicalName(path);
+        final String query = getCanonicalName(path, true);
         if (query == null) {
             return false;
         }

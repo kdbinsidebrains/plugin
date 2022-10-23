@@ -276,7 +276,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
     }
 
     private class MyAddAction extends ActionGroup implements ActionGroupWithPreselection, DumbAware {
-        private AnAction[] myChildren;
+        private DumbAwareAction[] myChildren;
         private final boolean fromPopup;
 
         MyAddAction(boolean fromPopup) {
@@ -299,7 +299,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
         @NotNull
         public AnAction[] getChildren(@Nullable AnActionEvent e) {
             if (myChildren == null) {
-                myChildren = new AnAction[]{new DumbAwareAction("Local", "Local", KdbIcons.Scope.Local) {
+                myChildren = new DumbAwareAction[]{new DumbAwareAction("Local", "Local", KdbIcons.Scope.Local) {
                     @Override
                     public void actionPerformed(@NotNull AnActionEvent e) {
                         createScope(ScopeType.LOCAL);
@@ -312,9 +312,9 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
                 }};
             }
             if (fromPopup) {
-                final AnAction action = myChildren[getDefaultIndex()];
+                final DumbAwareAction action = myChildren[getDefaultIndex()];
                 action.getTemplatePresentation().setIcon(IconUtil.getAddIcon());
-                return new AnAction[]{action};
+                return new DumbAwareAction[]{action};
             }
             return myChildren;
         }

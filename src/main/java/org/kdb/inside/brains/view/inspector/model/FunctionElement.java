@@ -23,8 +23,8 @@ public class FunctionElement extends ExecutableElement {
     private final String[] arguments;
     private final String location;
 
-    public FunctionElement(Object[] item) {
-        super((String) item[0], KdbIcons.Node.Function);
+    public FunctionElement(String namespace, Object[] item) {
+        super((String) item[0], namespace, KdbIcons.Node.Function);
         type = (short) item[1];
         arguments = (String[]) item[2];
 

@@ -10,8 +10,8 @@ public class TableElement extends ExecutableElement {
     private final c.Flip meta;
     private String location;
 
-    public TableElement(Object[] item) {
-        super((String) item[0], KdbIcons.Node.Table);
+    public TableElement(String namespace, Object[] item) {
+        super((String) item[0], namespace, KdbIcons.Node.Table);
         size = (Long) item[1];
         meta = (c.Flip) item[2];
         location = Array.getLength(meta.y[0]) + " columns, " + size + " rows, " + (isHistorical() ? "historical" : "memorable");

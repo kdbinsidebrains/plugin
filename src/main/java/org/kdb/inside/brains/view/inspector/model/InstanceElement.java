@@ -10,7 +10,7 @@ public class InstanceElement extends InspectorElement {
     private final InstanceConnection connection;
 
     public InstanceElement(InstanceConnection connection, KdbResult result) {
-        super(connection.getCanonicalName(), KdbIcons.Node.Instance);
+        super(connection.getCanonicalName(), null, KdbIcons.Node.Instance);
         this.connection = connection;
         this.result = result;
     }
@@ -30,6 +30,6 @@ public class InstanceElement extends InspectorElement {
 
     @Override
     protected TreeElement[] buildChildren() {
-        return new NamespaceElement((Object[]) result.getObject()).buildChildren();
+        return NamespaceElement.buildChildren(null, (Object[]) result.getObject());
     }
 }

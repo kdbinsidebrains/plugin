@@ -7,10 +7,10 @@ import com.intellij.ide.PasteProvider;
 import com.intellij.ide.dnd.*;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.awt.RelativeRectangle;
@@ -59,7 +59,7 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
         manager.addQueryListener(managerListener);
         manager.addConnectionListener(managerListener);
 
-        new AnAction() {
+        new DumbAwareAction() {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 cancelCutCopy();

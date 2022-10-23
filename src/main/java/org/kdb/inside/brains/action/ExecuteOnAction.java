@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsActions;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,7 @@ public class ExecuteOnAction extends ActionGroup implements DumbAware {
         final List<InstanceConnection> connections = instance.getConnections();
 
         int i = 0;
-        final AnAction[] res = new AnAction[connections.size()];
+        final DumbAwareAction[] res = new DumbAwareAction[connections.size()];
         for (InstanceConnection kdbInstance : connections) {
             res[i++] = new ExecuteAction(kdbInstance);
         }

@@ -10,18 +10,24 @@ import java.util.stream.Stream;
 public class NamespaceElement extends InspectorElement {
     private final Object[] item;
 
-    public NamespaceElement(Object[] item) {
-        super((String) item[0], KdbIcons.Node.Namespace);
+    public NamespaceElement(String namespace, Object[] item) {
+        super((String) item[0], namespace == null ? "" : namespace, KdbIcons.Node.Namespace);
         this.item = item;
+    }
+
+    protected static TreeElement[] buildChildren(NamespaceElement element, Object[] item) {
+        final String namespace = element == null ? null : element.getCanonicalName();
+
+        final List<TreeElement> children = new ArrayList<>();
+        Stream.of((Object[]) item[1]).forEach(s -> children.add(new FunctionElement(namespace, (Object[]) s)));
+        Stream.of((Object[]) item[2]).forEach(s -> children.add(new TableElement(namespace, (Object[]) s)));
+        Stream.of((Object[]) item[3]).forEach(s -> children.add(new VariableElement(namespace, (Object[]) s)));
+        Stream.of((Object[]) item[4]).forEach(s -> children.add(new NamespaceElement(namespace, (Object[]) s)));
+        return children.toArray(TreeElement[]::new);
     }
 
     @Override
     protected TreeElement[] buildChildren() {
-        final List<TreeElement> children = new ArrayList<>();
-        Stream.of((Object[]) item[1]).forEach(s -> children.add(new FunctionElement((Object[]) s)));
-        Stream.of((Object[]) item[2]).forEach(s -> children.add(new TableElement((Object[]) s)));
-        Stream.of((Object[]) item[3]).forEach(s -> children.add(new VariableElement((Object[]) s)));
-        Stream.of((Object[]) item[4]).forEach(s -> children.add(new NamespaceElement((Object[]) s)));
-        return children.toArray(TreeElement[]::new);
+        return buildChildren(this, item);
     }
 }

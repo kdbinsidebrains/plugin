@@ -3,6 +3,7 @@ package org.kdb.inside.brains.view.console.table;
 import com.intellij.find.FindModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.PopupHandler;
@@ -251,7 +252,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         final DefaultActionGroup group = new DefaultActionGroup();
 
         if (repeater != null) {
-            group.add(new AnAction("_Repeat the Query", "Re-run the query related with this result", AllIcons.Actions.Refresh) {
+            group.add(new DumbAwareAction("_Repeat the Query", "Re-run the query related with this result", AllIcons.Actions.Refresh) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e) {
                     repeater.accept(tableResult.getQuery(), TableResultView.this);

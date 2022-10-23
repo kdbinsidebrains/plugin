@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.view.inspector;
 
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowContentUiType;
@@ -19,7 +18,6 @@ public class InspectorToolWindowFactory implements ToolWindowFactory, DumbAware 
         final ToolWindowEx tw = (ToolWindowEx) toolWindow;
         tw.setDefaultContentUiType(ToolWindowContentUiType.TABBED);
 
-        // Lazy init
-        DumbService.getInstance(project).runWhenSmart(() -> project.getService(InspectorToolWindow.class).initToolWindow(tw));
+        project.getService(InspectorToolWindow.class).initToolWindow(tw);
     }
 }

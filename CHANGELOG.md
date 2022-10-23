@@ -13,6 +13,10 @@
   Related Q query for discovery can be found in
   Git: https://github.com/kdbinsidebrains/plugin/blob/main/src/main/resources/org/kdb/inside/brains/inspector.q
 
+### Changed
+
+- All KDB Plugin services moved to DumbAware and the plugin can be used at indexing time.
+
 ### Fixed
 
 - Unary primitive functions formatting incorrect. All added into grammar logic as UnaryFunction. They are inner

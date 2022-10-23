@@ -5,7 +5,6 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -13,6 +12,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Progressive;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -174,7 +174,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                             createNotification("Instance has been disconnected: " + name, NotificationType.INFORMATION).notify(project);
                         } else {
                             createNotification("Instance can't be connected: " + name + " - " + error.getMessage(), NotificationType.WARNING)
-                                    .addAction(new AnAction("Check Instance Details") {
+                                    .addAction(new DumbAwareAction("Check Instance Details") {
                                         @Override
                                         public void actionPerformed(@NotNull AnActionEvent e) {
                                             final KdbInstance instance = conn.getInstance();
@@ -184,7 +184,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                                             }
                                         }
                                     })
-                                    .addAction(new AnAction("Reconnect Instance") {
+                                    .addAction(new DumbAwareAction("Reconnect Instance") {
                                         @Override
                                         public void actionPerformed(@NotNull AnActionEvent e) {
                                             conn.connectAndWait();

@@ -1,9 +1,12 @@
 package org.kdb.inside.brains.action;
 
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.*;
-import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
@@ -15,7 +18,7 @@ import org.kdb.inside.brains.core.InstanceState;
 import org.kdb.inside.brains.core.KdbConnectionManager;
 import org.kdb.inside.brains.view.console.KdbConsoleToolWindow;
 
-public class ExecuteAction extends AnAction implements DumbAware {
+public class ExecuteAction extends DumbAwareAction {
     private final InstanceConnection myConnection;
 
     public ExecuteAction() {

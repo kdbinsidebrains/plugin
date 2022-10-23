@@ -120,6 +120,8 @@ public final class KdbIcons {
         public static final Icon PublicItem = AllIcons.Nodes.C_public;
         public static final Icon PrivateItem = AllIcons.Nodes.C_private;
 
+        public static final Icon SystemNamespaces = AllIcons.Nodes.Private;
+
         public static final Icon GroupTables = load("/org/kdb/inside/brains/icons/nodes/groupTables.svg");
         public static final Icon GroupFunctions = load("/org/kdb/inside/brains/icons/nodes/groupFunctions.svg");
         public static final Icon GroupVariables = load("/org/kdb/inside/brains/icons/nodes/groupVariables.svg");
