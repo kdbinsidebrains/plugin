@@ -2,6 +2,13 @@
 
 # KdbInsideBrains Changelog
 
+## [1.14.0]
+
+### Added
+
+- Code completion takes Inspector result into account: if the KdbInspector is active when code completion takes
+  variables. function and tables from loaded structure with 'inspector' location.
+
 ## [1.13.0]
 
 ### Added

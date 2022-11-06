@@ -56,6 +56,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,6 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     public static final String PLACE = "Kdb.InstanceInspectorToolbar";
 
     private final Project project;
-    private static final DateTimeFormatter STATUS_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private InstanceConnection connection;
     private final InstanceScanner scanner;
@@ -86,6 +86,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     private boolean disposed;
 
     private static final KeyStroke ENTER = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
+    private static final DateTimeFormatter STATUS_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public InspectorToolWindow(@NotNull Project project) {
         super(true);
@@ -166,9 +167,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         myTreeModelWrapper.addModelListener(modelListener);
 
         Disposer.register(this, myTreeModelWrapper);
-        Disposer.register(this, () -> {
-            myTreeModelWrapper.removeModelListener(modelListener);
-        });
+        Disposer.register(this, () -> myTreeModelWrapper.removeModelListener(modelListener));
 
         TreeUtil.installActions(tree);
 
@@ -400,5 +399,32 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     @Override
     public void loadState(@NotNull InspectorToolState state) {
         settings.copyFom(state);
+    }
+
+    static List<ExecutableElement> getSuggestions(String prefix, InstanceElement ie) {
+        return getSuggestions(prefix, (InspectorElement) ie);
+    }
+
+    static List<ExecutableElement> getSuggestions(String prefix, InspectorElement ie) {
+        final List<ExecutableElement> res = new ArrayList<>();
+        for (InspectorElement child : ie.getChildren()) {
+            final String canonicalName = child.getCanonicalName();
+            if (canonicalName.startsWith(prefix) || (child instanceof NamespaceElement && prefix.startsWith(canonicalName))) {
+                if (child instanceof NamespaceElement) {
+                    res.addAll(getSuggestions(prefix, child));
+                } else if (child instanceof ExecutableElement) {
+                    res.add((ExecutableElement) child);
+                }
+            }
+        }
+        return res;
+    }
+
+    public List<ExecutableElement> getSuggestions(String prefix) {
+        final InstanceElement ie = inspectorModel.getInstanceElement();
+        if (ie == null || ie.getChildren().length == 0 || prefix.isEmpty()) {
+            return List.of();
+        }
+        return getSuggestions(prefix, ie);
     }
 }

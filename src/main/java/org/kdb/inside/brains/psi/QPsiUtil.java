@@ -133,7 +133,7 @@ public final class QPsiUtil {
     }
 
     public static PsiElement createWhitespace(Project project, String text) {
-        return PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText(text);
+        return project.getService(PsiParserFacade.class).createWhiteSpaceFromText(text);
     }
 
     public static PsiElement createSemicolon(Project project) {

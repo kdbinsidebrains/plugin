@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.view.inspector.model;
 
 import com.intellij.ide.structureView.StructureViewTreeElement;
-import com.intellij.ide.util.treeView.smartTree.TreeElement;
 import com.intellij.navigation.ItemPresentation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +13,8 @@ public abstract class InspectorElement implements StructureViewTreeElement, Item
     private final String namespace;
     private final String canonicalName;
 
-    private TreeElement[] children;
+    private static final InspectorElement[] EMPTY_ARRAY = new InspectorElement[0];
+    private InspectorElement[] children;
 
     public InspectorElement(String name, String namespace, Icon icon) {
         this.name = name;
@@ -56,14 +56,14 @@ public abstract class InspectorElement implements StructureViewTreeElement, Item
     }
 
     @Override
-    public final TreeElement @NotNull [] getChildren() {
+    public final InspectorElement @NotNull [] getChildren() {
         if (children == null) {
             children = buildChildren();
         }
         return children;
     }
 
-    protected TreeElement[] buildChildren() {
+    protected InspectorElement[] buildChildren() {
         return EMPTY_ARRAY;
     }
 

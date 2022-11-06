@@ -3,6 +3,8 @@ package org.kdb.inside.brains.view.inspector.model;
 import icons.KdbIcons;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 public class FunctionElement extends ExecutableElement {
     private static final String[] TYPE_NAMES = {
             "function",
@@ -25,18 +27,17 @@ public class FunctionElement extends ExecutableElement {
 
     public FunctionElement(String namespace, Object[] item) {
         super((String) item[0], namespace, KdbIcons.Node.Function);
-        type = (short) item[1];
+        type = ((Number) item[1]).shortValue();
         arguments = (String[]) item[2];
-
-        location = typeName("[" + String.join(", ", arguments) + "]", type);
+        location = typeName(type, () -> "[" + String.join(", ", arguments) + "]");
     }
 
-    private static String typeName(String arguments, short type) {
+    private static String typeName(short type, Supplier<String> arguments) {
         if (100 == type) {
-            return arguments;
+            return arguments.get();
         }
         if (101 == type) {
-            return "unary" + arguments;
+            return "unary" + arguments.get();
         }
         final int i = type - 100;
         if (i >= 0 && i < TYPE_NAMES.length) {
