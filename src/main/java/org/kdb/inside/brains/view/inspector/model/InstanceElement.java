@@ -1,6 +1,5 @@
 package org.kdb.inside.brains.view.inspector.model;
 
-import com.intellij.ide.util.treeView.smartTree.TreeElement;
 import icons.KdbIcons;
 import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.KdbResult;
@@ -29,7 +28,7 @@ public class InstanceElement extends InspectorElement {
     }
 
     @Override
-    protected TreeElement[] buildChildren() {
+    protected InspectorElement[] buildChildren() {
         return NamespaceElement.buildChildren(null, (Object[]) result.getObject());
     }
 }

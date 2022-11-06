@@ -30,7 +30,7 @@ public class TypesGrouper implements Grouper {
 
     @Override
     public @NotNull ActionPresentation getPresentation() {
-        return new ActionPresentationData("Group all " + elementType.getText(), null, elementType.getIcon());
+        return new ActionPresentationData("Group all " + elementType.getText(), null, elementType.getGroupIcon());
     }
 
     @Override
@@ -64,7 +64,7 @@ public class TypesGrouper implements Grouper {
 
         @Override
         public @Nullable Icon getIcon(boolean unused) {
-            return type.getIcon();
+            return type.getGroupIcon();
         }
 
         @Override

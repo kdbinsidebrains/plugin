@@ -11,12 +11,12 @@ public enum ElementType {
     VARIABLES("Variables", KdbIcons.Node.GroupVariables, VariableElement.class);
 
     private final String text;
-    private final Icon icon;
+    private final Icon groupIcon;
     private final Class<? extends TreeElement> aClass;
 
-    ElementType(String text, Icon icon, Class<? extends TreeElement> aClass) {
+    ElementType(String text, Icon groupIcon, Class<? extends TreeElement> aClass) {
         this.text = text;
-        this.icon = icon;
+        this.groupIcon = groupIcon;
         this.aClass = aClass;
     }
 
@@ -24,8 +24,8 @@ public enum ElementType {
         return text;
     }
 
-    public Icon getIcon() {
-        return icon;
+    public Icon getGroupIcon() {
+        return groupIcon;
     }
 
     public boolean isIt(TreeElement c) {

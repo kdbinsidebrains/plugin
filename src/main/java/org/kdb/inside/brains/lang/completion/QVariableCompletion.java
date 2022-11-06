@@ -16,10 +16,14 @@ import org.kdb.inside.brains.QWord;
 import org.kdb.inside.brains.psi.*;
 import org.kdb.inside.brains.psi.index.IdentifierType;
 import org.kdb.inside.brains.psi.index.QIndexService;
+import org.kdb.inside.brains.view.inspector.InspectorToolWindow;
+import org.kdb.inside.brains.view.inspector.model.ExecutableElement;
+import org.kdb.inside.brains.view.inspector.model.InspectorElement;
 
 import javax.swing.*;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class QVariableCompletion extends CompletionProvider<CompletionParameters> {
@@ -37,11 +41,31 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
         }
 
         final String qualifiedName = variable.getQualifiedName();
+        final Project project = el.getProject();
 
-        addGlobal(qualifiedName, el.getProject(), result);
+        addGlobal(qualifiedName, project, result);
         addLambda(qualifiedName, ElementContext.of(variable), result);
         addFunctions(qualifiedName, result);
         addKeywords(qualifiedName, result);
+        addInspector(qualifiedName, project, result);
+    }
+
+    private void addInspector(String qualifiedName, Project project, CompletionResultSet result) {
+        final InspectorToolWindow inspector = project.getServiceIfCreated(InspectorToolWindow.class);
+        if (inspector == null) {
+            return;
+        }
+
+        final String instance = "inspector";
+        final List<ExecutableElement> suggestions = inspector.getSuggestions(qualifiedName);
+        for (InspectorElement suggestion : suggestions) {
+            result.addElement(LookupElementBuilder
+                    .create(suggestion.getCanonicalName())
+                    .withIcon(suggestion.getIcon(false))
+                    .withTailText(" " + suggestion.getLocationString())
+                    .withTypeText(instance, true)
+            );
+        }
     }
 
     private void addKeywords(String qualifiedName, CompletionResultSet result) {

@@ -407,7 +407,6 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                     return;
                 }
 
-
                 indicator.setText("Connecting to KDB Instance: " + instanceName);
                 indicator.setText2("with timeout " + timeout + "ms");
 

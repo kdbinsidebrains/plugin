@@ -28,6 +28,7 @@ public class InspectorTreeModel implements StructureViewModel, StructureViewMode
     public InspectorTreeModel() {
     }
 
+    @Nullable
     public InstanceElement getInstanceElement() {
         return instanceElement;
     }
