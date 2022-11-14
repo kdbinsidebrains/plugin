@@ -7,24 +7,32 @@ import com.intellij.execution.console.LanguageConsoleBuilder;
 import com.intellij.execution.console.LanguageConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.actions.NextOccurenceAction;
+import com.intellij.ide.actions.PreviousOccurenceAction;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.progress.PerformInBackgroundOption;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.docking.DockContainer;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.JBTabsFactory;
 import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.ui.IoErrorText;
 import icons.KdbIcons;
 import kx.c;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +50,8 @@ import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.Consumer;
 
 public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvider, Disposable {
@@ -147,8 +157,8 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         final ActionManager am = ActionManager.getInstance();
 
-        final AnAction[] consoleActions = createConsoleActions();
-        final ActionToolbar kdbConsoleActionToolbar = am.createActionToolbar("KdbConsoleActionToolbar", new DefaultActionGroup(consoleActions), false);
+        final DefaultActionGroup consoleActions = createConsoleActions();
+        final ActionToolbar kdbConsoleActionToolbar = am.createActionToolbar("KdbConsoleActionToolbar", consoleActions, false);
         kdbConsoleActionToolbar.setTargetComponent(consolePanel);
         consolePanel.setToolbar(kdbConsoleActionToolbar.getComponent());
 
@@ -162,14 +172,17 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     }
 
     @NotNull
-    private AnAction[] createConsoleActions() {
-        final AnAction[] consoleActions = console.createConsoleActions();
-        for (int i = 0; i < consoleActions.length; i++) {
-            AnAction consoleAction = consoleActions[i];
+    private DefaultActionGroup createConsoleActions() {
+        final DefaultActionGroup actions = new DefaultActionGroup();
 
-            if (consoleAction instanceof ScrollToTheEndToolbarAction) {
-                final Presentation tp = consoleAction.getTemplatePresentation();
-                consoleActions[i] = new ToggleAction(tp.getText(), tp.getDescription(), tp.getIcon()) {
+        for (AnAction action : console.createConsoleActions()) {
+            if (action instanceof PreviousOccurenceAction || action instanceof NextOccurenceAction) {
+                continue;
+            }
+
+            if (action instanceof ScrollToTheEndToolbarAction) {
+                final Presentation tp = action.getTemplatePresentation();
+                actions.add(new ToggleAction(tp.getText(), tp.getDescription(), tp.getIcon()) {
                     @Override
                     public boolean isSelected(@NotNull AnActionEvent e) {
                         return scrollToTheEnd;
@@ -182,9 +195,9 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                             console.requestScrollingToEnd();
                         }
                     }
-                };
-            } else if (consoleAction instanceof PrintAction) {
-                consoleActions[i] = new ToggleAction("Show History", "Show all history or only last one if disabled", KdbIcons.Console.ShowOnlyLast) {
+                });
+            } else if (action instanceof PrintAction) {
+                actions.add(new ToggleAction("Show History", "Show all history or only last one if disabled", KdbIcons.Console.ShowOnlyLast) {
                     @Override
                     public boolean isSelected(@NotNull AnActionEvent e) {
                         return !showOnlyLast;
@@ -197,18 +210,20 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                             clearHistory();
                         }
                     }
-                };
+                });
+            } else {
+                actions.add(action);
             }
         }
-        return consoleActions;
+        return actions;
     }
 
     private ActionToolbar createMainToolbar() {
         final ActionManager am = ActionManager.getInstance();
-        final DefaultActionGroup consoleActions = new DefaultActionGroup();
+        final DefaultActionGroup actions = new DefaultActionGroup();
 
-        consoleActions.add(new ToggleConnectAction(connection));
-        consoleActions.add(new DumbAwareAction("Modify Instance", "Change the instance settings across the application", AllIcons.General.Settings) {
+        actions.add(new ToggleConnectAction(connection));
+        actions.add(new DumbAwareAction("Modify Instance", "Change the instance settings across the application", AllIcons.General.Settings) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 final KdbInstance instance = connection.getInstance();
@@ -221,7 +236,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                 }
             }
         });
-        consoleActions.add(new DumbAwareAction("Cancel the Query", "Cancel current running query", AllIcons.Actions.Suspend) {
+        actions.add(new DumbAwareAction("Cancel the Query", "Cancel current running query", AllIcons.Actions.Suspend) {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 e.getPresentation().setEnabled(connection.getQuery() != null);
@@ -233,15 +248,28 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             }
         });
 
-        consoleActions.addSeparator();
+        actions.addSeparator();
 
-        consoleActions.add(new DumbAwareAction("Load KDB Table", "Loads previouly saved KDB table in binary format", KdbIcons.Console.ImportBinary) {
+        actions.add(new DumbAwareAction("Upload File to Instance", "Set content of a file into the instance variable", KdbIcons.Console.UploadFile) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                uploadFileToVariable();
+            }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(connection.getState() == InstanceState.CONNECTED);
+            }
+        });
+        actions.addSeparator();
+
+        actions.add(new DumbAwareAction("Open KDB Table", "Opens previously saved KDB table in binary format", KdbIcons.Console.ImportBinary) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 loadBinaryFile();
             }
         });
-        consoleActions.addSeparator();
+        actions.addSeparator();
 
         final DefaultActionGroup g = new PopupActionGroup("Split Console and Result Tabs", KdbIcons.Console.Layout);
         g.add(new SplitAction("Tabs view", "Show console and results in tabs", KdbIcons.Console.LayoutNo, ConsoleSplitType.NO));
@@ -249,10 +277,10 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         g.add(new SplitAction("Split Down", "Show table view result tabs under the console", KdbIcons.Console.LayoutDown, ConsoleSplitType.DOWN));
         g.add(new SplitAction("Split Right", "Show table view result tabs on the right of the console", KdbIcons.Console.LayoutRight, ConsoleSplitType.RIGHT));
 
-        consoleActions.add(g);
+        actions.add(g);
 
-        consoleActions.addSeparator();
-        consoleActions.add(new DumbAwareAction("Close", "Closed connection and this console", KdbIcons.Console.Kill) {
+        actions.addSeparator();
+        actions.add(new DumbAwareAction("Close", "Closed connection and this console", KdbIcons.Console.Kill) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 connection.disconnect();
@@ -260,7 +288,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             }
         });
 
-        final ActionToolbar kdbConsoleMainToolbar = am.createActionToolbar("KdbConsoleMainToolbar", consoleActions, false);
+        final ActionToolbar kdbConsoleMainToolbar = am.createActionToolbar("KdbConsoleMainToolbar", actions, false);
         kdbConsoleMainToolbar.setTargetComponent(this);
         return kdbConsoleMainToolbar;
     }
@@ -291,26 +319,40 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     }
 
     private void loadBinaryFile() {
-        final VirtualFile virtualFile = FileChooser.chooseFile(new FileChooserDescriptor(true, false, false, false, false, false), project, null);
-        if (virtualFile != null && virtualFile.exists()) {
-            try {
-                final KdbQuery query = new KdbQuery("Loaded from file: " + virtualFile.getCanonicalPath());
-                final KdbResult result = new KdbResult();
-
-                final byte[] bytes = VfsUtil.loadBytes(virtualFile);
-                final Object deserialize = new c().deserialize(bytes);
-
-                final KdbResult complete = result.complete(deserialize);
-                final TableResult tr = TableResult.from(query, complete);
-                if (tr == null) {
-                    throw new IllegalStateException("Incorrect object type: " + deserialize.getClass().getSimpleName());
-                }
-
-                resultTabs.showTab(virtualFile.getNameWithoutExtension(), tr);
-            } catch (Exception ex) {
-                Messages.showErrorDialog(project, "The file can't be loaded: " + ex.getMessage(), "Incorrect KDB Table File");
-            }
+        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false);
+        final VirtualFile virtualFile = FileChooser.chooseFile(descriptor, project, null);
+        if (virtualFile == null || !virtualFile.exists()) {
+            return;
         }
+
+        final String tabName = virtualFile.getNameWithoutExtension();
+        final Application application = ApplicationManager.getApplication();
+        new Task.Backgroundable(project, "Loading a table from " + tabName, false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                try {
+                    indicator.setText("Loading file");
+                    final byte[] bytes = Files.readAllBytes(virtualFile.toNioPath());
+                    indicator.setText("Deserializing content: " + FileUtils.byteCountToDisplaySize(bytes.length));
+                    final Object deserialize = new c().deserialize(bytes);
+
+                    final KdbQuery query = new KdbQuery("Loaded from file: " + virtualFile.getCanonicalPath());
+                    final KdbResult result = new KdbResult();
+
+                    final KdbResult complete = result.complete(deserialize);
+                    final TableResult tr = TableResult.from(query, complete);
+                    if (tr == null) {
+                        throw new IllegalStateException("Incorrect object type: " + deserialize.getClass().getSimpleName());
+                    }
+                    application.invokeLater(() -> {
+                        resultTabs.showTab(tabName, tr);
+                        indicator.setText("");
+                    });
+                } catch (Exception ex) {
+                    application.invokeLater(() -> Messages.showErrorDialog(project, "The file can't be loaded: " + ex.getMessage(), "Incorrect KDB Table File"));
+                }
+            }
+        }.queue();
     }
 
     public InstanceConnection getConnection() {
@@ -340,6 +382,28 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
     private void processQuery(KdbQuery query) {
         processQuery(query, null);
+    }
+
+    private void uploadFileToVariable() {
+        final UploadFileDialog d = new UploadFileDialog(project);
+        if (!d.showAndGet()) {
+            return;
+        }
+
+        try {
+            if (connection.getState() != InstanceState.CONNECTED) {
+                throw new IOException("Instance in not connected");
+            }
+            final KdbResult res = connection.query(d.createQuery());
+            if (res.isError()) {
+                throw (Exception) res.getObject();
+            }
+            final Path path = d.getPath();
+            printToConsole("File " + d.getPath().toString() + " of " + FileUtils.byteCountToDisplaySize(Files.size(path)) + " has been set to `" + d.getVariableName() + " variable.\n", ConsoleViewContentType.LOG_VERBOSE_OUTPUT);
+            selectConsole();
+        } catch (Exception ex) {
+            Messages.showErrorDialog(project, IoErrorText.message(ex), "File Can't Be Uploaded");
+        }
     }
 
     private void processQuery(KdbQuery query, TableResultView resultView) {

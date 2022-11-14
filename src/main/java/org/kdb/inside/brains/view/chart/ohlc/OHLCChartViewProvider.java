@@ -5,7 +5,6 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBViewport;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.FormBuilder;
-import com.intellij.util.ui.UIUtil;
 import icons.KdbIcons;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
@@ -162,7 +161,7 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel> {
         rangesComponent.setModel(model);
         rangesComponent.setVisibleRowCount(model.getRowCount());
         rangesComponent.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        UIUtil.putClientProperty(rangesComponent, JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
+        rangesComponent.putClientProperty(JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
 
         final TableColumnModel columnModel = rangesComponent.getColumnModel();
         final TableColumn col = columnModel.getColumn(0);

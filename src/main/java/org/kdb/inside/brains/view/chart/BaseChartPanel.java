@@ -8,6 +8,7 @@ import com.intellij.ui.JBColor;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.BlockBorder;
@@ -24,6 +25,8 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Field;
 import java.util.function.Supplier;
+
+import static kx.KxConnection.UTC_TIMEZONE;
 
 public class BaseChartPanel extends ChartPanel {
     private SnapType snapType = SnapType.NO;
@@ -50,7 +53,7 @@ public class BaseChartPanel extends ChartPanel {
         fixPanMask();
     }
 
-    protected static void applyColorSchema(XYPlot plot) {
+    protected static void initializePlot(XYPlot plot) {
         plot.setRangePannable(true);
         plot.setDomainPannable(true);
         plot.setBackgroundPaint(JBColor.background());
@@ -61,22 +64,24 @@ public class BaseChartPanel extends ChartPanel {
 
         final int domainAxisCount = plot.getDomainAxisCount();
         for (int i = 0; i < domainAxisCount; i++) {
-            applyAxisColorSchema(plot.getDomainAxis(i));
+            initializeAxis(plot.getDomainAxis(i));
         }
 
         final int rangeAxisCount = plot.getRangeAxisCount();
         for (int i = 0; i < rangeAxisCount; i++) {
-            applyAxisColorSchema(plot.getRangeAxis(i));
+            initializeAxis(plot.getRangeAxis(i));
         }
     }
 
-    @Override
-    public void setChart(JFreeChart chart) {
-        super.setChart(chart);
+    protected static void initializeAxis(ValueAxis axis) {
+        axis.setLabelPaint(JBColor.foreground());
+        axis.setAxisLinePaint(JBColor.foreground());
+        axis.setTickLabelPaint(JBColor.foreground());
 
-        if (chart != null) {
-            setMouseZoomable(true);
-            applyCharSchema(chart);
+        if (axis instanceof NumberAxis) {
+            ((NumberAxis) axis).setAutoRangeIncludesZero(false);
+        } else if (axis instanceof DateAxis) {
+            ((DateAxis) axis).setTimeZone(UTC_TIMEZONE);
         }
     }
 
@@ -114,17 +119,17 @@ public class BaseChartPanel extends ChartPanel {
         this.snapType = snapType;
     }
 
-    protected static void applyAxisColorSchema(ValueAxis axis) {
-        axis.setLabelPaint(JBColor.foreground());
-        axis.setAxisLinePaint(JBColor.foreground());
-        axis.setTickLabelPaint(JBColor.foreground());
+    @Override
+    public void setChart(JFreeChart chart) {
+        super.setChart(chart);
 
-        if (axis instanceof NumberAxis) {
-            ((NumberAxis) axis).setAutoRangeIncludesZero(false);
+        if (chart != null) {
+            setMouseZoomable(true);
+            initializeChar(chart);
         }
     }
 
-    private void applyCharSchema(JFreeChart chart) {
+    private void initializeChar(JFreeChart chart) {
         chart.setBorderPaint(JBColor.foreground());
         chart.setBackgroundPaint(JBColor.background());
 
@@ -137,7 +142,7 @@ public class BaseChartPanel extends ChartPanel {
 
         final Plot plot = chart.getPlot();
         if (plot instanceof XYPlot) {
-            applyColorSchema((XYPlot) plot);
+            initializePlot((XYPlot) plot);
         }
     }
 

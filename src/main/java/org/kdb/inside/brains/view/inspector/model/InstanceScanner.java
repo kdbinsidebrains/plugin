@@ -13,7 +13,6 @@ import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
 
-import javax.swing.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -51,12 +50,12 @@ public class InstanceScanner {
     }
 
     private void processError(InstanceConnection connection, Exception err) {
-        ApplicationManager.getApplication().invokeLater(() -> SwingUtilities.invokeLater(() -> listener.scanFailed(connection, err)), ModalityState.any());
+        ApplicationManager.getApplication().invokeLater(() -> listener.scanFailed(connection, err), ModalityState.any());
     }
 
     private void processResponse(InstanceConnection connection, KdbResult result) {
         final InstanceElement ie = new InstanceElement(connection, result);
-        ApplicationManager.getApplication().invokeLater(() -> SwingUtilities.invokeLater(() -> listener.scanFinished(connection, ie)), ModalityState.any());
+        ApplicationManager.getApplication().invokeLater(() -> listener.scanFinished(connection, ie), ModalityState.any());
     }
 
     private Task startThread(InstanceConnection connection) {

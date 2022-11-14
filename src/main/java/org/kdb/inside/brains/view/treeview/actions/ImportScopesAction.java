@@ -9,11 +9,10 @@ import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.IoErrorText;
-import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.core.KdbScope;
 import org.kdb.inside.brains.core.KdbScopeHelper;
@@ -53,11 +52,9 @@ public class ImportScopesAction extends DumbAwareAction {
         }
 
         for (VirtualFile file : choose) {
-            final SAXBuilder sax = new SAXBuilder();
             // String that contains XML
             try {
-                final Document doc = sax.build(file.getInputStream());
-                final Element rootNode = doc.getRootElement();
+                final Element rootNode = JDOMUtil.load(file.getInputStream());
 
                 final List<KdbScope> kdbScopes = new KdbScopeHelper().readScopes(rootNode, ScopeType.LOCAL);
 

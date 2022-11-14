@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="16" height="16" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <g fill="#AFB1B3" fill-rule="evenodd">
+        <path d="M 2,2 H 6.8 V 5.2727272 H 2 Z m 1.2,1.0909091 v 1.090909 H 5.6 V 3.0909091 Z M 2,6.3636363 H 6.8 V 9.6363636 H 2 Z M 3.2,7.4545452 V 8.5454543 H 5.6 V 7.4545452 Z M 2,10.727273 H 14 V 14 H 2 Z m 1.2,1.090909 v 1.090909 h 2.4 v -1.090909 z"/>
+        <polygon
+                points="7,6 9,6 9,11 12,11 8,15 4,11 7,11 "
+                transform="matrix(-0.875,0,0,0.88888889,17.5,-3.3333333)"/>
+    </g>
+</svg>

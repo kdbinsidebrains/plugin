@@ -20,7 +20,7 @@ public final class QLanguage extends Language {
     private final Map<String, QWord> words = new HashMap<>();
 
     private static final String VARIABLE_PATTERN = "([.a-zA-Z][a-zA-Z]|[a-zA-Z])[._a-zA-Z0-9]*";
-    private static final Predicate<String> IDENTIFIER = Pattern.compile(VARIABLE_PATTERN).asPredicate();
+    private static final Predicate<String> IDENTIFIER = Pattern.compile(VARIABLE_PATTERN).asMatchPredicate();
 
     public static final QLanguage INSTANCE = new QLanguage();
 

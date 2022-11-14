@@ -2,6 +2,22 @@
 
 # KdbInsideBrains Changelog
 
+## [1.15.0]
+
+### Added
+
+- Upload a file to an instance has been added. You can select a local file and assign its content to a
+  variable
+
+### Changed
+
+- Export to CSV uses comma separator from now with appropriate escaping logic
+
+### Fixed
+
+- All possible deprecated and marked for removal warnings were resolved.
+- issue #58: charting time values are offset - wrong timezone is used for date/time axis
+
 ## [1.14.0]
 
 ### Added
@@ -27,37 +43,8 @@
 ### Fixed
 
 - Unary primitive functions formatting incorrect. All added into grammar logic as UnaryFunction. They are inner
-  implementation of some functions:
+  implementation of some functions
 
-<pre>
-  count=#:
-  distinct=?:
-  first=*:
-  flip=+:
-  floor=_:
-  get=.:
-  group==:
-  ltime=%:
-  hdel=~:
-  hclose=>:
-  inv=!:
-  key=!:
-  maxs=|\
-  mins=&\
-  neg=-:
-  not=~:
-  null=^:
-  prds=*\
-  raze=,/
-  reciprocal=%:
-  reverse=|:
-  string=$:
-  sums=+\
-  type=@:
-  value=.:
-  read0=0::
-  read1=1::
-</pre>
 
 ## [1.12.0]
 

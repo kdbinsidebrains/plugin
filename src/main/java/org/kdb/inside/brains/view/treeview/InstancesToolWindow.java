@@ -15,7 +15,6 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -24,6 +23,7 @@ import icons.KdbIcons;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.core.KdbScope;
 import org.kdb.inside.brains.core.KdbScopesListener;
 import org.kdb.inside.brains.core.KdbScopesManager;
@@ -104,9 +104,7 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
             panel.readExternal(state);
         }
 
-        final ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-
-        final Content content = contentFactory.createContent(panel, scope.getName(), true);
+        final Content content = UIUtils.createContent(panel, scope.getName(), true);
         content.setPreferredFocusableComponent(panel.getPreferredFocusableComponent());
 
         final Content cnt = contentManager.getContent(0);
@@ -134,8 +132,7 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
     }
 
     private void createDummyPage() {
-        final ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-        final Content content = contentFactory.createContent(new DummyPage(project), "KDB Instances", false);
+        final Content content = UIUtils.createContent(new DummyPage(project), "KDB Instances", false);
         contentManager.addContent(content);
     }
 

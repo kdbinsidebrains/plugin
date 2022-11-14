@@ -86,6 +86,9 @@ public final class KdbIcons {
         public static final Icon UnselectAll = AllIcons.Actions.Unselectall;
 
         public static final Icon ColumnsFilter = AllIcons.General.Filter;
+
+        public static final Icon UploadFile = load("/org/kdb/inside/brains/icons/uploadFile.svg");
+        public static final Icon DownloadFile = load("/org/kdb/inside/brains/icons/downloadFile.svg");
     }
 
     public static final class Node {

@@ -15,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class CsvExportAction extends AnExportAction<VirtualFileWrapper> {
+    private static final char SEPARATOR = ',';
+
     public CsvExportAction(String text, ExportingType type, ExportDataProvider dataProvider, String description) {
         super(text, type, dataProvider, description);
     }
@@ -36,8 +38,9 @@ public class CsvExportAction extends AnExportAction<VirtualFileWrapper> {
 
         if (type.withHeader()) {
             for (int i = ci.reset(); i != -1; i = ci.next()) {
-                String val = table.getColumnName(i);
-                plainStr.append('"').append(val).append('"').append('\t');
+                final String val = table.getColumnName(i);
+                final String esc = escapeSpecialCharacters(val);
+                plainStr.append(esc).append(SEPARATOR);
             }
             // we want a newline at the end of each line and not a tab
             plainStr.deleteCharAt(plainStr.length() - 1).append('\n');
@@ -48,8 +51,9 @@ public class CsvExportAction extends AnExportAction<VirtualFileWrapper> {
         indicator.setIndeterminate(false);
         for (int r = ri.reset(); r != -1 && !indicator.isCanceled(); r = ri.next()) {
             for (int c = ci.reset(); c != -1 && !indicator.isCanceled(); c = ci.next()) {
-                final Object val = getValueAt(table, formatter, r, c);
-                plainStr.append(val).append('\t');
+                final String val = getValueAt(table, formatter, r, c);
+                final String esc = escapeSpecialCharacters(val);
+                plainStr.append(esc).append(SEPARATOR);
                 indicator.setFraction(count++ / totalCount);
             }
             // we want a newline at the end of each line and not a tab
@@ -66,15 +70,24 @@ public class CsvExportAction extends AnExportAction<VirtualFileWrapper> {
         Files.writeString(file.getFile().toPath(), plainStr.toString(), StandardCharsets.UTF_8);
     }
 
-    private Object getValueAt(JTable table, KdbOutputFormatter formatter, int r, int c) {
+    private String getValueAt(JTable table, KdbOutputFormatter formatter, int r, int c) {
         final Object valueAt = table.getValueAt(r, c);
         if (valueAt == null) {
             return "";
         }
 
         if (Primitives.isWrapperType(valueAt.getClass())) {
-            return valueAt;
+            return String.valueOf(valueAt);
         }
-        return '"' + formatter.objectToString(valueAt, false, false).replace("\"", "\"\"") + '"';
+        return formatter.objectToString(valueAt, false, false);
+    }
+
+    private String escapeSpecialCharacters(String data) {
+        String escapedData = data.replaceAll("\\R", " ");
+        if (data.contains(",") || data.contains("\"") || data.contains("'")) {
+            data = data.replace("\"", "\"\"");
+            escapedData = "\"" + data + "\"";
+        }
+        return escapedData;
     }
 }

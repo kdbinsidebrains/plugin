@@ -6,8 +6,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
-import com.intellij.ui.content.*;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.ContentManager;
+import com.intellij.ui.content.ContentManagerEvent;
+import com.intellij.ui.content.ContentManagerListener;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.InstanceState;
 import org.kdb.inside.brains.core.KdbConnectionListener;
@@ -21,7 +25,6 @@ public class KdbConsoleToolWindow implements Disposable {
     private ContentManager contentManager;
 
     private final Project project;
-    private final ContentFactory contentFactory;
     private final KdbConnectionManager connectionManager;
 
     private final TheConnectionListener listener = new TheConnectionListener();
@@ -31,8 +34,6 @@ public class KdbConsoleToolWindow implements Disposable {
 
         connectionManager = KdbConnectionManager.getManager(project);
         connectionManager.addConnectionListener(listener);
-
-        contentFactory = ContentFactory.SERVICE.getInstance();
     }
 
     public void initToolWindow(ToolWindowEx toolWindow) {
@@ -107,7 +108,7 @@ public class KdbConsoleToolWindow implements Disposable {
             }
         });
 
-        final Content content = contentFactory.createContent(panel, connection.getCanonicalName(), true);
+        final Content content = UIUtils.createContent(panel, connection.getCanonicalName(), true);
         content.setPinnable(true);
         content.setCloseable(true);
         content.setComponent(panel);

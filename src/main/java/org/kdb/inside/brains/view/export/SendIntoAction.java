@@ -2,9 +2,11 @@ package org.kdb.inside.brains.view.export;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.TextRange;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 
@@ -24,7 +26,17 @@ public class SendIntoAction extends AnExportAction<String> {
     @Override
     protected String getExportConfig(Project project, ExportDataProvider view) {
         final String a = "." + System.getProperty("user.name") + ".import";
-        return Messages.showInputDialog(project, "New variable name", "Variable Name", null, a, null, new TextRange(0, a.length()));
+        return Messages.showInputDialog(project, "New variable name", "Variable Name", null, a, new InputValidator() {
+            @Override
+            public boolean checkInput(String inputString) {
+                return QLanguage.isIdentifier(inputString);
+            }
+
+            @Override
+            public boolean canClose(String inputString) {
+                return checkInput(inputString);
+            }
+        }, new TextRange(0, a.length()));
     }
 
     @Override

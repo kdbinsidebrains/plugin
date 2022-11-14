@@ -3,6 +3,7 @@ package org.kdb.inside.brains;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Experiments;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -14,6 +15,8 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -25,6 +28,14 @@ import java.util.function.Predicate;
 
 public final class UIUtils {
     private UIUtils() {
+    }
+
+    public static Content createContent(JComponent component, String displayName, boolean isLockable) {
+        return getContentFactory().createContent(component, displayName, isLockable);
+    }
+
+    public static ContentFactory getContentFactory() {
+        return ApplicationManager.getApplication().getService(ContentFactory.class);
     }
 
     public static String encodeColor(Color c) {

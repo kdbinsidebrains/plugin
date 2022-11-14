@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.view.chart.line;
 
 import com.intellij.ide.IdeBundle;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComboBoxTableRenderer;
 import com.intellij.ui.ColorChooser;
@@ -12,7 +13,6 @@ import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.ListTableModel;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.view.chart.ChartColors;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
@@ -106,7 +106,7 @@ class LineConfigPanel extends JPanel {
         });
 
         seriesComponent.setVisibleRowCount(5);
-        UIUtil.putClientProperty(seriesComponent, JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
+        seriesComponent.putClientProperty(JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
 
         seriesComponent.setModelAndUpdateColumns(model);
         seriesComponent.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -153,7 +153,7 @@ class LineConfigPanel extends JPanel {
 
         rangesComponent.setModelAndUpdateColumns(model);
         rangesComponent.setVisibleRowCount(model.getRowCount());
-        UIUtil.putClientProperty(rangesComponent, JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
+        rangesComponent.putClientProperty(JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
 
         final TableColumnModel columnModel = rangesComponent.getColumnModel();
 
@@ -292,7 +292,7 @@ class LineConfigPanel extends JPanel {
             final JLabel res = (JLabel) getTableCellRendererComponent(table, value, true, false, row, column);
 
             editingColor = (Color) value;
-            SwingUtilities.invokeLater(() -> {
+            ApplicationManager.getApplication().invokeLater(() -> {
                 final Color c = ColorChooser.chooseColor(table, IdeBundle.message("dialog.title.choose.color"), editingColor, true);
                 if (c == null) {
                     cancelCellEditing();

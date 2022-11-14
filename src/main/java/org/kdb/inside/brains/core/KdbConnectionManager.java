@@ -227,7 +227,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                     return;
                 }
 
-                SwingUtilities.invokeLater(() -> {
+                ApplicationManager.getApplication().invokeLater(() -> {
                     final int timeout = commonOptions.getConnectionChangeTimeout();
                     final Dimension size = notificationComponent.getSize();
                     final Point aPointOnComponent = new Point(size.width / 2, size.height);

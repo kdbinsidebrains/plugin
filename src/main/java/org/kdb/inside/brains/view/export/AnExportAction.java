@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.export;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -81,7 +82,7 @@ public abstract class AnExportAction<Config> extends AnAction {
                     exportResultView(project, type, config, dataProvider, formatter, indicator);
                 } catch (Exception ex) {
                     log.error("Data Can't Be Exported", ex);
-                    SwingUtilities.invokeLater(() -> Messages.showErrorDialog(project, IoErrorText.message(ex), "Data Can't Be Exported"));
+                    ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(project, IoErrorText.message(ex), "Data Can't Be Exported"));
                 }
             }
         }.queue();

@@ -11,11 +11,10 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.util.ui.IoErrorText;
 import org.jdom.Element;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.core.KdbScope;
 import org.kdb.inside.brains.core.KdbScopeHelper;
@@ -66,11 +65,8 @@ public class ExportScopesAction extends DumbAwareAction {
 
         final Element element = new KdbScopeHelper().writeScopes(scopes, ask);
 
-        final XMLOutputter out = new XMLOutputter();
-        out.setFormat(Format.getPrettyFormat());
-
         try (final FileWriter writer = new FileWriter(file.getFile())) {
-            out.output(element, writer);
+            JDOMUtil.write(element, writer, "\n");
         } catch (Exception ex) {
             log.error("Scopes can't be exported to: " + file, ex);
             Messages.showErrorDialog(project, IoErrorText.message(ex), "Scopes Exporting Error");

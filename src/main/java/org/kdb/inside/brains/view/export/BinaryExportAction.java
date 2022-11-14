@@ -25,7 +25,7 @@ public class BinaryExportAction extends AnExportAction<VirtualFileWrapper> {
 
     @Override
     protected VirtualFileWrapper getExportConfig(Project project, ExportDataProvider view) throws IOException {
-        final FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Export to KDB Binary", "Exporting data into native KDB IPC format", "data");
+        final FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Export to KDB Binary", "Exporting data into native KDB IPC format", "kib");
         final FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, project);
         return saveFileDialog.save("Table Result");
     }

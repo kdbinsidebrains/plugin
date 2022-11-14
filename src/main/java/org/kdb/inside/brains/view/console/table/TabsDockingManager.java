@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.console.table;
 
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
@@ -130,7 +131,7 @@ final class TabsDockingManager implements Disposable {
 
         container.add(content, new RelativePoint(target.getLocation()));
 
-        SwingUtilities.invokeLater(() -> window.myUiContainer.setPreferredSize(null));
+        ApplicationManager.getApplication().invokeLater(() -> window.myUiContainer.setPreferredSize(null));
     }
 
     private ActionCallback getReady() {
