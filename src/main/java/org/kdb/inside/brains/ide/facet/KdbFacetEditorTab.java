@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.ide.module.facet;
+package org.kdb.inside.brains.ide.facet;
 
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.openapi.ui.ComboBox;

@@ -16,6 +16,7 @@ public final class KdbIcons {
     public static final class Main {
         public static final Icon File = load("/org/kdb/inside/brains/icons/qFile.svg");
         public static final Icon Module = load("/org/kdb/inside/brains/icons/q.svg");
+        public static final Icon Library = load("/org/kdb/inside/brains/icons/q.svg");
         public static final Icon Application = load("/org/kdb/inside/brains/icons/q.svg");
         public static final Icon Notification = load("/org/kdb/inside/brains/icons/q.svg");
 

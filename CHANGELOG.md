@@ -2,6 +2,20 @@
 
 # KdbInsideBrains Changelog
 
+## [2.0.0]
+
+All major features have been finally implemented so the version changed to major 2.x.x from now.
+
+### Added
+
+- Library and Module dependencies have been added. Please select 'KDB+ Q Source' library type to add external source
+  code to a project (like core files) for navigation and indexing.
+
+### Fixed
+
+- InstanceTreeView memory leak fixed and the structure is correctly disposed now
+- Some names in usages dialog fixed
+
 ## [1.15.0]
 
 ### Added

@@ -9,9 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QLexer;
 import org.kdb.inside.brains.QParserDefinition;
-import org.kdb.inside.brains.psi.QSymbol;
-import org.kdb.inside.brains.psi.QTypes;
-import org.kdb.inside.brains.psi.QVariable;
+import org.kdb.inside.brains.psi.*;
 
 public final class QFindUsagesProvider implements FindUsagesProvider {
     @NotNull
@@ -40,23 +38,34 @@ public final class QFindUsagesProvider implements FindUsagesProvider {
     @NotNull
     @Override
     public String getType(@NotNull PsiElement element) {
-        return "getType: " + element.getClass().getSimpleName();
+        if (element instanceof QVarReference) {
+            return "variable reference";
+        }
+        if (element instanceof QVarDeclaration) {
+            return "variable declaration";
+        }
+        if (element instanceof QSymbol) {
+            return "symbol";
+        }
+        return "";
     }
 
     @NotNull
     @Override
     public String getDescriptiveName(@NotNull PsiElement element) {
-        return "getDescriptiveName: " + element.getClass().getSimpleName();
+        return getNodeText(element, true);
     }
 
     @NotNull
     @Override
     public String getNodeText(@NotNull PsiElement element, boolean useFullName) {
-        if (!(element instanceof QVariable)) {
-            return "";
+        if (element instanceof QVariable) {
+            final QVariable var = (QVariable) element;
+            return useFullName ? var.getQualifiedName() : var.getName();
         }
-        return "getNodeText: " + element.getClass().getSimpleName();
-//        final QVariable var = (QVariable) element;
-//        return useFullName ? var.getQualifiedName() : var.getName();
+        if (element instanceof QSymbol) {
+            return element.getText();
+        }
+        return element.getText();
     }
 }

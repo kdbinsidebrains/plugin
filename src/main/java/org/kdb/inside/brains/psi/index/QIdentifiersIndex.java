@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.psi.index;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.EnumeratorStringDescriptor;
@@ -90,11 +89,6 @@ public class QIdentifiersIndex extends FileBasedIndexExtension<String, List<Iden
 
     @Override
     public @NotNull FileBasedIndex.InputFilter getInputFilter() {
-        return new DefaultFileTypeSpecificInputFilter(QFileType.INSTANCE) {
-            @Override
-            public boolean acceptInput(@NotNull VirtualFile file) {
-                return file.isInLocalFileSystem();
-            }
-        };
+        return new DefaultFileTypeSpecificInputFilter(QFileType.INSTANCE);
     }
 }

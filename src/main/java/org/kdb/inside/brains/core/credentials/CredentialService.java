@@ -12,6 +12,7 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.twelvemonkeys.io.FileUtil;
+import icons.KdbIcons;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -157,9 +158,9 @@ public class CredentialService implements PersistentStateComponent<Element> {
     public void loadState(@NotNull Element state) {
         final List<CredentialPlugin> plugins = new ArrayList<>();
         for (Element element : state.getChildren("plugin")) {
+            final CredentialPlugin plugin;
+            final String id = element.getAttributeValue("id");
             try {
-                final CredentialPlugin plugin;
-                final String id = element.getAttributeValue("id");
                 if (id != null) {
                     plugin = new CredentialPlugin(createLocalResource(id));
                 } else {
@@ -174,7 +175,7 @@ public class CredentialService implements PersistentStateComponent<Element> {
                 plugins.add(plugin);
             } catch (Exception ex) {
                 log.error("Plugin can't be for element: " + element.getText(), ex);
-                notifyPluginFailedPlugin("", ex);
+                notifyPluginFailedPlugin(ex);
             }
         }
 
@@ -182,7 +183,7 @@ public class CredentialService implements PersistentStateComponent<Element> {
             setPlugins(plugins);
         } catch (Exception ex) {
             log.error("Plugin can't be updated", ex);
-            notifyPluginFailedPlugin("", ex);
+            notifyPluginFailedPlugin(ex);
         }
     }
 
@@ -190,16 +191,20 @@ public class CredentialService implements PersistentStateComponent<Element> {
         return providers.stream().filter(p -> p.isSupported(credentials)).findFirst().orElse(UsernameCredentialProvider.INSTANCE);
     }
 
-    private void notifyPluginFailedPlugin(String url, Throwable ex) {
-        final String content = "Credentials plugin can't be loaded from " + url + ": " + ex.getMessage();
-        NotificationGroupManager.getInstance().getNotificationGroup("Kdb.CredentialsService").createNotification(content, NotificationType.ERROR).addAction(new DumbAwareAction("Change Settings") {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                final Project project = e.getProject();
-                if (project != null) {
-                    ShowSettingsUtil.getInstance().showSettingsDialog(project, KdbSettingsConfigurable.class);
-                }
-            }
-        }).notify(null);
+    private void notifyPluginFailedPlugin(Throwable ex) {
+        final String content = "Credentials plugin can't be loaded: " + ex.getMessage();
+
+        NotificationGroupManager.getInstance().getNotificationGroup("Kdb.CredentialsService")
+                .createNotification(content, NotificationType.ERROR)
+                .setIcon(KdbIcons.Main.Notification)
+                .addAction(new DumbAwareAction("Change Settings") {
+                    @Override
+                    public void actionPerformed(@NotNull AnActionEvent e) {
+                        final Project project = e.getProject();
+                        if (project != null) {
+                            ShowSettingsUtil.getInstance().showSettingsDialog(project, KdbSettingsConfigurable.class);
+                        }
+                    }
+                }).notify(null);
     }
 }

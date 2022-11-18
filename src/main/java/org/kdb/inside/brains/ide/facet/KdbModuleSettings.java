@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.ide.module.facet;
+package org.kdb.inside.brains.ide.facet;
 
 import org.kdb.inside.brains.QVersion;
 
