@@ -243,18 +243,20 @@
                        id="KDB_INSIDE_BRAINS_MODULE"
                        order="first"/>
 
-        <framework.detector implementation="org.kdb.inside.brains.ide.module.facet.KdbFrameworkDetector"/>
+        <framework.detector implementation="org.kdb.inside.brains.ide.facet.KdbFrameworkDetector"/>
         <projectStructureDetector implementation="org.kdb.inside.brains.ide.module.KdbProjectStructureDetector"/>
 
         <moduleConfigurationEditorProvider implementation="org.kdb.inside.brains.ide.module.KdbModuleEditorsProvider"/>
 
-        <facetType id="KDB_FACET_TYPE" implementation="org.kdb.inside.brains.ide.module.facet.KdbFacetType"/>
+        <facetType id="KDB_FACET_TYPE" implementation="org.kdb.inside.brains.ide.facet.KdbFacetType"/>
 
         <projectFacetListener facet-type="KDB_FACET_TYPE"
-                              implementation="org.kdb.inside.brains.ide.module.facet.KdbFacetStateManager"/>
+                              implementation="org.kdb.inside.brains.ide.facet.KdbFacetStateManager"/>
 
         <fileType name="KDB+ Q" implementationClass="org.kdb.inside.brains.QFileType"
                   fieldName="INSTANCE" language="q" extensions="q;k"/>
+
+        <library.type implementation="org.kdb.inside.brains.ide.library.KdbLibraryType"/>
 
         <internalFileTemplate name="KDB+Q Blank File"/>
 
@@ -266,11 +268,11 @@
 
         <projectService serviceImplementation="org.kdb.inside.brains.lang.binding.EditorsBindingService"/>
 
-        <notificationGroup id="Kdb.ConnectionState" displayType="BALLOON" icon="KdbIcons.Main.Notification"
+        <notificationGroup id="Kdb.ConnectionState" displayType="BALLOON"
                            notificationIds="Kdb Connections"/>
 
-        <notificationGroup id="Kdb.CredentialsService" displayType="STICKY_BALLOON" icon="KdbIcons.Main.Notification"
-                           notificationIds="Kdb Credentials Service" isLogByDefault="true"/>
+        <notificationGroup id="Kdb.CredentialsService" displayType="STICKY_BALLOON" isLogByDefault="true"
+                           notificationIds="Kdb Credentials Service"/>
 
         <applicationService
                 serviceImplementation="org.kdb.inside.brains.core.credentials.CredentialService"/>

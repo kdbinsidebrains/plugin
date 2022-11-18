@@ -147,6 +147,7 @@ public class InstancesScopeView extends SimpleToolWindowPanel implements Disposa
 
     @Override
     public void dispose() {
+        tree.dispose();
     }
 
     @Nullable

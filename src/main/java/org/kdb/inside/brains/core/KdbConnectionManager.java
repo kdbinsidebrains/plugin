@@ -19,6 +19,7 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
+import icons.KdbIcons;
 import kx.KxConnection;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
@@ -375,7 +376,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
     }
 
     private Notification createNotification(String content, NotificationType type) {
-        return NotificationGroupManager.getInstance().getNotificationGroup("Kdb.ConnectionState").createNotification(content, type);
+        return NotificationGroupManager.getInstance().getNotificationGroup("Kdb.ConnectionState").createNotification(content, type).setIcon(KdbIcons.Main.Notification);
     }
 
     private class ConnectionProgressive implements Progressive {

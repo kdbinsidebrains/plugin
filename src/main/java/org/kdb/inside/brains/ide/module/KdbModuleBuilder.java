@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QLanguage;
-import org.kdb.inside.brains.ide.module.facet.KdbFacetType;
+import org.kdb.inside.brains.ide.facet.KdbFacetType;
 import org.kdb.inside.brains.ide.sdk.KdbSdkPanel;
 import org.kdb.inside.brains.ide.sdk.KdbSdkType;
 
