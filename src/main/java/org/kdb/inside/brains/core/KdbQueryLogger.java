@@ -55,7 +55,7 @@ public class KdbQueryLogger implements PersistentStateComponent<KdbQueryLogger.S
         lock(logFile, false);
         try {
             final StringBuilder b = new StringBuilder("/ ");
-            b.append(result.getTime());
+            b.append(result.getTimeAsTimestampString());
             b.append(", ");
             b.append(connection.getDetails());
             b.append(", ");

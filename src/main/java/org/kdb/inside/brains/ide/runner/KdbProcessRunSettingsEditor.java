@@ -14,7 +14,7 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
-import org.kdb.inside.brains.ide.module.KdbModuleType;
+import org.kdb.inside.brains.ide.sdk.KdbSdkType;
 
 import javax.swing.*;
 
@@ -41,7 +41,7 @@ public class KdbProcessRunSettingsEditor extends SettingsEditor<KdbProcessRunCon
         moduleSelector = new ConfigurationModuleSelector(project, moduleComponent.getComponent()) {
             @Override
             public boolean isModuleAccepted(Module module) {
-                return KdbModuleType.is(module);
+                return KdbSdkType.getModuleSdk(module) != null;
             }
         };
 

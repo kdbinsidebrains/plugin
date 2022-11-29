@@ -9,6 +9,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.QFile;
 
 import javax.swing.*;
@@ -62,11 +63,11 @@ public final class QFileType extends LanguageFileType {
         return (QFile) PsiFileFactory.getInstance(project).createFileFromText("QElementFactory.q", QFileType.INSTANCE, text);
     }
 
-    public static boolean is(PsiFile file) {
+    public static boolean is(@Nullable PsiFile file) {
         return file != null && is(file.getVirtualFile());
     }
 
-    public static boolean is(VirtualFile file) {
+    public static boolean is(@Nullable VirtualFile file) {
         return file != null && (INSTANCE == file.getFileType() || FileTypeRegistry.getInstance().getFileTypeByFileName(file.getName()) == INSTANCE);
     }
 }

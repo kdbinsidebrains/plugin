@@ -1,6 +1,8 @@
 package org.kdb.inside.brains.ide.sdk;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import icons.KdbIcons;
 import org.apache.commons.lang.SystemUtils;
@@ -139,6 +141,18 @@ public class KdbSdkType extends SdkType {
 
     @Override
     public void saveAdditionalData(@NotNull SdkAdditionalData additionalData, @NotNull Element additional) {
+    }
+
+    public static Sdk getModuleSdk(Module module) {
+        if (module == null) {
+            return null;
+        }
+        final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+        if (sdk == null || !sdk.getSdkType().equals(KdbSdkType.getInstance())) {
+            return null;
+        }
+        return sdk;
+
     }
 
     private static File findExecutable(@NotNull File path) {

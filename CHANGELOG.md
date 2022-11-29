@@ -2,11 +2,17 @@
 
 # KdbInsideBrains Changelog
 
-## [2.0.0]
-
-All major features have been finally implemented so the version changed to major 2.x.x from now.
+## [2.1.0]
 
 ### Added
+
+- Ability to run a *.q file from the project tree has been added.
+
+## [2.0.0]
+
+### Added
+
+- All major features have been finally implemented so the version changed to major 2.x.x from now.
 
 - Library and Module dependencies have been added. Please select 'KDB+ Q Source' library type to add external source
   code to a project (like core files) for navigation and indexing.
@@ -58,7 +64,6 @@ All major features have been finally implemented so the version changed to major
 
 - Unary primitive functions formatting incorrect. All added into grammar logic as UnaryFunction. They are inner
   implementation of some functions
-
 
 ## [1.12.0]
 

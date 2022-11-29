@@ -37,6 +37,10 @@ public class KdbResult {
         return time;
     }
 
+    public String getTimeAsTimestampString() {
+        return time.toString().replace('T', 'D');
+    }
+
     public boolean isError() {
         return result instanceof Exception;
     }

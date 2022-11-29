@@ -44,6 +44,10 @@ public class KdbProcessConfigurationType implements ConfigurationType {
         return "Run local KDB instance";
     }
 
+    public KdbProcessFactory getConfigurationFactory() {
+        return configurationFactory;
+    }
+
     @Override
     public ConfigurationFactory[] getConfigurationFactories() {
         return new ConfigurationFactory[]{

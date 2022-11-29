@@ -261,6 +261,8 @@
         <internalFileTemplate name="KDB+Q Blank File"/>
 
         <configurationType implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationType"/>
+        <runConfigurationProducer implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationProducer"
+                                  order="last"/>
 
         <!-- General configuration -->
         <actionPromoter implementation="org.kdb.inside.brains.action.ExecutionActionPromoter"/>

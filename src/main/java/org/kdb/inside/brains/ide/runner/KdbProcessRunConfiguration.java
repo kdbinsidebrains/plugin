@@ -16,10 +16,8 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.util.ProgramParametersUtil;
 import com.intellij.execution.util.ScriptFileUtil;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -105,7 +103,7 @@ public class KdbProcessRunConfiguration extends ApplicationConfiguration impleme
         } else {
             final Sdk sdk = getSdk();
             if (sdk == null) {
-                throw new RuntimeConfigurationWarning("No KDB SDK for the project or module " + getConfigurationModule().getModuleName());
+                throw new RuntimeConfigurationWarning("No " + KdbSdkType.getInstance().getName() + " for the project or module " + getConfigurationModule().getModuleName());
             }
         }
         ProgramParametersUtil.checkWorkingDirectoryExist(this, getProject(), getConfigurationModule().getModule());
@@ -165,14 +163,7 @@ public class KdbProcessRunConfiguration extends ApplicationConfiguration impleme
     }
 
     private Sdk getSdk() {
-        final Module module = getConfigurationModule().getModule();
-        if (module != null) {
-            final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-            if (sdk != null && sdk.getSdkType().equals(KdbSdkType.getInstance())) {
-                return sdk;
-            }
-        }
-        return null;
+        return KdbSdkType.getModuleSdk(getConfigurationModule().getModule());
     }
 
     private static class KdbProcessHandler extends ColoredProcessHandler {
