@@ -46,7 +46,7 @@ class InspectorToolWindowTest {
         assertEquals(0, InspectorToolWindow.getSuggestions("asd", ie).size());
         assertEquals(0, InspectorToolWindow.getSuggestions(".myFunction", ie).size());
         assertEquals(1, InspectorToolWindow.getSuggestions("myF", ie).size());
-        assertItem("myFunction", "[x, y]", KdbIcons.Node.Function, InspectorToolWindow.getSuggestions("myF", ie).get(0));
+        assertItem("myFunction", "\u03BB[x, y]", KdbIcons.Node.Function, InspectorToolWindow.getSuggestions("myF", ie).get(0));
 
         // Tables
         assertEquals(0, InspectorToolWindow.getSuggestions("tableus", ie).size());
