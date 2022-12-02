@@ -13,6 +13,7 @@ import java.awt.*;
 
 public class ExecutionOptionsPanel extends JPanel {
     private JBCheckBox logQueries;
+    private JBCheckBox splitLogsByMonths;
     private JBCheckBox autoReconnect;
     private JBCheckBox normalizeQuery;
     private JBCheckBox showConnectionState;
@@ -61,11 +62,14 @@ public class ExecutionOptionsPanel extends JPanel {
         final ContextHelpLabel infoLabel = ContextHelpLabel.create("Each executed query will be logged in daily file inside .kdbinb folder.");
 
         logQueries = new JBCheckBox("Log queries");
+        splitLogsByMonths = new JBCheckBox("Split logs by months (yyyy.mm/*.log)");
 
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         p.add(logQueries);
         p.add(Box.createHorizontalStrut(5));
         p.add(infoLabel);
+        p.add(Box.createHorizontalStrut(15));
+        p.add(splitLogsByMonths);
         formBuilder.addComponent(p);
     }
 
@@ -126,6 +130,7 @@ public class ExecutionOptionsPanel extends JPanel {
         o.setWarningMessageMb(warningMessageSizeEditor.getNumber());
         o.setLogQueries(logQueries.isSelected());
         o.setAutoReconnect(autoReconnect.isSelected());
+        o.setSplitLogsByMonths(splitLogsByMonths.isSelected());
         return o;
     }
 
@@ -136,6 +141,7 @@ public class ExecutionOptionsPanel extends JPanel {
         connectionStateTimeout.setNumber(options.getConnectionChangeTimeout());
         warningMessageSizeEditor.setNumber(options.getWarningMessageMb());
         logQueries.setSelected(options.isLogQueries());
+        splitLogsByMonths.setSelected(options.isSplitLogsByMonths());
         autoReconnect.setSelected(options.isAutoReconnect());
         validateConnectionState();
     }

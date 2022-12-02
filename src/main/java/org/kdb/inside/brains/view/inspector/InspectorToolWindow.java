@@ -375,7 +375,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         if (instanceElement == null) {
             statusBar.setText("");
         } else {
-            statusBar.setText("Updated " + STATUS_FORMATTER.format(instanceElement.getResult().getTime()));
+            statusBar.setText("Updated: " + STATUS_FORMATTER.format(instanceElement.getResult().getTime()));
         }
 
         structureModel.getInvoker().invoke(() -> {

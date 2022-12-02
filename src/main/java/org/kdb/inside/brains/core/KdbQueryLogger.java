@@ -10,6 +10,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.settings.KdbSettingsService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,21 +19,18 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.DosFileAttributeView;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @State(name = "KdbQueryLogger", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
 public class KdbQueryLogger implements PersistentStateComponent<KdbQueryLogger.State>, Disposable, DumbAware {
     private State state;
     private Path logsFolder;
 
-    private static final String FILE_HEADER = "" +
-            "/\n" +
-            "File format:\n" +
-            " <timestamp>, <instance uri>, <instance name>, <roundtrip, nanos>, <result type or error message>\n" +
-            " <Full query>\n" +
-            " <line separator>\n" +
-            "\\\n";
+    private static final String FILE_HEADER = "" + "/\n" + "File format:\n" + " <timestamp>, <instance uri>, <instance name>, <roundtrip, nanos>, <result type or error message>\n" + " <Full query>\n" + " <line separator>\n" + "\\\n";
 
     private static final Logger log = Logger.getInstance(KdbQueryLogger.class);
+
+    private static final DateTimeFormatter SPLIT_BY_MONTHS = DateTimeFormatter.ofPattern("yyyy.MM");
 
     public KdbQueryLogger(Project project) {
         final String basePath = project.getBasePath();
@@ -102,16 +100,22 @@ public class KdbQueryLogger implements PersistentStateComponent<KdbQueryLogger.S
     }
 
     private Path getCurrentLogFile() {
-        if (Files.notExists(logsFolder)) {
-            try {
-                Files.createDirectories(logsFolder);
-            } catch (IOException ex) {
-                log.error("Logs folder can't be created: " + logsFolder, ex);
-            }
-        }
         final LocalDate now = LocalDate.now();
 
-        final Path resolve = logsFolder.resolve("queries" + now + ".log");
+        Path folder = logsFolder;
+        if (KdbSettingsService.getInstance().getConnectionOptions().isSplitLogsByMonths()) {
+            folder = folder.resolve(now.format(SPLIT_BY_MONTHS));
+        }
+
+        if (Files.notExists(folder)) {
+            try {
+                Files.createDirectories(folder);
+            } catch (IOException ex) {
+                log.error("Logs folder can't be created: " + folder, ex);
+            }
+        }
+
+        final Path resolve = folder.resolve("queries" + now + ".log");
         if (Files.notExists(resolve)) {
             try {
                 Files.writeString(resolve, FILE_HEADER, StandardOpenOption.CREATE);

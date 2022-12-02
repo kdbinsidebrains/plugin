@@ -2,6 +2,22 @@
 
 # KdbInsideBrains Changelog
 
+## [3.0.0]
+
+### Added
+
+- Finally new website with all the features and uses has been launched:  https://www.kdbinsidebrains.dev
+- The version increased to 3.0.0 just to synchronize new site with current state as there are a lot of small changes in
+  the
+  plugin:
+  - Split logs by months introduced: https://www.kdbinsidebrains.dev/settings/options#log-queries
+  - Ability to change background of the console for colored
+    instances: https://www.kdbinsidebrains.dev/features/instances#highlighting-severity
+
+### Fixed
+
+- Many typos and minor issues fixed
+
 ## [2.1.0]
 
 ### Added

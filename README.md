@@ -1,6 +1,6 @@
 # KdbInsideBrains #
 
-The KdbInsideBrains is IntellyJ Idea-based plugin work coding and interacting with KDB databases.
+The KdbInsideBrains is IntellyJ IDEA-based plugin work coding and interacting with KDB databases.
 
 ## Current state
 
@@ -9,5 +9,5 @@ as grammar.
 
 ## Usage Instruction
 
-Add new 'KDB+ Q Language' framework to a module with your .q files to enable plugin. 'Kdb Instances' and 'Kdb Console'
-tabs will be activated if a project has 'KDB+ Q Language'.
+We have created special site where tried to describe all features of the plugin and how to set up your first
+project: https://www.kdbinsidebrains.dev 

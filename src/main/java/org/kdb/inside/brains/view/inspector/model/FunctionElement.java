@@ -34,7 +34,7 @@ public class FunctionElement extends ExecutableElement {
 
     private static String typeName(short type, Supplier<String> arguments) {
         if (100 == type) {
-            return arguments.get();
+            return "\u03BB" + arguments.get();
         }
         if (101 == type) {
             return "unary" + arguments.get();

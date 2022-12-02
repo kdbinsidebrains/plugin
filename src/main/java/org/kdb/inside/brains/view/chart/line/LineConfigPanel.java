@@ -143,7 +143,7 @@ class LineConfigPanel extends JPanel {
         final java.util.List<RangeConfig> ranges = createRangeConfigs();
         final Optional<String> maxLabelName = ranges.stream().map(RangeConfig::getLabelWidth).reduce((s, s2) -> s.length() > s2.length() ? s : s2);
         final ListTableModel<RangeConfig> model = new ListTableModel<>(
-                new RangeColumnInfo<>("Axis", RangeConfig::getSeries, RangeConfig::setSeries, "Range Axis Name"),
+                new RangeColumnInfo<>("Series", RangeConfig::getSeries, RangeConfig::setSeries, "Range Series Name"),
                 new RangeColumnInfo<>("Column", RangeConfig::getLabel, null, maxLabelName.orElse("")),
                 new RangeColumnInfo<>("Color", RangeConfig::getColor, RangeConfig::setColor),
                 new RangeColumnInfo<>("Width", RangeConfig::getWidth, RangeConfig::setWidth)

@@ -41,6 +41,9 @@ import org.kdb.inside.brains.action.ToggleConnectAction;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.ide.PopupActionGroup;
 import org.kdb.inside.brains.ide.runner.LineNumberGutterProvider;
+import org.kdb.inside.brains.settings.KdbSettingsListener;
+import org.kdb.inside.brains.settings.KdbSettingsService;
+import org.kdb.inside.brains.settings.SettingsBean;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.console.table.TableResult;
 import org.kdb.inside.brains.view.console.table.TableResultView;
@@ -49,6 +52,7 @@ import org.kdb.inside.brains.view.export.ExportDataProvider;
 import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -77,6 +81,9 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
     private final TheScopeListener scopeListener = new TheScopeListener();
     private final TheKdbConnectionListener connectionListener = new TheKdbConnectionListener();
+    private final TheSettingsListener settingsListener = new TheSettingsListener();
+
+    private final KdbSettingsService settingsService;
 
     public static final DataKey<TabInfo> TAB_INFO_DATA_KEY = DataKey.create("KdbConsole.TabInfo");
 
@@ -85,6 +92,9 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         this.project = project;
         this.connection = connection;
         this.panelKillerConsumer = panelKillerConsumer;
+
+        this.settingsService = KdbSettingsService.getInstance();
+        settingsService.addSettingsListener(settingsListener);
 
         scope = this.connection.getInstance().getScope();
         if (scope != null) {
@@ -166,9 +176,19 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         tab.setText("Console");
         tab.setIcon(KdbIcons.Console.Console);
         tab.setObject(console);
-        tab.setTabColor(connection.getInstance().getInheritedColor());
+
+        updateTabColor(tab);
 
         return tab;
+    }
+
+    private void updateTabColor(TabInfo tab) {
+        final Color inheritedColor = connection.getInstance().getInheritedColor();
+        tab.setTabColor(inheritedColor);
+
+        final Color consoleColor = settingsService.getConsoleOptions().isConsoleBackground() ? inheritedColor : null;
+        console.getHistoryViewer().setBackgroundColor(consoleColor);
+        console.getConsoleEditor().setBackgroundColor(consoleColor);
     }
 
     @NotNull
@@ -445,6 +465,8 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
     @Override
     public void dispose() {
+        settingsService.removeSettingsListener(settingsListener);
+
         resultTabs.dispose();
 
         connectionManager.removeConnectionListener(connectionListener);
@@ -530,7 +552,16 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                 i = i.getParent();
             }
             if (i != null) {
-                consoleTab.setTabColor(connection.getInstance().getInheritedColor());
+                updateTabColor(consoleTab);
+            }
+        }
+    }
+
+    private class TheSettingsListener implements KdbSettingsListener {
+        @Override
+        public void settingsChanged(KdbSettingsService service, SettingsBean<?> bean) {
+            if (bean instanceof ConsoleOptions) {
+                updateTabColor(consoleTab);
             }
         }
     }

@@ -109,6 +109,9 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
 
     public static KdbInstance parseInstance(String txt) {
         String url = txt.strip();
+        if (url.isBlank()) {
+            return null;
+        }
 
         if (url.charAt(0) == '`') {
             url = url.substring(1);
@@ -137,7 +140,10 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
         }
 
         // TODO: parse options here
-
-        return new KdbInstance(txt, split[0], port, credentials, null);
+        try {
+            return new KdbInstance(txt, split[0], port, credentials, null);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }

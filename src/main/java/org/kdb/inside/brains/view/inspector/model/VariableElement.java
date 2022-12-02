@@ -44,6 +44,10 @@ public class VariableElement extends ExecutableElement {
             return "type " + type + "h";
         }
 
+        if (type == 10) {
+            return "string";
+        }
+
         if (type < TYPE_NAMES.length - 1) {
             return "list of " + TYPE_NAMES[type] + "s";
         }

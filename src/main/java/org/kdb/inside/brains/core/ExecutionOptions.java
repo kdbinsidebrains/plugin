@@ -12,6 +12,7 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
     private int connectionChangeTimeout = 1000;
     private int warningMessageMb = 10;
     private boolean logQueries = true;
+    private boolean splitLogsByMonths = true;
 
     private EditorsBindingStrategy bindingStrategy = EditorsBindingStrategy.CONNECT_TO_TAB;
 
@@ -71,6 +72,14 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
         this.logQueries = logQueries;
     }
 
+    public boolean isSplitLogsByMonths() {
+        return splitLogsByMonths;
+    }
+
+    public void setSplitLogsByMonths(boolean splitLogsByMonths) {
+        this.splitLogsByMonths = splitLogsByMonths;
+    }
+
     @Override
     public void copyFrom(ExecutionOptions executionOptions) {
         bindingStrategy = executionOptions.bindingStrategy;
@@ -79,6 +88,7 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
         connectionChangeTimeout = executionOptions.connectionChangeTimeout;
         warningMessageMb = executionOptions.warningMessageMb;
         logQueries = executionOptions.logQueries;
+        splitLogsByMonths = executionOptions.splitLogsByMonths;
         autoReconnect = executionOptions.autoReconnect;
     }
 
@@ -87,12 +97,12 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExecutionOptions that = (ExecutionOptions) o;
-        return autoReconnect == that.autoReconnect && normalizeQuery == that.normalizeQuery && showConnectionChange == that.showConnectionChange && connectionChangeTimeout == that.connectionChangeTimeout && warningMessageMb == that.warningMessageMb && logQueries == that.logQueries && bindingStrategy == that.bindingStrategy;
+        return autoReconnect == that.autoReconnect && normalizeQuery == that.normalizeQuery && showConnectionChange == that.showConnectionChange && connectionChangeTimeout == that.connectionChangeTimeout && warningMessageMb == that.warningMessageMb && logQueries == that.logQueries && bindingStrategy == that.bindingStrategy && splitLogsByMonths == that.splitLogsByMonths;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(autoReconnect, normalizeQuery, showConnectionChange, connectionChangeTimeout, warningMessageMb, logQueries, bindingStrategy);
+        return Objects.hash(autoReconnect, normalizeQuery, showConnectionChange, connectionChangeTimeout, warningMessageMb, logQueries, bindingStrategy, splitLogsByMonths);
     }
 
     @Override
@@ -104,6 +114,7 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
                 ", connectionChangeTimeout=" + connectionChangeTimeout +
                 ", warningMessageMb=" + warningMessageMb +
                 ", logQueries=" + logQueries +
+                ", splitLogsByMonths=" + splitLogsByMonths +
                 ", bindingStrategy=" + bindingStrategy +
                 '}';
     }

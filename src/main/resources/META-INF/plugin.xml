@@ -172,7 +172,9 @@
             <action id="Kdb.Instances.ModifyItem"
                     text="Modify"
                     icon="AllIcons.Actions.Edit"
-                    class="org.kdb.inside.brains.view.treeview.actions.ModifyItemAction"/>
+                    class="org.kdb.inside.brains.view.treeview.actions.ModifyItemAction">
+                <keyboard-shortcut first-keystroke="F2" keymap="$default"/>
+            </action>
 
             <separator/>
 

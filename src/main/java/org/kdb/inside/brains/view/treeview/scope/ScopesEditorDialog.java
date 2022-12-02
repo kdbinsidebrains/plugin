@@ -28,6 +28,7 @@ public class ScopesEditorDialog extends SettingsDialog {
         if (scope != null) {
             configurable.selectNodeInTree(scope.getName());
         }
+        dialog.setSize(700, 500);
         dialog.show();
 
         return dialog.selectedScope;
