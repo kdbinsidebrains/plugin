@@ -2,7 +2,13 @@ name: Publish Plugin
 
 on:
   workflow_dispatch:
-
+  
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'version.properties'
+      
 jobs:
   build:
     runs-on: ubuntu-latest
