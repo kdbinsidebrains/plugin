@@ -14,9 +14,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
     - uses: actions/checkout@v3
@@ -24,21 +21,10 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: '11'
-        distribution: 'temurin'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
-        
+        distribution: 'adopt'
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
     - name: Build with Gradle
-      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-      with:
-        arguments: build
-
-    - name: Publish to GitHub Packages
-      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-      with:
-        arguments: publishPlugin
+      run: ./gradlew publishPlugin
       env:
         KDBINSIDEBRAINS_RELEASE_PLUGIN_TOKEN: ${{ secrets.KDBINSIDEBRAINS_RELEASE_PLUGIN_TOKEN }}
