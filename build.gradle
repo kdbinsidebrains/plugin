@@ -74,12 +74,6 @@ sourceSets {
         java.srcDirs 'src/main/gen', 'src/main/java'
     }
 }
-/*
-
-test {
-    useJUnitPlatform()
-}
-*/
 
 task generateCode() {
     dependsOn generateLexer
