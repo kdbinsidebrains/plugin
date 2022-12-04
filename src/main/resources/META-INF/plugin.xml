@@ -24,7 +24,9 @@
         source and new module with the framework will be added automatically.
         </p>
         <p>
-        P.S. The plugin is still in development and some features are not ready or not fully implemented.
+        To get more info how to set up and use the plugin please check our docs: <a href="http://kdbinsidebrains.dev">http://kdbinsidebrains.dev</a>.
+        </p>
+        <p>
         Feel free to report <a href="https://github.com/kdbinsidebrains/plugin/issues">any issue</a> or <a href="https://github.com/kdbinsidebrains/plugin/discussions">start new discussion</a> if you need help.
         </p>
     ]]>

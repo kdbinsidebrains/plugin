@@ -72,7 +72,6 @@ OperatorWeight=[&\|]
 OperatorCut=[_]
 OperatorApply=[\.]
 OperatorOthers=[!#@\?\^\$]
-Operator={OperatorEquality}|{OperatorOrder}|{OperatorArithmetic}|{OperatorWeight}|{OperatorCut}|{OperatorApply}|{OperatorOthers}
 
 ModePrefix=[a-zA-Z]")"
 Variable=[\.a-zA-Z][\._a-zA-Z0-9]*

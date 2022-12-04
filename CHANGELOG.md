@@ -6,6 +6,7 @@
 
 ### Added
 
+- IDEA 2022.3 supported now but without 'New UI': the toolbar isn't shown in the mode somehow
 - Finally new website with all the features and uses has been launched:  https://www.kdbinsidebrains.dev
 - The version increased to 3.0.0 just to synchronize new site with current state as there are a lot of small changes in
   the
@@ -13,6 +14,7 @@
   - Split logs by months introduced: https://www.kdbinsidebrains.dev/settings/options#log-queries
   - Ability to change background of the console for colored
     instances: https://www.kdbinsidebrains.dev/features/instances#highlighting-severity
+- IDEA 2022.3 supporting added
 
 ### Fixed
 
