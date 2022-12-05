@@ -9,6 +9,7 @@ import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.MessageDialogBuilder;
@@ -435,10 +436,12 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
                 return;
             }
 
-            final KdbInstance instance = connection.getInstance();
-            if (instance.getScope() == scope) {
-                model.itemUpdated(scope, instance);
-            }
+            ApplicationManager.getApplication().invokeLater(() -> {
+                final KdbInstance instance = connection.getInstance();
+                if (instance.getScope() == scope) {
+                    model.itemUpdated(scope, instance);
+                }
+            });
         }
     }
 
