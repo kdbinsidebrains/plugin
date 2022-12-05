@@ -49,7 +49,7 @@ public class CancelQueriesAction extends DumbAwareAction {
         } else if (stopCount == 1) {
             presentation.setText("Cancel a Query on Instance " + connections.get(0).getName());
         } else {
-            presentation.setText("There Is No Running Queries at This Moment.");
+            presentation.setText("Cancel Running Query");
         }
 
         presentation.setIcon(icon);

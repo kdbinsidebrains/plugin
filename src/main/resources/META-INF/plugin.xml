@@ -111,11 +111,6 @@
         <group id="Kdb.MainToolbarActionGroup" class="org.kdb.inside.brains.action.MainToolbarActionGroup"
                compact="true" searchable="false">
             <separator/>
-            <!--
-
-                        <action id="Kdb.Instances.QuickSelectionOld"
-                                class="org.kdb.inside.brains.execute.ButtonInstancesToolbarAction"/>
-            -->
 
             <action id="Kdb.Instances.QuickSelection"
                     class="org.kdb.inside.brains.action.InstancesComboAction"/>
@@ -140,6 +135,10 @@
 
             <add-to-group group-id="MainToolBar" anchor="after" relative-to-action="ToolbarRunGroup"/>
             <add-to-group group-id="NavBarToolBarOthers" anchor="first"/>
+
+            <!-- New UI-->
+            <add-to-group group-id="MainToolbarRight" anchor="after"
+                          relative-to-action="RunToolbarWidgetCustomizableActionGroup"/>
         </group>
 
         <group id="Kdb.EditorContextActionGroup" searchable="false">
