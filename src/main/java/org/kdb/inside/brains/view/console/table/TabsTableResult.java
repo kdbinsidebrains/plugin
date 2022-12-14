@@ -101,6 +101,8 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
 
         setLayout(new BorderLayout());
         add(BorderLayout.CENTER, tabs.getComponent());
+
+        Disposer.register(parent, this);
     }
 
     public void showConsole(TabInfo consoleTab) {

@@ -466,14 +466,12 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     @Override
     public void dispose() {
         settingsService.removeSettingsListener(settingsListener);
-
-        resultTabs.dispose();
-
         connectionManager.removeConnectionListener(connectionListener);
         if (scope != null) {
             scope.removeScopeListener(scopeListener);
         }
         console.dispose();
+        resultTabs.dispose();
         console = null;
     }
 

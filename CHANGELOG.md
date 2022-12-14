@@ -2,6 +2,16 @@
 
 # KdbInsideBrains Changelog
 
+## [3.1.0]
+
+### Added
+
+- XMas Tree for key columns from 14 to 31 Dec (enabled by default but can be disabled in configs).
+
+### Fixed
+
+- Tabs memory leak in InstancesTree fixed.
+
 ## [3.0.0]
 
 ### Added

@@ -22,6 +22,7 @@ public class ConsoleOptionsPanel extends JPanel {
     private final JBCheckBox expandDict = new JBCheckBox("Dictionary");
     private final JBCheckBox expandFlip = new JBCheckBox("Table");
     private final JBCheckBox consoleBackground = new JBCheckBox("Use an instance color for console background");
+    private final JBCheckBox xmasKeyColumn = new JBCheckBox("Show XMas key column");
     private final JBIntSpinner floatPrecisionEditor = new JBIntSpinner(7, 0, ConsoleOptions.MAX_DECIMAL_PRECISION);
     private final ComboBox<ConsoleSplitType> splitTypes = new ComboBox<>(ConsoleSplitType.values());
 
@@ -39,6 +40,7 @@ public class ConsoleOptionsPanel extends JPanel {
         formBuilder.addComponent(prefixSymbols);
         formBuilder.addComponent(listAsTable);
         formBuilder.addComponent(dictAsTable);
+        formBuilder.addComponent(xmasKeyColumn);
         formBuilder.addLabeledComponent("Float precision: ", floatPrecisionEditor);
         createSplitTypes(formBuilder);
         addExpandPanel(formBuilder);
@@ -93,6 +95,7 @@ public class ConsoleOptionsPanel extends JPanel {
         consoleOptions.setExpandDict(expandDict.isSelected());
         consoleOptions.setExpandTable(expandFlip.isSelected());
         consoleOptions.setConsoleBackground(consoleBackground.isSelected());
+        consoleOptions.setXmasKeyColumn(xmasKeyColumn.isSelected());
         return consoleOptions;
     }
 
@@ -111,5 +114,6 @@ public class ConsoleOptionsPanel extends JPanel {
         expandDict.setSelected(consoleOptions.isExpandDict());
         expandFlip.setSelected(consoleOptions.isExpandTable());
         consoleBackground.setSelected(consoleOptions.isConsoleBackground());
+        xmasKeyColumn.setSelected(consoleOptions.isXmasKeyColumn());
     }
 }

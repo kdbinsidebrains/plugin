@@ -18,6 +18,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     private boolean expandDict = true;
     private boolean expandTable = true;
     private boolean consoleBackground = true;
+    private boolean xmasKeyColumn = true;
     private ConsoleSplitType splitType = ConsoleSplitType.NO;
 
     public static final int MAX_DECIMAL_PRECISION = 16;
@@ -137,6 +138,14 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.consoleBackground = consoleBackground;
     }
 
+    public boolean isXmasKeyColumn() {
+        return xmasKeyColumn;
+    }
+
+    public void setXmasKeyColumn(boolean xmasKeyColumn) {
+        this.xmasKeyColumn = xmasKeyColumn;
+    }
+
     @Override
     public void copyFrom(ConsoleOptions options) {
         this.enlistArrays = options.enlistArrays;
@@ -152,6 +161,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.expandList = options.expandList;
         this.expandDict = options.expandDict;
         this.expandTable = options.expandTable;
+        this.xmasKeyColumn = options.xmasKeyColumn;
         this.consoleBackground = options.consoleBackground;
     }
 
@@ -160,12 +170,12 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ConsoleOptions that = (ConsoleOptions) o;
-        return floatPrecision == that.floatPrecision && enlistArrays == that.enlistArrays && wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && striped == that.striped && showGrid == that.showGrid && indexColumn == that.indexColumn && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable && expandList == that.expandList && expandDict == that.expandDict && expandTable == that.expandTable && splitType == that.splitType && consoleBackground == that.consoleBackground;
+        return floatPrecision == that.floatPrecision && enlistArrays == that.enlistArrays && wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && striped == that.striped && showGrid == that.showGrid && indexColumn == that.indexColumn && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable && expandList == that.expandList && expandDict == that.expandDict && expandTable == that.expandTable && splitType == that.splitType && consoleBackground == that.consoleBackground && xmasKeyColumn == that.xmasKeyColumn;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(floatPrecision, enlistArrays, wrapStrings, prefixSymbols, striped, showGrid, indexColumn, dictAsTable, listAsTable, expandList, expandDict, expandTable, splitType, consoleBackground);
+        return Objects.hash(floatPrecision, enlistArrays, wrapStrings, prefixSymbols, striped, showGrid, indexColumn, dictAsTable, listAsTable, expandList, expandDict, expandTable, splitType, consoleBackground, xmasKeyColumn);
     }
 
     @Override
@@ -184,6 +194,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
                 ", expandDict=" + expandDict +
                 ", expandTable=" + expandTable +
                 ", splitType=" + splitType +
+                ", xmasKeyColumn=" + xmasKeyColumn +
                 ", consoleBackground=" + consoleBackground +
                 '}';
     }

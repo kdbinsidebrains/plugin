@@ -4,6 +4,7 @@ import com.intellij.util.ui.ColumnInfo;
 import kx.c;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.core.KdbQuery;
@@ -14,6 +15,8 @@ import org.kdb.inside.brains.view.console.ConsoleOptions;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import java.lang.reflect.Array;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Comparator;
 
 public class TableResult {
@@ -22,6 +25,7 @@ public class TableResult {
     private final QTableModel tableModel;
 
     private static final String KEY_COLUMN_PREFIX = "\u00A1 ";
+    private static final String KEY_COLUMN_PREFIX_XMAS = "\uD83C\uDF84 ";
 
     public static final QTableModel EMPTY_MODEL = new EmptyTableModel();
 
@@ -269,6 +273,25 @@ public class TableResult {
         }
     }
 
+    @NotNull
+    private static String createColumnName(String name, boolean key) {
+        return getColumnPrefix(key) + name;
+    }
+
+    @NotNull
+    private static String getColumnPrefix(boolean key) {
+        if (key) {
+            if (KdbSettingsService.getInstance().getConsoleOptions().isXmasKeyColumn()) {
+                final LocalDate now = LocalDate.now();
+                if (now.getMonth() == Month.DECEMBER && now.getDayOfMonth() >= 14) {
+                    return KEY_COLUMN_PREFIX_XMAS;
+                }
+            }
+            return KEY_COLUMN_PREFIX;
+        }
+        return "";
+    }
+
     public static class QColumnInfo extends ColumnInfo<Object, Object> {
         private final boolean key;
         private final Class<?> columnClass;
@@ -276,7 +299,7 @@ public class TableResult {
 
         @SuppressWarnings("unchecked")
         public QColumnInfo(String name, Class<?> columnClass, boolean key) {
-            super((key ? KEY_COLUMN_PREFIX : "") + name);
+            super(createColumnName(name, key));
             this.key = key;
             this.columnClass = columnClass;
 

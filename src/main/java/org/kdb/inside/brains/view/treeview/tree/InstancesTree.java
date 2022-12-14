@@ -401,6 +401,7 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
 
     @Override
     public void dispose() {
+        model.dispose();
         scope.removeScopeListener(model);
         manager.removeQueryListener(managerListener);
         manager.removeConnectionListener(managerListener);
