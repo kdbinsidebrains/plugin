@@ -2,6 +2,14 @@
 
 # KdbInsideBrains Changelog
 
+## [3.2.0]
+
+### Added
+
+- Inspector has been improved and more functionality added:
+  - Scroll to source
+  - Diff with source
+
 ## [3.1.0]
 
 ### Added

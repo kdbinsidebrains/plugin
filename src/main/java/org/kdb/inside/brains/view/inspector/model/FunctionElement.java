@@ -54,6 +54,10 @@ public class FunctionElement extends ExecutableElement {
         return arguments;
     }
 
+    public boolean isFunction() {
+        return type == 100;
+    }
+
     @Override
     public @Nullable String getLocationString() {
         return location;

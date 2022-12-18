@@ -10,9 +10,13 @@ import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QVarDeclaration;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class QIndexService {
@@ -59,6 +63,17 @@ public class QIndexService {
             }
         });
     }
+
+    public @NotNull Collection<QVarDeclaration> findGlobalDeclarations(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
+        final Set<QVarDeclaration> elements = new HashSet<>();
+        processVariables(s -> s.equals(qualifiedName), scope, (key, file, descriptor, variable) -> {
+            if (QPsiUtil.isGlobalDeclaration(variable)) {
+                elements.add(variable);
+            }
+        });
+        return elements;
+    }
+
 
     @Nullable
     private QVarDeclaration resolveDeclaration(IdentifierDescriptor descriptor, VirtualFile file) {

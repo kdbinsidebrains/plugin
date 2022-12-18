@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Objects;
 
 public abstract class InspectorElement implements StructureViewTreeElement, ItemPresentation {
     private final Icon icon;
@@ -13,8 +14,8 @@ public abstract class InspectorElement implements StructureViewTreeElement, Item
     private final String namespace;
     private final String canonicalName;
 
-    private static final InspectorElement[] EMPTY_ARRAY = new InspectorElement[0];
     private InspectorElement[] children;
+    private static final InspectorElement[] EMPTY_ARRAY = new InspectorElement[0];
 
     public InspectorElement(String name, String namespace, Icon icon) {
         this.name = name;
@@ -56,7 +57,7 @@ public abstract class InspectorElement implements StructureViewTreeElement, Item
     }
 
     @Override
-    public final InspectorElement @NotNull [] getChildren() {
+    public InspectorElement @NotNull [] getChildren() {
         if (children == null) {
             children = buildChildren();
         }
@@ -84,5 +85,18 @@ public abstract class InspectorElement implements StructureViewTreeElement, Item
     @Override
     public boolean canNavigateToSource() {
         return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InspectorElement that = (InspectorElement) o;
+        return canonicalName.equals(that.canonicalName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(canonicalName);
     }
 }

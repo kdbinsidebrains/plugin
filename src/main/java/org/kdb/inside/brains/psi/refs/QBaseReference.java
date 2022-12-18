@@ -4,11 +4,13 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.*;
+import org.kdb.inside.brains.psi.QPsiElement;
+import org.kdb.inside.brains.psi.QSymbol;
+import org.kdb.inside.brains.psi.QVarDeclaration;
+import org.kdb.inside.brains.psi.QVariable;
 import org.kdb.inside.brains.psi.index.QIndexService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 
 public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVariantReferenceBase<T> {
@@ -85,20 +87,11 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
         final QIndexService index = QIndexService.getInstance(element);
         final QVarDeclaration initial = index.findFirstInFile(name, file);
         if (initial == null) {
-            return multi(findGlobalVariables(name, element, GlobalSearchScope.allScope(element.getProject())));
+            final GlobalSearchScope scope = GlobalSearchScope.allScope(element.getProject());
+            final Collection<QVarDeclaration> declarations = QIndexService.getInstance(element).findGlobalDeclarations(name, scope);
+            return multi(declarations);
         }
         return single(initial);
-    }
-
-    protected List<QVarDeclaration> findGlobalVariables(String qualifiedName, T element, @NotNull GlobalSearchScope scope) {
-        final List<QVarDeclaration> elements = new ArrayList<>();
-        final QIndexService index = QIndexService.getInstance(element);
-        index.processVariables(s -> s.equals(qualifiedName), scope, (key, file, descriptor, variable) -> {
-            if (QPsiUtil.isGlobalDeclaration(variable)) {
-                elements.add(variable);
-            }
-        });
-        return elements;
     }
 
     @NotNull
@@ -106,7 +99,7 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
         return new ResolveResult[]{new PsiElementResolveResult(el)};
     }
 
-    protected ResolveResult[] multi(List<QVarDeclaration> allGlobal) {
+    protected ResolveResult[] multi(Collection<QVarDeclaration> allGlobal) {
         return allGlobal.stream().map(PsiElementResolveResult::new).toArray(ResolveResult[]::new);
     }
 

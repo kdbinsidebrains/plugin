@@ -54,8 +54,7 @@ public class InstanceScanner {
     }
 
     private void processResponse(InstanceConnection connection, KdbResult result) {
-        final InstanceElement ie = new InstanceElement(connection, result);
-        ApplicationManager.getApplication().invokeLater(() -> listener.scanFinished(connection, ie), ModalityState.any());
+        ApplicationManager.getApplication().invokeLater(() -> listener.scanFinished(connection, result), ModalityState.any());
     }
 
     private Task startThread(InstanceConnection connection) {
@@ -93,6 +92,6 @@ public class InstanceScanner {
     public interface ScanListener {
         void scanFailed(InstanceConnection connection, Exception exception);
 
-        void scanFinished(InstanceConnection connection, InstanceElement result);
+        void scanFinished(InstanceConnection connection, KdbResult result);
     }
 }

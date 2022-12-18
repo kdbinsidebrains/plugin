@@ -9,18 +9,18 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class RootElement implements StructureViewTreeElement, ItemPresentation {
-    private TreeElement[] children = EMPTY_ARRAY;
+    private InstanceElement element;
 
     public RootElement() {
     }
 
     void updateInstance(InstanceElement element) {
-        this.children = element == null ? EMPTY_ARRAY : new InstanceElement[]{element};
+        this.element = element;
     }
 
     @Override
-    public Object getValue() {
-        return children;
+    public InstanceElement getValue() {
+        return element;
     }
 
     @Override
@@ -35,7 +35,7 @@ public class RootElement implements StructureViewTreeElement, ItemPresentation {
 
     @Override
     public TreeElement @NotNull [] getChildren() {
-        return children;
+        return element == null ? EMPTY_ARRAY : new TreeElement[]{element};
     }
 
     @Override

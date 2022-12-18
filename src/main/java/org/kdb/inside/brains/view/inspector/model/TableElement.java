@@ -8,7 +8,7 @@ import java.lang.reflect.Array;
 public class TableElement extends ExecutableElement {
     private final long size;
     private final c.Flip meta;
-    private String location;
+    private final String location;
 
     public TableElement(String namespace, Object[] item) {
         super((String) item[0], namespace, KdbIcons.Node.Table);
