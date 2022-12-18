@@ -29,7 +29,7 @@ public class InspectorTreeModel implements StructureViewModel, StructureViewMode
 
     @Nullable
     public InstanceElement getInstanceElement() {
-        return root.getValue();
+        return root.getElement();
     }
 
     @Override

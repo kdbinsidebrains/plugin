@@ -18,7 +18,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import gnu.trove.THashMap;
 import icons.KdbIcons;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +34,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -51,7 +51,7 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
     private final KdbScopesManager scopesManager;
     private final KdbScopesListener scopesListener = new TheKdbScopesListener();
 
-    private final Map<String, Element> uninitializedViewState = new THashMap<>();
+    private final Map<String, Element> uninitializedViewState = new HashMap<>();
 
     public InstancesToolWindow(Project project) {
         this.project = project;

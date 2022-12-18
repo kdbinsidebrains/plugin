@@ -1,12 +1,16 @@
 package org.kdb.inside.brains.view.inspector.model;
 
 import com.intellij.ide.structureView.StructureViewTreeElement;
+import com.intellij.ide.structureView.newStructureView.StructureViewComponent;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import java.util.Objects;
+import java.util.Optional;
 
 public abstract class InspectorElement implements StructureViewTreeElement, ItemPresentation {
     private final Icon icon;
@@ -15,13 +19,24 @@ public abstract class InspectorElement implements StructureViewTreeElement, Item
     private final String canonicalName;
 
     private InspectorElement[] children;
-    private static final InspectorElement[] EMPTY_ARRAY = new InspectorElement[0];
+    protected static final InspectorElement[] EMPTY_ARRAY = new InspectorElement[0];
 
     public InspectorElement(String name, String namespace, Icon icon) {
         this.name = name;
         this.namespace = namespace;
         this.icon = icon;
         this.canonicalName = namespace == null ? name : namespace + "." + name;
+    }
+
+    public static Optional<InspectorElement> unwrap(TreePath path) {
+        if (path == null) {
+            return Optional.empty();
+        }
+        return Optional.of((InspectorElement) StructureViewComponent.unwrapWrapper(TreeUtil.getLastUserObject(path)));
+    }
+
+    public static <T extends InspectorElement> Optional<T> unwrap(TreePath path, Class<? extends T> type) {
+        return unwrap(path).filter(e -> type.isAssignableFrom(e.getClass())).map(type::cast);
     }
 
     public String getName() {

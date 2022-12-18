@@ -43,6 +43,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.ui.tree.StructureTreeModel;
+import com.intellij.ui.tree.TreeVisitor;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.IoErrorText;
 import com.intellij.util.ui.JBUI;
@@ -54,6 +55,7 @@ import kx.c;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.concurrency.Promise;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.psi.QAssignmentExpr;
 import org.kdb.inside.brains.psi.QExpression;
@@ -72,6 +74,8 @@ import java.awt.event.MouseEvent;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static com.intellij.ide.structureView.newStructureView.StructureViewComponent.registerAutoExpandListener;
 
@@ -121,13 +125,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
         TreeUtil.installActions(tree);
 
-        new TreeSpeedSearch(tree, treePath -> {
-            Object userObject = StructureViewComponent.unwrapWrapper(TreeUtil.getLastUserObject(treePath));
-            if (userObject instanceof InspectorElement) {
-                return ((InspectorElement) userObject).getName();
-            }
-            return null;
-        }, true);
+        new TreeSpeedSearch(tree, path -> InspectorElement.unwrap(path).map(InspectorElement::getName).orElse(null), true);
 
         setContent(ScrollPaneFactory.createScrollPane(tree));
         setToolbar(createToolbar());
@@ -262,42 +260,22 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         return getSelectedElement(ExecutableElement.class) != null;
     }
 
-    private <T extends InspectorElement> T getSelectedElement(Class<T> type) {
-        final TreePath path = tree.getSelectionPath();
-        if (path == null) {
-            return null;
-        }
-
-        final Object o = StructureViewComponent.unwrapWrapper(TreeUtil.getLastUserObject(path));
-        if (type.isAssignableFrom(o.getClass())) {
-            return type.cast(o);
-        }
-        return null;
-    }
-
     @Nullable
     private static String getCanonicalName(TreePath path, boolean executable) {
-        final Object[] objects = path.getPath();
-        if (objects.length <= 1) {
+        final Optional<InspectorElement> unwrap = InspectorElement.unwrap(path, executable ? ExecutableElement.class : InspectorElement.class);
+        if (unwrap.isEmpty()) {
             return null;
         }
 
-        final int count = objects.length - 1;
-        final Object last = StructureViewComponent.unwrapWrapper(objects[count]);
-        if (!(last instanceof InspectorElement)) {
+        final InspectorElement element = unwrap.get();
+        if (executable && element instanceof TableElement && ((TableElement) element).isHistorical()) {
             return null;
         }
+        return element.getCanonicalName();
+    }
 
-        if (executable) {
-            if (!(last instanceof ExecutableElement)) {
-                return null;
-            }
-
-            if (last instanceof TableElement && ((TableElement) last).isHistorical()) {
-                return null;
-            }
-        }
-        return ((InspectorElement) last).getCanonicalName();
+    private <T extends InspectorElement> T getSelectedElement(Class<T> type) {
+        return InspectorElement.unwrap(tree.getSelectionPath(), type).orElse(null);
     }
 
     private void createStatusBar() {
@@ -366,13 +344,13 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     @Override
     public void scanFailed(InstanceConnection connection, Exception exception) {
         updateEmptyText(exception);
-        modelWrapper.setElement(null);
+        modelWrapper.updateElement(null);
     }
 
     @Override
     public void scanFinished(InstanceConnection connection, KdbResult result) {
         updateEmptyText(null);
-        modelWrapper.setElement(new InstanceElement(connection, result));
+        modelWrapper.updateElement(new InstanceElement(connection, result));
     }
 
     private void updateEmptyText(Exception ex) {
@@ -414,10 +392,9 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
         final CacheElement cached = instancesCache.get(connection);
         if (cached != null) {
-            modelWrapper.setElement(cached.element);
-            cached.restoreState(tree);
+            modelWrapper.updateElement(cached.element).onProcessed(cached::restoreState);
         } else {
-            modelWrapper.setElement(null);
+            modelWrapper.updateElement(null);
             if (connection != null && KdbSettingsService.getInstance().getInspectorOptions().isScanOnConnect() && connection.getState() != InstanceState.DISCONNECTED) {
                 refreshInstance();
             }
@@ -464,10 +441,6 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         }
     }
 
-    private void rebuild() {
-        modelWrapper.rebuild();
-    }
-
     private void refreshInstance() {
         if (connection == null) {
             return;
@@ -512,9 +485,40 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         return getSuggestions(prefix, ie);
     }
 
-    private static final class CacheElement {
-        private TreePath selectedPath;
-        private List<TreePath> expandedPaths;
+    private static class NameResolver extends TreeVisitor.ByComponent<String, InspectorElement> {
+        private final boolean onlyPath;
+
+        public NameResolver(@NotNull String name, boolean onlyPath) {
+            super(name, o -> (InspectorElement) StructureViewComponent.unwrapWrapper(o));
+            this.onlyPath = onlyPath;
+        }
+
+        @Override
+        protected boolean matches(@NotNull InspectorElement element, @NotNull String name) {
+            if (!onlyPath || element instanceof NamespaceElement) {
+                return name.equals(element.getCanonicalName());
+            }
+            return false;
+        }
+
+        @Override
+        protected boolean contains(@NotNull InspectorElement element, @NotNull String name) {
+            if (element instanceof RootElement || element instanceof InstanceElement) {
+                return true;
+            }
+
+            final String canonicalName = element.getCanonicalName();
+            if (name.startsWith(canonicalName)) {
+                final int length = canonicalName.length();
+                return length == name.length() || name.charAt(length) == '.';
+            }
+            return false;
+        }
+    }
+
+    private final class CacheElement {
+        private String selectedPath;
+        private List<String> expandedPaths;
 
         private final InstanceElement element;
 
@@ -523,20 +527,32 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         }
 
         public void storeState(Tree tree) {
-            selectedPath = tree.getSelectionPath();
-            expandedPaths = TreeUtil.collectExpandedPaths(tree);
+            selectedPath = getCanonicalName(tree.getSelectionPath());
+            expandedPaths = TreeUtil.collectExpandedPaths(tree).stream().map(this::getCanonicalName).collect(Collectors.toList());
         }
 
-
-        public void restoreState(Tree tree) {
-//            tree.setModel(tree.getModel());
+        public void restoreState(AsyncTreeModel model) {
             if (expandedPaths != null) {
-                TreeUtil.restoreExpandedPaths(tree, expandedPaths);
+                for (String expandedPath : expandedPaths) {
+                    restoreElement(model, new NameResolver(expandedPath, true), TreeUtil::promiseExpand);
+                }
             }
 
             if (selectedPath != null) {
-                TreeUtil.selectPath(tree, selectedPath);
+                restoreElement(model, new NameResolver(selectedPath, false), TreeUtil::selectPath);
             }
+        }
+
+        private void restoreElement(AsyncTreeModel model, NameResolver resolver, BiConsumer<Tree, TreePath> consumer) {
+            model.accept(resolver).onProcessed(p -> {
+                if (p != null) {
+                    consumer.accept(tree, p);
+                }
+            });
+        }
+
+        private String getCanonicalName(TreePath path) {
+            return InspectorElement.unwrap(path).map(InspectorElement::getCanonicalName).orElse(null);
         }
     }
 
@@ -612,12 +628,12 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             return treeModel.getInstanceElement();
         }
 
-        public void setElement(InstanceElement element) {
+        public Promise<AsyncTreeModel> updateElement(InstanceElement element) {
             treeModel.updateModel(element);
-            rebuild();
+            return rebuild().then(o -> asyncTreeMode);
         }
 
-        public void rebuild() {
+        public Promise<?> rebuild() {
             final InstanceElement instanceElement = getElement();
             if (instanceElement == null) {
                 statusBar.setText("");
@@ -625,7 +641,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
                 statusBar.setText("Updated: " + STATUS_FORMATTER.format(instanceElement.getResult().getTime()));
             }
 
-            structureModel.getInvoker().invoke(() -> {
+            return structureModel.getInvoker().invoke(() -> {
                 smartStructure.rebuildTree();
                 structureModel.invalidate();
             });
