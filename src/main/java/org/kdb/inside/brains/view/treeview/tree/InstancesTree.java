@@ -13,6 +13,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.MessageDialogBuilder;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.awt.RelativeRectangle;
 import com.intellij.util.NullableFunction;
@@ -401,7 +402,7 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
 
     @Override
     public void dispose() {
-        model.dispose();
+        Disposer.dispose(model);
         scope.removeScopeListener(model);
         manager.removeQueryListener(managerListener);
         manager.removeConnectionListener(managerListener);

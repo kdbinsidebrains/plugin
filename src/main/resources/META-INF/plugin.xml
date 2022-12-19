@@ -137,8 +137,10 @@
             <add-to-group group-id="NavBarToolBarOthers" anchor="first"/>
 
             <!-- New UI-->
+<!--
             <add-to-group group-id="MainToolbarRight" anchor="after"
                           relative-to-action="RunToolbarWidgetCustomizableActionGroup"/>
+-->
         </group>
 
         <group id="Kdb.EditorContextActionGroup" searchable="false">

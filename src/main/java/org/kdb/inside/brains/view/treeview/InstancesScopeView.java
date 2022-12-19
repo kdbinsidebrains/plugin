@@ -7,6 +7,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -147,7 +148,7 @@ public class InstancesScopeView extends SimpleToolWindowPanel implements Disposa
 
     @Override
     public void dispose() {
-        tree.dispose();
+        Disposer.dispose(tree);
     }
 
     @Nullable

@@ -12,7 +12,7 @@ import javax.swing.tree.TreePath;
 import java.util.Objects;
 import java.util.Optional;
 
-public abstract class InspectorElement implements StructureViewTreeElement, ItemPresentation {
+public abstract class InspectorElement implements CanonicalElement, StructureViewTreeElement, ItemPresentation {
     private final Icon icon;
     private final String name;
     private final String namespace;
@@ -32,7 +32,8 @@ public abstract class InspectorElement implements StructureViewTreeElement, Item
         if (path == null) {
             return Optional.empty();
         }
-        return Optional.of((InspectorElement) StructureViewComponent.unwrapWrapper(TreeUtil.getLastUserObject(path)));
+        final Object o = StructureViewComponent.unwrapWrapper(TreeUtil.getLastUserObject(path));
+        return o instanceof InspectorElement ? Optional.of((InspectorElement) o) : Optional.empty();
     }
 
     public static <T extends InspectorElement> Optional<T> unwrap(TreePath path, Class<? extends T> type) {
@@ -47,6 +48,7 @@ public abstract class InspectorElement implements StructureViewTreeElement, Item
         return namespace;
     }
 
+    @Override
     public String getCanonicalName() {
         return canonicalName;
     }

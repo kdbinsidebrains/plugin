@@ -11,6 +11,7 @@ import javax.swing.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class TypesGrouper implements Grouper {
@@ -19,7 +20,7 @@ public class TypesGrouper implements Grouper {
     private final ElementType elementType;
 
     public TypesGrouper(ElementType elementType) {
-        this.name = ID + "_" + elementType.name();
+        this.name = canonicalName(elementType);
         this.elementType = elementType;
     }
 
@@ -33,23 +34,37 @@ public class TypesGrouper implements Grouper {
         return new ActionPresentationData("Group all " + elementType.getText(), null, elementType.getGroupIcon());
     }
 
+    private static String canonicalName(ElementType type) {
+        return ID + "_" + type.name();
+    }
+
     @Override
     public @NotNull Collection<Group> group(@NotNull AbstractTreeNode<?> parent, @NotNull Collection<TreeElement> children) {
-        if (parent.getValue() instanceof TypeGroup) {
+        final Object value = parent.getValue();
+        if (value instanceof TypeGroup) {
             return Collections.emptyList();
         }
 
         final List<TreeElement> collect = children.stream().filter(elementType::isIt).collect(Collectors.toList());
-        return List.of(new TypeGroup(elementType, collect));
+        return List.of(new TypeGroup((CanonicalElement) value, elementType, collect));
     }
 
-    public static class TypeGroup implements Group, ItemPresentation {
+    public static class TypeGroup implements CanonicalElement, Group, ItemPresentation {
         private final ElementType type;
+        private final String canonicalName;
         private final Collection<TreeElement> children;
 
-        public TypeGroup(ElementType type, Collection<TreeElement> children) {
+        public TypeGroup(CanonicalElement parent, ElementType type, Collection<TreeElement> children) {
             this.type = type;
             this.children = children;
+
+            final String prefix = parent instanceof InstanceElement ? "" : parent.getCanonicalName() + ".";
+            this.canonicalName = prefix + canonicalName(type);
+        }
+
+        @Override
+        public String getCanonicalName() {
+            return canonicalName;
         }
 
         @Override
@@ -75,6 +90,19 @@ public class TypesGrouper implements Grouper {
         @Override
         public @NotNull Collection<TreeElement> getChildren() {
             return children;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            TypeGroup typeGroup = (TypeGroup) o;
+            return Objects.equals(canonicalName, typeGroup.canonicalName);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(canonicalName);
         }
     }
 }

@@ -6,7 +6,7 @@ public class RootElement extends InspectorElement {
     private InstanceElement element;
 
     public RootElement() {
-        super(null, null, null);
+        super("ROOT", null, null);
     }
 
     public InstanceElement getElement() {

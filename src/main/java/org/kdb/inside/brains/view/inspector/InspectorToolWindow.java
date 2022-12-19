@@ -11,6 +11,7 @@ import com.intellij.ide.structureView.newStructureView.TreeActionWrapper;
 import com.intellij.ide.structureView.newStructureView.TreeActionsOwner;
 import com.intellij.ide.structureView.newStructureView.TreeModelWrapper;
 import com.intellij.ide.util.treeView.NodeRenderer;
+import com.intellij.ide.util.treeView.smartTree.Group;
 import com.intellij.ide.util.treeView.smartTree.SmartTreeStructure;
 import com.intellij.ide.util.treeView.smartTree.TreeAction;
 import com.intellij.ide.util.treeView.smartTree.TreeElementWrapper;
@@ -80,9 +81,9 @@ import java.util.stream.Collectors;
 import static com.intellij.ide.structureView.newStructureView.StructureViewComponent.registerAutoExpandListener;
 
 
-@State(name = "KdbInstanceInspector", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
+@State(name = "KdbInspectorView", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
 public class InspectorToolWindow extends SimpleToolWindowPanel implements PersistentStateComponent<InspectorToolState>, KdbConnectionListener, InstanceScanner.ScanListener, DataProvider, Disposable {
-    public static final String PLACE = "Kdb.InstanceInspectorToolbar";
+    public static final String PLACE = "Kdb.InspectorToolbar";
     private final Project project;
 
     private InstanceConnection connection;
@@ -485,26 +486,38 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         return getSuggestions(prefix, ie);
     }
 
-    private static class NameResolver extends TreeVisitor.ByComponent<String, InspectorElement> {
-        private final boolean onlyPath;
+    private static class NameResolver extends TreeVisitor.ByComponent<String, CanonicalElement> {
+        private final boolean expand;
 
-        public NameResolver(@NotNull String name, boolean onlyPath) {
-            super(name, o -> (InspectorElement) StructureViewComponent.unwrapWrapper(o));
-            this.onlyPath = onlyPath;
+        public NameResolver(@NotNull String name, boolean expand) {
+            super(name, o -> (CanonicalElement) StructureViewComponent.unwrapWrapper(o));
+            this.expand = expand;
         }
 
         @Override
-        protected boolean matches(@NotNull InspectorElement element, @NotNull String name) {
-            if (!onlyPath || element instanceof NamespaceElement) {
-                return name.equals(element.getCanonicalName());
+        protected boolean matches(@NotNull CanonicalElement element, @NotNull String name) {
+            final String canonicalName = element.getCanonicalName();
+            if (expand) {
+                if (element instanceof NamespaceElement || element instanceof Group) {
+                    return name.equals(canonicalName);
+                }
+                return false;
             }
-            return false;
+            return name.equals(canonicalName);
         }
 
         @Override
-        protected boolean contains(@NotNull InspectorElement element, @NotNull String name) {
+        protected boolean contains(@NotNull CanonicalElement element, @NotNull String name) {
+            if (element instanceof ExecutableElement) {
+                return false;
+            }
+
             if (element instanceof RootElement || element instanceof InstanceElement) {
                 return true;
+            }
+
+            if (element instanceof Group) {
+                return !expand && ((Group) element).getChildren().stream().map(e -> (CanonicalElement) e).map(CanonicalElement::getCanonicalName).anyMatch(s -> s.equals(name));
             }
 
             final String canonicalName = element.getCanonicalName();
@@ -534,25 +547,34 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         public void restoreState(AsyncTreeModel model) {
             if (expandedPaths != null) {
                 for (String expandedPath : expandedPaths) {
-                    restoreElement(model, new NameResolver(expandedPath, true), TreeUtil::promiseExpand);
+                    restoreElement(new NameResolver(expandedPath, true), new BiConsumer<Tree, TreeVisitor>() {
+                        @Override
+                        public void accept(Tree tree, TreeVisitor treeVisitor) {
+                            TreeUtil.promiseExpand(tree, treeVisitor);
+                        }
+                    });
                 }
             }
 
             if (selectedPath != null) {
-                restoreElement(model, new NameResolver(selectedPath, false), TreeUtil::selectPath);
+                restoreElement(new NameResolver(selectedPath, false), TreeUtil::promiseSelect);
             }
         }
 
-        private void restoreElement(AsyncTreeModel model, NameResolver resolver, BiConsumer<Tree, TreePath> consumer) {
-            model.accept(resolver).onProcessed(p -> {
-                if (p != null) {
-                    consumer.accept(tree, p);
-                }
-            });
+        private void restoreElement(NameResolver resolver, BiConsumer<Tree, TreeVisitor> consumer) {
+            consumer.accept(tree, resolver);
         }
 
         private String getCanonicalName(TreePath path) {
-            return InspectorElement.unwrap(path).map(InspectorElement::getCanonicalName).orElse(null);
+            if (path == null) {
+                return null;
+            }
+            final Object lastPathComponent = path.getLastPathComponent();
+            final Object o = StructureViewComponent.unwrapWrapper(lastPathComponent);
+            if (o instanceof CanonicalElement) {
+                return ((CanonicalElement) o).getCanonicalName();
+            }
+            return null;
         }
     }
 
@@ -601,7 +623,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             };
 
             structureModel = new StructureTreeModel<>(smartStructure, this);
-            asyncTreeMode = new AsyncTreeModel(structureModel, this);
+            asyncTreeMode = new AsyncTreeModel(structureModel, false, this);
 
             Disposer.register(disposable, this);
         }

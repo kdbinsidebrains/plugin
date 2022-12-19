@@ -8,7 +8,13 @@
 
 - Inspector has been improved and more functionality added:
   - Scroll to source
-  - Diff with source
+  - Diff with source for a function
+  - Restore expanded/selected item between connection change/refresh
+
+### Fixed
+
+- NewUI support removed for now as causes more errors
+- memory leak error for InstancesTree fixed (disposed via Disposer now)
 
 ## [3.1.0]
 
