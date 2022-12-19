@@ -2,6 +2,12 @@
 
 # KdbInsideBrains Changelog
 
+## [3.2.1]
+
+### Fixed
+
+- Search by canonical name in the Inspector
+
 ## [3.2.0]
 
 ### Added

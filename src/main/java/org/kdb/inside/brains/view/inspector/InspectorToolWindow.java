@@ -126,7 +126,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
         TreeUtil.installActions(tree);
 
-        new TreeSpeedSearch(tree, path -> InspectorElement.unwrap(path).map(InspectorElement::getName).orElse(null), true);
+        new TreeSpeedSearch(tree, path -> InspectorElement.unwrap(path).map(InspectorElement::getCanonicalName).orElse(null), true);
 
         setContent(ScrollPaneFactory.createScrollPane(tree));
         setToolbar(createToolbar());
