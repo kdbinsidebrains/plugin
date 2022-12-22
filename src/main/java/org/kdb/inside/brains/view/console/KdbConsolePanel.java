@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.view.console;
 
 import com.intellij.codeEditor.printing.PrintAction;
+import com.intellij.execution.actions.ClearConsoleAction;
 import com.intellij.execution.console.BaseConsoleExecuteActionHandler;
 import com.intellij.execution.console.GutterContentProvider;
 import com.intellij.execution.console.LanguageConsoleBuilder;
@@ -14,6 +15,8 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction;
+import com.intellij.openapi.editor.ex.DocumentEx;
+import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -25,6 +28,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.docking.DockContainer;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.JBTabsFactory;
@@ -53,6 +57,7 @@ import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -177,9 +182,34 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         tab.setIcon(KdbIcons.Console.Console);
         tab.setObject(console);
 
+        initializeHistoryViewer(console.getHistoryViewer());
+
         updateTabColor(tab);
 
         return tab;
+    }
+
+    private void initializeHistoryViewer(EditorEx editor) {
+        final JComponent content = editor.getContentComponent();
+
+        final DefaultActionGroup group = new DefaultActionGroup();
+        final AnAction action = new AnAction("_Copy") {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                copyHistoryToClipboard(editor);
+            }
+        };
+        action.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK, content);
+
+        group.add(action);
+        group.addSeparator();
+        group.add(new ClearConsoleAction());
+
+        PopupHandler.installPopupHandler(content, group, "Kdb.ConsoleHistoryView");
+    }
+
+    private void copyHistoryToClipboard(EditorEx editor) {
+        final DocumentEx document = editor.getDocument();
     }
 
     private void updateTabColor(TabInfo tab) {
