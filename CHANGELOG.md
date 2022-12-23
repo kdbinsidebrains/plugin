@@ -2,6 +2,14 @@
 
 # KdbInsideBrains Changelog
 
+## [3.3.0]
+
+### Added
+
+- Copy formatted/rich text from history console (was plain only before)
+- Index Column in a Table View enabled by default.
+- Inspector scan on connected option enabled by default.
+
 ## [3.2.1]
 
 ### Fixed

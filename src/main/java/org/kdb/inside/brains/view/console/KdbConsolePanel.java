@@ -179,6 +179,8 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         updateTabColor(tab);
 
+        HistoryCopyHandler.redefineHistoricalViewer(console);
+
         return tab;
     }
 

@@ -11,7 +11,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     private boolean prefixSymbols = true;
     private boolean striped = true;
     private boolean showGrid = true;
-    private boolean indexColumn = false;
+    private boolean indexColumn = true;
     private boolean dictAsTable = true;
     private boolean listAsTable = true;
     private boolean expandList = true;
