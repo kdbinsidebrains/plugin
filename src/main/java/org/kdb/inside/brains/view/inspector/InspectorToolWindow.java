@@ -459,31 +459,68 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         settings.copyFom(state);
     }
 
-    static List<ExecutableElement> getSuggestions(String prefix, InstanceElement ie) {
-        return getSuggestions(prefix, (InspectorElement) ie);
+    public static InspectorToolWindow getExist(@NotNull Project project) {
+        return project.getServiceIfCreated(InspectorToolWindow.class);
     }
 
-    static List<ExecutableElement> getSuggestions(String prefix, InspectorElement ie) {
-        final List<ExecutableElement> res = new ArrayList<>();
+    static InspectorElement getElement(String name, InspectorElement ie) {
         for (InspectorElement child : ie.getChildren()) {
             final String canonicalName = child.getCanonicalName();
-            if (canonicalName.startsWith(prefix) || (child instanceof NamespaceElement && prefix.startsWith(canonicalName))) {
-                if (child instanceof NamespaceElement) {
-                    res.addAll(getSuggestions(prefix, child));
-                } else if (child instanceof ExecutableElement) {
-                    res.add((ExecutableElement) child);
+            if (canonicalName.equals(name)) {
+                return child;
+            }
+
+            if (child instanceof NamespaceElement && name.startsWith(canonicalName)) {
+                final InspectorElement element = getElement(name, child);
+                if (element != null) {
+                    return element;
                 }
             }
         }
+        return null;
+    }
+
+    static List<ExecutableElement> getSuggestions(String prefix, InspectorElement element) {
+        return getSuggestions(prefix, element, ExecutableElement.class);
+    }
+
+    static <T extends ExecutableElement> List<T> getSuggestions(String prefix, InspectorElement element, Class<? extends T> type) {
+        final List<T> res = new ArrayList<>();
+        collectSuggestions(prefix, element, type, res);
         return res;
     }
 
-    public List<ExecutableElement> getSuggestions(String prefix) {
+    static <T extends ExecutableElement> void collectSuggestions(String prefix, InspectorElement ielement, Class<? extends T> type, List<T> res) {
+        for (InspectorElement child : ielement.getChildren()) {
+            final String canonicalName = child.getCanonicalName();
+            if (canonicalName.startsWith(prefix) || (child instanceof NamespaceElement && prefix.startsWith(canonicalName))) {
+                if (child instanceof NamespaceElement) {
+                    collectSuggestions(prefix, child, type, res);
+                } else if (type.isAssignableFrom(child.getClass())) {
+                    res.add(type.cast(child));
+                }
+            }
+        }
+    }
+
+    public boolean containsElement(String qualifiedName) {
+        return getElement(qualifiedName) != null;
+    }
+
+    public InspectorElement getElement(String qualifiedName) {
         final InstanceElement ie = modelWrapper.getElement();
-        if (ie == null || ie.getChildren().length == 0 || prefix.isEmpty()) {
+        if (ie == null || ie.getChildren().length == 0 || qualifiedName == null || qualifiedName.isEmpty()) {
+            return null;
+        }
+        return getElement(qualifiedName, ie);
+    }
+
+    public <T extends ExecutableElement> List<T> getSuggestions(String prefix, Class<? extends T> type) {
+        final InstanceElement ie = modelWrapper.getElement();
+        if (ie == null || ie.getChildren().length == 0) {
             return List.of();
         }
-        return getSuggestions(prefix, ie);
+        return getSuggestions(prefix, ie, type);
     }
 
     private static class NameResolver extends TreeVisitor.ByComponent<String, CanonicalElement> {

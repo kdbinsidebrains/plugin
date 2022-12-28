@@ -17,6 +17,10 @@ import javax.swing.*;
 import static com.intellij.openapi.util.Iconable.ICON_FLAG_VISIBILITY;
 
 public class QIconProvider extends IconProvider implements DumbAware {
+    public static Icon getColumnIcon(@NotNull QTableColumn column) {
+        return QPsiUtil.isKeyColumn(column) ? KdbIcons.Node.TableKeyColumn : KdbIcons.Node.TableValueColumn;
+    }
+
     @Override
     public @Nullable Icon getIcon(@NotNull PsiElement element, int flags) {
         final boolean visibility = BitUtil.isSet(flags, ICON_FLAG_VISIBILITY);
@@ -28,9 +32,7 @@ public class QIconProvider extends IconProvider implements DumbAware {
         } else if (element instanceof QContext) {
             return KdbIcons.Node.Context;
         } else if (element instanceof QTableColumn) {
-            final QTableColumn col = (QTableColumn) element;
-            final boolean keys = col.getParent() instanceof QTableKeys;
-            return keys ? KdbIcons.Node.TableKeyColumn : KdbIcons.Node.TableValueColumn;
+            return getColumnIcon((QTableColumn) element);
         } else if (element instanceof QLambdaExpr) {
             return KdbIcons.Node.Lambda;
         } else if (element instanceof QAssignmentExpr) {

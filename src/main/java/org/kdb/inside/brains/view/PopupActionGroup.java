@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.ide;
+package org.kdb.inside.brains.view;
 
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.NlsActions;

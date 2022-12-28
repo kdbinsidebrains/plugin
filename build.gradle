@@ -66,13 +66,18 @@ dependencies {
     implementation 'org.apache.poi:poi-ooxml:5.2.2'
 
     testImplementation 'org.mockito:mockito-core:4.8.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.9.1'
 }
 
 sourceSets {
     main {
         java.srcDirs 'src/main/gen', 'src/main/java'
     }
+}
+
+test {
+    useJUnitPlatform()
 }
 
 task generateCode() {

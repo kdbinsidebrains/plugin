@@ -2,6 +2,28 @@
 
 # KdbInsideBrains Changelog
 
+## [3.4.0]
+
+### Added
+
+- Dedicated Live Templates context (KDB+ Q) added with a few templates:
+  - sel - create simple select query: select ... from ... where
+  - td - today: .z.d
+  - yd - yesterday: .z.d-1
+  - l10s - time within last 10 seconds by time column
+  - l5m - time within last 5 minutes by time column
+- Code Completion improved for queries:
+  - suggest a table name after 'from' keyword
+  - the selection from a table, when columns are extracted and suggested in 'select', 'be' and 'where' sections
+  - completion works for defined tables as well as loaded from the Inspector
+- Keys are loaded from KDB Instance at inspection time, NOTE: The Inspector query was changed
+
+### Fixed
+
+- Indexer identifies and parses correctly tables and lambdas. Correct type and parameters are shown in suggestions now.
+- Variables defined in the Inspector are ignored by UndefinedVariableInspection now
+- Issue #61 fixed - the inspection is ignored for complex system "l ",... constructions
+
 ## [3.3.0]
 
 ### Added

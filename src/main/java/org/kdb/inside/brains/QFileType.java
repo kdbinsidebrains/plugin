@@ -42,7 +42,6 @@ public final class QFileType extends LanguageFileType {
         return "q";
     }
 
-
     public static boolean hasExtension(File file) {
         return hasExtension(file.getName());
     }
@@ -51,6 +50,9 @@ public final class QFileType extends LanguageFileType {
         return FileUtilRt.extensionEquals(file, "q") || FileUtilRt.extensionEquals(file, "k");
     }
 
+    public static boolean isFile(PsiFile file) {
+        return file != null && (file instanceof QFile || file.getFileType() == INSTANCE || hasExtension(file.getName()));
+    }
 
     /**
      * Creates fake file for factory usage.

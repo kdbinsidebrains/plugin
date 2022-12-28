@@ -3,6 +3,8 @@ package org.kdb.inside.brains.psi;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ElementContext {
     private final ElementScope scope;
@@ -53,7 +55,7 @@ public class ElementContext {
         return scope == ElementScope.PARAMETERS ? (QParameters) element : null;
     }
 
-    public static boolean isRoot(ASTNode node) {
+    public static boolean isRoot(@Nullable ASTNode node) {
         if (node == null) {
             return false;
         }
@@ -64,7 +66,7 @@ public class ElementContext {
         return treeParent.getTreeParent() == null;
     }
 
-    public static IElementType of(ASTNode node) {
+    public static IElementType of(@NotNull ASTNode node) {
         ASTNode parent = node.getTreeParent();
         while (parent != null) {
             final IElementType elementType = parent.getElementType();
@@ -86,7 +88,7 @@ public class ElementContext {
         return null;
     }
 
-    public static ElementContext of(QPsiElement element) {
+    public static ElementContext of(@NotNull PsiElement element) {
         PsiElement parent = element.getParent();
         while (parent != null) {
             if (parent instanceof QParameters) {
