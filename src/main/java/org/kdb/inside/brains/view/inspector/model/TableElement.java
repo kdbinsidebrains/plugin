@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.inspector.model;
 
 import icons.KdbIcons;
 import kx.c;
+import org.kdb.inside.brains.KdbType;
 
 import javax.swing.*;
 import java.lang.reflect.Array;
@@ -56,12 +57,12 @@ public class TableElement extends ExecutableElement {
 
     public static final class Column {
         private final String name;
-        private final char type;
+        private final KdbType type;
         private final boolean keyed;
 
         public Column(String name, char type, boolean keyed) {
             this.name = name;
-            this.type = type;
+            this.type = KdbType.typeOf(type);
             this.keyed = keyed;
         }
 
@@ -69,7 +70,7 @@ public class TableElement extends ExecutableElement {
             return name;
         }
 
-        public char getType() {
+        public KdbType getType() {
             return type;
         }
 
