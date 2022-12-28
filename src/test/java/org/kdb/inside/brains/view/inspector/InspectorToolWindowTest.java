@@ -79,7 +79,7 @@ class InspectorToolWindowTest {
 
     private Object t(String name, long size) {
         c.Flip flip = new c.Flip(new c.Dict(new String[]{"asd"}, new Object[]{new Object[1000]}));
-        return new Object[]{name, size, flip};
+        return new Object[]{name, size, flip, new String[]{"asd"}};
     }
 
     private void assertItem(String name, String desc, Icon icon, ItemPresentation presentation) {

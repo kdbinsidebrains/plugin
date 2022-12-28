@@ -21,14 +21,14 @@ import java.util.stream.Collectors;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 12;
-
-    public static final @NotNull TokenSet COLUMNS_TOKEN = TokenSet.create(QUERY_COLUMN);
+    protected static final int VERSION = 13;
 
     private static final Logger log = Logger.getInstance(QDataIndexer.class);
 
-    private static final Set<IElementType> CONTEXT_SCOPE = Set.of(CONTEXT);
-    private static final Set<IElementType> LOCAL_VARIABLE_SCOPE = Set.of(LAMBDA_EXPR, TABLE_EXPR);
+    private static final TokenSet CONTEXT_SCOPE = TokenSet.create(CONTEXT);
+    private static final TokenSet COLUMNS_TOKEN = TokenSet.create(TABLE_KEYS, TABLE_VALUES);
+    private static final TokenSet LOCAL_VARIABLE_SCOPE = TokenSet.create(LAMBDA_EXPR, TABLE_EXPR);
+
 
     @Override
     public @NotNull Map<String, List<IdentifierDescriptor>> map(@NotNull FileContent content) {
@@ -146,23 +146,21 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
     @NotNull
     private QDataIndexer.Token extractToken(LighterAST tree, List<LighterASTNode> children) {
         final LighterASTNode expression = children.get(children.size() - 1);
-        final List<LighterASTNode> statements = tree.getChildren(expression);
-        if (!statements.isEmpty()) {
-            final LighterASTNode statement = statements.get(0);
-            final IElementType tt = statement.getTokenType();
-            if (tt == LAMBDA_EXPR) {
-                List<LighterASTNode> params = LightTreeUtil.getChildrenOfType(tree, statement, PARAMETERS);
-                if (params.size() == 1) {
-                    params = LightTreeUtil.getChildrenOfType(tree, params.get(0), VAR_DECLARATION);
-                }
-                return new Token(IdentifierType.LAMBDA, params);
-            } else if (tt == TABLE_EXPR) {
-                final List<LighterASTNode> columns = LightTreeUtil.getChildrenOfType(tree, statement, COLUMNS_TOKEN).stream()
-                        .flatMap(c -> LightTreeUtil.getChildrenOfType(tree, c, TABLE_COLUMN).stream())
-                        .flatMap(a -> LightTreeUtil.getChildrenOfType(tree, a, VAR_DECLARATION).stream())
-                        .collect(Collectors.toList());
-                return new Token(IdentifierType.TABLE, columns);
+        final IElementType tt = expression.getTokenType();
+        if (tt == LAMBDA_EXPR) {
+            List<LighterASTNode> params = LightTreeUtil.getChildrenOfType(tree, expression, PARAMETERS);
+            if (params.size() == 1) {
+                params = LightTreeUtil.getChildrenOfType(tree, params.get(0), VAR_DECLARATION);
             }
+            return new Token(IdentifierType.LAMBDA, params);
+        }
+        if (tt == TABLE_EXPR) {
+            final List<LighterASTNode> allColumns = LightTreeUtil.getChildrenOfType(tree, expression, COLUMNS_TOKEN);
+            final List<LighterASTNode> columns = allColumns.stream()
+                    .flatMap(c -> LightTreeUtil.getChildrenOfType(tree, c, TABLE_COLUMN).stream())
+                    .flatMap(a -> LightTreeUtil.getChildrenOfType(tree, a, VAR_DECLARATION).stream())
+                    .collect(Collectors.toList());
+            return new Token(IdentifierType.TABLE, columns);
         }
         return new Token(IdentifierType.VARIABLE);
     }
@@ -204,7 +202,7 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         return findParent(tree, var, LOCAL_VARIABLE_SCOPE) != null;
     }
 
-    private LighterASTNode findParent(LighterAST tree, LighterASTNode item, Set<IElementType> types) {
+    private LighterASTNode findParent(LighterAST tree, LighterASTNode item, TokenSet types) {
         LighterASTNode node = item;
         while (node != null) {
             if (types.contains(node.getTokenType())) {

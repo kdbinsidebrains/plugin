@@ -16,6 +16,7 @@ import com.intellij.psi.util.PsiEditorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.*;
+import org.kdb.inside.brains.view.inspector.InspectorToolWindow;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,8 +29,8 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
 
     @Override
     protected void validate(@NotNull QVarReference variable, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
-        final String variableName = variable.getQualifiedName();
-        if (QLanguage.isKeyword(variableName) || QLanguage.isSystemFunction(variableName)) {
+        final String qualifiedName = variable.getQualifiedName();
+        if (QLanguage.isKeyword(qualifiedName) || QLanguage.isSystemFunction(qualifiedName)) {
             return;
         }
 
@@ -56,6 +57,11 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
             }
         }
 
+        final InspectorToolWindow inspector = InspectorToolWindow.getExist(holder.getProject());
+        if (inspector != null && inspector.containsElement(qualifiedName)) {
+            return;
+        }
+
         LocalQuickFix[] localQuickFix = LocalQuickFix.EMPTY_ARRAY;
         final PsiElement parent = variable.getParent();
         if (parent instanceof QCustomFunction && parent.getParent() instanceof QInvokeFunction) {
@@ -71,7 +77,7 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
                 };
             }
         }
-        holder.registerProblem(variable, "`" + variableName + "` might not have been defined", ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, localQuickFix);
+        holder.registerProblem(variable, "`" + qualifiedName + "` might not have been defined", ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, localQuickFix);
     }
 
     private LocalQuickFix createInvokeFix(QVarReference variable) {

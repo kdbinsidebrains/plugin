@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.ide.sdk.KdbSdkType;
 import org.kdb.inside.brains.psi.QFile;
+import org.kdb.inside.brains.view.LineNumberGutterProvider;
 
 import java.io.File;
 import java.util.LinkedHashMap;

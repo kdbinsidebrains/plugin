@@ -5,6 +5,8 @@ import com.intellij.psi.PsiPolyVariantReference;
 import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.QImport;
+import org.kdb.inside.brains.psi.QImportFunction;
+import org.kdb.inside.brains.psi.QLiteralExpr;
 
 public class UnresolvedImportInspection extends ElementInspection<QImport> {
     public UnresolvedImportInspection() {
@@ -13,6 +15,9 @@ public class UnresolvedImportInspection extends ElementInspection<QImport> {
 
     @Override
     protected void validate(@NotNull QImport element, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
+        if (element instanceof QImportFunction && !(((QImportFunction) element).getExpression() instanceof QLiteralExpr)) {
+            return;
+        }
         checkReferences(element.getReferences(), holder);
     }
 

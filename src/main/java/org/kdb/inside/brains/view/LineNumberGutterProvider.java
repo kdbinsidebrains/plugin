@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.ide.runner;
+package org.kdb.inside.brains.view;
 
 import com.intellij.execution.console.GutterContentProvider;
 import com.intellij.openapi.editor.Document;

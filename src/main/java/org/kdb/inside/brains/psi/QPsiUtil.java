@@ -4,6 +4,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
 
 import java.util.function.Predicate;
@@ -12,7 +14,11 @@ public final class QPsiUtil {
     private QPsiUtil() {
     }
 
-    public static String getTypeCast(QTypeCastExpr cast) {
+    public static boolean isKeyColumn(@Nullable QTableColumn column) {
+        return column != null && column.getParent() instanceof QTableKeys;
+    }
+
+    public static String getTypeCast(@NotNull QTypeCastExpr cast) {
         final String text = cast.getTypeCast().getText();
         final String name = text.charAt(0) == '`' ? text.substring(1, text.length() - 1) : text.substring(1, text.length() - 2);
         if (name.isEmpty()) {
@@ -21,11 +27,11 @@ public final class QPsiUtil {
         return name;
     }
 
-    public static boolean hasNamespace(String identifier) {
+    public static boolean hasNamespace(@NotNull String identifier) {
         return !identifier.isEmpty() && identifier.charAt(0) == '.';
     }
 
-    public static boolean isImplicitVariable(QVariable variable) {
+    public static boolean isImplicitVariable(@NotNull QVariable variable) {
         final String qualifiedName = variable.getQualifiedName();
         if (QVariable.IMPLICIT_VARS.contains(qualifiedName)) {
             final QLambdaExpr enclosingLambda = variable.getContext(QLambdaExpr.class);
@@ -34,11 +40,11 @@ public final class QPsiUtil {
         return false;
     }
 
-    public static boolean isGlobalDeclaration(QAssignmentExpr assignment) {
+    public static boolean isGlobalDeclaration(@NotNull QAssignmentExpr assignment) {
         return isGlobalDeclaration(assignment.getVarDeclaration());
     }
 
-    public static boolean isGlobalDeclaration(QVarDeclaration declaration) {
+    public static boolean isGlobalDeclaration(@NotNull QVarDeclaration declaration) {
         final ElementContext of = ElementContext.of(declaration);
         switch (of.getScope()) {
             case TABLE:

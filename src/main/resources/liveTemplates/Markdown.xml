@@ -1,0 +1,57 @@
+<!--
+    Expressions: https://www.jetbrains.com/help/idea/template-variables.html#predefined_functions
+-->
+<templateSet group="KDB+ Q">
+    <template name="sel"
+              value="select $COLUMNS$ from $TABLE$ where $CRITERIA$$END$"
+              description="Simple select query with where criteria"
+              toReformat="true"
+              toShortenFQNames="true">
+        <variable name="TABLE" expression="complete()" defaultValue="" alwaysStopAt="true"/>
+        <variable name="COLUMNS" expression="complete()" defaultValue=" " alwaysStopAt="true"/>
+        <variable name="CRITERIA" expression="" defaultValue="&quot;date=.z.d-1&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="KDB+ Q" value="true"/>
+        </context>
+    </template>
+
+    <template name="td"
+              value=".z.d"
+              description="Today date"
+              toReformat="false"
+              toShortenFQNames="false">
+        <context>
+            <option name="KDB+ Q" value="true"/>
+        </context>
+    </template>
+
+    <template name="yd"
+              value=".z.d-1"
+              description="Yesterday date"
+              toReformat="false"
+              toShortenFQNames="false">
+        <context>
+            <option name="KDB+ Q" value="true"/>
+        </context>
+    </template>
+
+    <template name="l10s"
+              value="time within(.z.p-0D00:00:10;.z.p)"
+              description="Last 10 seconds of time"
+              toReformat="true"
+              toShortenFQNames="true">
+        <context>
+            <option name="KDB+ Q" value="true"/>
+        </context>
+    </template>
+
+    <template name="l5m"
+              value="time within(.z.p-0D00:05;.z.p)"
+              description="Last 10 minutes"
+              toReformat="true"
+              toShortenFQNames="true">
+        <context>
+            <option name="KDB+ Q" value="true"/>
+        </context>
+    </template>
+</templateSet>

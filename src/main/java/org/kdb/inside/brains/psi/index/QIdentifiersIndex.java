@@ -56,9 +56,8 @@ public class QIdentifiersIndex extends FileBasedIndexExtension<String, List<Iden
 
             @Override
             public List<IdentifierDescriptor> read(@NotNull DataInput in) throws IOException {
-                int size = in.readInt();
-
-                ArrayList<IdentifierDescriptor> infos = new ArrayList<>(size);
+                final int size = in.readInt();
+                final ArrayList<IdentifierDescriptor> infos = new ArrayList<>(size);
                 for (int i = 0; i < size; i++) {
                     final IdentifierType type = IdentifierType.parseFrom(in.readUTF());
                     final TextRange range = new TextRange(in.readInt(), in.readInt());

@@ -137,10 +137,10 @@
             <add-to-group group-id="NavBarToolBarOthers" anchor="first"/>
 
             <!-- New UI-->
-<!--
-            <add-to-group group-id="MainToolbarRight" anchor="after"
-                          relative-to-action="RunToolbarWidgetCustomizableActionGroup"/>
--->
+            <!--
+                        <add-to-group group-id="MainToolbarRight" anchor="after"
+                                      relative-to-action="RunToolbarWidgetCustomizableActionGroup"/>
+            -->
         </group>
 
         <group id="Kdb.EditorContextActionGroup" searchable="false">
@@ -265,6 +265,11 @@
 
         <internalFileTemplate name="KDB+Q Blank File"/>
 
+        <defaultLiveTemplates file="/liveTemplates/Markdown.xml"/>
+        <liveTemplateContext contextId="KDB+ Q"
+                             implementation="org.kdb.inside.brains.ide.template.KdbTemplateContextType"/>
+        <!--        <liveTemplateMacro implementation="org.kdb.inside.brains.ide.template.AnExampleMacro"/>-->
+
         <configurationType implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationType"/>
         <runConfigurationProducer implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationProducer"
                                   order="last"/>
@@ -384,6 +389,19 @@
                          displayName="Mixin lambda variables declaration"
                          groupName="KDB+Q" enabledByDefault="true" level="ERROR"
                          implementationClass="org.kdb.inside.brains.lang.inspection.MixinLambdaVarDeclaration"/>
+
+        <!-- postfix templates-->
+        <codeInsight.template.postfixTemplateProvider language="q"
+                                                      implementationClass="org.kdb.inside.brains.lang.postfix.KdbPostfixTemplateProvider"/>
+
+        <!-- Intention Actions -->
+        <!-- https://plugins.jetbrains.com/docs/intellij/code-intentions.html#techniques-used -->
+        <!--
+            <intentionAction>
+                <category>KDB+ Q Intentions</category>
+                <className>org.kdb.inside.brains.lang.intention.ImportConverter</className>
+            </intentionAction>
+       -->
 
         <!-- Usage and references -->
         <usageTypeProvider implementation="org.kdb.inside.brains.lang.usages.QUsageTypeProvider"/>

@@ -6,7 +6,7 @@ import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.KdbConnectionManager;
-import org.kdb.inside.brains.ide.PopupActionGroup;
+import org.kdb.inside.brains.view.PopupActionGroup;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;

@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.kdb.inside.brains.action.ActionPlaces;
-import org.kdb.inside.brains.ide.PopupActionGroup;
+import org.kdb.inside.brains.view.PopupActionGroup;
 import org.kdb.inside.brains.view.chart.line.LineChartProvider;
 import org.kdb.inside.brains.view.chart.ohlc.OHLCChartViewProvider;
 import org.kdb.inside.brains.view.chart.tools.CrosshairTool;
