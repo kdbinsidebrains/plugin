@@ -6,7 +6,9 @@ plugins {
 }
 
 Properties versionProps = new Properties()
-versionProps.load(new FileInputStream(file('version.properties')))
+try (final InputStream stream = new FileInputStream(file('version.properties'))) {
+    versionProps.load(stream);
+}
 
 group = pluginGroup
 version = versionProps['pluginVersion']
