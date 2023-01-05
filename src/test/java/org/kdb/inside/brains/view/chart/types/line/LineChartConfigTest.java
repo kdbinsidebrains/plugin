@@ -57,6 +57,19 @@ public class LineChartConfigTest {
     }
 
     @Test
+    void copy() {
+        final LineChartConfig chartConfig = createChartConfig();
+        assertEquals(chartConfig, chartConfig.copy());
+    }
+
+    @Test
+    void equals() {
+        final LineChartConfig chartConfig = createChartConfig();
+        assertEquals(chartConfig, createChartConfig());
+        assertEquals(chartConfig.hashCode(), createChartConfig().hashCode());
+    }
+
+    @Test
     void restore() throws IOException, JDOMException {
         final LineChartConfig c = LineChartConfig.restore(JDOMUtil.load(MESSAGE));
         assertTrue(c.isDrawShapes());

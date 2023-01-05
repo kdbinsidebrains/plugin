@@ -31,7 +31,7 @@ class ChartTemplatesServiceTest {
             "  </template>\n" +
             "  <template name=\"t2\" quickAction=\"true\">\n" +
             "    <ohlc-chart>\n" +
-            "      <date name=\"date\" type=\"p\" />\n" +
+            "      <domain name=\"date\" type=\"p\" />\n" +
             "      <open name=\"open\" type=\"f\" />\n" +
             "      <high name=\"high\" type=\"f\" />\n" +
             "      <low name=\"low\" type=\"f\" />\n" +

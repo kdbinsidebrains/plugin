@@ -9,6 +9,7 @@ import java.awt.*;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class RangeConfigTest {
     public static void assertRange(RangeConfig c, String name, KdbType type, Color color, float width) {
@@ -29,5 +30,22 @@ class RangeConfigTest {
     void restore() throws IOException, JDOMException {
         final RangeConfig c = RangeConfig.restore(JDOMUtil.load("<column name=\"name\" type=\"f\" color=\"0000ff\" width=\"56.3\" />"));
         assertRange(c, "name", KdbType.FLOAT, Color.BLUE, 56.3f);
+    }
+
+    @Test
+    void equals() {
+        final RangeConfig c1 = new RangeConfig("name", KdbType.TIME, Color.BLACK);
+        final RangeConfig c2 = new RangeConfig("name", KdbType.TIME, Color.BLACK);
+        assertEquals(c1, c2);
+        assertEquals(c1.hashCode(), c2.hashCode());
+
+        final RangeConfig c3 = new RangeConfig("name1", KdbType.TIME, Color.BLUE);
+        assertNotEquals(c1, c3);
+        assertNotEquals(c1.hashCode(), c3.hashCode());
+
+        final RangeConfig c4 = new RangeConfig("name", KdbType.TIMESTAMP, Color.BLACK);
+        c4.setWidth(13);
+        assertNotEquals(c1, c4);
+        assertNotEquals(c1.hashCode(), c4.hashCode());
     }
 }

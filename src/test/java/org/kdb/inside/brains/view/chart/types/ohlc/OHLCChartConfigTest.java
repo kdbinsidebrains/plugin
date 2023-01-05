@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class OHLCChartConfigTest {
     public static final String MESSAGE = "<ohlc-chart>\n" +
-            "  <date name=\"date\" type=\"p\" />\n" +
+            "  <domain name=\"date\" type=\"p\" />\n" +
             "  <open name=\"open\" type=\"f\" />\n" +
             "  <high name=\"high\" type=\"f\" />\n" +
             "  <low name=\"low\" type=\"f\" />\n" +
@@ -33,6 +33,19 @@ public class OHLCChartConfigTest {
         final ColumnConfig volume = new ColumnConfig("volume", KdbType.FLOAT);
 
         return new OHLCChartConfig(date, open, high, low, close, volume);
+    }
+
+    @Test
+    void copy() {
+        final OHLCChartConfig chartConfig = createConfig();
+        assertEquals(chartConfig, chartConfig.copy());
+    }
+
+    @Test
+    void equals() {
+        final OHLCChartConfig chartConfig = createConfig();
+        assertEquals(chartConfig, createConfig());
+        assertEquals(chartConfig.hashCode(), createConfig().hashCode());
     }
 
     @Test
