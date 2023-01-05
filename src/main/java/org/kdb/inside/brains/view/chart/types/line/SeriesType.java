@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.chart.line;
+package org.kdb.inside.brains.view.chart.types.line;
 
 import icons.KdbIcons;
 import org.jfree.chart.renderer.xy.*;

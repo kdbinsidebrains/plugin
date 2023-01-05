@@ -20,6 +20,7 @@ import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
@@ -204,7 +205,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
             if (action instanceof ScrollToTheEndToolbarAction) {
                 final Presentation tp = action.getTemplatePresentation();
-                actions.add(new ToggleAction(tp.getText(), tp.getDescription(), tp.getIcon()) {
+                actions.add(new DumbAwareToggleAction(tp.getText(), tp.getDescription(), tp.getIcon()) {
                     @Override
                     public boolean isSelected(@NotNull AnActionEvent e) {
                         return scrollToTheEnd;
@@ -219,7 +220,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                     }
                 });
             } else if (action instanceof PrintAction) {
-                actions.add(new ToggleAction("Show History", "Show all history or only last one if disabled", KdbIcons.Console.ShowOnlyLast) {
+                actions.add(new DumbAwareToggleAction("Show History", "Show all history or only last one if disabled", KdbIcons.Console.ShowOnlyLast) {
                     @Override
                     public boolean isSelected(@NotNull AnActionEvent e) {
                         return !showOnlyLast;

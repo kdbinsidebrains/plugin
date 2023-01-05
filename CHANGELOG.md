@@ -2,6 +2,15 @@
 
 # KdbInsideBrains Changelog
 
+## [3.5.0]
+
+### Added
+
+- Charting templates have been introduced: https://www.kdbinsidebrains.dev/features/charting#templates:
+  - Save/Restore a chart configuration
+  - Quick charting by template
+  - Templates manager
+
 ## [3.4.0]
 
 ### Added

@@ -22,6 +22,7 @@ import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.view.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.chart.ChartColors;
+import org.kdb.inside.brains.view.chart.ChartOptions;
 import org.kdb.inside.brains.view.chart.ChartTool;
 
 import javax.swing.*;
@@ -36,12 +37,11 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, ChartMouseListener {
-    private boolean enabled;
-
     private MeasureArea activeArea;
     private static final KeyStroke KEYSTROKE_DEL = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 
     private final BaseChartPanel myPanel;
+    private final ChartOptions myOptions;
     private final List<MeasureArea> pinnedAreas = new ArrayList<>();
 
     private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#0.00");
@@ -56,8 +56,9 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
         NUMBER_FORMAT.setNegativePrefix("-");
     }
 
-    public MeasureTool(BaseChartPanel panel) {
+    public MeasureTool(BaseChartPanel panel, ChartOptions options) {
         myPanel = panel;
+        myOptions = options;
 
         myPanel.addOverlay(this);
         myPanel.addChartMouseListener(this);
@@ -79,7 +80,7 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
 
     @Override
     public ActionGroup getPopupActions() {
-        if (!enabled) {
+        if (!isEnabled()) {
             return ActionGroup.EMPTY_GROUP;
         }
 
@@ -114,7 +115,7 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
 
     @Override
     public void chartMouseClicked(ChartMouseEvent event) {
-        if (!enabled) {
+        if (!isEnabled()) {
             return;
         }
 
@@ -139,7 +140,7 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
 
     @Override
     public void chartMouseMoved(ChartMouseEvent event) {
-        if (!enabled) {
+        if (!isEnabled()) {
             return;
         }
 
@@ -215,11 +216,11 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return myOptions.isMeasureToolEnabled();
     }
 
     public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        myOptions.setMeasureToolEnabled(enabled);
 
         if (!enabled) {
             cancel();

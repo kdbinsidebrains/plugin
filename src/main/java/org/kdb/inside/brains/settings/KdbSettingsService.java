@@ -9,6 +9,7 @@ import com.intellij.openapi.components.Storage;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.ExecutionOptions;
 import org.kdb.inside.brains.core.InstanceOptions;
+import org.kdb.inside.brains.view.chart.ChartOptions;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
 import org.kdb.inside.brains.view.inspector.InspectorOptions;
 
@@ -100,6 +101,17 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         }
     }
 
+    public ChartOptions getChartOptions() {
+        return myState.chartOptions;
+    }
+
+    public void setChartOptions(ChartOptions options) {
+        if (!myState.chartOptions.equals(options)) {
+            myState.chartOptions.copyFrom(options);
+            notifySettingsChanged(myState.chartOptions);
+        }
+    }
+
     private void notifySettingsChanged(SettingsBean<?> bean) {
         listeners.forEach(l -> l.settingsChanged(this, bean));
     }
@@ -112,6 +124,7 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
 
     @Override
     public void loadState(State state) {
+        myState.setChartOptions(state.chartOptions);
         myState.setConsoleOptions(state.consoleOptions);
         myState.setEditorOptions(state.executionOptions);
         myState.setInstanceOptions(state.instanceOptions);
@@ -128,6 +141,7 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
 
     static class State {
         private final List<String> credentialPlugins = new ArrayList<>();
+        private final ChartOptions chartOptions = new ChartOptions();
         private final ConsoleOptions consoleOptions = new ConsoleOptions();
         private final InstanceOptions instanceOptions = new InstanceOptions();
         private final ExecutionOptions executionOptions = new ExecutionOptions();
@@ -174,6 +188,14 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
 
         public void setInspectorOptions(InspectorOptions inspectorOptions) {
             this.inspectorOptions.copyFrom(inspectorOptions);
+        }
+
+        public ChartOptions getChartOptions() {
+            return chartOptions;
+        }
+
+        public void setChartOptions(ChartOptions options) {
+            chartOptions.copyFrom(options);
         }
     }
 }

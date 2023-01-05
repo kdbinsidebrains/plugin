@@ -49,6 +49,8 @@ public final class KdbIcons {
         public static final Icon ToolCrosshair = load("/org/kdb/inside/brains/icons/chart/tool_crosshair.svg");
         public static final Icon ToolPoints = load("/org/kdb/inside/brains/icons/chart/tool_points.svg");
         public static final Icon ToolMeasure = load("/org/kdb/inside/brains/icons/chart/tool_measure.svg");
+
+        public static final Icon Templates = load("/org/kdb/inside/brains/icons/chart/template.svg");
     }
 
     public static final class Inspector {

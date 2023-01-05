@@ -14,6 +14,7 @@ import org.jfree.chart.plot.Crosshair;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleAnchor;
 import org.kdb.inside.brains.view.chart.BaseChartPanel;
+import org.kdb.inside.brains.view.chart.ChartOptions;
 import org.kdb.inside.brains.view.chart.ChartTool;
 
 import java.awt.*;
@@ -21,22 +22,23 @@ import java.awt.geom.Point2D;
 import java.text.NumberFormat;
 
 public class CrosshairTool extends CrosshairOverlay implements ChartTool, ChartMouseListener {
-    private boolean enabled = true;
-
     private Crosshair range;
     private Crosshair domain;
 
     private final BaseChartPanel myPanel;
+    private final ChartOptions myOptions;
 
     public static final JBColor CROSSHAIR_PAINT = new JBColor(new Color(0xa4a4a5), new Color(0xa4a4a5));
     public static final JBColor CROSSHAIR_LABEL = new JBColor(new Color(0x595959), new Color(0x595959));
     public static final JBColor CROSSHAIR_OUTLINE = new JBColor(new Color(0xe0e0e0), new Color(0xe0e0e0));
     public static final JBColor CROSSHAIR_BACKGROUND = new JBColor(new Color(0xc4c4c4), new Color(0xc4c4c4));
 
-    public CrosshairTool(BaseChartPanel panel) {
+    public CrosshairTool(BaseChartPanel panel, ChartOptions options) {
         myPanel = panel;
         myPanel.addOverlay(this);
         myPanel.addChartMouseListener(this);
+
+        myOptions = options;
     }
 
     @Override
@@ -88,17 +90,17 @@ public class CrosshairTool extends CrosshairOverlay implements ChartTool, ChartM
 
     @Override
     public void paintOverlay(Graphics2D g2, ChartPanel chartPanel) {
-        if (enabled) {
+        if (isEnabled()) {
             super.paintOverlay(g2, chartPanel);
         }
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return myOptions.isCrosshairToolEnabled();
     }
 
     public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        myOptions.setCrosshairToolEnabled(enabled);
         fireOverlayChanged();
     }
 }

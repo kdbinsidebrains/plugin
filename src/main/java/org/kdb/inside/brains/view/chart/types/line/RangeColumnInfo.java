@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.chart.line;
+package org.kdb.inside.brains.view.chart.types.line;
 
 import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.Nullable;

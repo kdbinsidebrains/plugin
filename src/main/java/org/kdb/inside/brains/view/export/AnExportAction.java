@@ -7,6 +7,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.ui.IoErrorText;
@@ -17,7 +18,7 @@ import org.kdb.inside.brains.view.KdbOutputFormatter;
 import javax.swing.*;
 import java.io.IOException;
 
-public abstract class AnExportAction<Config> extends AnAction {
+public abstract class AnExportAction<Config> extends AnAction implements DumbAware {
     private final ExportingType type;
     private final ExportDataProvider exportingView;
 

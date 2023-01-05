@@ -79,11 +79,11 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static com.intellij.ide.structureView.newStructureView.StructureViewComponent.registerAutoExpandListener;
+import static org.kdb.inside.brains.action.ActionPlaces.INSPECTOR_VIEW_TOOLBAR;
 
 
 @State(name = "KdbInspectorView", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
 public class InspectorToolWindow extends SimpleToolWindowPanel implements PersistentStateComponent<InspectorToolState>, KdbConnectionListener, InstanceScanner.ScanListener, DataProvider, Disposable {
-    public static final String PLACE = "Kdb.InspectorToolbar";
     private final Project project;
 
     private InstanceConnection connection;
@@ -323,7 +323,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         result.addSeparator();
         result.add(scrollToSourceHandler.createToggleAction());
 
-        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PLACE, result, true);
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(INSPECTOR_VIEW_TOOLBAR, result, true);
         toolbar.setTargetComponent(tree);
         return toolbar.getComponent();
     }

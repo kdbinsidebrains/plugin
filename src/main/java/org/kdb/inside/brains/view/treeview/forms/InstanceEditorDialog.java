@@ -93,12 +93,6 @@ public class InstanceEditorDialog extends DialogWrapper {
         initPanel(scope, instance);
     }
 
-    @Nullable
-    @Override
-    public JComponent getPreferredFocusedComponent() {
-        return super.getPreferredFocusedComponent();
-    }
-
     private void initPanel(@Nullable KdbScope scope, @Nullable KdbInstance instance) {
         init();
 

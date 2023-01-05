@@ -22,6 +22,7 @@ import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.chart.BaseChartPanel;
+import org.kdb.inside.brains.view.chart.ChartOptions;
 import org.kdb.inside.brains.view.chart.ChartTool;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 
@@ -37,14 +38,15 @@ import java.util.List;
 import java.util.Vector;
 
 public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseListener {
-    private boolean enabled = false;
+    private ChartOptions myOptions;
 
     private final JPanel component;
     private final JBTable pointsTable;
     private final BaseChartPanel myPanel;
 
-    public ValuesTool(Project project, BaseChartPanel panel) {
+    public ValuesTool(Project project, BaseChartPanel panel, ChartOptions options) {
         myPanel = panel;
+        myOptions = options;
 
         final KdbOutputFormatter instance = KdbOutputFormatter.getInstance();
 
@@ -165,11 +167,11 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return myOptions.isValuesToolEnabled();
     }
 
     public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        myOptions.setValuesToolEnabled(enabled);
     }
 
     public JComponent getComponent() {
@@ -182,7 +184,7 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
 
     @Override
     public void chartMouseClicked(ChartMouseEvent event) {
-        if (!enabled) {
+        if (!isEnabled()) {
             return;
         }
 

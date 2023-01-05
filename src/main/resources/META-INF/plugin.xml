@@ -438,6 +438,9 @@
         <lang.formatter language="q"
                         implementationClass="org.kdb.inside.brains.lang.formatting.QFormattingModelBuilder"/>
 
+        <!-- Charting -->
+        <projectService serviceImplementation="org.kdb.inside.brains.view.chart.template.ChartTemplatesService"/>
+
         <langCodeStyleSettingsProvider
                 implementation="org.kdb.inside.brains.lang.formatting.QCodeStyleSettingsProvider"/>
     </extensions>

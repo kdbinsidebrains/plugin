@@ -1,22 +1,22 @@
 package org.kdb.inside.brains.view.chart;
 
 import org.jfree.chart.JFreeChart;
+import org.kdb.inside.brains.view.chart.types.ChartType;
 
 import javax.swing.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class ChartViewProvider<CP extends JComponent> {
-    private final Icon icon;
+public abstract class ChartViewProvider<Panel extends JComponent, Config extends ChartConfig> {
     private final String name;
-
+    private final ChartType type;
     private final List<ChartViewListener> chartViewListeners = new CopyOnWriteArrayList<>();
     protected final ChartDataProvider dataProvider;
-    protected CP configPanel;
+    protected Panel configPanel;
 
-    public ChartViewProvider(String name, Icon icon, ChartDataProvider dataProvider) {
+    public ChartViewProvider(String name, ChartType type, ChartDataProvider dataProvider) {
         this.name = name;
-        this.icon = icon;
+        this.type = type;
         this.dataProvider = dataProvider;
     }
 
@@ -32,25 +32,32 @@ public abstract class ChartViewProvider<CP extends JComponent> {
         }
     }
 
+    public ChartType getType() {
+        return type;
+    }
+
     public Icon getIcon() {
-        return icon;
+        return type.getIcon();
     }
 
     public String getName() {
         return name;
     }
 
-
-    public CP getConfigPanel() {
+    public Panel getConfigPanel() {
         if (configPanel == null) {
             configPanel = createConfigPanel(dataProvider);
         }
         return configPanel;
     }
 
-    public abstract JFreeChart getJFreeChart();
+    public abstract Config getChartConfig();
 
-    protected abstract CP createConfigPanel(ChartDataProvider provider);
+    public abstract void setChartConfig(Config config);
+
+    public abstract JFreeChart getJFreeChart(Config config);
+
+    protected abstract Panel createConfigPanel(ChartDataProvider provider);
 
     protected void processConfigChanged() {
         chartViewListeners.forEach(ChartViewListener::configChanged);

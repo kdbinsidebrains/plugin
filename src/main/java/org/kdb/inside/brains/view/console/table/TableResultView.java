@@ -4,6 +4,7 @@ import com.intellij.find.FindModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.PopupHandler;
@@ -23,8 +24,7 @@ import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
-import org.kdb.inside.brains.view.chart.ChartDataProvider;
-import org.kdb.inside.brains.view.chart.ShowChartAction;
+import org.kdb.inside.brains.view.chart.ChartActionGroup;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
 import org.kdb.inside.brains.view.export.ClipboardExportAction;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
@@ -221,7 +221,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private JComponent createFilter() {
         final DefaultActionGroup group = new DefaultActionGroup();
 
-        final ToggleAction action = new ToggleAction("Filter Columns", "Filter columns list", KdbIcons.Console.ColumnsFilter) {
+        final ToggleAction action = new DumbAwareToggleAction("Filter Columns", "Filter columns list", KdbIcons.Console.ColumnsFilter) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return splitter.getSecondComponent() != null;
@@ -264,7 +264,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         group.add(searchAction);
         group.addSeparator();
 
-        final ToggleAction action = new ToggleAction("Show Index Column", "Show column with row indexes", KdbIcons.Console.TableIndex) {
+        final ToggleAction action = new DumbAwareToggleAction("Show Index Column", "Show column with row indexes", KdbIcons.Console.TableIndex) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return isShowIndexColumn();
@@ -282,7 +282,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         group.addAll(ExportDataProvider.createActionGroup(project, this));
 
         group.addSeparator();
-        group.add(new ShowChartAction("Show _Chart", "Open current table in Excel or compatible application", () -> ChartDataProvider.copy(myTable)));
+        group.add(new ChartActionGroup(myTable));
 
         PopupHandler.installPopupHandler(myTable, group, "TableResultView.Context");
 
@@ -402,7 +402,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     }
 
     private void createSearchComponent() {
-        searchAction = new ToggleAction("_Search", "Search data in the table", AllIcons.Actions.Search) {
+        searchAction = new DumbAwareToggleAction("_Search", "Search data in the table", AllIcons.Actions.Search) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return searchSession.isOpened();

@@ -5,6 +5,7 @@ import com.intellij.ide.util.treeView.TreeState;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.Disposer;
@@ -109,7 +110,7 @@ public class InstancesScopeView extends SimpleToolWindowPanel implements Disposa
         group.add(am.getAction("Kdb.Instances.MoveItemUp"));
         group.add(am.getAction("Kdb.Instances.MoveItemDown"));
         group.addSeparator();
-        group.add(new ToggleAction("Show Connection Details", "Show connection details with the node name", KdbIcons.Node.ShowConnectionFilter) {
+        group.add(new DumbAwareToggleAction("Show Connection Details", "Show connection details with the node name", KdbIcons.Node.ShowConnectionFilter) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return tree.isShownConnectionDetails();
