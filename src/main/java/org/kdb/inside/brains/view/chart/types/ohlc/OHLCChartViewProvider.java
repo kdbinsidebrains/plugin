@@ -1,12 +1,10 @@
-package org.kdb.inside.brains.view.chart.ohlc;
+package org.kdb.inside.brains.view.chart.types.ohlc;
 
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBViewport;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.FormBuilder;
-import icons.KdbIcons;
-import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -18,6 +16,7 @@ import org.kdb.inside.brains.view.chart.ChartColors;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.chart.ChartViewProvider;
 import org.kdb.inside.brains.view.chart.ColumnConfig;
+import org.kdb.inside.brains.view.chart.types.ChartType;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -29,18 +28,20 @@ import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.util.Date;
 
-public class OHLCChartViewProvider extends ChartViewProvider<JPanel> {
+public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartConfig> {
+    private boolean ignoreUpdate = false;
+
     private final JBTable rangesComponent = new JBTable();
     private final ComboBox<ColumnConfig> domainComponent = new ComboBox<>();
 
     public OHLCChartViewProvider(ChartDataProvider dataProvider) {
-        super("Candlestick", KdbIcons.Chart.Candlestick, dataProvider);
+        super("Candlestick", ChartType.OHLC, dataProvider);
     }
 
     private static JFreeChart createChart(OHLCChartConfig config, ChartDataProvider dataProvider) {
         final OHLCDataset dataset = createDataset(config, dataProvider);
 
-        final JFreeChart chart = ChartFactory.createCandlestickChart(null, config.getDateColumn().getName(), "", dataset, false);
+        final JFreeChart chart = ChartFactory.createCandlestickChart(null, config.getDomain().getName(), "", dataset, false);
 
         final MyCandlestickRenderer renderer = new MyCandlestickRenderer();
         renderer.setUpPaint(ChartColors.POSITIVE);
@@ -54,54 +55,16 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel> {
 
     @NotNull
     private static OHLCDataset createDataset(OHLCChartConfig config, ChartDataProvider dataProvider) {
-        final int rowCount = dataProvider.getRowsCount();
-        final Date[] dates = new Date[rowCount];
-        final double[] high = new double[rowCount];
-        final double[] low = new double[rowCount];
-        final double[] open = new double[rowCount];
-        final double[] close = new double[rowCount];
-        final double[] volume = new double[rowCount];
-
-        final int dateIndex = config.getDateColumn().getIndex();
-        final int openIndex = config.getOpenColumn().getIndex();
-        final int highIndex = config.getHighColumn().getIndex();
-        final int lowIndex = config.getLowColumn().getIndex();
-        final int closeIndex = config.getCloseColumn().getIndex();
+        final Date[] dates = dataProvider.getDates(config.getDomain());
+        final double[] high = dataProvider.getDoubles(config.getHighColumn());
+        final double[] low = dataProvider.getDoubles(config.getLowColumn());
+        final double[] open = dataProvider.getDoubles(config.getOpenColumn());
+        final double[] close = dataProvider.getDoubles(config.getCloseColumn());
 
         final ColumnConfig volumeColumn = config.getVolumeColumn();
-        final int volumeIndex = volumeColumn == null ? -1 : config.getVolumeColumn().getIndex();
+        final double[] volume = volumeColumn == null ? new double[dataProvider.getRowsCount()] : dataProvider.getDoubles(volumeColumn);
 
-        for (int row = 0; row < rowCount; row++) {
-            dates[row] = createDate(dataProvider.getValueAt(row, dateIndex));
-            open[row] = ((Number) dataProvider.getValueAt(row, openIndex)).doubleValue();
-            high[row] = ((Number) dataProvider.getValueAt(row, highIndex)).doubleValue();
-            low[row] = ((Number) dataProvider.getValueAt(row, lowIndex)).doubleValue();
-            close[row] = ((Number) dataProvider.getValueAt(row, closeIndex)).doubleValue();
-            if (volumeColumn != null) {
-                volume[row] = ((Number) dataProvider.getValueAt(row, volumeIndex)).doubleValue();
-            }
-        }
         return new DefaultHighLowDataset("", dates, high, low, open, close, volume);
-    }
-
-    private static Date createDate(Object value) {
-        // SQL Date, Time, Timestamp are here
-        if (value instanceof Date) {
-            return (Date) value;
-        } else if (value instanceof c.Second) {
-            final c.Second v = (c.Second) value;
-            return new Date(v.i * 1000L);
-        } else if (value instanceof c.Minute) {
-            final c.Minute v = (c.Minute) value;
-            return new Date(v.i * 60 * 1000L);
-        } else if (value instanceof c.Month) {
-            final c.Month v = (c.Month) value;
-            return new Date(v.i * 12 * 24 * 60 * 1000L);
-        } else if (value instanceof c.Timespan) {
-            final c.Timespan v = (c.Timespan) value;
-            return new Date(v.j / 1_000_000L);
-        }
-        throw new IllegalArgumentException("Invalid value type: " + value.getClass());
     }
 
     @Override
@@ -124,7 +87,7 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel> {
         return p;
     }
 
-    private ColumnConfig getColumnConfig(int column) {
+    private ColumnConfig getSelectedConfig(int column) {
         final int rowCount = rangesComponent.getRowCount();
         for (int row = 0; row < rowCount; row++) {
             final Object valueAt = rangesComponent.getValueAt(row, column);
@@ -133,6 +96,14 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel> {
             }
         }
         return null;
+    }
+
+    private void setSelectedConfig(int column, ColumnConfig config) {
+        final int rowCount = rangesComponent.getRowCount();
+        for (int row = 0; row < rowCount; row++) {
+            final ColumnConfig cc = (ColumnConfig) rangesComponent.getValueAt(row, 0);
+            rangesComponent.setValueAt(cc.equals(config), row, column);
+        }
     }
 
     private void initComponents() {
@@ -156,7 +127,12 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel> {
         }
 
         domainComponent.setRenderer(ColumnConfig.createListCellRenderer());
-        domainComponent.addActionListener(e -> processConfigChanged());
+        domainComponent.addActionListener(e -> {
+            if (ignoreUpdate) {
+                return;
+            }
+            processConfigChanged();
+        });
 
         rangesComponent.setModel(model);
         rangesComponent.setVisibleRowCount(model.getRowCount());
@@ -184,6 +160,10 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel> {
         model.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
+                if (ignoreUpdate) {
+                    return;
+                }
+
                 final int column = e.getColumn();
                 if (column != 0) {
                     final int row = e.getFirstRow();
@@ -211,18 +191,37 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel> {
     }
 
     @Override
-    public JFreeChart getJFreeChart() {
-        final OHLCChartConfig chartConfig = createChartConfig();
-        return chartConfig.isEmpty() ? null : createChart(chartConfig, dataProvider);
+    public OHLCChartConfig getChartConfig() {
+        final ColumnConfig domain = domainComponent.getItem();
+
+        final ColumnConfig open = getSelectedConfig(1);
+        final ColumnConfig high = getSelectedConfig(2);
+        final ColumnConfig low = getSelectedConfig(3);
+        final ColumnConfig close = getSelectedConfig(4);
+        final ColumnConfig volume = getSelectedConfig(5);
+        return new OHLCChartConfig(domain, open, high, low, close, volume);
     }
 
-    private OHLCChartConfig createChartConfig() {
-        final ColumnConfig open = getColumnConfig(1);
-        final ColumnConfig high = getColumnConfig(2);
-        final ColumnConfig low = getColumnConfig(3);
-        final ColumnConfig close = getColumnConfig(4);
-        final ColumnConfig volume = getColumnConfig(5);
-        return new OHLCChartConfig(domainComponent.getItem(), open, high, low, close, volume);
+    @Override
+    public void setChartConfig(OHLCChartConfig config) {
+        ignoreUpdate = true;
+        try {
+            domainComponent.setSelectedItem(config.getDomain());
+
+            setSelectedConfig(1, config.getOpenColumn());
+            setSelectedConfig(2, config.getHighColumn());
+            setSelectedConfig(3, config.getLowColumn());
+            setSelectedConfig(4, config.getCloseColumn());
+            setSelectedConfig(5, config.getVolumeColumn());
+        } finally {
+            ignoreUpdate = false;
+        }
+        processConfigChanged();
+    }
+
+    @Override
+    public JFreeChart getJFreeChart(OHLCChartConfig config) {
+        return config == null || config.isInvalid() ? null : createChart(config, dataProvider);
     }
 
     private static class MyCandlestickRenderer extends CandlestickRenderer {

@@ -29,20 +29,17 @@ import java.util.function.Supplier;
 import static kx.KxConnection.UTC_TIMEZONE;
 
 public class BaseChartPanel extends ChartPanel {
-    private SnapType snapType = SnapType.NO;
+    private final ChartOptions myOptions;
     private boolean defaultCursor = false;
 
     private final Supplier<ActionGroup> popupActionsProvider;
 
     private static final JBColor COLOR_GRID = new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4));
 
-    public BaseChartPanel(Supplier<ActionGroup> popupActionsProvider) {
-        this(null, popupActionsProvider);
-    }
-
-    public BaseChartPanel(JFreeChart chart, Supplier<ActionGroup> popupActionsProvider) {
-        super(chart, false, false, false, false, false);
+    public BaseChartPanel(ChartOptions options, Supplier<ActionGroup> popupActionsProvider) {
+        super(null, false, false, false, false, false);
         this.popupActionsProvider = popupActionsProvider;
+        myOptions = options;
 
         setFocusable(true);
         setMouseWheelEnabled(true);
@@ -112,11 +109,11 @@ public class BaseChartPanel extends ChartPanel {
     }
 
     public SnapType getSnapType() {
-        return snapType;
+        return myOptions.getSnapType();
     }
 
     public void setSnapType(SnapType snapType) {
-        this.snapType = snapType;
+        myOptions.setSnapType(snapType);
     }
 
     @Override
@@ -168,6 +165,7 @@ public class BaseChartPanel extends ChartPanel {
         final Rectangle2D dataArea = getScreenDataArea();
 
         double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, plot.getDomainAxisEdge());
+        final SnapType snapType = getSnapType();
         if (snapType == SnapType.VERTEX) {
             final int[] ids = DatasetUtils.findItemIndicesForX(dataset, 0, x);
             if (ids[0] >= 0 && ids[1] >= 0) {

@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.view.chart;
 
+import org.jdom.Element;
 import org.kdb.inside.brains.KdbType;
 
 import javax.swing.*;
@@ -10,40 +11,21 @@ import java.util.Objects;
 import java.util.Set;
 
 public class ColumnConfig {
-    private final int index;
     private final String name;
     private final KdbType type;
 
-    protected static final Set<KdbType> NUMBER_TYPES = Set.of(
-            KdbType.BYTE,
-            KdbType.SHORT,
-            KdbType.INT,
-            KdbType.LONG,
-            KdbType.REAL,
-            KdbType.FLOAT
-    );
+    protected static final Set<KdbType> NUMBER_TYPES = Set.of(KdbType.BYTE, KdbType.SHORT, KdbType.INT, KdbType.LONG, KdbType.REAL, KdbType.FLOAT);
 
-    protected static final Set<KdbType> TEMPORAL_TYPES = Set.of(
-            KdbType.SECOND,
-            KdbType.MINUTE,
-            KdbType.MONTH,
-            KdbType.TIME,
-            KdbType.DATE,
-            KdbType.DATETIME,
-            KdbType.TIMESPAN,
-            KdbType.TIMESTAMP
-    );
+    protected static final Set<KdbType> TEMPORAL_TYPES = Set.of(KdbType.SECOND, KdbType.MINUTE, KdbType.MONTH, KdbType.TIME, KdbType.DATE, KdbType.DATETIME, KdbType.TIMESPAN, KdbType.TIMESTAMP);
 
-    public ColumnConfig(int index, String name, Class<?> type) {
-        this(index, name, KdbType.typeOf(type));
+    public ColumnConfig(String name, Class<?> type) {
+        this(name, KdbType.typeOf(type));
     }
 
-    public ColumnConfig(int index, String name, KdbType type) {
-        this.index = index;
+    public ColumnConfig(String name, KdbType type) {
         this.name = Objects.requireNonNull(name);
         this.type = Objects.requireNonNull(type);
     }
-
 
     public String getName() {
         return name;
@@ -51,10 +33,6 @@ public class ColumnConfig {
 
     public KdbType getType() {
         return type;
-    }
-
-    public int getIndex() {
-        return index;
     }
 
     public String getLabel() {
@@ -77,17 +55,20 @@ public class ColumnConfig {
         return isTemporal(type);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ColumnConfig that = (ColumnConfig) o;
-        return index == that.index && Objects.equals(name, that.name) && type == that.type;
+    public static ColumnConfig restore(Element element) {
+        if (element == null) {
+            return null;
+        }
+        final String name = element.getAttributeValue("name");
+        final KdbType type = KdbType.typeOf(element.getAttributeValue("type").charAt(0));
+        return new ColumnConfig(name, type);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(index, name, type);
+    public static ColumnConfig copy(ColumnConfig c) {
+        if (c == null) {
+            return null;
+        }
+        return new ColumnConfig(c.getName(), c.getType());
     }
 
     public static boolean isNumberType(KdbType type) {
@@ -95,12 +76,28 @@ public class ColumnConfig {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ColumnConfig)) return false;
+        ColumnConfig that = (ColumnConfig) o;
+        return Objects.equals(name, that.name) && type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, type);
+    }
+
+    public Element store() {
+        final Element e = new Element("column");
+        e.setAttribute("name", name);
+        e.setAttribute("type", String.valueOf(type.getCode()));
+        return e;
+    }
+
+    @Override
     public String toString() {
-        return "ColumnConfig{" +
-                "index=" + index +
-                ", name='" + name + '\'' +
-                ", type=" + type +
-                '}';
+        return "ColumnConfig{" + "name='" + name + '\'' + ", type=" + type + '}';
     }
 
     public static TableCellRenderer createTableCellRenderer() {

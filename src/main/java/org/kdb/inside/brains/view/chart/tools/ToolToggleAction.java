@@ -1,20 +1,17 @@
-package org.kdb.inside.brains.view.chart;
+package org.kdb.inside.brains.view.chart.tools;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.project.DumbAware;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class DynamicToggleAction extends ToggleAction {
+public class ToolToggleAction extends ToggleAction implements DumbAware {
     private final IsSelected isSelected;
     private final SetSelected setSelected;
 
-    public DynamicToggleAction(String text, Icon icon, IsSelected isSelected, SetSelected setSelected) {
-        this(text, null, icon, isSelected, setSelected);
-    }
-
-    public DynamicToggleAction(String text, String description, Icon icon, IsSelected isSelected, SetSelected setSelected) {
+    public ToolToggleAction(String text, String description, Icon icon, IsSelected isSelected, SetSelected setSelected) {
         super(text, description, icon);
         this.isSelected = isSelected;
         this.setSelected = setSelected;

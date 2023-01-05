@@ -2,7 +2,6 @@ package org.kdb.inside.brains.view.treeview.scope;
 
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -36,23 +35,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ScopesEditorPanel extends MasterDetailsComponent implements SearchableConfigurable {
+public class ScopesEditorPanel extends MasterDetailsComponent {
     private final Project project;
     private final KdbScopesManager scopesManager;
 
-    public static final String INSTANCES_SCOPES = "kdb.instances.scope";
-    public static final String INSTANCES_SCOPE_CONFIGURABLE_UI_KEY = "KdbInstancesScopeConfigurable.UI";
+    private static final String STATE_KEY = "KdbInstancesScopeState";
 
     public ScopesEditorPanel(Project project) {
         super(new ScopesOrdersState());
         this.project = project;
         this.scopesManager = project.getService(KdbScopesManager.class);
         initTree();
-    }
-
-    @Override
-    public @NotNull String getId() {
-        return INSTANCES_SCOPES;
     }
 
     @Override
@@ -67,7 +60,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
 
     @Override
     protected String getComponentStateKey() {
-        return INSTANCES_SCOPE_CONFIGURABLE_UI_KEY;
+        return STATE_KEY;
     }
 
     @Override
@@ -344,55 +337,6 @@ public class ScopesEditorPanel extends MasterDetailsComponent implements Searcha
             return 0;
         }
     }
-/*
-    private class ExportAction extends DumbAwareAction {
-        public ExportAction() {
-            super("Export Scopes", "Exports selected scopes to xml", AllIcons.ToolbarDecorator.Export);
-        }
-
-        @Override
-        public void update(@NotNull AnActionEvent e) {
-            final Presentation presentation = e.getPresentation();
-            presentation.setEnabled(myTree.getSelectionCount() > 0);
-        }
-
-        @Override
-        public void actionPerformed(@NotNull AnActionEvent e) {
-            final TreePath[] selectionPaths = myTree.getSelectionPaths();
-            if (selectionPaths == null || selectionPaths.length == 0) {
-                return;
-            }
-
-            final List<KdbScope> scopes = Stream.of(selectionPaths).map(c -> (MyNode) c.getLastPathComponent()).map(c -> (ScopeConfigurable) c.getConfigurable()).map(ScopeConfigurable::getOriginalScope).collect(Collectors.toList());
-
-            if (scopes.isEmpty()) {
-                return;
-            }
-
-            final FileSaverDescriptor descriptor = new FileSaverDescriptor("Export Kdb Scopes", "Exporting " + scopes.size() + " scope(s) into external xml file", "xml");
-            final FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project);
-
-            final VirtualFileWrapper file = dialog.save("KdbScopes");
-            if (file == null) {
-                return;
-            }
-
-            final MessageDialogBuilder.YesNo credentials = MessageDialogBuilder.yesNo("Export Credentials?", "Your credentials will be included in the exported file");
-            final boolean ask = credentials.ask(project);
-
-            final Element element = new KdbScopeHelper().writeScopes(scopes, ask);
-
-            final XMLOutputter out = new XMLOutputter();
-            out.setFormat(Format.getPrettyFormat());
-
-            try (final FileWriter writer = new FileWriter(file.getFile())) {
-                out.output(element, writer);
-            } catch (Exception ex) {
-                log.error("Scopes can't be exported to: " + file, ex);
-                Messages.showErrorDialog(project, IoErrorText.message(ex), "Scopes Exporting Error");
-            }
-        }
-    }*/
 
     private class MyMoveAction extends AnAction {
         private final int myDirection;
