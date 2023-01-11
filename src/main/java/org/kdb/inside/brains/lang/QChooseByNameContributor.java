@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.index.QIndexService;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public final class QChooseByNameContributor implements ChooseByNameContributor {
@@ -24,9 +25,8 @@ public final class QChooseByNameContributor implements ChooseByNameContributor {
 
     @Override
     public NavigationItem @NotNull [] getItemsByName(String name, String pattern, Project project, boolean includeNonProjectItems) {
-        List<NavigationItem> result = new ArrayList<>();
         final FindSymbolParameters simple = FindSymbolParameters.simple(project, includeNonProjectItems);
-        QIndexService.getInstance(project).processVariables(s -> s.equals(name), simple.getSearchScope(), (key, file, descriptor, variable) -> result.add(variable));
+        final Collection<? extends NavigationItem> result = QIndexService.getInstance(project).getDeclarations(name, simple.getSearchScope());
         return result.isEmpty() ? NavigationItem.EMPTY_NAVIGATION_ITEM_ARRAY : result.toArray(NavigationItem.EMPTY_NAVIGATION_ITEM_ARRAY);
     }
 }

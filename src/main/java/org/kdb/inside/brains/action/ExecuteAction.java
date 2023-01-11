@@ -9,7 +9,7 @@ import com.intellij.openapi.editor.*;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiFile;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
@@ -38,9 +38,8 @@ public class ExecuteAction extends DumbAwareAction {
             return;
         }
 
-        final PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
+        final VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
         final Project project = CommonDataKeys.PROJECT.getData(dataContext);
-
         if (project == null || !QFileType.is(file)) {
             presentation.setEnabled(false);
         } else {
@@ -52,10 +51,9 @@ public class ExecuteAction extends DumbAwareAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         final DataContext dataContext = e.getDataContext();
-        final PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
         final Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
         final Project project = CommonDataKeys.PROJECT.getData(dataContext);
-        if (editor == null || project == null || file == null) {
+        if (editor == null || project == null) {
             return;
         }
 
@@ -65,14 +63,14 @@ public class ExecuteAction extends DumbAwareAction {
                 return;
             }
 
-            final TextRange range = getExecutionRange(file, editor);
+            final TextRange range = getExecutionRange(editor, dataContext);
             if (range != null && !range.isEmpty()) {
                 execute(project, editor, connection, range);
             }
         });
     }
 
-    protected TextRange getExecutionRange(PsiFile file, Editor editor) {
+    protected TextRange getExecutionRange(Editor editor, DataContext context) {
         final CaretModel caretModel = editor.getCaretModel();
 
         final SelectionModel selectionModel = editor.getSelectionModel();

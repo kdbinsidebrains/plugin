@@ -475,7 +475,6 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         }
         console.dispose();
         resultTabs.dispose();
-        console = null;
     }
 
     private void printInstanceError(Exception ex) {

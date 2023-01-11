@@ -1,5 +1,12 @@
 # KdbInsideBrains Changelog
 
+## [3.5.1]
+
+### Fixed
+
+- Reference resoling performance was improved to resolve Execution actions slow preparation
+- IndexColumn updated after filtering in TableView
+
 ## [3.5.0]
 
 ### Added

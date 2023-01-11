@@ -21,14 +21,13 @@ import java.util.stream.Collectors;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 13;
+    protected static final int VERSION = 14;
 
     private static final Logger log = Logger.getInstance(QDataIndexer.class);
 
     private static final TokenSet CONTEXT_SCOPE = TokenSet.create(CONTEXT);
     private static final TokenSet COLUMNS_TOKEN = TokenSet.create(TABLE_KEYS, TABLE_VALUES);
     private static final TokenSet LOCAL_VARIABLE_SCOPE = TokenSet.create(LAMBDA_EXPR, TABLE_EXPR);
-
 
     @Override
     public @NotNull Map<String, List<IdentifierDescriptor>> map(@NotNull FileContent content) {
@@ -106,8 +105,6 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         if (symbolValue.startsWith(":")) {
             return null;
         }
-
-        // TODO: ignore typecast
 
         return new AbstractMap.SimpleEntry<>(symbolValue, new IdentifierDescriptor(IdentifierType.SYMBOL, List.of(), range));
     }

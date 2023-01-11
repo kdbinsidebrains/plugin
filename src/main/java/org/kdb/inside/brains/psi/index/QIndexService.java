@@ -13,10 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QVarDeclaration;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class QIndexService {
@@ -46,7 +43,9 @@ public class QIndexService {
             if (keyPredicate.test(key)) {
                 index.processValues(QIdentifiersIndex.INDEX_ID, key, null, (file, value) -> {
                     for (IdentifierDescriptor d : value) {
-                        processor.processValues(key, file, d);
+                        if (!processor.processValues(key, file, d)) {
+                            return false;
+                        }
                     }
                     return true;
                 }, scope);
@@ -55,28 +54,46 @@ public class QIndexService {
         }, scope);
     }
 
-    public void processVariables(@NotNull Predicate<String> keyPredicate, @NotNull GlobalSearchScope scope, @NotNull QIndexService.VariablesProcessor processor) {
-        processValues(keyPredicate, scope, (key, file, descriptor) -> {
+    public @Nullable QVarDeclaration getFirstGlobalDeclarations(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
+        final List<QVarDeclaration> r = new ArrayList<>();
+        processValues(s -> s.equals(qualifiedName), scope, (key, file, descriptor) -> {
+            final QVarDeclaration var = resolveGlobalDeclaration(descriptor, file);
+            if (var != null) {
+                r.add(var);
+                return false;
+            }
+            return true;
+        });
+        return r.isEmpty() ? null : r.get(0);
+    }
+
+    public @NotNull Collection<QVarDeclaration> getDeclarations(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
+        final Set<QVarDeclaration> declarations = new HashSet<>();
+        processValues(s -> s.equals(qualifiedName), scope, (key, file, descriptor) -> {
             final QVarDeclaration var = resolveDeclaration(descriptor, file);
             if (var != null) {
-                processor.processVariables(key, file, descriptor, var);
+                declarations.add(var);
             }
+            return true;
         });
+        return declarations;
     }
 
-    public @NotNull Collection<QVarDeclaration> findGlobalDeclarations(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-        final Set<QVarDeclaration> elements = new HashSet<>();
-        processVariables(s -> s.equals(qualifiedName), scope, (key, file, descriptor, variable) -> {
-            if (QPsiUtil.isGlobalDeclaration(variable)) {
-                elements.add(variable);
-            }
-        });
-        return elements;
+    @Nullable
+    private QVarDeclaration resolveGlobalDeclaration(IdentifierDescriptor descriptor, VirtualFile file) {
+        final QVarDeclaration var = resolveDeclaration(descriptor, file);
+        if (var != null && QPsiUtil.isGlobalDeclaration(var)) {
+            return var;
+        }
+        return null;
     }
-
 
     @Nullable
     private QVarDeclaration resolveDeclaration(IdentifierDescriptor descriptor, VirtualFile file) {
+        if (descriptor.isSymbol()) {
+            return null;
+        }
+
         final PsiManager psiManager = PsiManager.getInstance(project);
         final PsiFile pf = psiManager.findFile(file);
         if (pf == null) {
@@ -86,6 +103,10 @@ public class QIndexService {
         final PsiElement el = pf.findElementAt(descriptor.getRange().getStartOffset());
         if (el == null) {
             return null;
+        }
+
+        if (el instanceof QVarDeclaration) {
+            return (QVarDeclaration) el;
         }
 
         final PsiElement parent = el.getParent();
@@ -107,14 +128,8 @@ public class QIndexService {
         return getInstance(element.getProject());
     }
 
-
     @FunctionalInterface
     public interface ValuesProcessor {
-        void processValues(String key, VirtualFile file, IdentifierDescriptor descriptor);
-    }
-
-    @FunctionalInterface
-    public interface VariablesProcessor {
-        void processVariables(String key, VirtualFile file, IdentifierDescriptor descriptor, QVarDeclaration variable);
+        boolean processValues(String key, VirtualFile file, IdentifierDescriptor descriptor);
     }
 }

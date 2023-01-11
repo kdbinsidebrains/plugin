@@ -1,6 +1,5 @@
 package org.kdb.inside.brains;
 
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -50,10 +49,6 @@ public final class QFileType extends LanguageFileType {
         return FileUtilRt.extensionEquals(file, "q") || FileUtilRt.extensionEquals(file, "k");
     }
 
-    public static boolean isFile(PsiFile file) {
-        return file != null && (file instanceof QFile || file.getFileType() == INSTANCE || hasExtension(file.getName()));
-    }
-
     /**
      * Creates fake file for factory usage.
      *
@@ -66,10 +61,10 @@ public final class QFileType extends LanguageFileType {
     }
 
     public static boolean is(@Nullable PsiFile file) {
-        return file != null && is(file.getVirtualFile());
+        return (file instanceof QFile) || (file != null && is(file.getVirtualFile()));
     }
 
     public static boolean is(@Nullable VirtualFile file) {
-        return file != null && (INSTANCE == file.getFileType() || FileTypeRegistry.getInstance().getFileTypeByFileName(file.getName()) == INSTANCE);
+        return file != null && (INSTANCE == file.getFileType() || hasExtension(file.getName()));
     }
 }

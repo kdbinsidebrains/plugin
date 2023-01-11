@@ -525,6 +525,11 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         final RowFilter<TableModel, Integer> filter = createFilter(findModel);
         ((TableRowSorter<? extends TableModel>) myTable.getRowSorter()).setRowFilter(filter);
 
+        final RowNumberView numberTable = getNumberTable();
+        if (numberTable != null) {
+            numberTable.invalidate();
+        }
+
         if (statusBar != null) {
             statusBar.invalidateRowsCount();
         }

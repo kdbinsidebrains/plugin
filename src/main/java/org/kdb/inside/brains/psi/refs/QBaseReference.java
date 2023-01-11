@@ -4,14 +4,12 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.QPsiElement;
-import org.kdb.inside.brains.psi.QSymbol;
-import org.kdb.inside.brains.psi.QVarDeclaration;
-import org.kdb.inside.brains.psi.QVariable;
+import org.kdb.inside.brains.psi.*;
 import org.kdb.inside.brains.psi.index.QIndexService;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVariantReferenceBase<T> {
     public QBaseReference(@NotNull T psiElement) {
@@ -88,8 +86,8 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
         final QVarDeclaration initial = index.findFirstInFile(name, file);
         if (initial == null) {
             final GlobalSearchScope scope = GlobalSearchScope.allScope(element.getProject());
-            final Collection<QVarDeclaration> declarations = QIndexService.getInstance(element).findGlobalDeclarations(name, scope);
-            return multi(declarations);
+            final Collection<QVarDeclaration> declarations = QIndexService.getInstance(element).getDeclarations(name, scope);
+            return multi(declarations.stream().filter(QPsiUtil::isGlobalDeclaration));
         }
         return single(initial);
     }
@@ -99,8 +97,12 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
         return new ResolveResult[]{new PsiElementResolveResult(el)};
     }
 
-    protected ResolveResult[] multi(Collection<QVarDeclaration> allGlobal) {
-        return allGlobal.stream().map(PsiElementResolveResult::new).toArray(ResolveResult[]::new);
+    protected ResolveResult[] multi(Stream<QVarDeclaration> variables) {
+        return variables.map(PsiElementResolveResult::new).toArray(ResolveResult[]::new);
+    }
+
+    protected ResolveResult[] multi(Collection<QVarDeclaration> variables) {
+        return multi(variables.stream());
     }
 
     protected abstract String getQualifiedName(T element);

@@ -91,11 +91,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
 
         final TableElement table = (TableElement) element;
         for (TableElement.Column column : table.getColumns()) {
-            LookupElementBuilder b = LookupElementBuilder
-                    .create(column.getName())
-                    .withIcon(column.getIcon())
-                    .withTailText(" " + KdbType.typeOf(column.getType()).getTypeName())
-                    .withTypeText(tableName + "@inspector", true);
+            LookupElementBuilder b = LookupElementBuilder.create(column.getName()).withIcon(column.getIcon()).withTailText(" " + KdbType.typeOf(column.getType()).getTypeName()).withTypeText(tableName + "@inspector", true);
             result.addElement(b);
         }
     }
@@ -127,11 +123,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
                 type = "()".equals(varExpr.getText()) ? "vector" : "literal";
             }
 
-            LookupElementBuilder b = LookupElementBuilder
-                    .create(name)
-                    .withIcon(QIconProvider.getColumnIcon(c))
-                    .withTailText(" " + type)
-                    .withTypeText(tableName.getQualifiedName() + "@" + tableName.getContainingFile().getName(), true);
+            LookupElementBuilder b = LookupElementBuilder.create(name).withIcon(QIconProvider.getColumnIcon(c)).withTailText(" " + type).withTypeText(tableName.getQualifiedName() + "@" + tableName.getContainingFile().getName(), true);
             result.addElement(b);
         });
     }
@@ -160,12 +152,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
         final String instance = "inspector";
         final List<ExecutableElement> suggestions = inspector.getSuggestions(qualifiedName, type);
         for (ExecutableElement element : suggestions) {
-            result.addElement(LookupElementBuilder
-                    .create(element.getCanonicalName())
-                    .withIcon(element.getIcon(false))
-                    .withTailText(" " + element.getLocationString())
-                    .withTypeText(instance, true)
-            );
+            result.addElement(LookupElementBuilder.create(element.getCanonicalName()).withIcon(element.getIcon(false)).withTailText(" " + element.getLocationString()).withTypeText(instance, true));
         }
     }
 
@@ -174,20 +161,14 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
     }
 
     private void addFunctions(String qualifiedName, CompletionResultSet result) {
-        QLanguage.getSystemNamespaces()
-                .stream()
-                .filter(qualifiedName::startsWith)
-                .forEach(s -> addEntities(QLanguage.getSystemFunctions(s), qualifiedName, KdbIcons.Node.Function, result));
+        QLanguage.getSystemNamespaces().stream().filter(qualifiedName::startsWith).forEach(s -> addEntities(QLanguage.getSystemFunctions(s), qualifiedName, KdbIcons.Node.Function, result));
     }
 
     private void addEntities(Collection<QWord> entities, String qualifiedName, Icon icon, CompletionResultSet result) {
         for (QWord function : entities) {
             final String name = function.getName();
             if (name.startsWith(qualifiedName)) {
-                LookupElementBuilder b = LookupElementBuilder
-                        .create(name)
-                        .withIcon(icon)
-                        .withTypeText(function.getDescription(), true);
+                LookupElementBuilder b = LookupElementBuilder.create(name).withIcon(icon).withTypeText(function.getDescription(), true);
                 if (function.getArguments() != null) {
                     b = b.withTailText(function.getArguments());
                 }
@@ -198,32 +179,31 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
 
     private void addGlobal(String qualifiedName, Project project, IdentifierType identifierType, CompletionResultSet result) {
         final QIndexService index = QIndexService.getInstance(project);
-        index.processValues(
-                s -> s.startsWith(qualifiedName),
-                GlobalSearchScope.allScope(project),
-                (key, file, descriptor) -> {
-                    final IdentifierType type = descriptor.getType();
-                    if (identifierType != null && identifierType != type) {
-                        return;
-                    }
+        index.processValues(s -> s.startsWith(qualifiedName), GlobalSearchScope.allScope(project), (key, file, descriptor) -> {
+            // No symbols for suggestions in a variable
+            if (descriptor.isSymbol()) {
+                return true;
+            }
 
-                    LookupElementBuilder b = LookupElementBuilder
-                            .create(key)
-                            .withIcon(type.getIcon())
-                            .withTypeText(file.getName(), true);
+            final IdentifierType type = descriptor.getType();
+            if (identifierType != null && identifierType != type) {
+                return true;
+            }
 
-                    final List<String> params = descriptor.getParams();
-                    if (type == IdentifierType.LAMBDA) {
-                        final String join = params == null ? "" : String.join(";", params);
-                        b = b.withTailText("[" + join + "]");
-                    }
-                    if (type == IdentifierType.TABLE) {
-                        final String size = params == null ? "unknown" : String.valueOf(params.size());
-                        b = b.withTailText(" " + size + " columns");
-                    }
-                    result.addElement(b);
-                }
-        );
+            LookupElementBuilder b = LookupElementBuilder.create(key).withIcon(type.getIcon()).withTypeText(file.getName(), true);
+
+            final List<String> params = descriptor.getParams();
+            if (type == IdentifierType.LAMBDA) {
+                final String join = params == null ? "" : String.join(";", params);
+                b = b.withTailText("[" + join + "]");
+            }
+            if (type == IdentifierType.TABLE) {
+                final String size = params == null ? "unknown" : String.valueOf(params.size());
+                b = b.withTailText(" " + size + " columns");
+            }
+            result.addElement(b);
+            return true;
+        });
     }
 
     private void addLambda(String qualifiedName, ElementContext context, CompletionResultSet result) {
@@ -249,10 +229,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
                 continue;
             }
 
-            final LookupElementBuilder b = LookupElementBuilder
-                    .create(variable)
-                    .withIcon(IdentifierType.ARGUMENT.getIcon())
-                    .withTypeText("Function argument", true);
+            final LookupElementBuilder b = LookupElementBuilder.create(variable).withIcon(IdentifierType.ARGUMENT.getIcon()).withTypeText("Function argument", true);
             result.addElement(b);
         }
     }
@@ -275,10 +252,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
                 continue;
             }
 
-            final LookupElementBuilder b = LookupElementBuilder
-                    .create(variable)
-                    .withIcon(type.getIcon())
-                    .withTypeText("Local " + type.name().toLowerCase(), true);
+            final LookupElementBuilder b = LookupElementBuilder.create(variable).withIcon(type.getIcon()).withTypeText("Local " + type.name().toLowerCase(), true);
             result.addElement(b);
         }
     }

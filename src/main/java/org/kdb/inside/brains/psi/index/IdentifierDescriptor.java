@@ -28,6 +28,14 @@ public class IdentifierDescriptor {
         return params;
     }
 
+    public boolean isSymbol() {
+        return type == IdentifierType.SYMBOL;
+    }
+
+    public boolean isVariable() {
+        return !isSymbol();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

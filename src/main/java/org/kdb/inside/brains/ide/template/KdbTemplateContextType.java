@@ -12,6 +12,6 @@ public class KdbTemplateContextType extends TemplateContextType {
 
     @Override
     public boolean isInContext(@NotNull TemplateActionContext templateActionContext) {
-        return QFileType.isFile(templateActionContext.getFile());
+        return QFileType.is(templateActionContext.getFile());
     }
 }

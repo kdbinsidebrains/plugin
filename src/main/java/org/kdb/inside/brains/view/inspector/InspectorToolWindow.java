@@ -428,8 +428,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     private QVarDeclaration findVarDeclaration(String canonicalName) {
         final QIndexService instance = QIndexService.getInstance(project);
         try {
-            final Optional<QVarDeclaration> first = instance.findGlobalDeclarations(canonicalName, GlobalSearchScope.allScope(project)).stream().findFirst();
-            return first.orElse(null);
+            return instance.getFirstGlobalDeclarations(canonicalName, GlobalSearchScope.allScope(project));
         } catch (IndexNotReadyException ignore) {
             return null;
         }

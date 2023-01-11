@@ -107,6 +107,5 @@ runPluginVerifier {
 }
 
 publishPlugin {
-//    channels = ["tracing"]
     token = System.getenv("KDBINSIDEBRAINS_RELEASE_PLUGIN_TOKEN")
 }
