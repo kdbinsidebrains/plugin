@@ -1,3 +1,5 @@
+import org.jetbrains.changelog.Changelog
+
 plugins {
     id 'java'
     id 'org.jetbrains.intellij' version '1.11.0'
@@ -95,7 +97,9 @@ compileJava {
 patchPluginXml {
     sinceBuild = pluginSinceBuild
     untilBuild = pluginUntilBuild
-    changeNotes = (provider { changelog.getLatest().toHTML() })
+    changeNotes = provider {
+        changelog.renderItem(changelog.get(project.version).withHeader(false).withEmptySections(false), Changelog.OutputType.HTML)
+    }
 }
 
 runPluginVerifier {
@@ -103,5 +107,6 @@ runPluginVerifier {
 }
 
 publishPlugin {
+//    channels = ["tracing"]
     token = System.getenv("KDBINSIDEBRAINS_RELEASE_PLUGIN_TOKEN")
 }

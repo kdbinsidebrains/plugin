@@ -1,5 +1,3 @@
-<!-- Keep a Changelog guide -> https://keepachangelog.com -->
-
 # KdbInsideBrains Changelog
 
 ## [3.5.0]
@@ -10,6 +8,10 @@
   - Save/Restore a chart configuration
   - Quick charting by template
   - Templates manager
+
+### Fixed
+
+- Changelog fixed
 
 ## [3.4.0]
 
