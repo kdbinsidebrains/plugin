@@ -83,7 +83,7 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
         }
 
         final QIndexService index = QIndexService.getInstance(element);
-        final QVarDeclaration initial = index.findFirstInFile(name, file);
+        final QVarDeclaration initial = index.getFirstInFile(name, file);
         if (initial == null) {
             final GlobalSearchScope scope = GlobalSearchScope.allScope(element.getProject());
             final Collection<QVarDeclaration> declarations = QIndexService.getInstance(element).getDeclarations(name, scope);

@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class VariableElement extends ExecutableElement {
     private final short type;
+    private final Object description;
     private static final String[] TYPE_NAMES = {
             "list", // 0
             "boolean", // 1
@@ -32,10 +33,11 @@ public class VariableElement extends ExecutableElement {
     public VariableElement(String namespace, Object[] item) {
         super((String) item[0], namespace, KdbIcons.Node.Variable);
         type = ((Number) item[1]).shortValue();
-        location = typeName(type);
+        description = item[2];
+        location = typeName(type, description);
     }
 
-    private static String typeName(int type) {
+    private static String typeName(int type, Object description) {
         if (type <= 0) {
             int l = -type;
             if (l < TYPE_NAMES.length - 1) {
@@ -59,7 +61,7 @@ public class VariableElement extends ExecutableElement {
             return "anymap";
         }
         if (type >= 78 && type <= 96) {
-            return "mapped list of lists of " + typeName(type - 77);
+            return "mapped list of lists of " + typeName(type - 77, description);
         }
         if (type == 97) {
             return "sym enum";
@@ -68,9 +70,30 @@ public class VariableElement extends ExecutableElement {
             return "table";
         }
         if (type == 99) {
-            return "dictionary";
+            if (description == null) {
+                return "dictionary";
+            }
+            final Object[] d = (Object[]) description;
+            final long size = ((Number) d[0]).longValue();
+            final int keysType = ((Number) d[1]).intValue();
+            final int valuesType = ((Number) d[2]).intValue();
+            return "dict " + size + "#(" + shortTypeName(keysType) + ")!(" + shortTypeName(valuesType) + ")";
         }
         return "type " + type + "h";
+    }
+
+    private static String shortTypeName(int type) {
+        if (type <= 0) {
+            int l = -type;
+            if (l < TYPE_NAMES.length - 1) {
+                return TYPE_NAMES[l];
+            }
+            return type + "h";
+        }
+        if (type < TYPE_NAMES.length - 1) {
+            return TYPE_NAMES[type] + "s";
+        }
+        return typeName(type, null);
     }
 
     public short getType() {

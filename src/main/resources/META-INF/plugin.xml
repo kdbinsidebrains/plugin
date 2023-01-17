@@ -157,6 +157,11 @@
         </group>
 
         <group id="Kdb.InstancesScopeView" text="Instances Tree Popup Menu" popup="true" searchable="false">
+            <reference ref="Kdb.Instances.Connect"/>
+            <reference ref="Kdb.Instances.Disconnect"/>
+
+            <separator/>
+
             <action id="Kdb.Instances.NewPackage"
                     text="New Package"
                     icon="KdbIcons.Node.NewPackage"
@@ -166,11 +171,6 @@
                     text="New Instance"
                     icon="KdbIcons.Node.NewInstance"
                     class="org.kdb.inside.brains.view.treeview.actions.NewInstanceAction"/>
-
-            <reference ref="Kdb.Instances.Connect"/>
-            <reference ref="Kdb.Instances.Disconnect"/>
-
-            <separator/>
 
             <action id="Kdb.Instances.ModifyItem"
                     text="Modify"

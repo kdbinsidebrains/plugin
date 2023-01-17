@@ -375,7 +375,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         if (o == null) {
             return false;
         }
-        if (TableResult.isList(o) && consoleOptions.isExpandList()) {
+        if (TableResult.isNotEmptyList(o) && consoleOptions.isExpandList()) {
             return true;
         }
         if (TableResult.isTable(o) && consoleOptions.isExpandTable()) {

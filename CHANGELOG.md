@@ -1,5 +1,22 @@
 # KdbInsideBrains Changelog
 
+## [3.6.0]
+
+### Added
+
+- Show a dictionary size and key/value types in the Inspector
+- Introduce Variable/Field refactoring actions have been added
+
+### Fixed
+
+- Namespace reference is ignored if there is at least one variable/lambda or another namespace is defined in it
+- Not spaces between cascading arguments at invocation
+- Empty list is not shown in TableView
+
+### Changed
+
+- Connect/disconnect actions in InstancesTree moved to the left
+
 ## [3.5.1]
 
 ### Fixed

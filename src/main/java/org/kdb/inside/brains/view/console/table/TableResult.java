@@ -69,7 +69,7 @@ public class TableResult {
         }
 
         final ConsoleOptions options = KdbSettingsService.getInstance().getConsoleOptions();
-        if (isList(k) && options.isListAsTable()) {
+        if (isNotEmptyList(k) && options.isListAsTable()) {
             return new ListTableModel(k);
         }
 
@@ -104,8 +104,8 @@ public class TableResult {
         return false;
     }
 
-    public static boolean isList(Object o) {
-        return o.getClass().isArray() && !(o instanceof char[]);
+    public static boolean isNotEmptyList(Object o) {
+        return o.getClass().isArray() && !(o instanceof char[]) && Array.getLength(o) != 0;
     }
 
     public static abstract class QTableModel implements TableModel {

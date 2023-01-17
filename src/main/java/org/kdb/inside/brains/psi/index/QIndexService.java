@@ -13,7 +13,10 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QVarDeclaration;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class QIndexService {
@@ -25,7 +28,19 @@ public class QIndexService {
         index = FileBasedIndex.getInstance();
     }
 
-    public QVarDeclaration findFirstInFile(@NotNull String qualifiedName, @NotNull PsiFile file) {
+    public String firstMatch(@NotNull Predicate<String> keyPredicate, @NotNull GlobalSearchScope scope) {
+        final Result<String> result = new Result<>();
+        processAllKeys(s -> {
+            if (keyPredicate.test(s)) {
+                result.value = s;
+                return false;
+            }
+            return true;
+        }, scope);
+        return result.value;
+    }
+
+    public QVarDeclaration getFirstInFile(@NotNull String qualifiedName, @NotNull PsiFile file) {
         final List<List<IdentifierDescriptor>> values = index.getValues(QIdentifiersIndex.INDEX_ID, qualifiedName, GlobalSearchScope.fileScope(file));
         for (List<IdentifierDescriptor> value : values) {
             for (IdentifierDescriptor descriptor : value) {
@@ -38,33 +53,17 @@ public class QIndexService {
         return null;
     }
 
-    public void processValues(@NotNull Predicate<String> keyPredicate, @NotNull GlobalSearchScope scope, @NotNull QIndexService.ValuesProcessor processor) {
-        processAllKeys(key -> {
-            if (keyPredicate.test(key)) {
-                index.processValues(QIdentifiersIndex.INDEX_ID, key, null, (file, value) -> {
-                    for (IdentifierDescriptor d : value) {
-                        if (!processor.processValues(key, file, d)) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }, scope);
-            }
-            return true;
-        }, scope);
-    }
-
     public @Nullable QVarDeclaration getFirstGlobalDeclarations(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-        final List<QVarDeclaration> r = new ArrayList<>();
+        final Result<QVarDeclaration> r = new Result<>();
         processValues(s -> s.equals(qualifiedName), scope, (key, file, descriptor) -> {
             final QVarDeclaration var = resolveGlobalDeclaration(descriptor, file);
             if (var != null) {
-                r.add(var);
+                r.value = var;
                 return false;
             }
             return true;
         });
-        return r.isEmpty() ? null : r.get(0);
+        return r.value;
     }
 
     public @NotNull Collection<QVarDeclaration> getDeclarations(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
@@ -86,6 +85,22 @@ public class QIndexService {
             return var;
         }
         return null;
+    }
+
+    public void processValues(@NotNull Predicate<String> keyPredicate, @NotNull GlobalSearchScope scope, @NotNull QIndexService.ValuesProcessor processor) {
+        processAllKeys(key -> {
+            if (keyPredicate.test(key)) {
+                index.processValues(QIdentifiersIndex.INDEX_ID, key, null, (file, value) -> {
+                    for (IdentifierDescriptor d : value) {
+                        if (!processor.processValues(key, file, d)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }, scope);
+            }
+            return true;
+        }, scope);
     }
 
     @Nullable
@@ -131,5 +146,9 @@ public class QIndexService {
     @FunctionalInterface
     public interface ValuesProcessor {
         boolean processValues(String key, VirtualFile file, IdentifierDescriptor descriptor);
+    }
+
+    private static class Result<T> {
+        private T value;
     }
 }

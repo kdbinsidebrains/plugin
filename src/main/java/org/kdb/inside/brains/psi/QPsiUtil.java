@@ -111,7 +111,6 @@ public final class QPsiUtil {
 
         PsiElement cur = element;
         PsiElement parent = element.getParent();
-
         while (parent != null && parent != context && !(parent instanceof PsiFile)) {
             cur = parent;
             parent = parent.getParent();

@@ -12,10 +12,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPolyVariantReference;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.ResolveResult;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiEditorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.*;
+import org.kdb.inside.brains.psi.index.QIndexService;
 import org.kdb.inside.brains.view.inspector.InspectorToolWindow;
 
 import java.util.List;
@@ -65,6 +67,10 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
         LocalQuickFix[] localQuickFix = LocalQuickFix.EMPTY_ARRAY;
         final PsiElement parent = variable.getParent();
         if (parent instanceof QCustomFunction && parent.getParent() instanceof QInvokeFunction) {
+            if (isItNamespace(variable, holder.getProject())) {
+                return;
+            }
+
             final QExpressions expressions = variable.getContext(QExpressions.class);
             if (expressions != null) {
                 localQuickFix = new LocalQuickFix[]{
@@ -78,6 +84,10 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
             }
         }
         holder.registerProblem(variable, "`" + qualifiedName + "` might not have been defined", ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, localQuickFix);
+    }
+
+    private boolean isItNamespace(@NotNull QVarReference variable, Project project) {
+        return QIndexService.getInstance(variable).firstMatch(s -> s.startsWith(variable.getQualifiedName()), GlobalSearchScope.allScope(project)) != null;
     }
 
     private LocalQuickFix createInvokeFix(QVarReference variable) {

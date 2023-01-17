@@ -67,6 +67,7 @@ public class QSpacingStrategy {
         builder.beforeInside(SEMICOLON, CONDITION_EXPR).spaceIf(custom.CONDITION_SPACE_BEFORE_SEMICOLON);
 
         // Arguments
+        builder.between(ARGUMENTS, ARGUMENTS).none();
         builder.afterInside(BRACKET_OPEN, ARGUMENTS).spaceIf(custom.ARGUMENTS_SPACE_WITHIN_BRACES, custom.ARGUMENTS_LBRACKET_ON_NEXT_LINE);
         builder.beforeInside(BRACKET_CLOSE, ARGUMENTS).spaceIf(custom.ARGUMENTS_SPACE_WITHIN_BRACES, custom.ARGUMENTS_RBRACKET_ON_NEXT_LINE);
         builder.afterInside(SEMICOLON, ARGUMENTS).spaceIf(custom.ARGUMENTS_SPACE_AFTER_SEMICOLON);
