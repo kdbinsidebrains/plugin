@@ -70,7 +70,7 @@ class InspectorToolWindowTest {
     }
 
     private Object v(String name, int type) {
-        return new Object[]{name, type};
+        return new Object[]{name, type, null};
     }
 
     private Object f(String name, int type, String... args) {
