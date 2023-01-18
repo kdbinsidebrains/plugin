@@ -1,5 +1,14 @@
 # KdbInsideBrains Changelog
 
+## [3.6.1]
+
+### Fixed
+
+- Parsing and formatting of cumulative forward iterator (,/:) fixed
+- Block comment adds new line after and before commented code
+- Remove Unused Variable action takes into account context and removed only var definition inside conditions and
+  controls.
+
 ## [3.6.0]
 
 ### Added

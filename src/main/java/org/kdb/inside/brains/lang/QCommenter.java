@@ -10,12 +10,12 @@ public final class QCommenter implements Commenter {
 
     @Override
     public String getBlockCommentPrefix() {
-        return "/";
+        return "/\n";
     }
 
     @Override
     public String getBlockCommentSuffix() {
-        return "\\";
+        return "\n\\";
     }
 
     @Override
@@ -26,5 +26,10 @@ public final class QCommenter implements Commenter {
     @Override
     public String getCommentedBlockCommentSuffix() {
         return null;
+    }
+
+    @Override
+    public boolean blockCommentRequiresFullLineSelection() {
+        return true;
     }
 }

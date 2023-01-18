@@ -269,6 +269,7 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   ";"                                        { yybegin(YYINITIAL); return SEMICOLON; }
 
   ","                                        { return OPERATOR_COMMA; }
+  ","/{Iterator}                             { return OPERATOR_COMMA; }
 
   {ControlKeyword}/{WhiteSpace}*"["          { return CONTROL_KEYWORD; }
   {ConditionKeyword}/{WhiteSpace}*"["        { return CONDITION_KEYWORD; }

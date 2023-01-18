@@ -57,24 +57,70 @@ public class UnusedLocalVariableInspection extends ElementInspection<QVarDeclara
 
             @Override
             public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-                PsiElement removing = descriptor.getPsiElement().getParent();
-                PsiElement parent = removing.getParent();
-                if (parent instanceof QExpression && parent.getChildren().length == 1) {
-                    removing = parent;
+                final PsiElement v = descriptor.getPsiElement();
+                if (isInsideCondition(v)) {
+                    removeVariableOnly(v);
+                } else {
+                    removeWholeAssignment(v);
                 }
-
-                final List<PsiElement> rem = new ArrayList<>();
-                rem.add(removing);
-
-                final PsiElement nextSibling = PsiTreeUtil.skipWhitespacesAndCommentsForward(removing);
-                if (nextSibling != null) {
-                    final IElementType elementType = nextSibling.getNode().getElementType();
-                    if (elementType == QTypes.SEMICOLON) {
-                        rem.add(nextSibling);
-                    }
-                }
-                rem.forEach(PsiElement::delete);
             }
         });
+    }
+
+    private void removeVariableOnly(PsiElement variable) {
+        final QAssignmentExpr assignment = (QAssignmentExpr) variable.getParent();
+        final QExpression expression = assignment.getExpression();
+        final List<PsiElement> elements = new ArrayList<>();
+        PsiElement el = assignment.getFirstChild();
+        while (el != null && el != expression) {
+            elements.add(el);
+            el = el.getNextSibling();
+        }
+        elements.forEach(PsiElement::delete);
+    }
+
+    private void removeWholeAssignment(PsiElement variable) {
+        PsiElement assignment = variable.getParent();
+
+        PsiElement parent = assignment.getParent();
+        // Remove assignment is its only one in the expression
+        if (parent instanceof QExpression && parent.getChildren().length == 1) {
+            assignment = parent;
+        }
+
+        final List<PsiElement> rem = new ArrayList<>();
+        rem.add(assignment);
+
+        final PsiElement nextSibling = PsiTreeUtil.skipWhitespacesAndCommentsForward(assignment);
+        if (nextSibling != null) {
+            final IElementType elementType = nextSibling.getNode().getElementType();
+            if (elementType == QTypes.SEMICOLON) {
+                rem.add(nextSibling);
+            }
+        }
+        rem.forEach(PsiElement::delete);
+    }
+
+    private boolean isInsideCondition(PsiElement var) {
+        PsiElement e = var;
+        PsiElement p = var.getParent();
+        while (p != null && !(p instanceof QConditionExpr) && !(p instanceof QControlExpr)) {
+            p = (e = p).getParent();
+        }
+
+        if (p instanceof QControlExpr) {
+            final QControlExpr c = (QControlExpr) p;
+            final List<QExpression> expressions = c.getExpressions();
+            final int i = expressions.indexOf(e);
+            return i == 0;
+        }
+
+        if (p instanceof QConditionExpr) {
+            final QConditionExpr c = (QConditionExpr) p;
+            final List<QExpression> expressions = c.getExpressions();
+            final int i = expressions.indexOf(e);
+            return i >= 0 && i < expressions.size() && (i % 2) == 0;
+        }
+        return false;
     }
 }
