@@ -164,6 +164,9 @@ public class KdbSdkType extends SdkType {
                 if (isLinux() && file.getName().equals("q")) {
                     return file;
                 }
+                if (isMacOS() && file.getName().equals("q")) {
+                    return file;
+                }
             }
         }
         return null;
@@ -175,5 +178,8 @@ public class KdbSdkType extends SdkType {
 
     private static boolean isWindows() {
         return SystemUtils.IS_OS_WINDOWS;
+    }
+    private static boolean isMacOS() {
+        return SystemUtils.IS_OS_MAC;
     }
 }
