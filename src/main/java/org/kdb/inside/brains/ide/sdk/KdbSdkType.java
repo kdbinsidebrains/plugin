@@ -20,27 +20,30 @@ public class KdbSdkType extends SdkType {
         super("KDB SDK");
     }
 
-    @Override
-    public @Nullable String suggestHomePath() {
-        final String qhome = System.getenv().get("QHOME");
-        if (qhome != null) {
-            return qhome;
+    private static File findExecutable(@NotNull File path) {
+        final File[] folders = path.listFiles(File::isDirectory);
+        if (folders == null) {
+            return null;
         }
-        if (isWindows()) {
-            return "c:/q";
-        } else if (isLinux()) {
-            return "~/q";
+        for (File folder : folders) {
+            final File[] files = folder.listFiles(f -> f.isFile() && f.canExecute());
+            if (files == null) {
+                return null;
+            }
+            for (File file : files) {
+                if (isWindows() && file.getName().equals("q.exe")) {
+                    return file;
+                }
+                if (isUnix() && file.getName().equals("q")) {
+                    return file;
+                }
+            }
         }
         return null;
     }
 
-    @Override
-    public boolean isValidSdkHome(String path) {
-        final File file = new File(path);
-        if (file.exists() && file.isDirectory()) {
-            return findExecutable(file) != null;
-        }
-        return false;
+    private static boolean isUnix() {
+        return SystemUtils.IS_OS_UNIX || SystemUtils.IS_OS_MAC;
     }
 
     @Override
@@ -155,31 +158,30 @@ public class KdbSdkType extends SdkType {
 
     }
 
-    private static File findExecutable(@NotNull File path) {
-        for (File folder : path.listFiles(File::isDirectory)) {
-            for (File file : folder.listFiles(f -> f.isFile() && f.canExecute())) {
-                if (isWindows() && file.getName().equals("q.exe")) {
-                    return file;
-                }
-                if (isLinux() && file.getName().equals("q")) {
-                    return file;
-                }
-                if (isMacOS() && file.getName().equals("q")) {
-                    return file;
-                }
-            }
+    @Override
+    public @Nullable String suggestHomePath() {
+        final String qhome = System.getenv().get("QHOME");
+        if (qhome != null) {
+            return qhome;
+        }
+        if (isWindows()) {
+            return "c:/q";
+        } else if (isUnix()) {
+            return "~/q";
         }
         return null;
     }
 
-    private static boolean isLinux() {
-        return SystemUtils.IS_OS_LINUX;
+    @Override
+    public boolean isValidSdkHome(@NotNull String path) {
+        final File file = new File(path);
+        if (file.exists() && file.isDirectory()) {
+            return findExecutable(file) != null;
+        }
+        return false;
     }
 
     private static boolean isWindows() {
         return SystemUtils.IS_OS_WINDOWS;
-    }
-    private static boolean isMacOS() {
-        return SystemUtils.IS_OS_MAC;
     }
 }

@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [3.6.2]
+
+### Fixed
+
+- KDB SDK supporting for MacOS added
+
 ## [3.6.1]
 
 ### Fixed
