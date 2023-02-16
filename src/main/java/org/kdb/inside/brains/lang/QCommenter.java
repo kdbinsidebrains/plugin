@@ -28,7 +28,6 @@ public final class QCommenter implements Commenter {
         return null;
     }
 
-    @Override
     public boolean blockCommentRequiresFullLineSelection() {
         return true;
     }

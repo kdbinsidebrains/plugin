@@ -193,13 +193,14 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
             }
         });
 
-        final ActionButton manage = new ActionButton(new AnAction("Modify Templates", "Manage charting templates", KdbIcons.Chart.Templates) {
+        final AnAction action = new AnAction("Modify Templates", "Manage charting templates", KdbIcons.Chart.Templates) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 TemplatesEditorDialog.showDialog(project, templatesComboBox.getItem());
                 invalidateTemplatesList(project, dataProvider);
             }
-        }, null, ActionPlaces.CHARTS_PANEL_TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
+        };
+        final ActionButton manage = new ActionButton(action, action.getTemplatePresentation().clone(), ActionPlaces.CHARTS_PANEL_TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
 
         final JPanel p1 = new JPanel(new BorderLayout());
         p1.add(new JLabel("Templates:"), BorderLayout.WEST);

@@ -38,7 +38,14 @@ public class CreateTemplateDialog extends DialogWrapper {
     }
 
     @Override
-    protected void applyFields() {
+    protected void doOKAction() {
+        if (getOKAction().isEnabled()) {
+            storeValues();
+            close(OK_EXIT_CODE);
+        }
+    }
+
+    protected void storeValues() {
         template.setName(nameField.getText().trim());
         template.setDescription(descriptionField.getText().trim());
         template.setQuickAction(quickAction.isSelected());

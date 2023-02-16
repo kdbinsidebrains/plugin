@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [3.6.3]
+
+### Fixed
+
+- Backward capability of 2020.* restored for charting
+
 ## [3.6.2]
 
 ### Fixed
