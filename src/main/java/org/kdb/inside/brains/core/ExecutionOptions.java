@@ -13,6 +13,7 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
     private int warningMessageMb = 10;
     private boolean logQueries = true;
     private boolean splitLogsByMonths = true;
+    private boolean selectActiveConnectionInTree = true;
 
     private EditorsBindingStrategy bindingStrategy = EditorsBindingStrategy.CONNECT_TO_TAB;
 
@@ -80,6 +81,14 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
         this.splitLogsByMonths = splitLogsByMonths;
     }
 
+    public boolean isSelectActiveConnectionInTree() {
+        return selectActiveConnectionInTree;
+    }
+
+    public void setSelectActiveConnectionInTree(boolean selectActiveConnectionInTree) {
+        this.selectActiveConnectionInTree = selectActiveConnectionInTree;
+    }
+
     @Override
     public void copyFrom(ExecutionOptions executionOptions) {
         bindingStrategy = executionOptions.bindingStrategy;
@@ -90,19 +99,20 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
         logQueries = executionOptions.logQueries;
         splitLogsByMonths = executionOptions.splitLogsByMonths;
         autoReconnect = executionOptions.autoReconnect;
+        selectActiveConnectionInTree = executionOptions.selectActiveConnectionInTree;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof ExecutionOptions)) return false;
         ExecutionOptions that = (ExecutionOptions) o;
-        return autoReconnect == that.autoReconnect && normalizeQuery == that.normalizeQuery && showConnectionChange == that.showConnectionChange && connectionChangeTimeout == that.connectionChangeTimeout && warningMessageMb == that.warningMessageMb && logQueries == that.logQueries && bindingStrategy == that.bindingStrategy && splitLogsByMonths == that.splitLogsByMonths;
+        return autoReconnect == that.autoReconnect && normalizeQuery == that.normalizeQuery && showConnectionChange == that.showConnectionChange && connectionChangeTimeout == that.connectionChangeTimeout && warningMessageMb == that.warningMessageMb && logQueries == that.logQueries && splitLogsByMonths == that.splitLogsByMonths && selectActiveConnectionInTree == that.selectActiveConnectionInTree && bindingStrategy == that.bindingStrategy;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(autoReconnect, normalizeQuery, showConnectionChange, connectionChangeTimeout, warningMessageMb, logQueries, bindingStrategy, splitLogsByMonths);
+        return Objects.hash(autoReconnect, normalizeQuery, showConnectionChange, connectionChangeTimeout, warningMessageMb, logQueries, splitLogsByMonths, selectActiveConnectionInTree, bindingStrategy);
     }
 
     @Override
@@ -115,6 +125,7 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
                 ", warningMessageMb=" + warningMessageMb +
                 ", logQueries=" + logQueries +
                 ", splitLogsByMonths=" + splitLogsByMonths +
+                ", selectActiveConnectionInTree=" + selectActiveConnectionInTree +
                 ", bindingStrategy=" + bindingStrategy +
                 '}';
     }

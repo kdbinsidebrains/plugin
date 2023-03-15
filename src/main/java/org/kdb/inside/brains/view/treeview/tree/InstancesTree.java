@@ -145,12 +145,11 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
     }
 
     public void expandItem(InstanceItem item) {
-        expandPath(item.getTreePath());
+        expandPath(item != null ? item.getTreePath() : null);
     }
 
     public void selectItem(InstanceItem item) {
-        final TreePath treePath = item.getTreePath();
-
+        final TreePath treePath = item != null ? item.getTreePath() : null;
         expandPath(treePath);
         setSelectionPath(treePath);
         scrollPathToVisible(treePath);

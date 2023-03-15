@@ -9,6 +9,7 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.WriteExternalException;
@@ -23,9 +24,8 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
-import org.kdb.inside.brains.core.KdbScope;
-import org.kdb.inside.brains.core.KdbScopesListener;
-import org.kdb.inside.brains.core.KdbScopesManager;
+import org.kdb.inside.brains.core.*;
+import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.treeview.actions.ExportScopesAction;
 import org.kdb.inside.brains.view.treeview.actions.ImportScopesAction;
 import org.kdb.inside.brains.view.treeview.scope.ScopesEditorDialog;
@@ -51,13 +51,19 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
     private final KdbScopesManager scopesManager;
     private final KdbScopesListener scopesListener = new TheKdbScopesListener();
 
+    private final KdbConnectionManager connectionManager;
+    private final KdbConnectionListener connectionListener = new TheKdbConnectionListener();
+
     private final Map<String, Element> uninitializedViewState = new HashMap<>();
 
     public InstancesToolWindow(Project project) {
         this.project = project;
 
-        this.scopesManager = project.getService(KdbScopesManager.class);
-        this.scopesManager.addScopesListener(scopesListener);
+        scopesManager = KdbScopesManager.getManager(project);
+        scopesManager.addScopesListener(scopesListener);
+
+        connectionManager = KdbConnectionManager.getManager(project);
+        connectionManager.addConnectionListener(connectionListener);
     }
 
     public void initToolWindow(@NotNull ToolWindowEx toolWindow) {
@@ -78,10 +84,23 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
 
         toolWindow.setTitleActions(List.of(manageScopes));
 
+        final ExecutionOptions executionOptions = KdbSettingsService.getInstance().getExecutionOptions();
+
         final DefaultActionGroup group = new DefaultActionGroup();
         group.add(manageScopes);
         group.addSeparator();
+        group.add(new DumbAwareToggleAction("Select Activate Instance", "Select active instance based on the instances toolbar", null) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return executionOptions.isSelectActiveConnectionInTree();
+            }
 
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                executionOptions.setSelectActiveConnectionInTree(state);
+            }
+        });
+        group.addSeparator();
         group.add(new ExportScopesAction("Export Scopes", "Export all scopes into xml file", scopesManager::getScopes));
         group.add(new ImportScopesAction("Import Scopes", "Import scopes from xml file", scopesManager::addScope, scopesManager::getNames));
 
@@ -96,8 +115,31 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
         }
     }
 
+    private void activeConnectionChanged(InstanceConnection connection) {
+        if (!KdbSettingsService.getInstance().getExecutionOptions().isSelectActiveConnectionInTree()) {
+            return;
+        }
+
+        getInstancesScopeViews().forEach(v -> v.selectItem(null));
+        if (connection == null) {
+            return;
+
+        }
+
+        final KdbInstance instance = connection.getInstance();
+        final KdbScope scope = instance.getScope();
+        if (scope == null) {
+            return;
+        }
+
+        final InstancesScopeView view = activateScope(scope.getName());
+        if (view != null) {
+            view.selectItem(instance);
+        }
+    }
+
     private void createScope(KdbScope scope) {
-        final InstancesScopeView panel = new InstancesScopeView(project, scope);
+        final InstancesScopeView panel = new InstancesScopeView(project, scope, connectionManager);
 
         final Element state = uninitializedViewState.remove(scope.getName());
         if (state != null) {
@@ -117,17 +159,12 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
     }
 
     private void removeScope(KdbScope scope) {
-        final Content[] contents = contentManager.getContents();
-        for (Content content : contents) {
-            final InstancesScopeView scopeView = (InstancesScopeView) content.getComponent();
-            if (scopeView.getScope() == scope) {
-                contentManager.removeContent(content, true);
-                break;
+        final Content content = findContent(s -> s == scope);
+        if (content != null) {
+            contentManager.removeContent(content, true);
+            if (contentManager.getContentCount() == 0) {
+                createDummyPage();
             }
-        }
-
-        if (contentManager.getContentCount() == 0) {
-            createDummyPage();
         }
     }
 
@@ -137,8 +174,13 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
     }
 
     private KdbScope getActiveScope() {
+        final InstancesScopeView activeView = getActiveView();
+        return activeView == null ? null : activeView.getScope();
+    }
+
+    private InstancesScopeView getActiveView() {
         final Content selectedContent = contentManager.getSelectedContent();
-        return selectedContent != null && selectedContent.getComponent() instanceof InstancesScopeView ? ((InstancesScopeView) selectedContent.getComponent()).getScope() : null;
+        return selectedContent != null && selectedContent.getComponent() instanceof InstancesScopeView ? ((InstancesScopeView) selectedContent.getComponent()) : null;
     }
 
     private List<InstancesScopeView> getInstancesScopeViews() {
@@ -154,15 +196,9 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
             return null;
         }
 
-        final Content[] contents = contentManager.getContents();
-        for (final Content content : contents) {
-            final JComponent component = content.getComponent();
-            if (!(component instanceof InstancesScopeView)) {
-                continue;
-            }
-
-            final InstancesScopeView v = (InstancesScopeView) component;
-            if (scopeTester.test(v.getScope())) {
+        for (final Content content : contentManager.getContents()) {
+            final InstancesScopeView scopeView = getScopeView(content);
+            if (scopeView != null && scopeTester.test(scopeView.getScope())) {
                 return content;
             }
         }
@@ -218,8 +254,9 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
                     continue;
                 }
                 final Content content = findContent(s -> s.getName().equals(name));
-                if (content instanceof InstancesScopeView) {
-                    ((InstancesScopeView) content).readExternal(child);
+                final InstancesScopeView scopeView = getScopeView(content);
+                if (scopeView != null) {
+                    scopeView.readExternal(child);
                 } else {
                     uninitializedViewState.put(name, child);
                 }
@@ -230,12 +267,33 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
     @Override
     public void dispose() {
         scopesManager.removeScopesListener(scopesListener);
+        connectionManager.removeConnectionListener(connectionListener);
     }
 
-    private void activateScope(String activeScope) {
+    private InstancesScopeView activateScope(String activeScope) {
         final Content content = findContent(s -> s.getName().equals(activeScope));
         if (content != null) {
             contentManager.setSelectedContent(content, false, false);
+            return (InstancesScopeView) content.getComponent();
+        }
+        return null;
+    }
+
+    private InstancesScopeView getScopeView(Content content) {
+        if (content == null) {
+            return null;
+        }
+        final JComponent component = content.getComponent();
+        if (component instanceof InstancesScopeView) {
+            return (InstancesScopeView) component;
+        }
+        return null;
+    }
+
+    private class TheKdbConnectionListener implements KdbConnectionListener {
+        @Override
+        public void connectionActivated(InstanceConnection deactivated, InstanceConnection activated) {
+            activeConnectionChanged(activated);
         }
     }
 

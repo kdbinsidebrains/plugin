@@ -25,7 +25,7 @@ import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.chart.ChartActionGroup;
-import org.kdb.inside.brains.view.console.ConsoleOptions;
+import org.kdb.inside.brains.view.console.TableOptions;
 import org.kdb.inside.brains.view.export.ClipboardExportAction;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 import org.kdb.inside.brains.view.export.ExportingType;
@@ -50,7 +50,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private ToggleAction searchAction;
 
     private final Project project;
-    private final ConsoleOptions consoleOptions;
+    private final TableOptions tableOptions;
     private final BiConsumer<KdbQuery, TableResultView> repeater;
 
     private final JBTable myTable;
@@ -75,13 +75,13 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         this.project = project;
         this.repeater = repeater;
 
-        consoleOptions = KdbSettingsService.getInstance().getConsoleOptions();
+        tableOptions = KdbSettingsService.getInstance().getTableOptions();
         final var valueColumnRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 final Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 if (!isSelected) {
-                    if (consoleOptions.isStriped() && row % 2 == 0) {
+                    if (tableOptions.isStriped() && row % 2 == 0) {
                         c.setBackground(UIUtil.getDecoratedRowColor());
                     } else {
                         c.setBackground(table.getBackground());
@@ -158,7 +158,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         };
 
         myTable.setStriped(false);
-        myTable.setShowGrid(consoleOptions.isShowGrid());
+        myTable.setShowGrid(tableOptions.isShowGrid());
 
         myTable.setShowColumns(true);
         myTable.setColumnSelectionAllowed(true);
@@ -189,7 +189,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         createSearchComponent();
 
         tableScroll = ScrollPaneFactory.createScrollPane(myTable, true);
-        if (consoleOptions.isIndexColumn()) {
+        if (tableOptions.isIndexColumn()) {
             tableScroll.setRowHeaderView(new RowNumberView(myTable));
         }
 
@@ -255,7 +255,14 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             group.add(new DumbAwareAction("_Repeat the Query", "Re-run the query related with this result", AllIcons.Actions.Refresh) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e) {
-                    repeater.accept(tableResult.getQuery(), TableResultView.this);
+                    if (tableResult != null) {
+                        repeater.accept(tableResult.getQuery(), TableResultView.this);
+                    }
+                }
+
+                @Override
+                public void update(@NotNull AnActionEvent e) {
+                    e.getPresentation().setEnabled(tableResult != null);
                 }
             });
             group.addSeparator();
@@ -375,13 +382,13 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         if (o == null) {
             return false;
         }
-        if (TableResult.isNotEmptyList(o) && consoleOptions.isExpandList()) {
+        if (TableResult.isNotEmptyList(o) && tableOptions.isExpandList()) {
             return true;
         }
-        if (TableResult.isTable(o) && consoleOptions.isExpandTable()) {
+        if (TableResult.isTable(o) && tableOptions.isExpandTable()) {
             return true;
         }
-        return o instanceof c.Dict && consoleOptions.isExpandDict();
+        return o instanceof c.Dict && tableOptions.isExpandDict();
     }
 
     public JComponent getFocusableComponent() {

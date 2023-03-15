@@ -281,7 +281,7 @@ public class TableResult {
     @NotNull
     private static String getColumnPrefix(boolean key) {
         if (key) {
-            if (KdbSettingsService.getInstance().getConsoleOptions().isXmasKeyColumn()) {
+            if (KdbSettingsService.getInstance().getTableOptions().isXmasKeyColumn()) {
                 final LocalDate now = LocalDate.now();
                 if (now.getMonth() == Month.DECEMBER && now.getDayOfMonth() >= 14) {
                     return KEY_COLUMN_PREFIX_XMAS;

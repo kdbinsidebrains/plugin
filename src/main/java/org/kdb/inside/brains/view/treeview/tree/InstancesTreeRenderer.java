@@ -65,6 +65,7 @@ public class InstancesTreeRenderer extends ColoredTreeCellRenderer {
         Color mainColour = cutting ? JBColor.GRAY : null;
 
         String comment = null;
+        final InstanceConnection active = manager.getActiveConnection();
         final InstanceConnection connection = manager.getConnection(instance);
         if (connection != null) {
             final InstanceState state = connection.getState();
@@ -80,6 +81,10 @@ public class InstancesTreeRenderer extends ColoredTreeCellRenderer {
             } else if (state == InstanceState.CONNECTING) {
                 mainStyle |= SimpleTextAttributes.STYLE_ITALIC;
                 comment = "Connecting...";
+            }
+
+            if (active == connection) {
+                mainStyle |= SimpleTextAttributes.STYLE_UNDERLINE;
             }
 
             if (connection.getQuery() != null) {

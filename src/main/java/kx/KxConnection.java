@@ -14,14 +14,19 @@ import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
 
 public class KxConnection extends c implements Closeable {
+    private final int msgType;
+
     public static final TimeZone UTC_TIMEZONE = TimeZone.getTimeZone("UTC");
 
     public KxConnection(String host, int port, InstanceOptions options) throws IOException {
         tz = UTC_TIMEZONE;
         setEncoding("UTF-8");
 
+        zip = options.isCompression();
+        msgType = options.isAsynchronous() ? 0 : 1;
+
         // We have to split original constructor into socket creating and authentification to be able to cancel
-        // authentication - it could take too long if the instance if busy.
+        // authentication - it could take too long if the instance is busy.
         s = new Socket(host.isBlank() ? "localhost" : host, port);
         if (options.isTls()) {
             try {
@@ -42,7 +47,7 @@ public class KxConnection extends c implements Closeable {
         synchronized (o) {
             cancellation.checkCancelled();
             phaseConsumer.accept(QueryPhase.ENCODING);
-            byte[] buffer = serialize(1, x, zip);
+            byte[] buffer = serialize(msgType, x, zip);
 
             cancellation.checkCancelled();
             phaseConsumer.accept(QueryPhase.SENDING);

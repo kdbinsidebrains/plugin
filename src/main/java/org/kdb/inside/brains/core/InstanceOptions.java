@@ -9,14 +9,9 @@ public class InstanceOptions implements SettingsBean<InstanceOptions> {
     private int timeout = 1000;
     private boolean tls = false;
     private boolean compression = false;
+    private boolean asynchronous = false;
 
     public InstanceOptions() {
-    }
-
-    public InstanceOptions(int timeout, boolean tls, boolean compression) {
-        this.tls = tls;
-        this.timeout = timeout;
-        this.compression = compression;
     }
 
     public boolean isTls() {
@@ -44,11 +39,21 @@ public class InstanceOptions implements SettingsBean<InstanceOptions> {
     }
 
     public String toParameters() {
-        return "tls=" + tls + "&timeout=" + timeout + "&compression=" + compression;
+        return "tls=" + tls + "&timeout=" + timeout + "&compression=" + compression + "&asynchronous" + asynchronous;
+    }
+
+    public boolean isAsynchronous() {
+        return asynchronous;
+    }
+
+    public void setAsynchronous(boolean asynchronous) {
+        this.asynchronous = asynchronous;
     }
 
     public InstanceOptions copy() {
-        return new InstanceOptions(timeout, tls, compression);
+        final InstanceOptions o = new InstanceOptions();
+        o.copyFrom(this);
+        return o;
     }
 
     @Override
@@ -56,28 +61,25 @@ public class InstanceOptions implements SettingsBean<InstanceOptions> {
         tls = options.tls;
         timeout = options.timeout;
         compression = options.compression;
+        asynchronous = options.asynchronous;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        InstanceOptions options = (InstanceOptions) o;
-        return timeout == options.timeout && tls == options.tls && compression == options.compression;
+        if (!(o instanceof InstanceOptions)) return false;
+        InstanceOptions that = (InstanceOptions) o;
+        return timeout == that.timeout && tls == that.tls && compression == that.compression && asynchronous == that.asynchronous;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(timeout, tls, compression);
+        return Objects.hash(timeout, tls, compression, asynchronous);
     }
 
     @Override
     public String toString() {
-        return "InstanceOptions{" +
-                "timeout=" + timeout +
-                ", tls=" + tls +
-                ", compression=" + compression +
-                '}';
+        return "InstanceOptions{" + "timeout=" + timeout + ", tls=" + tls + ", compression=" + compression + ", asynchronous=" + asynchronous + '}';
     }
 
     public static InstanceOptions resolveOptions(KdbInstance instance) {

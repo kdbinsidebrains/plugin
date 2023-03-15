@@ -40,7 +40,7 @@ public class EditorsBindingService implements Disposable {
 
         settingsService = KdbSettingsService.getInstance();
         settingsService.addSettingsListener(settingsListener);
-        strategy = settingsService.getConnectionOptions().getBindingStrategy();
+        strategy = settingsService.getExecutionOptions().getBindingStrategy();
 
         busConnection = project.getMessageBus().connect(this);
         busConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new TheFileEditorManagerListener());

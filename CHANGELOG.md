@@ -1,5 +1,17 @@
 # KdbInsideBrains Changelog
 
+## [3.7.0]
+
+### Added
+
+- 2023.1 EAP version checked and added to supported list
+- Asynchronous connection has been added: a message sent with messageType=0 (asynchronous) and the connection forever
+  waits a response.
+- Active Instance is underlined in Instances View
+- Changing active connection in the toolbar or via Kdb Console selects the instance in KDB Instances View (configuration
+  option. Enabled by default).
+- If a query returns not a table, 'Table Result' view is cleaned (configuration option. Enabled by default)
+
 ## [3.6.3]
 
 ### Fixed

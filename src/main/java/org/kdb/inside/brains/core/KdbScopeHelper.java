@@ -75,9 +75,13 @@ public class KdbScopeHelper {
     private InstanceOptions decodeInstanceOptions(@NotNull Element el) {
         final String timeout = el.getAttributeValue("timeout");
         final String tls = el.getAttributeValue("tls");
-        final String compression = el.getAttributeValue("compression");
+        final String asynchronous = el.getAttributeValue("async");
+        String compression = el.getAttributeValue("zip");
+        if (compression == null) { // backward compatibility
+            compression = el.getAttributeValue("compression");
+        }
 
-        if (timeout == null && tls == null && compression == null) {
+        if (timeout == null && tls == null && compression == null && asynchronous == null) {
             return null;
         }
 
@@ -90,6 +94,9 @@ public class KdbScopeHelper {
         }
         if (compression != null) {
             o.setCompression(Boolean.parseBoolean(compression));
+        }
+        if (asynchronous != null) {
+            o.setAsynchronous(Boolean.parseBoolean(asynchronous));
         }
         return o;
     }
@@ -176,7 +183,8 @@ public class KdbScopeHelper {
         }
         el.setAttribute("timeout", String.valueOf(options.getTimeout()));
         el.setAttribute("tls", String.valueOf(options.isTls()));
-        el.setAttribute("compression", String.valueOf(options.isCompression()));
+        el.setAttribute("zip", String.valueOf(options.isCompression()));
+        el.setAttribute("async", String.valueOf(options.isAsynchronous()));
     }
 
     @NotNull

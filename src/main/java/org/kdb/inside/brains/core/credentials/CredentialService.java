@@ -11,7 +11,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.twelvemonkeys.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import icons.KdbIcons;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.jdom.Element;

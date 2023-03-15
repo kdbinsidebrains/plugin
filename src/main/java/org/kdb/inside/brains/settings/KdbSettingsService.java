@@ -11,6 +11,7 @@ import org.kdb.inside.brains.core.ExecutionOptions;
 import org.kdb.inside.brains.core.InstanceOptions;
 import org.kdb.inside.brains.view.chart.ChartOptions;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
+import org.kdb.inside.brains.view.console.TableOptions;
 import org.kdb.inside.brains.view.inspector.InspectorOptions;
 
 import java.util.ArrayList;
@@ -68,6 +69,17 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         }
     }
 
+    public TableOptions getTableOptions() {
+        return myState.tableOptions;
+    }
+
+    public void setTableOptions(TableOptions options) {
+        if (!myState.tableOptions.equals(options)) {
+            myState.tableOptions.copyFrom(options);
+            notifySettingsChanged(myState.tableOptions);
+        }
+    }
+
     public InstanceOptions getInstanceOptions() {
         return myState.instanceOptions;
     }
@@ -79,11 +91,11 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         }
     }
 
-    public ExecutionOptions getConnectionOptions() {
+    public ExecutionOptions getExecutionOptions() {
         return myState.executionOptions;
     }
 
-    public void setConnectionOptions(ExecutionOptions options) {
+    public void setExecutionOptions(ExecutionOptions options) {
         if (!myState.executionOptions.equals(options)) {
             myState.executionOptions.copyFrom(options);
             notifySettingsChanged(myState.executionOptions);
@@ -125,6 +137,7 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
     @Override
     public void loadState(State state) {
         myState.setChartOptions(state.chartOptions);
+        myState.setTableOptions(state.tableOptions);
         myState.setConsoleOptions(state.consoleOptions);
         myState.setEditorOptions(state.executionOptions);
         myState.setInstanceOptions(state.instanceOptions);
@@ -142,6 +155,7 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
     static class State {
         private final List<String> credentialPlugins = new ArrayList<>();
         private final ChartOptions chartOptions = new ChartOptions();
+        private final TableOptions tableOptions = new TableOptions();
         private final ConsoleOptions consoleOptions = new ConsoleOptions();
         private final InstanceOptions instanceOptions = new InstanceOptions();
         private final ExecutionOptions executionOptions = new ExecutionOptions();
@@ -156,6 +170,14 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
             if (credentialPlugins != null) {
                 this.credentialPlugins.addAll(credentialPlugins);
             }
+        }
+
+        public TableOptions getTableOptions() {
+            return tableOptions;
+        }
+
+        public void setTableOptions(TableOptions tableOptions) {
+            this.tableOptions.copyFrom(tableOptions);
         }
 
         public ConsoleOptions getConsoleOptions() {

@@ -197,6 +197,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                 }
         );
     }
+
     private void processQueryStarted(InstanceConnection conn, KdbQuery query) {
         if (getOptions().isLogQueries()) {
             queryLogger.logQueryStarted(conn, query);
@@ -250,6 +251,10 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         return project == null ? null : project.getService(KdbConnectionManager.class);
     }
 
+    private ExecutionOptions getOptions() {
+        return KdbSettingsService.getInstance().getExecutionOptions();
+    }
+
     private class QueryProgressive implements Progressive {
         private boolean canceled = false;
         private ProgressIndicator indicator;
@@ -291,7 +296,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
                 return true;
             } catch (IOException ex) {
-                if (retry) {
+                if (retry && myConnection.getState() != DISCONNECTED) {
                     myConnection.close(ex);
                     if (myConnection.connectAndWait() == CONNECTED) {
                         return safeQuery(query, indicator, false);
@@ -369,10 +374,6 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         public boolean isCanceled() {
             return canceled || (indicator != null && indicator.isCanceled());
         }
-    }
-
-    private ExecutionOptions getOptions() {
-        return KdbSettingsService.getInstance().getConnectionOptions();
     }
 
     private Notification createNotification(String content, NotificationType type) {

@@ -103,7 +103,7 @@ public class KdbQueryLogger implements PersistentStateComponent<KdbQueryLogger.S
         final LocalDate now = LocalDate.now();
 
         Path folder = logsFolder;
-        if (KdbSettingsService.getInstance().getConnectionOptions().isSplitLogsByMonths()) {
+        if (KdbSettingsService.getInstance().getExecutionOptions().isSplitLogsByMonths()) {
             folder = folder.resolve(now.format(SPLIT_BY_MONTHS));
         }
 

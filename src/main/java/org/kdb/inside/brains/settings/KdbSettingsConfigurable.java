@@ -6,11 +6,13 @@ import com.intellij.util.ui.FormBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.ExecutionOptionsPanel;
 import org.kdb.inside.brains.view.console.ConsoleOptionsPanel;
+import org.kdb.inside.brains.view.console.TableOptionsPanel;
 import org.kdb.inside.brains.view.inspector.InspectorOptionsPanel;
 
 import javax.swing.*;
 
 public class KdbSettingsConfigurable extends KdbConfigurable {
+    private final TableOptionsPanel tableOptionsPanel = new TableOptionsPanel();
     private final ConsoleOptionsPanel consoleOptionsPanel = new ConsoleOptionsPanel();
     private final ExecutionOptionsPanel executionOptionsPanel = new ExecutionOptionsPanel();
     private final InspectorOptionsPanel inspectorOptionsPanel = new InspectorOptionsPanel();
@@ -33,6 +35,11 @@ public class KdbSettingsConfigurable extends KdbConfigurable {
                 .addComponent(consoleOptionsPanel)
 
                 .setFormLeftIndent(0)
+                .addComponent(new TitledSeparator("Table View Options"))
+                .setFormLeftIndent(FORM_LEFT_INDENT)
+                .addComponent(tableOptionsPanel)
+
+                .setFormLeftIndent(0)
                 .addComponent(new TitledSeparator("Execution Options"))
                 .setFormLeftIndent(FORM_LEFT_INDENT)
                 .addComponent(executionOptionsPanel)
@@ -53,7 +60,11 @@ public class KdbSettingsConfigurable extends KdbConfigurable {
             return true;
         }
 
-        if (!Comparing.equal(settingsService.getConnectionOptions(), executionOptionsPanel.getOptions())) {
+        if (!Comparing.equal(settingsService.getTableOptions(), tableOptionsPanel.getOptions())) {
+            return true;
+        }
+
+        if (!Comparing.equal(settingsService.getExecutionOptions(), executionOptionsPanel.getOptions())) {
             return true;
         }
 
@@ -65,15 +76,17 @@ public class KdbSettingsConfigurable extends KdbConfigurable {
 
     @Override
     public void apply() {
+        settingsService.setTableOptions(tableOptionsPanel.getOptions());
         settingsService.setConsoleOptions(consoleOptionsPanel.getOptions());
-        settingsService.setConnectionOptions(executionOptionsPanel.getOptions());
+        settingsService.setExecutionOptions(executionOptionsPanel.getOptions());
         settingsService.setInspectorOptions(inspectorOptionsPanel.getOptions());
     }
 
     @Override
     public void reset() {
+        tableOptionsPanel.setOptions(settingsService.getTableOptions());
         consoleOptionsPanel.setOptions(settingsService.getConsoleOptions());
-        executionOptionsPanel.setOptions(settingsService.getConnectionOptions());
+        executionOptionsPanel.setOptions(settingsService.getExecutionOptions());
         inspectorOptionsPanel.setOptions(settingsService.getInspectorOptions());
     }
 }

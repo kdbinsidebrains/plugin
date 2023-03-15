@@ -36,11 +36,11 @@ public class InstancesScopeView extends SimpleToolWindowPanel implements Disposa
 
     public static final DataKey<InstancesScopeView> INSTANCES_VIEW_DATA_KEY = DataKey.create("Kdb.Instances.View");
 
-    public InstancesScopeView(Project project, KdbScope scope) {
+    public InstancesScopeView(Project project, KdbScope scope, KdbConnectionManager connectionManager) {
         super(true);
 
         this.scope = scope;
-        this.tree = new InstancesTree(scope, KdbConnectionManager.getManager(project));
+        this.tree = new InstancesTree(scope, connectionManager);
 
         setToolbar(createToolbar());
         setContent(new JBScrollPane(tree));

@@ -395,7 +395,10 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         processQuery(query, resultView);
     }
 
-    private void selectConsole() {
+    private void selectConsole(boolean clearTableResult) {
+        if (clearTableResult && settingsService.getConsoleOptions().isClearTableResult()) {
+            resultTabs.clearTableResult();
+        }
         resultTabs.selectConsole();
     }
 
@@ -423,7 +426,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             }
             final Path path = d.getPath();
             printToConsole("File " + d.getPath().toString() + " of " + FileUtils.byteCountToDisplaySize(Files.size(path)) + " has been set to `" + d.getVariableName() + " variable.\n", ConsoleViewContentType.LOG_VERBOSE_OUTPUT);
-            selectConsole();
+            selectConsole(false);
         } catch (Exception ex) {
             Messages.showErrorDialog(project, IoErrorText.message(ex), "File Can't Be Uploaded");
         }
@@ -441,7 +444,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
                     final String message = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getName();
                     printToConsole(message + "\n", ConsoleViewContentType.ERROR_OUTPUT);
-                    selectConsole();
+                    selectConsole(true);
                 } else {
                     printRoundtrip(result);
                     printToConsole(formatter.resultToString(result, true, true) + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
@@ -450,7 +453,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                     if (tbl != null) {
                         resultTabs.updateTableResult(tbl, resultView, this::execute);
                     } else {
-                        selectConsole();
+                        selectConsole(true);
                     }
                 }
             });
@@ -489,7 +492,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             msg = "Connection can't be established";
         }
         printToConsole(msg + ".\n", ConsoleViewContentType.ERROR_OUTPUT);
-        selectConsole();
+        selectConsole(true);
     }
 
     private void printInstanceConnecting() {

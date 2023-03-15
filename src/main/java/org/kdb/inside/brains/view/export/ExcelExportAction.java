@@ -109,10 +109,10 @@ public class ExcelExportAction extends AnExportAction<File> {
             createString(row, column, String.valueOf(value));
         } else {
             final Cell cell = row.createCell(column);
-            if (!KxConnection.isNull(value)) {
-                cell.setCellValue(formatter.objectToString(value, false, false));
-            } else {
+            if (KxConnection.isNull(value)) {
                 cell.setCellValue("");
+            } else {
+                cell.setCellValue(formatter.objectToString(value, false, false));
             }
         }
     }
@@ -123,10 +123,10 @@ public class ExcelExportAction extends AnExportAction<File> {
 
     private void createNumber(Row row, int column, Number value) {
         final Cell cell = row.createCell(column, CellType.NUMERIC);
-        if (value != null && !KxConnection.isNull(value)) {
-            cell.setCellValue(value.doubleValue());
-        } else {
+        if (value == null || KxConnection.isNull(value)) {
             cell.setCellValue("");
+        } else {
+            cell.setCellValue(value.doubleValue());
         }
     }
 

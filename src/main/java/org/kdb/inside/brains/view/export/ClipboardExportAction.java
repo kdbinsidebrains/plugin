@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
-import org.kdb.inside.brains.view.console.ConsoleOptions;
+import org.kdb.inside.brains.view.console.TableOptions;
 import org.kdb.inside.brains.view.console.table.TableResult;
 
 import javax.swing.*;
@@ -51,7 +51,7 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
         final Colors[] tableO = getTable(table, true);
         final Colors[] tableE = getTable(table, false);
 
-        final ConsoleOptions options = KdbSettingsService.getInstance().getConsoleOptions();
+        final TableOptions options = KdbSettingsService.getInstance().getTableOptions();
 
         htmlStr.append("<html>\n");
         htmlStr.append("<style>\n");

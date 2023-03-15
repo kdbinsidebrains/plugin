@@ -322,6 +322,10 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
         return info;
     }
 
+    public void clearTableResult() {
+        updateTableResult(null, null, null);
+    }
+
     public void updateTableResult(TableResult tableResult, TableResultView resultView, BiConsumer<KdbQuery, TableResultView> repeater) {
         if (resultView != null) {
             resultView.showResult(tableResult);
