@@ -675,7 +675,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
             final String instanceName = instance.getName();
             final InstanceOptions options = InstanceOptions.resolveOptions(instance);
-            final int timeout = options.getTimeout();
+            final int timeout = options.getSafeTimeout();
 
             try {
                 final String credentials = CredentialService.resolveCredentials(instance);
@@ -691,7 +691,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                 final double ticks = timeout / (double) PROGRESS_TICK_MILLIS;
 
                 // create connection - an error could be here
-                connection = new KxConnection(instance.getHost(), instance.getPort(), options.isAsynchronous(), options.isTls(), options.isCompression());
+                connection = new KxConnection(instance.getHost(), instance.getPort(), options.isSafeAsync(), options.isSafeTls(), options.isSafeZip());
                 if (isCancelled(indicator)) {
                     throw new CancellationException();
                 }

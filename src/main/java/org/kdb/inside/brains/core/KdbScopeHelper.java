@@ -31,9 +31,9 @@ public class KdbScopeHelper {
             type = ScopeType.LOCAL;
         }
         final String credentials = readCredentials(el);
-        final InstanceOptions options = decodeInstanceOptions(el);
+        final InstanceOptions options = InstanceOptions.restore(el);
 
-        final KdbScope scope = new KdbScope(name, type, credentials, options);
+        final KdbScope scope = new KdbScope(name, type, options, credentials);
         readColor(el, scope);
         readChildren(scope, el, name);
 
@@ -54,7 +54,7 @@ public class KdbScopeHelper {
             } else if ("instance".equalsIgnoreCase(elName)) {
                 final String host = chEl.getAttributeValue("host");
                 final int port = Integer.parseInt(chEl.getAttributeValue("port"));
-                final InstanceOptions options = decodeInstanceOptions(chEl);
+                final InstanceOptions options = InstanceOptions.restore(chEl);
                 final String credentials = readCredentials(chEl);
 
                 final KdbInstance instance = item.createInstance(name, host, port, credentials, options);
@@ -70,35 +70,6 @@ public class KdbScopeHelper {
             return;
         }
         item.setColor(UIUtils.decodeColor(color));
-    }
-
-    private InstanceOptions decodeInstanceOptions(@NotNull Element el) {
-        final String timeout = el.getAttributeValue("timeout");
-        final String tls = el.getAttributeValue("tls");
-        final String asynchronous = el.getAttributeValue("async");
-        String compression = el.getAttributeValue("zip");
-        if (compression == null) { // backward compatibility
-            compression = el.getAttributeValue("compression");
-        }
-
-        if (timeout == null && tls == null && compression == null && asynchronous == null) {
-            return null;
-        }
-
-        final InstanceOptions o = new InstanceOptions();
-        if (timeout != null) {
-            o.setTimeout(Integer.parseInt(timeout));
-        }
-        if (tls != null) {
-            o.setTls(Boolean.parseBoolean(tls));
-        }
-        if (compression != null) {
-            o.setCompression(Boolean.parseBoolean(compression));
-        }
-        if (asynchronous != null) {
-            o.setAsynchronous(Boolean.parseBoolean(asynchronous));
-        }
-        return o;
     }
 
     private String readCredentials(Element el) {
@@ -120,7 +91,7 @@ public class KdbScopeHelper {
         if (exportCredentials) {
             writeCredentials(scope, scopeEl);
         }
-        encodeInstanceOptions(scopeEl, scope.getOptions());
+        scope.getOptions().store(scopeEl);
         writeChildren(scope, scopeEl, name, exportCredentials);
 
 //        writeCredentials(name, scope.getCredentials());
@@ -153,7 +124,7 @@ public class KdbScopeHelper {
                 if (exportCredentials) {
                     writeCredentials(instance, instEl);
                 }
-                encodeInstanceOptions(instEl, instance.getOptions());
+                instance.getOptions().store(instEl);
 
 //                writeCredentials(id, instance.getCredentials());
 
@@ -177,20 +148,8 @@ public class KdbScopeHelper {
         }
     }
 
-    private void encodeInstanceOptions(@NotNull Element el, InstanceOptions options) {
-        if (options == null) {
-            return;
-        }
-        el.setAttribute("timeout", String.valueOf(options.getTimeout()));
-        el.setAttribute("tls", String.valueOf(options.isTls()));
-        el.setAttribute("zip", String.valueOf(options.isCompression()));
-        el.setAttribute("async", String.valueOf(options.isAsynchronous()));
-    }
-
     @NotNull
     private String generateNextId(String parentId, String name, int index) {
         return parentId + '/' + name + '[' + index + ']';
     }
-
-
 }

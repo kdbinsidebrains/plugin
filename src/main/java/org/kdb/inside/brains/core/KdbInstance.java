@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.core;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -12,7 +13,11 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
     private String credentials;
     private InstanceOptions options;
 
-    public KdbInstance(String name, String host, int port, String credentials, InstanceOptions options) {
+    public KdbInstance(@NotNull String name, @NotNull String host, int port, @Nullable String credentials) {
+        this(name, host, port, credentials, InstanceOptions.INHERITED);
+    }
+
+    public KdbInstance(@NotNull String name, @NotNull String host, int port, @Nullable String credentials, @NotNull InstanceOptions options) {
         super(name);
         this.host = Objects.requireNonNull(host);
         if (port < 0 || port >= 65536) {
@@ -94,19 +99,6 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
         return flavor.equals(DataFlavor.stringFlavor) || super.isDataFlavorSupported(flavor);
     }
 
-    @Override
-    public @NotNull KdbInstance copy() {
-        return new KdbInstance(getName(), host, port, credentials, options == null ? null : options.copy());
-    }
-
-    @Override
-    public @NotNull Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
-        if (DataFlavor.stringFlavor.equals(flavor)) {
-            return toTransferableSymbol();
-        }
-        return super.getTransferData(flavor);
-    }
-
     public static KdbInstance parseInstance(String txt) {
         String url = txt.strip();
         if (url.isBlank()) {
@@ -141,9 +133,22 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
 
         // TODO: parse options here
         try {
-            return new KdbInstance(txt, split[0], port, credentials, null);
+            return new KdbInstance(txt, split[0], port, credentials);
         } catch (Exception ex) {
             return null;
         }
+    }
+
+    @Override
+    public @NotNull Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
+        if (DataFlavor.stringFlavor.equals(flavor)) {
+            return toTransferableSymbol();
+        }
+        return super.getTransferData(flavor);
+    }
+
+    @Override
+    public @NotNull KdbInstance copy() {
+        return new KdbInstance(getName(), host, port, credentials, options);
     }
 }

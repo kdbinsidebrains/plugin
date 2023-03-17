@@ -6,8 +6,7 @@ import org.kdb.inside.brains.core.KdbScope;
 import org.kdb.inside.brains.core.ScopeType;
 import org.kdb.inside.brains.core.StructuralItem;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ImportQPadActionTest {
     @Test
@@ -35,34 +34,34 @@ class ImportQPadActionTest {
         assertEquals("localhost", i3.getHost());
         assertEquals(9001, i3.getPort());
         assertNull(i3.getCredentials());
-        assertNull(i3.getOptions());
+        assertNotNull(i3.getOptions());
 
         final KdbInstance i4 = (KdbInstance) i1.getChild(1);
         assertEquals("3452345", i4.getName());
         assertEquals("localhost", i4.getHost());
         assertEquals(134, i4.getPort());
         assertNull(i4.getCredentials());
-        assertNull(i4.getOptions());
+        assertNotNull(i4.getOptions());
 
         final KdbInstance i5 = (KdbInstance) scope.getChild(1);
         assertEquals("a", i5.getName());
         assertEquals("asdfasdf", i5.getHost());
         assertEquals(32234, i5.getPort());
         assertEquals("asdf:234", i5.getCredentials());
-        assertNull(i5.getOptions());
+        assertNotNull(i5.getOptions());
 
         final KdbInstance i6 = (KdbInstance) scope.getChild(2);
         assertEquals("b", i6.getName());
         assertEquals("asdfasdf", i6.getHost());
         assertEquals(32234, i6.getPort());
         assertEquals("asdf", i6.getCredentials());
-        assertNull(i6.getOptions());
+        assertNotNull(i6.getOptions());
 
         final KdbInstance i7 = (KdbInstance) scope.getChild(3);
         assertEquals("c", i7.getName());
         assertEquals("asdfasdf", i7.getHost());
         assertEquals(32234, i7.getPort());
         assertEquals("asdf", i7.getCredentials());
-        assertNull(i7.getOptions());
+        assertNotNull(i7.getOptions());
     }
 }

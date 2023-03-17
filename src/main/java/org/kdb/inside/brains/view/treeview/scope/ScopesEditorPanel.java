@@ -225,7 +225,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
         if (newName == null) {
             return;
         }
-        addNewScope(new KdbScope(newName, type, null, null));
+        addNewScope(new KdbScope(newName, type, InstanceOptions.INHERITED, null));
     }
 
     private String createUniqueName(String prefix) {

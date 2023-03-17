@@ -10,6 +10,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.IoErrorText;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.core.InstanceItem;
+import org.kdb.inside.brains.core.InstanceOptions;
 import org.kdb.inside.brains.core.KdbInstance;
 import org.kdb.inside.brains.core.StructuralItem;
 import org.kdb.inside.brains.view.treeview.InstancesScopeView;
@@ -76,7 +77,7 @@ public class ImportQPadAction extends SingleItemAction {
             final String name = split[split.length - 1];
             final KdbInstance inst = KdbInstance.parseInstance(split[0]);
             if (inst != null) {
-                parent.createInstance(name, inst.getHost(), inst.getPort(), inst.getCredentials(), null);
+                parent.createInstance(name, inst.getHost(), inst.getPort(), inst.getCredentials(), InstanceOptions.INHERITED);
             }
         }
     }

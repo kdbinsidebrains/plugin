@@ -23,7 +23,7 @@ public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
     private KdbScope editableScope;
 
     private final KdbScopesManager scopesManager;
-    private final InheritInstanceOptionsPanel optionsPanel;
+    private final InstanceOptionsPanel optionsPanel;
     private final CredentialsEditorPanel credentialsPanel;
 
     private final JCheckBox sharedCheckbox;
@@ -36,7 +36,8 @@ public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
         this.editableScope = scope;
         this.scopesManager = scopesManager;
 
-        optionsPanel = new InheritInstanceOptionsPanel(null, scope.getOptions());
+        optionsPanel = new InstanceOptionsPanel(true);
+        optionsPanel.setInstanceOptions(scope.getOptions());
 
         credentialsPanel = new CredentialsEditorPanel(true);
         credentialsPanel.setCredentials(scope.getCredentials());
@@ -54,7 +55,7 @@ public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
         if (Comparing.strEqual(editableScope.getName(), name)) {
             return;
         }
-        editableScope = new KdbScope(name, getCurrentType(), getCurrentCredentials(), getInstanceOptions());
+        editableScope = new KdbScope(name, getCurrentType(), getInstanceOptions(), getCurrentCredentials());
     }
 
     @Override
@@ -73,7 +74,7 @@ public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
 
     @Override
     public KdbScope getEditableObject() {
-        return new KdbScope(editableScope.getName(), getCurrentType(), getCurrentCredentials(), getInstanceOptions());
+        return new KdbScope(editableScope.getName(), getCurrentType(), getInstanceOptions(), getCurrentCredentials());
     }
 
     @Override
@@ -128,7 +129,7 @@ public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
             throw new ConfigurationException("Some credentials parameters are wrong. Please check appropriate fields.");
         }
 
-        editableScope = new KdbScope(editableScope.getName(), getCurrentType(), getCurrentCredentials(), getInstanceOptions());
+        editableScope = new KdbScope(editableScope.getName(), getCurrentType(), getInstanceOptions(), getCurrentCredentials());
         if (scopesManager.containsScope(originalScope)) {
             originalScope.update(editableScope);
         } else {

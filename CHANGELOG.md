@@ -5,8 +5,8 @@
 ### Added
 
 - 2023.1 EAP version checked and added to supported list
-- Asynchronous connection has been added: a message sent with messageType=0 (asynchronous) and the connection forever
-  waits a response.
+- Asynchronous connection has been added: a message sent with messageType=0 (asynchronous) and asynchronous response is
+  expected as result.
 - Active Instance is underlined in Instances View
 - Changing active connection in the toolbar or via Kdb Console selects the instance in KDB Instances View (configuration
   option. Enabled by default).

@@ -36,7 +36,7 @@ public class InstanceEditorDialog extends DialogWrapper {
     private boolean eventInFire = false;
     private String lastSymbolValue = "";
 
-    private final InheritInstanceOptionsPanel optionsEditor;
+    private final InstanceOptionsPanel optionsEditor;
     private final CredentialsEditorPanel credentialsEditor;
 
     private final JBTextField nameField = new JBTextField();
@@ -86,7 +86,9 @@ public class InstanceEditorDialog extends DialogWrapper {
 
         final KdbScope scope = parent == null ? null : parent.getScope();
 
-        optionsEditor = new InheritInstanceOptionsPanel(scope, instance != null ? instance.getOptions() : null);
+        optionsEditor = new InstanceOptionsPanel(scope);
+        optionsEditor.setInstanceOptions(instance != null ? instance.getOptions() : null);
+
         credentialsEditor = new CredentialsEditorPanel(scope);
 
         initPanel(scope, instance);

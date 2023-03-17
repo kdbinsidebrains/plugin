@@ -8,27 +8,27 @@ import java.util.stream.Collectors;
 public abstract class StructuralItem extends InstanceItem implements Iterable<InstanceItem> {
     protected final List<InstanceItem> children = new ArrayList<>();
 
-    StructuralItem(String name) {
+    StructuralItem(@NotNull String name) {
         super(name);
     }
 
-    public PackageItem createPackage(String name) {
+    public PackageItem createPackage(@NotNull String name) {
         final PackageItem p = new PackageItem(name);
         insertChild(p, children.size());
         return p;
     }
 
-    public KdbInstance createInstance(String name, String host, int port, String credentials, InstanceOptions options) {
-        final KdbInstance i = new KdbInstance(name, host, port, credentials, options != null ? options.copy() : null);
+    public KdbInstance createInstance(@NotNull String name, @NotNull String host, int port, String credentials, @NotNull InstanceOptions options) {
+        final KdbInstance i = new KdbInstance(name, host, port, credentials, options);
         insertChild(i, children.size());
         return i;
     }
 
-    public InstanceItem copyItem(InstanceItem item) {
+    public InstanceItem copyItem(@NotNull InstanceItem item) {
         return copyItem(item, children.size());
     }
 
-    public InstanceItem copyItem(InstanceItem item, int pos) {
+    public InstanceItem copyItem(@NotNull InstanceItem item, int pos) {
         if (!(item instanceof PackageItem) && !(item instanceof KdbInstance)) {
             throw new IllegalArgumentException("Item must be PackageItem or KdbInstance");
         }
@@ -37,11 +37,11 @@ public abstract class StructuralItem extends InstanceItem implements Iterable<In
         return copy;
     }
 
-    public InstanceItem moveItem(InstanceItem item) {
+    public InstanceItem moveItem(@NotNull InstanceItem item) {
         return moveItem(item, children.size());
     }
 
-    public InstanceItem moveItem(InstanceItem item, int pos) {
+    public InstanceItem moveItem(@NotNull InstanceItem item, int pos) {
         if (!(item instanceof PackageItem) && !(item instanceof KdbInstance)) {
             throw new IllegalArgumentException("Item must be PackageItem or KdbInstance");
         }
@@ -49,11 +49,11 @@ public abstract class StructuralItem extends InstanceItem implements Iterable<In
         return item;
     }
 
-    public void removeItem(InstanceItem item) {
+    public void removeItem(@NotNull InstanceItem item) {
         removeChild(item);
     }
 
-    private void insertChild(InstanceItem item, int pos) {
+    private void insertChild(@NotNull InstanceItem item, int pos) {
         final int index = childIndex(item);
 
         // Nothing to change

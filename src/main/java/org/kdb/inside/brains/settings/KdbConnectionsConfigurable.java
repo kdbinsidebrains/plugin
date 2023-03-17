@@ -19,7 +19,7 @@ public class KdbConnectionsConfigurable extends KdbConfigurable {
 
     private final CredentialPluginsPanel pluginsPanel = new CredentialPluginsPanel();
     private final CredentialsEditorPanel credentialsPanel = new CredentialsEditorPanel(false);
-    private final InstanceOptionsPanel instanceOptionsPanel = new InstanceOptionsPanel();
+    private final InstanceOptionsPanel instanceOptionsPanel = new InstanceOptionsPanel(false);
 
     private final KdbSettingsService settingsService = KdbSettingsService.getInstance();
 

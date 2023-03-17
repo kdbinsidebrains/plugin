@@ -19,13 +19,13 @@ class KdbInstanceTest {
     }
 
     private void validateInstance(String url) {
-        final KdbInstance kdbInstance = KdbInstance.parseInstance(url);
+        final KdbInstance instance = KdbInstance.parseInstance(url);
 
-        assertNotNull(kdbInstance);
-        assertEquals(url, kdbInstance.getName());
-        assertEquals("asd", kdbInstance.getHost());
-        assertEquals(9090, kdbInstance.getPort());
-        assertEquals("my:pass", kdbInstance.getCredentials());
-        assertNull(kdbInstance.getOptions());
+        assertNotNull(instance);
+        assertEquals(url, instance.getName());
+        assertEquals("asd", instance.getHost());
+        assertEquals(9090, instance.getPort());
+        assertEquals("my:pass", instance.getCredentials());
+        assertNotNull(instance.getOptions());
     }
 }

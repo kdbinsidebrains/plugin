@@ -1,5 +1,7 @@
 package org.kdb.inside.brains.core;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -11,11 +13,11 @@ public final class KdbScope extends StructuralItem implements CredentialsItem {
 
     private final List<KdbScopeListener> listeners = new ArrayList<>();
 
-    public KdbScope(String name, ScopeType type) {
-        this(name, type, null, null);
+    public KdbScope(@NotNull String name, @NotNull ScopeType type) {
+        this(name, type, new InstanceOptions(), null);
     }
 
-    public KdbScope(String name, ScopeType type, String credentials, InstanceOptions options) {
+    public KdbScope(@NotNull String name, @NotNull ScopeType type, @NotNull InstanceOptions options, String credentials) {
         super(name);
         this.type = Objects.requireNonNull(type);
         this.credentials = credentials;
@@ -55,26 +57,26 @@ public final class KdbScope extends StructuralItem implements CredentialsItem {
         setName(name);
         this.type = type;
         this.credentials = credentials;
-        this.options = options == null ? null : options.copy();
+        this.options = options;
 
         notifyItemUpdated();
     }
 
-    protected void processItemUpdated(InstanceItem item) {
+    void processItemUpdated(InstanceItem item) {
         listeners.forEach(l -> l.itemUpdated(this, item));
     }
 
-    protected void processItemAdded(StructuralItem parent, InstanceItem child, int index) {
+    void processItemAdded(StructuralItem parent, InstanceItem child, int index) {
         listeners.forEach(l -> l.itemCreated(this, parent, child, index));
     }
 
-    protected void processItemRemoved(StructuralItem parent, InstanceItem child, int index) {
+    void processItemRemoved(StructuralItem parent, InstanceItem child, int index) {
         listeners.forEach(l -> l.itemRemoved(this, parent, child, index));
     }
 
     @Override
     public KdbScope copy() {
-        final KdbScope s = new KdbScope(getName(), type, credentials, options != null ? options.copy() : null);
+        final KdbScope s = new KdbScope(getName(), type, options, credentials);
         for (InstanceItem child : children) {
             s.copyItem(child);
         }
