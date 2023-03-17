@@ -1,7 +1,5 @@
 package kx;
 
-import org.kdb.inside.brains.core.InstanceOptions;
-
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.Closeable;
@@ -18,17 +16,17 @@ public class KxConnection extends c implements Closeable {
 
     public static final TimeZone UTC_TIMEZONE = TimeZone.getTimeZone("UTC");
 
-    public KxConnection(String host, int port, InstanceOptions options) throws IOException {
+    public KxConnection(String host, int port, boolean async, boolean ssl, boolean compression) throws IOException {
         tz = UTC_TIMEZONE;
         setEncoding("UTF-8");
 
-        zip = options.isCompression();
-        msgType = options.isAsynchronous() ? 0 : 1;
+        zip = compression;
+        msgType = async ? 0 : 1;
 
         // We have to split original constructor into socket creating and authentification to be able to cancel
         // authentication - it could take too long if the instance is busy.
         s = new Socket(host.isBlank() ? "localhost" : host, port);
-        if (options.isTls()) {
+        if (ssl) {
             try {
                 s = ((SSLSocketFactory) SSLSocketFactory.getDefault()).createSocket(s, host, port, true);
                 ((SSLSocket) s).startHandshake();

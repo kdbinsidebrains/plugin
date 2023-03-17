@@ -1,16 +1,13 @@
-package org.kdb.inside.brains.view.treeview.options;
+package org.kdb.inside.brains.core;
 
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.FormBuilder;
-import org.kdb.inside.brains.core.InstanceOptions;
-import org.kdb.inside.brains.core.InstanceOptionsPanel;
-import org.kdb.inside.brains.core.KdbScope;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class OptionsEditorPanel extends AbstractOptionsPanel {
+public class InheritInstanceOptionsPanel extends AbstractOptionsPanel {
     private InstanceOptions editableOptions;
 
     private final JBCheckBox inheritedOptions;
@@ -18,11 +15,11 @@ public class OptionsEditorPanel extends AbstractOptionsPanel {
     private final InstanceOptions defaultOptions;
     private final InstanceOptionsPanel optionsPanel;
 
-    public OptionsEditorPanel(InstanceOptions options) {
+    public InheritInstanceOptionsPanel(InstanceOptions options) {
         this(null, options);
     }
 
-    public OptionsEditorPanel(KdbScope scope, InstanceOptions options) {
+    public InheritInstanceOptionsPanel(KdbScope scope, InstanceOptions options) {
         super(new BorderLayout());
 
         InstanceOptions parent = null;

@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.core.credentials.CredentialsError;
-import org.kdb.inside.brains.view.treeview.options.OptionsEditorPanel;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -37,7 +36,7 @@ public class InstanceEditorDialog extends DialogWrapper {
     private boolean eventInFire = false;
     private String lastSymbolValue = "";
 
-    private final OptionsEditorPanel optionsEditor;
+    private final InheritInstanceOptionsPanel optionsEditor;
     private final CredentialsEditorPanel credentialsEditor;
 
     private final JBTextField nameField = new JBTextField();
@@ -87,7 +86,7 @@ public class InstanceEditorDialog extends DialogWrapper {
 
         final KdbScope scope = parent == null ? null : parent.getScope();
 
-        optionsEditor = new OptionsEditorPanel(scope, instance != null ? instance.getOptions() : null);
+        optionsEditor = new InheritInstanceOptionsPanel(scope, instance != null ? instance.getOptions() : null);
         credentialsEditor = new CredentialsEditorPanel(scope);
 
         initPanel(scope, instance);
@@ -409,6 +408,11 @@ public class InstanceEditorDialog extends DialogWrapper {
         p.add(p2, BorderLayout.LINE_END);
 
         panel.add(p, c.next());
+/*
+        panel.add(new TitledSeparator("Advanced"), c.nextLine().next().coverLine(2).insetLeft(0));
+        panel.add(Box.createHorizontalBox(), c.nextLine().next());
+        panel.add(new JBCheckBox("Asynchronous connection"), c.next());
+*/
 
         return panel;
     }

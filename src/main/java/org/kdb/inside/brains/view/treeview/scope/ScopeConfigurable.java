@@ -9,13 +9,9 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.core.InstanceOptions;
-import org.kdb.inside.brains.core.KdbScope;
-import org.kdb.inside.brains.core.KdbScopesManager;
-import org.kdb.inside.brains.core.ScopeType;
+import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.core.credentials.CredentialsError;
 import org.kdb.inside.brains.view.treeview.forms.CredentialsEditorPanel;
-import org.kdb.inside.brains.view.treeview.options.OptionsEditorPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,7 +23,7 @@ public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
     private KdbScope editableScope;
 
     private final KdbScopesManager scopesManager;
-    private final OptionsEditorPanel optionsPanel;
+    private final InheritInstanceOptionsPanel optionsPanel;
     private final CredentialsEditorPanel credentialsPanel;
 
     private final JCheckBox sharedCheckbox;
@@ -40,7 +36,7 @@ public class ScopeConfigurable extends NamedConfigurable<KdbScope> {
         this.editableScope = scope;
         this.scopesManager = scopesManager;
 
-        optionsPanel = new OptionsEditorPanel(null, scope.getOptions());
+        optionsPanel = new InheritInstanceOptionsPanel(null, scope.getOptions());
 
         credentialsPanel = new CredentialsEditorPanel(true);
         credentialsPanel.setCredentials(scope.getCredentials());

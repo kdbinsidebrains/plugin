@@ -380,109 +380,32 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         return NotificationGroupManager.getInstance().getNotificationGroup("Kdb.ConnectionState").createNotification(content, type).setIcon(KdbIcons.Main.Notification);
     }
 
-    private class ConnectionProgressive implements Progressive {
-        private KxConnection connection = null;
-        private ScheduledFuture<?> progressFeature = null;
+    /**
+     * We redefine scope and parent here so instance can inherit its credentials.
+     */
+    private static class TemporalKdbInstance extends KdbInstance {
+        private final KdbScope scope;
 
-        private final TheInstanceConnection myConnection;
-
-        public ConnectionProgressive(TheInstanceConnection connection) {
-            this.myConnection = connection;
-        }
-
-        private boolean isCancelled(@NotNull ProgressIndicator indicator) {
-            return myConnection.state == InstanceState.DISCONNECTED || indicator.isCanceled();
+        public TemporalKdbInstance(KdbInstance instance, KdbScope scope) {
+            super(instance.getName(), instance.getHost(), instance.getPort(), instance.getCredentials(), instance.getOptions());
+            this.scope = scope;
         }
 
         @Override
-        public void run(@NotNull ProgressIndicator indicator) {
-            final KdbInstance instance = myConnection.instance;
+        public KdbScope getScope() {
+            // Has scope
+            return scope;
+        }
 
-            final String instanceName = instance.getName();
-            final InstanceOptions options = InstanceOptions.resolveOptions(instance);
-            final int timeout = options.getTimeout();
+        @Override
+        public StructuralItem getParent() {
+            // But no parent
+            return scope;
+        }
 
-            try {
-                final String credentials = CredentialService.resolveCredentials(instance);
-
-                if (isCancelled(indicator)) {
-                    return;
-                }
-
-                indicator.setText("Connecting to KDB Instance: " + instanceName);
-                indicator.setText2("with timeout " + timeout + "ms");
-
-                // 10ms is graduation
-                final double ticks = timeout / (double) PROGRESS_TICK_MILLIS;
-
-                // create connection - an error could be here
-                connection = new KxConnection(instance.getHost(), instance.getPort(), options);
-                if (isCancelled(indicator)) {
-                    throw new CancellationException();
-                }
-
-                // We count from 1 to 0 as it's timeout connection
-                indicator.setIndeterminate(false);
-                indicator.setFraction(1);
-
-                // Prepare progress and cancellation monitoring
-                progressFeature = connectionProgressExecutor.scheduleAtFixedRate(new Runnable() {
-                    int i = 0;
-
-                    @Override
-                    public void run() {
-                        if (myConnection.state == InstanceState.DISCONNECTED) {
-                            progressFeature.cancel(true);
-                            return;
-                        }
-
-                        if (i >= ticks || indicator.isCanceled()) {
-                            // cancel connection
-                            indicator.setFraction(0);
-                            progressFeature.cancel(true);
-                            connection.close();
-
-                            if (indicator.isCanceled()) {
-                                indicator.setText2("Cancelling connection...");
-                            } else if (i == ticks) {
-                                indicator.setText2("Connection expiring. Interruption...");
-                            }
-                        } else {
-                            indicator.setFraction(1 - (i / ticks));
-                            indicator.setText2("Waiting " + (timeout - i * PROGRESS_TICK_MILLIS) + "ms more before interruption");
-                            i++;
-                        }
-                    }
-                }, PROGRESS_TICK_MILLIS, PROGRESS_TICK_MILLIS, TimeUnit.MILLISECONDS);
-
-                // and try to get response from KDB
-                connection.authenticate(credentials);
-                if (isCancelled(indicator)) {
-                    throw new CancellationException();
-                }
-
-                // connected
-                myConnection.connected(connection);
-            } catch (Exception ex) {
-                if (connection != null) {
-                    connection.close();
-                }
-
-                if (isCancelled(indicator)) {
-                    myConnection.close(null);
-                } else {
-                    if (indicator.getFraction() == 0) {
-                        myConnection.close(new IOException("Interrupted by timeout after " + timeout + "ms"));
-                    } else {
-                        myConnection.close(ex);
-                    }
-                }
-            } finally {
-                if (progressFeature != null) {
-                    progressFeature.cancel(true);
-                    progressFeature = null;
-                }
-            }
+        @Override
+        protected void notifyItemUpdated() {
+            // We don't notify anything. Scope here just for settings
         }
     }
 
@@ -732,32 +655,109 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         }
     }
 
-    /**
-     * We redefine scope and parent here so instance can inherit it's credentials.
-     */
-    private static class TemporalKdbInstance extends KdbInstance {
-        private final KdbScope scope;
+    private class ConnectionProgressive implements Progressive {
+        private KxConnection connection = null;
+        private ScheduledFuture<?> progressFeature = null;
 
-        public TemporalKdbInstance(KdbInstance instance, KdbScope scope) {
-            super(instance.getName(), instance.getHost(), instance.getPort(), instance.getCredentials(), instance.getOptions());
-            this.scope = scope;
+        private final TheInstanceConnection myConnection;
+
+        public ConnectionProgressive(TheInstanceConnection connection) {
+            this.myConnection = connection;
+        }
+
+        private boolean isCancelled(@NotNull ProgressIndicator indicator) {
+            return myConnection.state == InstanceState.DISCONNECTED || indicator.isCanceled();
         }
 
         @Override
-        public KdbScope getScope() {
-            // Has scope
-            return scope;
-        }
+        public void run(@NotNull ProgressIndicator indicator) {
+            final KdbInstance instance = myConnection.instance;
 
-        @Override
-        public StructuralItem getParent() {
-            // But no parent
-            return scope;
-        }
+            final String instanceName = instance.getName();
+            final InstanceOptions options = InstanceOptions.resolveOptions(instance);
+            final int timeout = options.getTimeout();
 
-        @Override
-        protected void notifyItemUpdated() {
-            // We don't notify anything. Scope here just for settings
+            try {
+                final String credentials = CredentialService.resolveCredentials(instance);
+
+                if (isCancelled(indicator)) {
+                    return;
+                }
+
+                indicator.setText("Connecting to KDB Instance: " + instanceName);
+                indicator.setText2("with timeout " + timeout + "ms");
+
+                // 10ms is graduation
+                final double ticks = timeout / (double) PROGRESS_TICK_MILLIS;
+
+                // create connection - an error could be here
+                connection = new KxConnection(instance.getHost(), instance.getPort(), options.isAsynchronous(), options.isTls(), options.isCompression());
+                if (isCancelled(indicator)) {
+                    throw new CancellationException();
+                }
+
+                // We count from 1 to 0 as it's timeout connection
+                indicator.setIndeterminate(false);
+                indicator.setFraction(1);
+
+                // Prepare progress and cancellation monitoring
+                progressFeature = connectionProgressExecutor.scheduleAtFixedRate(new Runnable() {
+                    int i = 0;
+
+                    @Override
+                    public void run() {
+                        if (myConnection.state == InstanceState.DISCONNECTED) {
+                            progressFeature.cancel(true);
+                            return;
+                        }
+
+                        if (i >= ticks || indicator.isCanceled()) {
+                            // cancel connection
+                            indicator.setFraction(0);
+                            progressFeature.cancel(true);
+                            connection.close();
+
+                            if (indicator.isCanceled()) {
+                                indicator.setText2("Cancelling connection...");
+                            } else if (i == ticks) {
+                                indicator.setText2("Connection expiring. Interruption...");
+                            }
+                        } else {
+                            indicator.setFraction(1 - (i / ticks));
+                            indicator.setText2("Waiting " + (timeout - i * PROGRESS_TICK_MILLIS) + "ms more before interruption");
+                            i++;
+                        }
+                    }
+                }, PROGRESS_TICK_MILLIS, PROGRESS_TICK_MILLIS, TimeUnit.MILLISECONDS);
+
+                // and try to get response from KDB
+                connection.authenticate(credentials);
+                if (isCancelled(indicator)) {
+                    throw new CancellationException();
+                }
+
+                // connected
+                myConnection.connected(connection);
+            } catch (Exception ex) {
+                if (connection != null) {
+                    connection.close();
+                }
+
+                if (isCancelled(indicator)) {
+                    myConnection.close(null);
+                } else {
+                    if (indicator.getFraction() == 0) {
+                        myConnection.close(new IOException("Interrupted by timeout after " + timeout + "ms"));
+                    } else {
+                        myConnection.close(ex);
+                    }
+                }
+            } finally {
+                if (progressFeature != null) {
+                    progressFeature.cancel(true);
+                    progressFeature = null;
+                }
+            }
         }
     }
 }

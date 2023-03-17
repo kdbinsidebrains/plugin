@@ -3,7 +3,6 @@ package org.kdb.inside.brains.core;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.FormBuilder;
-import org.kdb.inside.brains.view.treeview.options.AbstractOptionsPanel;
 
 import javax.swing.*;
 import java.awt.*;

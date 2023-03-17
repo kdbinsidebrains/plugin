@@ -1,6 +1,4 @@
-package org.kdb.inside.brains.view.treeview.options;
-
-import org.kdb.inside.brains.core.InstanceOptions;
+package org.kdb.inside.brains.core;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,19 +6,19 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class AbstractOptionsPanel extends JPanel {
-    private final List<OptionsChangedListener> listeners = new CopyOnWriteArrayList<>();
+    private final List<InstanceOptionsListener> listeners = new CopyOnWriteArrayList<>();
 
     public AbstractOptionsPanel(LayoutManager layoutManager) {
         super(layoutManager);
     }
 
-    public void addOptionsChangedListener(OptionsChangedListener l) {
+    public void addOptionsChangedListener(InstanceOptionsListener l) {
         if (listeners != null) {
             listeners.add(l);
         }
     }
 
-    public void removeOptionsChangedListener(OptionsChangedListener l) {
+    public void removeOptionsChangedListener(InstanceOptionsListener l) {
         if (listeners != null) {
             listeners.remove(l);
         }
