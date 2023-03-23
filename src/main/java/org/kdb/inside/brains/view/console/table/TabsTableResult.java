@@ -338,7 +338,7 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
             if (tableTab != null) {
                 ((TableResultView) tableTab.getObject()).showResult(tableResult);
                 tabs.select(tableTab, false);
-            } else {
+            } else if (tableResult != null) {
                 tableTab = createResultTabInfo("Table Result", tableResult, TableMode.NORMAL, repeater);
                 insertNewTab(tableTab, consoleTab != null ? 1 : 0);
             }

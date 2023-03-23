@@ -84,7 +84,7 @@ public class InstancesTreeRenderer extends ColoredTreeCellRenderer {
             }
 
             if (active == connection) {
-                mainStyle |= SimpleTextAttributes.STYLE_BOLD_DOTTED_LINE;
+                mainStyle |= SimpleTextAttributes.STYLE_BOLD_UNDERLINE;
             }
 
             if (connection.getQuery() != null) {

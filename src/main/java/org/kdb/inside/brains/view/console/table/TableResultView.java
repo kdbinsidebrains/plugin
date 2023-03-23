@@ -181,7 +181,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             }
         });
 
-        initializeColumnHighlither();
+        initializeColumnHighlighter();
 
         searchSession = new TableResultSearchSession(myTable, project, new FindModel());
         searchSession.getFindModel().addObserver(this::modelBeenUpdated);
@@ -299,7 +299,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         return actionToolbar.getComponent();
     }
 
-    private void initializeColumnHighlither() {
+    private void initializeColumnHighlighter() {
         final JTableHeader header = myTable.getTableHeader();
 
         final Border normalBorder = JBUI.Borders.emptyBottom(1);

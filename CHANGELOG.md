@@ -1,5 +1,12 @@
 # KdbInsideBrains Changelog
 
+## [3.7.1]
+
+### Fixed
+
+- 'Table Result' is opened even there is no table result.
+- Active instance style changed to bold underline.
+
 ## [3.7.0]
 
 ### Added
