@@ -1,6 +1,7 @@
 package org.kdb.inside.brains;
 
 import com.intellij.lang.Language;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -23,6 +24,8 @@ public final class QLanguage extends Language {
     private static final Predicate<String> IDENTIFIER = Pattern.compile(VARIABLE_PATTERN).asMatchPredicate();
 
     public static final QLanguage INSTANCE = new QLanguage();
+
+    public static final ProjectSystemId SYSTEM_ID = new ProjectSystemId("KdbInsideBrains");
 
     private QLanguage() {
         super("q");

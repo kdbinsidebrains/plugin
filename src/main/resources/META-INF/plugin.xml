@@ -88,7 +88,7 @@
                 icon="AllIcons.Actions.Suspend"/>
 
         <group id="Kdb.ExecuteOn" popup="true"
-               text="Execute Line/Selection on ..."
+               text="Execute Line/Selection On ..."
                description="Execute current line or selection in specified KDB process"
                icon="KdbIcons.Instance.ExecuteOn"
                class="org.kdb.inside.brains.action.ExecuteOnAction">
@@ -345,6 +345,8 @@
                                  implementationClass="org.kdb.inside.brains.lang.refactoring.QRefactoringSupportProvider"/>
         <lang.syntaxHighlighterFactory language="q"
                                        implementationClass="org.kdb.inside.brains.lang.QSyntaxHighlighterFactory"/>
+        <lang.sliceProvider language="q"
+                            implementationClass="org.kdb.inside.brains.lang.slicer.QSliceLanguageSupportProvider"/>
 
         <spellchecker.support language="q" implementationClass="org.kdb.inside.brains.lang.QSpellcheckingStrategy"/>
 

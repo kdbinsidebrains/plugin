@@ -30,20 +30,28 @@ public class ExecuteAction extends DumbAwareAction {
         myConnection = connection;
     }
 
-    @Override
-    public void update(@NotNull AnActionEvent e) {
-        final DataContext dataContext = e.getDataContext();
-        final Presentation presentation = e.getPresentation();
+    public static boolean isExecutedAllowed(AnActionEvent e) {
         if (ActionPlaces.KEYBOARD_SHORTCUT.equals(e.getPlace())) {
-            return;
+            return false;
         }
 
-        final VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-        final Project project = CommonDataKeys.PROJECT.getData(dataContext);
-        if (project == null || !QFileType.is(file)) {
-            presentation.setEnabled(false);
-        } else {
-            final InstanceConnection activeInstance = getConnection(project);
+        final Project project = e.getData(CommonDataKeys.PROJECT);
+        if (project == null) {
+            return false;
+        }
+
+        final VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
+        return QFileType.is(file);
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+        final boolean allowed = isExecutedAllowed(e);
+        final Presentation presentation = e.getPresentation();
+
+        presentation.setVisible(allowed);
+        if (allowed) {
+            final InstanceConnection activeInstance = getConnection(e.getProject());
             presentation.setEnabled(activeInstance != null && activeInstance.getState() == InstanceState.CONNECTED);
         }
     }
