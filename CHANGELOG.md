@@ -1,6 +1,6 @@
 # KdbInsideBrains Changelog
 
-## [3.8.0]
+## [3.8.1]
 
 ### Added
 

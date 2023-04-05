@@ -31,6 +31,8 @@ public class QIconProvider extends IconProvider implements DumbAware {
             return KdbIcons.Node.Command;
         } else if (element instanceof QContext) {
             return KdbIcons.Node.Context;
+        } else if (element instanceof QSymbol) {
+            return KdbIcons.Node.Symbol;
         } else if (element instanceof QTableColumn) {
             return getColumnIcon((QTableColumn) element);
         } else if (element instanceof QLambdaExpr) {

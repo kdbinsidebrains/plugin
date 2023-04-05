@@ -54,8 +54,8 @@ public class QSliceUsage extends SliceUsage {
             return;
         }
 
-        final Collection<QVarReference> children = PsiTreeUtil.findChildrenOfAnyType(exp, QVarReference.class);
-        for (QVarReference child : children) {
+        final Collection<QPsiElement> children = PsiTreeUtil.findChildrenOfAnyType(exp, QVarReference.class, QSymbol.class);
+        for (QPsiElement child : children) {
             final PsiReference reference = child.getReference();
             if (reference == null) {
                 continue;
