@@ -1,5 +1,16 @@
 # KdbInsideBrains Changelog
 
+## [3.8.0]
+
+### Added
+
+- Function Dependency Analysis introduced: https://www.kdbinsidebrains.dev/features/analysis
+- IDEA 2023.1 release version added and set as default for testing.
+
+### Fixed
+
+- 'Execute ...' menu only is visible for Q/K files.
+
 ## [3.7.1]
 
 ### Fixed

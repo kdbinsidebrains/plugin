@@ -38,6 +38,9 @@ public class QIconProvider extends IconProvider implements DumbAware {
         } else if (element instanceof QAssignmentExpr) {
             final QAssignmentExpr assignment = (QAssignmentExpr) element;
             return getAssignmentIcon(assignment, visibility);
+        } else if (element instanceof QVarDeclaration) {
+            final QVarDeclaration declaration = (QVarDeclaration) element;
+            return getIcon(declaration.getParent(), flags);
         }
         return null;
     }

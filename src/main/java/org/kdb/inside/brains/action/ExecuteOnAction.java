@@ -23,6 +23,12 @@ public class ExecuteOnAction extends ActionGroup implements DumbAware {
     }
 
     @Override
+    public void update(@NotNull AnActionEvent e) {
+        final boolean allowed = ExecuteAction.isExecutedAllowed(e);
+        e.getPresentation().setVisible(allowed);
+    }
+
+    @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
     }
 
@@ -34,6 +40,10 @@ public class ExecuteOnAction extends ActionGroup implements DumbAware {
 
         final Project project = e.getProject();
         if (project == null) {
+            return EMPTY_ARRAY;
+        }
+
+        if (!ExecuteAction.isExecutedAllowed(e)) {
             return EMPTY_ARRAY;
         }
 
