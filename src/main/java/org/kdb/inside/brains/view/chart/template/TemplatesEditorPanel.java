@@ -69,7 +69,7 @@ class TemplatesEditorPanel extends MasterDetailsComponent {
     protected void initTree() {
         super.initTree();
         myTree.setShowsRootHandles(false);
-        new TreeSpeedSearch(myTree, treePath -> ((MyNode) treePath.getLastPathComponent()).getDisplayName(), true);
+        new TreeSpeedSearch(myTree, true, treePath -> ((MyNode) treePath.getLastPathComponent()).getDisplayName());
 
         final ColoredTreeCellRenderer cellRenderer = (ColoredTreeCellRenderer) myTree.getCellRenderer();
 

@@ -12,7 +12,7 @@ import org.jetbrains.jps.model.java.JavaSourceRootType;
 public class KdbModuleEditorsProvider implements ModuleConfigurationEditorProvider {
     @Override
     public ModuleConfigurationEditor[] createEditors(ModuleConfigurationState state) {
-        final var rootModel = state.getRootModel();
+        final var rootModel = state.getModifiableRootModel();
         final Module module = rootModel.getModule();
         if (!(ModuleType.get(module) instanceof KdbModuleType)) {
             return ModuleConfigurationEditor.EMPTY;

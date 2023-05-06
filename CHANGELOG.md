@@ -1,5 +1,16 @@
 # KdbInsideBrains Changelog
 
+## [4.0.0]
+
+### Changed
+
+- Lowest IDEA version is 2022.3 to support latest changes and get rid of some errors.
+- Libs upgrade to required versions
+
+### Added
+
+- QuickInstance toolbar for NewUI
+
 ## [3.8.1]
 
 ### Added

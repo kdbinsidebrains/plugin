@@ -36,6 +36,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
+import javax.swing.plaf.basic.BasicHTML;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -102,7 +103,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
             presentation.putClientProperty(ACTIVE_INSTANCE, null);
 
             final Presentation templatePresentation = newConnectionAction.getTemplatePresentation();
-            presentation.setText(templatePresentation.getText());
+            presentation.setText("<html>" + templatePresentation.getText() + "</html>");
             presentation.setIcon(templatePresentation.getIcon());
             presentation.setDescription(templatePresentation.getDescription());
         }
@@ -136,7 +137,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         final ComboBoxButton button = new ComboBoxButton(presentation) {
             @Override
             public boolean isOpaque() {
-                return true;
+                return false;
             }
 
             @Override
@@ -170,12 +171,16 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
                             popup.showUnderneathOf(editor);
                         });
             }
-
-            @Override
-            protected DataContext getDataContext() {
-                return super.getDataContext();
-            }
         };
+//        button.setUI(new MainToolbarComboBoxButtonUI());
+
+        // See https://youtrack.jetbrains.com/issue/IDEA-307709
+        button.addPropertyChangeListener(evt -> {
+            final String n = evt.getPropertyName();
+            if ("UI".equals(n) || AbstractButton.TEXT_CHANGED_PROPERTY.equals(n)) {
+                BasicHTML.updateRenderer(button, button.getText());
+            }
+        });
 
         final ComponentValidator componentValidator = new ComponentValidator(() -> {
         });
@@ -240,6 +245,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
 
         final Border border = UIUtil.isUnderDefaultMacTheme() ?
                 JBUI.Borders.empty(0, 2) : JBUI.Borders.empty(0, 5, 0, 4);
+//        JBUI.Borders.empty(JBUI.CurrentTheme.RunWidget.toolbarBorderHeight(), 6);
         panel.setBorder(border);
 
         notificationComponent = panel;
@@ -258,11 +264,6 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         final int size = Math.max(2, list.getItemsCount());
         list.setVisibleRowCount(Math.min(size, 30));
         popup.pack(true, size < 30);
-    }
-
-    @Override
-    protected @NotNull DefaultActionGroup createPopupActionGroup(JComponent button) {
-        throw new UnsupportedOperationException("Not required here");
     }
 
     protected @NotNull DefaultActionGroup createPopupActionGroup(@NotNull String filter, DataContext dataContext) {
@@ -342,7 +343,6 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
     public static InstancesComboAction getInstance() {
         return (InstancesComboAction) ActionManager.getInstance().getAction("Kdb.Instances.QuickSelection");
     }
-
 
     @NotNull
     private static String generateName(KdbInstance instance, InstanceState state) {

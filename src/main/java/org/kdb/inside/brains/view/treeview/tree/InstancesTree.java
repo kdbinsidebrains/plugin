@@ -78,7 +78,7 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
         setCellRenderer(cellRenderer);
         setSelectionModel(selectionModel);
 
-        PopupHandler.installPopupHandler(this, "Kdb.InstancesScopeView", ActionPlaces.getActionGroupPopupPlace(ActionPlaces.INSTANCES_VIEW_POPUP));
+        PopupHandler.installPopupMenu(this, "Kdb.InstancesScopeView", ActionPlaces.getActionGroupPopupPlace(ActionPlaces.INSTANCES_VIEW_POPUP));
 
         InstancesSpeedSearch.install(this);
 

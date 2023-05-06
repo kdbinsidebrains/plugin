@@ -6,7 +6,6 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.*;
-import com.intellij.openapi.util.Condition;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.CommonActionsPanel;
@@ -96,7 +95,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
     protected ArrayList<AnAction> createActions(final boolean fromPopup) {
         final ArrayList<AnAction> result = new ArrayList<>();
         result.add(new MyAddAction(fromPopup));
-        result.add(new MyDeleteAction(all(o -> {
+        result.add(new MyDeleteAction(forAll(o -> {
             if (o instanceof MyNode) {
                 final NamedConfigurable<?> namedConfigurable = ((MyNode) o).getConfigurable();
                 final Object editableObject = namedConfigurable != null ? namedConfigurable.getEditableObject() : null;
@@ -117,7 +116,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
     protected void initTree() {
         super.initTree();
         myTree.setShowsRootHandles(false);
-        new TreeSpeedSearch(myTree, treePath -> ((MyNode) treePath.getLastPathComponent()).getDisplayName(), true);
+        new TreeSpeedSearch(myTree, true, treePath -> ((MyNode) treePath.getLastPathComponent()).getDisplayName());
 
         final ColoredTreeCellRenderer cellRenderer = (ColoredTreeCellRenderer) myTree.getCellRenderer();
 
@@ -289,8 +288,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
         }
 
         @Override
-        @NotNull
-        public AnAction[] getChildren(@Nullable AnActionEvent e) {
+        public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
             if (myChildren == null) {
                 myChildren = new DumbAwareAction[]{new DumbAwareAction("Local", "Local", KdbIcons.Scope.Local) {
                     @Override
@@ -401,14 +399,5 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
     public static class ScopesOrdersState extends MasterDetailsState {
         @XCollection(propertyElementName = "order", elementName = "scope", valueAttributeName = "name")
         public ArrayList<String> myOrder = new ArrayList<>();
-    }
-
-    private static Condition<Object[]> all(final Condition<Object> condition) {
-        return objects -> {
-            for (Object object : objects) {
-                if (!condition.value(object)) return false;
-            }
-            return true;
-        };
     }
 }

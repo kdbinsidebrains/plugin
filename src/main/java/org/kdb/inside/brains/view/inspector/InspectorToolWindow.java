@@ -126,7 +126,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
         TreeUtil.installActions(tree);
 
-        new TreeSpeedSearch(tree, path -> InspectorElement.unwrap(path).map(InspectorElement::getCanonicalName).orElse(null), true);
+        new TreeSpeedSearch(tree, true, path -> InspectorElement.unwrap(path).map(InspectorElement::getCanonicalName).orElse(null));
 
         setContent(ScrollPaneFactory.createScrollPane(tree));
         setToolbar(createToolbar());
@@ -134,7 +134,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
         final DefaultActionGroup popup = createPopup();
 
-        PopupHandler.installPopupHandler(tree, popup, "KdbInspectorPopup");
+        PopupHandler.installPopupMenu(tree, popup, "KdbInspectorPopup");
 
         updateEmptyText(null);
 
@@ -187,6 +187,11 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             public void actionPerformed(@NotNull AnActionEvent e) {
                 showDiffIfPossible(e.getProject());
             }
+
+            @Override
+            public @NotNull ActionUpdateThread getActionUpdateThread() {
+                return ActionUpdateThread.BGT;
+            }
         };
         diffAction.registerCustomShortcutSet(KeyEvent.VK_D, KeyEvent.CTRL_DOWN_MASK, tree);
 
@@ -236,11 +241,10 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         }
 
         final PsiElement parent = declaration.getParent();
-        if (!(parent instanceof QAssignmentExpr)) {
+        if (!(parent instanceof QAssignmentExpr assignment)) {
             return "";
         }
 
-        final QAssignmentExpr assignment = (QAssignmentExpr) parent;
         final QExpression expression = assignment.getExpression();
         if (expression == null) {
             return "";
@@ -728,6 +732,11 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             final Presentation presentation = e.getPresentation();
             presentation.setEnabled(connectionManager.getActiveConnection() != null);
         }
+
+        @Override
+        public @NotNull ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.BGT;
+        }
     }
 
     private final class MyCopyProvider implements CopyProvider {
@@ -747,6 +756,11 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
                 b.append(name);
             }
             CopyPasteManager.getInstance().setContents(new TextTransferable(b));
+        }
+
+        @Override
+        public @NotNull ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.EDT;
         }
 
         @Override

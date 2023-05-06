@@ -94,7 +94,7 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
                 model.fireTableDataChanged();
             }
         });
-        PopupHandler.installPopupHandler(pointsTable, contextMenu, "ChartValuesTool.Context");
+        PopupHandler.installPopupMenu(pointsTable, contextMenu, "ChartValuesTool.Context");
 
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("ChartValuesTool.Toolbar", contextMenu, false);
         actionToolbar.setTargetComponent(pointsTable);

@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.view.treeview.actions;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import org.jetbrains.annotations.NotNull;
@@ -40,5 +41,10 @@ public class ExportInstancesAction extends SingleItemAction {
 
         final List<KdbScope> scopes = List.of(scope);
         new ExportScopesAction("", "", () -> scopes).actionPerformed(e);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 }

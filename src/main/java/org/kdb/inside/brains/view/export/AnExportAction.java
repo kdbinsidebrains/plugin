@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.view.export;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -56,6 +57,11 @@ public abstract class AnExportAction<Config> extends AnAction implements DumbAwa
             return;
         }
         performExport(project, view);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 
     public void performExport(Project project, ExportDataProvider dataProvider) {

@@ -2,9 +2,9 @@ import org.jetbrains.changelog.Changelog
 
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '1.11.0'
+    id 'org.jetbrains.intellij' version '1.13.3'
     id 'org.jetbrains.changelog' version '2.0.0'
-    id "org.jetbrains.grammarkit" version "2021.2.2"
+    id "org.jetbrains.grammarkit" version "2022.3"
 }
 
 Properties versionProps = new Properties()
@@ -66,12 +66,12 @@ dependencies {
     implementation 'org.jfree:jfreesvg:3.4.3'
     implementation 'org.jfree:jfreechart:1.5.4'
 
-    implementation 'org.apache.poi:poi:5.2.2'
-    implementation 'org.apache.poi:poi-ooxml:5.2.2'
+    implementation 'org.apache.poi:poi:5.2.3'
+    implementation 'org.apache.poi:poi-ooxml:5.2.3'
 
-    testImplementation 'org.mockito:mockito-core:5.2.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.9.2'
+    testImplementation 'org.mockito:mockito-core:5.3.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.9.3'
 }
 
 sourceSets {

@@ -250,7 +250,7 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
     }
 
     @Override
-    public JComponent getContainerComponent() {
+    public @NotNull JComponent getContainerComponent() {
         return this;
     }
 
@@ -314,6 +314,11 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 closeTab(info);
+            }
+
+            @Override
+            public @NotNull ActionUpdateThread getActionUpdateThread() {
+                return ActionUpdateThread.EDT;
             }
         };
         closeAction.getTemplatePresentation().setHoveredIcon(AllIcons.Actions.CloseHovered);

@@ -84,7 +84,26 @@
             <keyboard-shortcut first-keystroke="ctrl shift S" keymap="$default"/>
         </action>
 
+        <action id="Kdb.Instances.QuickSelection"
+                text="Quick Instance Selection"
+                class="org.kdb.inside.brains.action.InstancesComboAction"/>
+
+        <action id="Kdb.Instances.ToggleActiveConnection" class="org.kdb.inside.brains.action.ToggleConnectAction"/>
+
+        <action id="Kdb.Instances.ModifyActiveInstance"
+                class="org.kdb.inside.brains.action.ModifyConnectionAction"
+                text="Quick Modify"
+                description="Quick modify active connection"
+                icon="AllIcons.Actions.Edit"/>
+
+        <action id="Kdb.Instances.BindConnection" class="org.kdb.inside.brains.lang.binding.BindConnectionAction"
+                text="Bind the Connection"
+                description="Binds the connection into active editor. Works in Manual mode only"
+                icon="KdbIcons.Instance.Bind"/>
+
         <action id="Kdb.CancelQueriesAction" class="org.kdb.inside.brains.action.CancelQueriesAction"
+                text="Cancel Active Queries"
+                description="Cancels all active queries, if possible"
                 icon="AllIcons.Actions.Suspend"/>
 
         <group id="Kdb.ExecuteOn" popup="true"
@@ -108,24 +127,17 @@
                 </group>
         -->
 
-        <group id="Kdb.MainToolbarActionGroup" class="org.kdb.inside.brains.action.MainToolbarActionGroup"
+        <group id="Kdb.MainToolbarActionGroup" text="KDB Instances Toolbar"
+               class="org.kdb.inside.brains.action.MainToolbarActionGroup"
                compact="true" searchable="false">
             <separator/>
 
-            <action id="Kdb.Instances.QuickSelection"
-                    class="org.kdb.inside.brains.action.InstancesComboAction"/>
+            <reference ref="Kdb.Instances.QuickSelection"/>
 
-            <action class="org.kdb.inside.brains.action.ToggleConnectAction"/>
+            <reference ref="Kdb.Instances.ToggleActiveConnection"/>
+            <reference ref="Kdb.Instances.ModifyActiveInstance"/>
 
-            <action class="org.kdb.inside.brains.action.ModifyConnectionAction"
-                    text="Quick Modify"
-                    description="Quick modify active connection"
-                    icon="AllIcons.Actions.Edit"/>
-
-            <action id="Kdb.Instances.BindConnection" class="org.kdb.inside.brains.lang.binding.BindConnectionAction"
-                    text="Bind the Connection"
-                    description="Binds the connection into active editor. Works in Manual mode only"
-                    icon="KdbIcons.Instance.Bind"/>
+            <reference ref="Kdb.Instances.BindConnection"/>
 
             <reference ref="Kdb.Execute"/>
             <reference ref="Kdb.QuickExecute"/>
@@ -135,13 +147,37 @@
 
             <add-to-group group-id="MainToolBar" anchor="after" relative-to-action="ToolbarRunGroup"/>
             <add-to-group group-id="NavBarToolBarOthers" anchor="first"/>
-
-            <!-- New UI-->
-            <!--
-                        <add-to-group group-id="MainToolbarRight" anchor="after"
-                                      relative-to-action="RunToolbarWidgetCustomizableActionGroup"/>
-            -->
         </group>
+
+        <!-- STAT NewUI-->
+        <!--
+                They redefine all parameters for custom buttons
+        -->
+        <!--
+                <action class="org.kdb.inside.brains.action.newui.NewUIToolbarComponent">
+                    <add-to-group group-id="MainToolbarRight" anchor="after" relative-to-action="RunToolbarMainActionGroup"/>
+                </action>
+        -->
+
+        <group id="Kdb.NewMainToolbarActionGroup" text="KDB Instances Toolbar"
+               class="org.kdb.inside.brains.action.MainToolbarActionGroup" compact="true">
+            <reference ref="Kdb.Instances.QuickSelection"/>
+            <reference ref="Kdb.Execute"/>
+            <action id="Kdb.MoreRunToolbarActions" class="org.kdb.inside.brains.action.newui.NewUIRunMoreActions"/>
+
+            <add-to-group group-id="MainToolbarRight" anchor="after" relative-to-action="RunToolbarMainActionGroup"/>
+        </group>
+
+        <group id="Kdb.MoreRunToolbarActionsGroup" popup="true" searchable="false">
+            <reference ref="Kdb.ContextExecute"/>
+            <separator/>
+            <reference ref="Kdb.Instances.ToggleActiveConnection"/>
+            <separator/>
+            <reference ref="Kdb.Instances.ModifyActiveInstance"/>
+            <separator/>
+            <reference ref="Kdb.Instances.BindConnection"/>
+        </group>
+        <!-- END NewUI-->
 
         <group id="Kdb.EditorContextActionGroup" searchable="false">
             <separator/>
