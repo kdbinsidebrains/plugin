@@ -281,6 +281,11 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
                 setShowIndexColumn(state);
             }
+
+            @Override
+            public @NotNull ActionUpdateThread getActionUpdateThread() {
+                return ActionUpdateThread.EDT;
+            }
         };
         action.registerCustomShortcutSet(KeyEvent.VK_I, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
         group.add(action);
@@ -291,7 +296,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         group.addSeparator();
         group.add(new ChartActionGroup(myTable));
 
-        PopupHandler.installPopupHandler(myTable, group, "TableResultView.Context");
+        PopupHandler.installPopupMenu(myTable, group, "TableResultView.Context");
 
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Actions", group, false);
         actionToolbar.setTargetComponent(this);

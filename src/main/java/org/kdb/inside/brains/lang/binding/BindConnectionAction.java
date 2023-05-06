@@ -37,4 +37,6 @@ public class BindConnectionAction extends AnAction implements Toggleable {
         service.toggleBinding(bind);
         Toggleable.setSelected(presentation, bind);
     }
+
+
 }

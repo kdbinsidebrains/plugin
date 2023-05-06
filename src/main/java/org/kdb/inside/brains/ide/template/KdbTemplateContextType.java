@@ -7,7 +7,7 @@ import org.kdb.inside.brains.QFileType;
 
 public class KdbTemplateContextType extends TemplateContextType {
     protected KdbTemplateContextType() {
-        super("KDB+ Q", "KDB+ Q");
+        super("KDB+ Q");
     }
 
     @Override

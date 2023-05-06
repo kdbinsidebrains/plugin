@@ -59,7 +59,7 @@ class HistoryCopyHandler {
         group.addSeparator();
         group.add(new ClearConsoleAction());
 
-        PopupHandler.installPopupHandler(content, group, "Kdb.ConsoleHistoryView");
+        PopupHandler.installPopupMenu(content, group, "Kdb.ConsoleHistoryView");
     }
 
     private static ActionGroup createActions(Project project, EditorEx editor) {

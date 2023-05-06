@@ -17,7 +17,7 @@ public class InstancesSpeedSearch extends TreeSpeedSearch {
     private final TheSpeedSearchComparator comparator = new TheSpeedSearchComparator();
 
     private InstancesSpeedSearch(JTree tree) {
-        super(tree, InstancesSpeedSearch::pathToString, true);
+        super(tree, true, InstancesSpeedSearch::pathToString);
         setComparator(comparator);
     }
 

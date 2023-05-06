@@ -1,9 +1,6 @@
 package org.kdb.inside.brains.action;
 
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -31,10 +28,6 @@ public class ExecuteAction extends DumbAwareAction {
     }
 
     public static boolean isExecutedAllowed(AnActionEvent e) {
-        if (ActionPlaces.KEYBOARD_SHORTCUT.equals(e.getPlace())) {
-            return false;
-        }
-
         final Project project = e.getData(CommonDataKeys.PROJECT);
         if (project == null) {
             return false;
@@ -46,13 +39,25 @@ public class ExecuteAction extends DumbAwareAction {
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-        final boolean allowed = isExecutedAllowed(e);
         final Presentation presentation = e.getPresentation();
+        if (ActionPlaces.KEYBOARD_SHORTCUT.equals(e.getPlace())) {
+            presentation.setEnabled(true);
+            presentation.setVisible(false);
+        } else {
 
-        presentation.setVisible(allowed);
-        if (allowed) {
-            final InstanceConnection activeInstance = getConnection(e.getProject());
-            presentation.setEnabled(activeInstance != null && activeInstance.getState() == InstanceState.CONNECTED);
+            final boolean allowed = isExecutedAllowed(e);
+            if (ActionPlaces.MAIN_TOOLBAR.equals(e.getPlace()) || "popup".equals(e.getPlace())) {
+                presentation.setVisible(true);
+            } else {
+                presentation.setVisible(allowed);
+            }
+
+            if (allowed) {
+                final InstanceConnection activeInstance = getConnection(e.getProject());
+                presentation.setEnabled(activeInstance != null && activeInstance.getState() == InstanceState.CONNECTED);
+            } else {
+                presentation.setEnabled(false);
+            }
         }
     }
 
@@ -76,6 +81,11 @@ public class ExecuteAction extends DumbAwareAction {
                 execute(project, editor, connection, range);
             }
         });
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 
     protected TextRange getExecutionRange(Editor editor, DataContext context) {

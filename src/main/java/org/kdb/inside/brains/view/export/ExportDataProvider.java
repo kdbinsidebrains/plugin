@@ -23,13 +23,13 @@ public interface ExportDataProvider {
         copy_all.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK, table);
         group.add(copy_all);
 
+        final PopupActionGroup copyGroup = new PopupActionGroup("Copy _Special", KdbIcons.Console.CopySpecial);
+
         final ClipboardExportAction copy_values = new ClipboardExportAction("Copy _Values", ExportingType.SELECTION, dataProvider, "Copy selected cells into the clipboard", KdbIcons.Console.CopyValues);
         copy_values.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, table);
-        group.add(copy_values);
-
-        final PopupActionGroup copyGroup = new PopupActionGroup("Copy _Special", KdbIcons.Console.CopySpecial);
+        copyGroup.add(copy_values);
+        copyGroup.addSeparator();
         copyGroup.add(new ClipboardExportAction("Copy Only Rows", ExportingType.ROWS, dataProvider, "Copy the whole row values"));
-
         copyGroup.add(new ClipboardExportAction("Copy Rows with Header", ExportingType.ROWS_WITH_HEADER, dataProvider, "Copy the whole row values including column names"));
         copyGroup.addSeparator();
         copyGroup.add(new ClipboardExportAction("Copy Only Columns", ExportingType.COLUMNS, dataProvider, "Copy the whole columns values"));
