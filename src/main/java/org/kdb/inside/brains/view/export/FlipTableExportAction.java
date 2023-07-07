@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
-import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.console.table.TableMode;
 import org.kdb.inside.brains.view.console.table.TableResult;
 import org.kdb.inside.brains.view.console.table.TableResultView;
@@ -30,8 +29,8 @@ public class FlipTableExportAction extends AnExportAction<Boolean> {
         return Boolean.TRUE;
     }
 
-    private static void showResultInFrame(Project project, KdbOutputFormatter formatter, TableResult result) {
-        final TableResultView view = new TableResultView(project, formatter, TableMode.COMPACT); // Compact mode is required here
+    private static void showResultInFrame(Project project, TableResult result) {
+        final TableResultView view = new TableResultView(project, TableMode.COMPACT); // Compact mode is required here
         view.showResult(result);
 
         final ResultDialog dlg = new ResultDialog(project, view);
@@ -45,7 +44,7 @@ public class FlipTableExportAction extends AnExportAction<Boolean> {
     }
 
     @Override
-    protected void exportResultView(Project project, ExportingType type, Boolean cfg, ExportDataProvider dataProvider, KdbOutputFormatter formatter, @NotNull ProgressIndicator indicator) {
+    protected void exportResultView(Project project, ExportingType type, Boolean cfg, ExportDataProvider dataProvider, @NotNull ProgressIndicator indicator) {
         final JTable table = dataProvider.getTable();
 
         final ExportingType.IndexIterator ri = type.rowsIterator(table);
@@ -81,7 +80,7 @@ public class FlipTableExportAction extends AnExportAction<Boolean> {
         ApplicationManager.getApplication().invokeLater(() -> {
             final TabsTableResult tabs = TabsTableResult.findParentTabs(table);
             if (tabs == null) {
-                showResultInFrame(project, formatter, result);
+                showResultInFrame(project, result);
             } else {
                 tabs.showTabAfter("Flipped Rows", result);
             }

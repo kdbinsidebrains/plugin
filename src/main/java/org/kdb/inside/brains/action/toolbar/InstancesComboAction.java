@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.action;
+package org.kdb.inside.brains.action.toolbar;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
@@ -30,6 +30,7 @@ import com.intellij.util.ui.UIUtil;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.connection.CreateConnectionAction;
 import org.kdb.inside.brains.core.*;
 
 import javax.swing.*;

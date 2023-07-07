@@ -49,7 +49,7 @@
                 icon="KdbIcons.Instance.Disconnected"
                 class="org.kdb.inside.brains.view.treeview.actions.DisconnectAction"/>
 
-        <action id="Kdb.NewConnection" class="org.kdb.inside.brains.action.CreateConnectionAction"
+        <action id="Kdb.NewConnection" class="org.kdb.inside.brains.action.connection.CreateConnectionAction"
                 text="Create Kdb Connection"
                 description="Create connection to new KDB instance"
                 icon="AllIcons.General.Add"/>
@@ -58,7 +58,7 @@
                 text="Execute Line/Selection"
                 description="Execute current line or selection in active KDB process"
                 icon="KdbIcons.Instance.Execute"
-                class="org.kdb.inside.brains.action.ExecuteAction">
+                class="org.kdb.inside.brains.action.execute.ExecuteAction">
 
             <keyboard-shortcut first-keystroke="ctrl ENTER" keymap="$default"/>
             <keyboard-shortcut first-keystroke="ctrl shift G" keymap="$default"/>
@@ -68,7 +68,7 @@
                 text="Quick Execute Line/Selection"
                 description="Execute current line or selection in active KDB process"
                 icon="KdbIcons.Instance.QuickExecute"
-                class="org.kdb.inside.brains.action.ExecuteInlineAction">
+                class="org.kdb.inside.brains.action.execute.ExecuteInlineAction">
 
             <keyboard-shortcut first-keystroke="shift ENTER" keymap="$default"/>
             <keyboard-shortcut first-keystroke="ctrl shift D" keymap="$default"/>
@@ -78,7 +78,7 @@
                 text="Execute Global Assignment"
                 description="Execute global variable/function definition"
                 icon="KdbIcons.Instance.ExecuteContext"
-                class="org.kdb.inside.brains.action.ExecuteContextAction">
+                class="org.kdb.inside.brains.action.execute.ExecuteContextAction">
 
             <keyboard-shortcut first-keystroke="ctrl shift ENTER" keymap="$default"/>
             <keyboard-shortcut first-keystroke="ctrl shift S" keymap="$default"/>
@@ -86,12 +86,13 @@
 
         <action id="Kdb.Instances.QuickSelection"
                 text="Quick Instance Selection"
-                class="org.kdb.inside.brains.action.InstancesComboAction"/>
+                class="org.kdb.inside.brains.action.toolbar.InstancesComboAction"/>
 
-        <action id="Kdb.Instances.ToggleActiveConnection" class="org.kdb.inside.brains.action.ToggleConnectAction"/>
+        <action id="Kdb.Instances.ToggleActiveConnection"
+                class="org.kdb.inside.brains.action.connection.ToggleConnectAction"/>
 
         <action id="Kdb.Instances.ModifyActiveInstance"
-                class="org.kdb.inside.brains.action.ModifyConnectionAction"
+                class="org.kdb.inside.brains.action.connection.ModifyConnectionAction"
                 text="Quick Modify"
                 description="Quick modify active connection"
                 icon="AllIcons.Actions.Edit"/>
@@ -101,7 +102,7 @@
                 description="Binds the connection into active editor. Works in Manual mode only"
                 icon="KdbIcons.Instance.Bind"/>
 
-        <action id="Kdb.CancelQueriesAction" class="org.kdb.inside.brains.action.CancelQueriesAction"
+        <action id="Kdb.CancelQueriesAction" class="org.kdb.inside.brains.action.execute.CancelQueriesAction"
                 text="Cancel Active Queries"
                 description="Cancels all active queries, if possible"
                 icon="AllIcons.Actions.Suspend"/>
@@ -110,7 +111,7 @@
                text="Execute Line/Selection On ..."
                description="Execute current line or selection in specified KDB process"
                icon="KdbIcons.Instance.ExecuteOn"
-               class="org.kdb.inside.brains.action.ExecuteOnAction">
+               class="org.kdb.inside.brains.action.execute.ExecuteOnAction">
         </group>
 
         <!--
@@ -128,7 +129,7 @@
         -->
 
         <group id="Kdb.MainToolbarActionGroup" text="KDB Instances Toolbar"
-               class="org.kdb.inside.brains.action.MainToolbarActionGroup"
+               class="org.kdb.inside.brains.action.toolbar.MainToolbarActionGroup"
                compact="true" searchable="false">
             <separator/>
 
@@ -154,16 +155,16 @@
                 They redefine all parameters for custom buttons
         -->
         <!--
-                <action class="org.kdb.inside.brains.action.newui.NewUIToolbarComponent">
+                <action class="org.kdb.inside.brains.action.toolbar.NewUIToolbarComponent">
                     <add-to-group group-id="MainToolbarRight" anchor="after" relative-to-action="RunToolbarMainActionGroup"/>
                 </action>
         -->
 
         <group id="Kdb.NewMainToolbarActionGroup" text="KDB Instances Toolbar"
-               class="org.kdb.inside.brains.action.MainToolbarActionGroup" compact="true">
+               class="org.kdb.inside.brains.action.toolbar.MainToolbarActionGroup" compact="true">
             <reference ref="Kdb.Instances.QuickSelection"/>
             <reference ref="Kdb.Execute"/>
-            <action id="Kdb.MoreRunToolbarActions" class="org.kdb.inside.brains.action.newui.NewUIRunMoreActions"/>
+            <action id="Kdb.MoreRunToolbarActions" class="org.kdb.inside.brains.action.toolbar.NewUIRunMoreActions"/>
 
             <add-to-group group-id="MainToolbarRight" anchor="after" relative-to-action="RunToolbarMainActionGroup"/>
         </group>
@@ -311,7 +312,7 @@
                                   order="last"/>
 
         <!-- General configuration -->
-        <actionPromoter implementation="org.kdb.inside.brains.action.ExecutionActionPromoter"/>
+        <actionPromoter implementation="org.kdb.inside.brains.action.execute.ExecutionActionPromoter"/>
         <projectService serviceImplementation="org.kdb.inside.brains.core.KdbConnectionManager"/>
 
         <projectService serviceImplementation="org.kdb.inside.brains.lang.binding.EditorsBindingService"/>

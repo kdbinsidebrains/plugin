@@ -26,7 +26,12 @@ public final class KdbOutputFormatter {
     private static final DateFormat DATETIME_FORMAT = new SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS");
     private static final DateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy.MM.dd'D'HH:mm:ss");
 
+    private static final DecimalFormat NUMBER_SEPARATOR = new DecimalFormat("#,##0");
+    private static final DecimalFormat[] DECIMAL_FORMAT_SEPARATOR = new DecimalFormat[ConsoleOptions.MAX_DECIMAL_PRECISION + 1];
+
+    private static final DecimalFormat NUMBER = new DecimalFormat("0");
     private static final DecimalFormat[] DECIMAL_FORMAT = new DecimalFormat[ConsoleOptions.MAX_DECIMAL_PRECISION + 1];
+    private static KdbOutputFormatter defaultInstance;
 
     static {
         DATE_FORMAT.setTimeZone(KxConnection.UTC_TIMEZONE);
@@ -35,25 +40,21 @@ public final class KdbOutputFormatter {
         TIMESTAMP_FORMAT.setTimeZone(KxConnection.UTC_TIMEZONE);
 
         DECIMAL_FORMAT[0] = new DecimalFormat("0.");
+        DECIMAL_FORMAT_SEPARATOR[0] = new DecimalFormat("#,##0.");
         for (int i = 1; i <= ConsoleOptions.MAX_DECIMAL_PRECISION; i++) {
             DECIMAL_FORMAT[i] = new DecimalFormat("0." + "#".repeat(i));
+            DECIMAL_FORMAT_SEPARATOR[i] = new DecimalFormat("#,##0." + "#".repeat(i));
         }
     }
 
-    private final ConsoleOptions options;
+    private final FormatterOptions options;
 
-    private static KdbOutputFormatter instance;
-
-    public KdbOutputFormatter(ConsoleOptions options) {
+    public KdbOutputFormatter(FormatterOptions options) {
         this.options = options;
     }
 
     public String objectToString(Object object) {
         return objectToString(object, options.isPrefixSymbols(), options.isWrapStrings());
-    }
-
-    public String resultToString(KdbResult result) {
-        return objectToString(result.getObject());
     }
 
     public String objectToString(Object object, boolean prefixSymbol, boolean wrapString) {
@@ -71,11 +72,14 @@ public final class KdbOutputFormatter {
         return objectToString(result.getObject(), prefixSymbol, wrapString);
     }
 
-    public static KdbOutputFormatter getInstance() {
-        if (instance == null) {
-            instance = new KdbOutputFormatter(KdbSettingsService.getInstance().getConsoleOptions());
+    /**
+     * Returns formatter with default console options.
+     */
+    public static KdbOutputFormatter getDefault() {
+        if (defaultInstance == null) {
+            defaultInstance = new KdbOutputFormatter(KdbSettingsService.getInstance().getConsoleOptions());
         }
-        return instance;
+        return defaultInstance;
     }
 
     private String formatObject(Object v) {
@@ -87,63 +91,63 @@ public final class KdbOutputFormatter {
             return formatSymbol((String) v);
         }
         if (v instanceof String[]) {
-            return formatSymbol((String[]) v);
+            return formatSymbols((String[]) v);
         }
 
         if (v instanceof Character) {
             return formatChar((Character) v);
         }
         if (v instanceof char[]) {
-            return formatChar((char[]) v);
+            return formatChars((char[]) v);
         }
 
         if (v instanceof Boolean) {
             return formatBool((Boolean) v);
         }
         if (v instanceof boolean[]) {
-            return formatBool((boolean[]) v);
+            return formatBools((boolean[]) v);
         }
 
         if (v instanceof Byte) {
             return formatByte((Byte) v);
         }
         if (v instanceof byte[]) {
-            return formatByte((byte[]) v);
+            return formatBytes((byte[]) v);
         }
 
         if (v instanceof Short) {
             return formatShort((Short) v);
         }
         if (v instanceof short[]) {
-            return formatShort((short[]) v);
+            return formatShorts((short[]) v);
         }
 
         if (v instanceof Integer) {
             return formatInt((Integer) v);
         }
         if (v instanceof int[]) {
-            return formatInt((int[]) v);
+            return formatInts((int[]) v);
         }
 
         if (v instanceof Long) {
             return formatLong((Long) v);
         }
         if (v instanceof long[]) {
-            return formatLong((long[]) v);
+            return formatLongs((long[]) v);
         }
 
         if (v instanceof Float) {
             return formatFloat((Float) v);
         }
         if (v instanceof float[]) {
-            return formatFloat((float[]) v);
+            return formatFloats((float[]) v);
         }
 
         if (v instanceof Double) {
             return formatDouble((Double) v);
         }
         if (v instanceof double[]) {
-            return formatDouble((double[]) v);
+            return formatDoubles((double[]) v);
         }
 
         if (v instanceof Timestamp) {
@@ -264,8 +268,7 @@ public final class KdbOutputFormatter {
 
         final Object first = args[0];
         boolean listProjection = false;
-        if (first instanceof c.UnaryOperator) {
-            final c.UnaryOperator up = (c.UnaryOperator) first;
+        if (first instanceof c.UnaryOperator up) {
             if (up.getType() == 41) // plist
                 listProjection = true;
         }
@@ -311,7 +314,7 @@ public final class KdbOutputFormatter {
     }
 
     @NotNull
-    public String formatSymbol(String[] v) {
+    public String formatSymbols(String[] v) {
         if (v.length == 0) {
             return emptyArray(String.class);
         }
@@ -327,7 +330,7 @@ public final class KdbOutputFormatter {
     }
 
     @NotNull
-    public String formatChar(char[] v) {
+    public String formatChars(char[] v) {
         final String s = '"' + String.valueOf(v) + '"';
         return v.length == 1 ? oneItemArrayPrefix() + s : s;
     }
@@ -338,7 +341,7 @@ public final class KdbOutputFormatter {
     }
 
     @NotNull
-    public String formatBool(boolean[] v) {
+    public String formatBools(boolean[] v) {
         if (v.length == 0) {
             return emptyArray(boolean.class);
         }
@@ -363,7 +366,7 @@ public final class KdbOutputFormatter {
     }
 
     @NotNull
-    public String formatByte(byte[] v) {
+    public String formatBytes(byte[] v) {
         if (v.length == 0) {
             return emptyArray(byte.class);
         }
@@ -382,11 +385,11 @@ public final class KdbOutputFormatter {
 
     @NotNull
     public String formatShort(short v) {
-        return isNull(v) ? "0Nh" : v + "h";
+        return isNull(v) ? "0Nh" : shortToStr(v) + "h";
     }
 
     @NotNull
-    public String formatShort(short[] k) {
+    public String formatShorts(short[] k) {
         if (k.length == 0) {
             return emptyArray(short.class);
         }
@@ -395,7 +398,7 @@ public final class KdbOutputFormatter {
         }
         final StringBuilder b = new StringBuilder();
         for (short s : k) {
-            b.append(isNull(s) ? "0N" : s);
+            b.append(isNull(s) ? "0N" : shortToStr(s));
             b.append(" ");
         }
         b.setCharAt(b.length() - 1, 'h');
@@ -404,11 +407,11 @@ public final class KdbOutputFormatter {
 
     @NotNull
     public String formatInt(int v) {
-        return isNull(v) ? "0Ni" : v + "i";
+        return isNull(v) ? "0Ni" : intToStr(v) + "i";
     }
 
     @NotNull
-    public String formatInt(int[] v) {
+    public String formatInts(int[] v) {
         if (v.length == 0) {
             return emptyArray(int.class);
         }
@@ -417,7 +420,7 @@ public final class KdbOutputFormatter {
         }
         final StringBuilder b = new StringBuilder();
         for (int i : v) {
-            b.append(isNull(i) ? "0N" : i);
+            b.append(isNull(i) ? "0N" : intToStr(i));
             b.append(" ");
         }
         b.setCharAt(b.length() - 1, 'i');
@@ -426,11 +429,11 @@ public final class KdbOutputFormatter {
 
     @NotNull
     public String formatLong(long v) {
-        return (isNull(v) ? "0N" : String.valueOf(v));
+        return (isNull(v) ? "0N" : longToStr(v));
     }
 
     @NotNull
-    public String formatLong(long[] v) {
+    public String formatLongs(long[] v) {
         if (v.length == 0) {
             return emptyArray(long.class);
         }
@@ -439,7 +442,7 @@ public final class KdbOutputFormatter {
         }
         final StringBuilder b = new StringBuilder();
         for (long l : v) {
-            b.append(isNull(l) ? "0N" : l);
+            b.append(isNull(l) ? "0N" : longToStr(l));
             b.append(" ");
         }
         b.setLength(b.length() - 1);
@@ -448,11 +451,11 @@ public final class KdbOutputFormatter {
 
     @NotNull
     public String formatFloat(float v) {
-        return isNull(v) ? "0Ne" : DECIMAL_FORMAT[options.getFloatPrecision()].format(v) + "e";
+        return isNull(v) ? "0Ne" : floatToStr(v) + "e";
     }
 
     @NotNull
-    public String formatFloat(float[] v) {
+    public String formatFloats(float[] v) {
         if (v.length == 0) {
             return emptyArray(float.class);
         }
@@ -460,9 +463,8 @@ public final class KdbOutputFormatter {
             return oneItemArrayPrefix() + formatFloat(v[0]);
         }
         final StringBuilder b = new StringBuilder();
-        final DecimalFormat decimalFormat = DECIMAL_FORMAT[options.getFloatPrecision()];
         for (float f : v) {
-            b.append(Float.isNaN(f) ? "0N" : decimalFormat.format(f));
+            b.append(Float.isNaN(f) ? "0N" : floatToStr(f));
             b.append(" ");
         }
         b.setCharAt(b.length() - 1, 'e');
@@ -474,11 +476,11 @@ public final class KdbOutputFormatter {
         if (v % 1 == 0) {
             return ((long) v) + "f";
         }
-        return isNull(v) ? "0n" : DECIMAL_FORMAT[options.getFloatPrecision()].format(v);
+        return isNull(v) ? "0n" : doubleToStr(v);
     }
 
     @NotNull
-    public String formatDouble(double[] v) {
+    public String formatDoubles(double[] v) {
         if (v.length == 0) {
             return emptyArray(double.class);
         }
@@ -488,10 +490,9 @@ public final class KdbOutputFormatter {
 
         boolean postfix = true;
         final StringBuilder b = new StringBuilder();
-        final DecimalFormat decimalFormat = DECIMAL_FORMAT[options.getFloatPrecision()];
         for (double d : v) {
             postfix &= d % 1 == 0;
-            b.append(Double.isNaN(d) ? "0n" : decimalFormat.format(d));
+            b.append(isNull(d) ? "0n" : doubleToStr(d));
             b.append(" ");
         }
         if (postfix) {
@@ -591,7 +592,6 @@ public final class KdbOutputFormatter {
         return wrapArrayIfRequired(k) + '!' + wrapArrayIfRequired(v);
     }
 
-
     @NotNull
     private String emptyArray(Class<?> type) {
         return "`" + getKdbTypeName(type) + "$()";
@@ -641,6 +641,26 @@ public final class KdbOutputFormatter {
         b.append(HEX_ARRAY[v & 0x0F]);
     }
 
+    private String shortToStr(short s) {
+        return options.isThousandsSeparator() ? longToStr(s) : String.valueOf(s);
+    }
+
+    private String intToStr(int s) {
+        return options.isThousandsSeparator() ? longToStr(s) : String.valueOf(s);
+    }
+
+    private String longToStr(long s) {
+        return (options.isThousandsSeparator() ? NUMBER_SEPARATOR : NUMBER).format(s);
+    }
+
+    private String floatToStr(float s) {
+        return doubleToStr(s);
+    }
+
+    private String doubleToStr(double s) {
+        return (options.isThousandsSeparator() ? DECIMAL_FORMAT_SEPARATOR : DECIMAL_FORMAT)[options.getFloatPrecision()].format(s);
+    }
+
     private boolean isNull(short v) {
         return v == Short.MIN_VALUE;
     }
@@ -662,7 +682,7 @@ public final class KdbOutputFormatter {
     }
 
     private boolean isNull(Object v) {
-        return c.qn(v);
+        return KdbType.isNull(v);
     }
 
     private String getKdbTypeName(Class<?> aClass) {

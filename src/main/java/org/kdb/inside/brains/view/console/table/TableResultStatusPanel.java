@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.view.console.table;
 
 import com.intellij.util.ui.GridBag;
+import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 
@@ -38,19 +39,18 @@ class TableResultStatusPanel extends JPanel {
         add(timeLabel, c.next());
         add(sizeLabel, c.next());
 
-        myTable.getSelectionModel().addListSelectionListener(e -> selectionChanged());
-        myTable.getColumnModel().getSelectionModel().addListSelectionListener(e -> selectionChanged());
+        myTable.getSelectionModel().addListSelectionListener(e -> recalculateValues());
+        myTable.getColumnModel().getSelectionModel().addListSelectionListener(e -> recalculateValues());
     }
 
-    private void selectionChanged() {
+    public void recalculateValues() {
         final int[] rows = myTable.getSelectionModel().getSelectedIndices();
         final int[] columns = myTable.getColumnModel().getSelectionModel().getSelectedIndices();
         double sum = 0;
         for (int row : rows) {
             for (int column : columns) {
                 final Object value = myTable.getValueAt(row, column);
-                if (value instanceof Number && !kx.c.qn(value)) {
-                    Number at = (Number) value;
+                if (value instanceof Number at && !KdbType.isNull(value)) {
                     sum += at.doubleValue();
                 }
             }

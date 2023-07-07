@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.action.newui;
+package org.kdb.inside.brains.action.toolbar;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;

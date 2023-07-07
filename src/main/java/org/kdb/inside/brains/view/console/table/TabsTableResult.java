@@ -4,7 +4,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.AbstractPainter;
 import com.intellij.openapi.util.Disposer;
@@ -26,8 +25,8 @@ import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.core.KdbQuery;
-import org.kdb.inside.brains.view.KdbOutputFormatter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -51,14 +50,12 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
     private Disposable myGlassPaneListenersDisposable = Disposer.newDisposable();
     private final Project project;
     private final AnAction renameAction;
-    private final KdbOutputFormatter formatter;
     private final CopyOnWriteArraySet<Listener> listeners = new CopyOnWriteArraySet<>();
     // Docking
     private JBTabs myCurrentOver;
 
     public TabsTableResult(Project project, Disposable parent) {
         this.project = project;
-        this.formatter = KdbOutputFormatter.getInstance();
 
         tabs = (JBTabsEx) JBTabsFactory.createTabs(project, this);
         // We can't use Supplier here as it's been Getter before and some versions are not compatiable anymore.
@@ -183,11 +180,9 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
 
     @Override
     public void add(@NotNull DockableContent<?> content, RelativePoint dropTarget) {
-        if (!(content instanceof TableResultContent)) {
+        if (!(content instanceof TableResultContent trc)) {
             return;
         }
-
-        final TableResultContent trc = (TableResultContent) content;
 
         final TabInfo info = trc.getKey();
         final TableResultView view = (TableResultView) info.getObject();
@@ -310,15 +305,10 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
 
         info.setDragOutDelegate(new MyDragOutDelegate());
 
-        final AnAction closeAction = new DumbAwareAction("Close", "Close current result tab", AllIcons.Actions.Close) {
+        final AnAction closeAction = new EdtAction("Close", "Close current result tab", AllIcons.Actions.Close) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 closeTab(info);
-            }
-
-            @Override
-            public @NotNull ActionUpdateThread getActionUpdateThread() {
-                return ActionUpdateThread.EDT;
             }
         };
         closeAction.getTemplatePresentation().setHoveredIcon(AllIcons.Actions.CloseHovered);
@@ -376,7 +366,7 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
 
     @NotNull
     private TabInfo createResultTabInfo(String name, TableResult tableResult, TableMode mode, BiConsumer<KdbQuery, TableResultView> repeater) {
-        final TableResultView tableResultView = new TableResultView(project, formatter, mode, repeater);
+        final TableResultView tableResultView = new TableResultView(project, mode, repeater);
         tableResultView.showResult(tableResult);
 
         return createResultTabInfo(name, tableResultView);
@@ -499,17 +489,12 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
             }
 
             final Rectangle bounds = myCurrentOver.getTabLabel(tab).getBounds();
-            switch (myCurrentOver.getPresentation().getTabsPosition()) {
-                case top:
-                    return JBUI.insetsTop(bounds.height);
-                case left:
-                    return JBUI.insetsLeft(bounds.width);
-                case bottom:
-                    return JBUI.insetsBottom(bounds.height);
-                case right:
-                    return JBUI.insetsRight(bounds.width);
-            }
-            return null;
+            return switch (myCurrentOver.getPresentation().getTabsPosition()) {
+                case top -> JBUI.insetsTop(bounds.height);
+                case left -> JBUI.insetsLeft(bounds.width);
+                case bottom -> JBUI.insetsBottom(bounds.height);
+                case right -> JBUI.insetsRight(bounds.width);
+            };
         }
     }
 

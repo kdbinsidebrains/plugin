@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.action;
+package org.kdb.inside.brains.action.connection;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

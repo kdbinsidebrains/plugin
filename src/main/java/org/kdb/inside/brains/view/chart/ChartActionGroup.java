@@ -9,7 +9,7 @@ import com.intellij.ui.table.JBTable;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.view.PopupActionGroup;
+import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.view.chart.template.ChartTemplatesService;
 import org.kdb.inside.brains.view.chart.template.TemplatesEditorDialog;
 

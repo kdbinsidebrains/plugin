@@ -38,14 +38,14 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QLanguage;
-import org.kdb.inside.brains.action.ToggleConnectAction;
+import org.kdb.inside.brains.action.PopupActionGroup;
+import org.kdb.inside.brains.action.connection.ToggleConnectAction;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.settings.KdbSettingsListener;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.settings.SettingsBean;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.LineNumberGutterProvider;
-import org.kdb.inside.brains.view.PopupActionGroup;
 import org.kdb.inside.brains.view.console.table.TableResult;
 import org.kdb.inside.brains.view.console.table.TableResultView;
 import org.kdb.inside.brains.view.console.table.TabsTableResult;
@@ -102,7 +102,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             scope.addScopeListener(scopeListener);
         }
 
-        formatter = KdbOutputFormatter.getInstance();
+        formatter = KdbOutputFormatter.getDefault();
         gutterProvider = new LineNumberGutterProvider();
 
         connectionManager = KdbConnectionManager.getManager(project);
@@ -571,41 +571,22 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
     private class TheKdbConnectionListener implements KdbConnectionListener {
         @Override
-        public void connectionCreated(InstanceConnection connection) {
-
-        }
-
-        @Override
-        public void connectionRemoved(InstanceConnection connection) {
-
-        }
-
-        @Override
-        public void connectionActivated(InstanceConnection deactivated, InstanceConnection activated) {
-
-        }
-
-        @Override
         public void connectionStateChanged(InstanceConnection connection, InstanceState oldState, InstanceState newState) {
             if (connection != KdbConsolePanel.this.connection) {
                 return;
             }
 
             switch (newState) {
-                case CONNECTING:
-                    printInstanceConnecting();
-                    break;
-                case CONNECTED:
-                    printInstanceConnected();
-                    break;
-                case DISCONNECTED:
+                case CONNECTING -> printInstanceConnecting();
+                case CONNECTED -> printInstanceConnected();
+                case DISCONNECTED -> {
                     final Exception error = connection.getDisconnectError();
                     if (error != null) {
                         printInstanceError(error);
                     } else {
                         printInstanceDisconnected();
                     }
-                    break;
+                }
             }
         }
     }

@@ -346,7 +346,6 @@ final class TabsDockingManager implements Disposable {
                            @NotNull DockContainer container) {
             super(project, dimensionKey != null ? dimensionKey : "dock-window-" + id, false);
 
-            setProject(project);
             installListeners(getFrame());
 
             myContainer = container;
@@ -363,7 +362,10 @@ final class TabsDockingManager implements Disposable {
             myUiContainer.add(myCenterPanel, BorderLayout.CENTER);
             StatusBar statusBar = getStatusBar();
             if (statusBar != null) {
-                myUiContainer.add(statusBar.getComponent(), BorderLayout.SOUTH);
+                final JComponent component = statusBar.getComponent();
+                if (component != null) {
+                    myUiContainer.add(component, BorderLayout.SOUTH);
+                }
             }
 
             setComponent(myUiContainer);

@@ -38,7 +38,7 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
     }
 
     @Override
-    protected void exportResultView(Project project, ExportingType type, CopyPasteManager copyPasteManager, ExportDataProvider dataProvider, KdbOutputFormatter formatter, @NotNull ProgressIndicator indicator) {
+    protected void exportResultView(Project project, ExportingType type, CopyPasteManager copyPasteManager, ExportDataProvider dataProvider, @NotNull ProgressIndicator indicator) {
         final JTable table = dataProvider.getTable();
 
         final StringBuilder htmlStr = new StringBuilder();
@@ -90,6 +90,7 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
         int count = 0;
         double totalCount = ri.count() * ci.count();
         indicator.setIndeterminate(false);
+        final KdbOutputFormatter formatter = dataProvider.getOutputFormatter();
         for (int r = ri.reset(); r != -1 && !indicator.isCanceled(); r = ri.next()) {
             String t = r % 2 == 0 ? "o" : "e";
             htmlStr.append("<tr>\n");

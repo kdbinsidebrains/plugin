@@ -5,8 +5,9 @@ import com.intellij.openapi.project.Project;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.core.KdbConnectionManager;
-import org.kdb.inside.brains.view.PopupActionGroup;
+import org.kdb.inside.brains.view.KdbOutputFormatter;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;
@@ -69,4 +70,6 @@ public interface ExportDataProvider {
     String getExportName();
 
     Object getNativeObject();
+
+    KdbOutputFormatter getOutputFormatter();
 }

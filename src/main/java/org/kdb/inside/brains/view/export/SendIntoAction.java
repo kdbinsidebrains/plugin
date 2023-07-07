@@ -8,7 +8,6 @@ import com.intellij.openapi.util.TextRange;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.core.*;
-import org.kdb.inside.brains.view.KdbOutputFormatter;
 
 public class SendIntoAction extends AnExportAction<String> {
     private final InstanceConnection connection;
@@ -40,7 +39,7 @@ public class SendIntoAction extends AnExportAction<String> {
     }
 
     @Override
-    protected void exportResultView(Project project, ExportingType type, String name, ExportDataProvider dataProvider, KdbOutputFormatter formatter, @NotNull ProgressIndicator indicator) throws Exception {
+    protected void exportResultView(Project project, ExportingType type, String name, ExportDataProvider dataProvider, @NotNull ProgressIndicator indicator) throws Exception {
         final KdbConnectionManager instance = KdbConnectionManager.getManager(project);
         if (instance == null) {
             return;

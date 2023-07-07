@@ -5,7 +5,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
@@ -20,6 +19,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.chart.ChartOptions;
@@ -38,17 +38,18 @@ import java.util.List;
 import java.util.Vector;
 
 public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseListener {
-    private ChartOptions myOptions;
+    private final ChartOptions myOptions;
 
     private final JPanel component;
     private final JBTable pointsTable;
     private final BaseChartPanel myPanel;
+    private final KdbOutputFormatter formatter;
 
     public ValuesTool(Project project, BaseChartPanel panel, ChartOptions options) {
         myPanel = panel;
         myOptions = options;
 
-        final KdbOutputFormatter instance = KdbOutputFormatter.getInstance();
+        formatter = KdbOutputFormatter.getDefault();
 
         final DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
             @Override
@@ -56,7 +57,7 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
                 if (value instanceof String) {
                     setText((String) value);
                 } else {
-                    setText(instance.objectToString(value));
+                    setText(formatter.objectToString(value));
                 }
             }
         };
@@ -81,7 +82,7 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
         final DefaultActionGroup contextMenu = new DefaultActionGroup();
         contextMenu.addAll(ExportDataProvider.createActionGroup(project, this));
         contextMenu.addSeparator();
-        contextMenu.add(new DumbAwareAction("Clear All", "Clear all stored point", AllIcons.Actions.GC) {
+        contextMenu.add(new EdtAction("Clear All", "Clear all stored point", AllIcons.Actions.GC) {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 e.getPresentation().setEnabled(!pointsTable.isEmpty());
@@ -277,6 +278,11 @@ JVM issue:
             values[i] = createColumn(model, i);
         }
         return new c.Flip(new c.Dict(names, values));
+    }
+
+    @Override
+    public KdbOutputFormatter getOutputFormatter() {
+        return formatter;
     }
 
     private Object createColumn(TableModel model, int col) {

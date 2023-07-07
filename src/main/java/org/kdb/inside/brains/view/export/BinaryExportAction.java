@@ -8,7 +8,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.view.KdbOutputFormatter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,7 +30,7 @@ public class BinaryExportAction extends AnExportAction<VirtualFileWrapper> {
     }
 
     @Override
-    protected void exportResultView(Project project, ExportingType type, VirtualFileWrapper file, ExportDataProvider dataProvider, KdbOutputFormatter formatter, @NotNull ProgressIndicator indicator) throws Exception {
+    protected void exportResultView(Project project, ExportingType type, VirtualFileWrapper file, ExportDataProvider dataProvider, @NotNull ProgressIndicator indicator) throws Exception {
         indicator.setIndeterminate(true);
 
         final Object nativeObject = dataProvider.getNativeObject();

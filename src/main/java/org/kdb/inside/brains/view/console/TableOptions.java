@@ -12,6 +12,7 @@ public class TableOptions implements SettingsBean<TableOptions> {
     private boolean expandList = true;
     private boolean expandDict = true;
     private boolean expandTable = true;
+    private boolean thousandsSeparator = false;
 
 
     public boolean isStriped() {
@@ -29,7 +30,6 @@ public class TableOptions implements SettingsBean<TableOptions> {
     public void setShowGrid(boolean showGrid) {
         this.showGrid = showGrid;
     }
-
 
     public boolean isIndexColumn() {
         return indexColumn;
@@ -71,6 +71,14 @@ public class TableOptions implements SettingsBean<TableOptions> {
         this.xmasKeyColumn = xmasKeyColumn;
     }
 
+    public boolean isThousandsSeparator() {
+        return thousandsSeparator;
+    }
+
+    public void setThousandsSeparator(boolean thousandsSeparator) {
+        this.thousandsSeparator = thousandsSeparator;
+    }
+
     @Override
     public void copyFrom(TableOptions options) {
         this.striped = options.striped;
@@ -80,19 +88,19 @@ public class TableOptions implements SettingsBean<TableOptions> {
         this.expandDict = options.expandDict;
         this.expandTable = options.expandTable;
         this.xmasKeyColumn = options.xmasKeyColumn;
+        this.thousandsSeparator = options.thousandsSeparator;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof TableOptions)) return false;
-        TableOptions that = (TableOptions) o;
-        return striped == that.striped && showGrid == that.showGrid && indexColumn == that.indexColumn && xmasKeyColumn == that.xmasKeyColumn && expandList == that.expandList && expandDict == that.expandDict && expandTable == that.expandTable;
+        if (!(o instanceof TableOptions that)) return false;
+        return striped == that.striped && showGrid == that.showGrid && indexColumn == that.indexColumn && xmasKeyColumn == that.xmasKeyColumn && expandList == that.expandList && expandDict == that.expandDict && expandTable == that.expandTable && thousandsSeparator == that.thousandsSeparator;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(striped, showGrid, indexColumn, xmasKeyColumn, expandList, expandDict, expandTable);
+        return Objects.hash(striped, showGrid, indexColumn, xmasKeyColumn, expandList, expandDict, expandTable, thousandsSeparator);
     }
 
     @Override
@@ -105,6 +113,7 @@ public class TableOptions implements SettingsBean<TableOptions> {
                 ", expandList=" + expandList +
                 ", expandDict=" + expandDict +
                 ", expandTable=" + expandTable +
+                ", thousandsSeparator=" + thousandsSeparator +
                 '}';
     }
 }
