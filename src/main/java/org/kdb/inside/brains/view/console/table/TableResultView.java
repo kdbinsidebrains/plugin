@@ -3,8 +3,6 @@ package org.kdb.inside.brains.view.console.table;
 import com.intellij.find.FindModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.PopupHandler;
@@ -20,11 +18,17 @@ import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
+import org.kdb.inside.brains.action.BgtAction;
+import org.kdb.inside.brains.action.BgtToggleAction;
+import org.kdb.inside.brains.action.EdtToggleAction;
+import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.core.KdbQuery;
 import org.kdb.inside.brains.core.KdbResult;
 import org.kdb.inside.brains.settings.KdbSettingsService;
+import org.kdb.inside.brains.view.FormatterOptions;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.chart.ChartActionGroup;
+import org.kdb.inside.brains.view.console.ConsoleOptions;
 import org.kdb.inside.brains.view.console.TableOptions;
 import org.kdb.inside.brains.view.export.ClipboardExportAction;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
@@ -40,6 +44,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Comparator;
 import java.util.function.BiConsumer;
+import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,115 +52,48 @@ import static java.lang.Math.max;
 
 public class TableResultView extends NonOpaquePanel implements DataProvider, ExportDataProvider {
     private TableResult tableResult;
-    private ToggleAction searchAction;
+
+    private final AnAction repeatAction;
+    private final ToggleAction searchAction;
+    private final ToggleAction filterAction;
+    private final ToggleAction showIndexAction;
+    private final ToggleAction showThousandsAction;
+    private final ActionGroup chartActionGroup;
+    private final ActionGroup exportActionGroup;
 
     private final Project project;
     private final TableOptions tableOptions;
-    private final BiConsumer<KdbQuery, TableResultView> repeater;
 
     private final JBTable myTable;
     private final Splitter splitter;
     private final JScrollPane tableScroll;
     private final TableResultSearchSession searchSession;
 
+    private final KdbOutputFormatter formatter;
+
     private ColumnsFilterPanel columnsFilter;
     private TableResultStatusPanel statusBar;
 
+    private BooleanSupplier thousandsSeparator;
+
     public static final DataKey<TableResultView> DATA_KEY = DataKey.create("KdbConsole.TableResultView");
 
-    public TableResultView(Project project, KdbOutputFormatter formatter) {
-        this(project, formatter, TableMode.NORMAL);
+    public TableResultView(Project project) {
+        this(project, TableMode.NORMAL);
     }
 
-    public TableResultView(Project project, KdbOutputFormatter formatter, TableMode mode) {
-        this(project, formatter, mode, null);
+    public TableResultView(Project project, TableMode mode) {
+        this(project, mode, null);
     }
 
-    public TableResultView(Project project, KdbOutputFormatter formatter, TableMode mode, BiConsumer<KdbQuery, TableResultView> repeater) {
+    public TableResultView(Project project, TableMode mode, BiConsumer<KdbQuery, TableResultView> repeater) {
         this.project = project;
-        this.repeater = repeater;
 
-        tableOptions = KdbSettingsService.getInstance().getTableOptions();
-        final var valueColumnRenderer = new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                final Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                if (!isSelected) {
-                    if (tableOptions.isStriped() && row % 2 == 0) {
-                        c.setBackground(UIUtil.getDecoratedRowColor());
-                    } else {
-                        c.setBackground(table.getBackground());
-                    }
-                }
-                return c;
-            }
+        this.tableOptions = KdbSettingsService.getInstance().getTableOptions();
+        this.thousandsSeparator = tableOptions::isThousandsSeparator;
+        this.formatter = createOutputFormatter();
 
-            @Override
-            protected void setValue(Object value) {
-                setText(formatter.objectToString(value));
-            }
-        };
-
-        myTable = new JBTable(TableResult.EMPTY_MODEL) {
-            @Override
-            public @NotNull Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
-                final Component c = super.prepareRenderer(renderer, row, column);
-
-                final TableColumn tableColumn = getColumnModel().getColumn(column);
-                tableColumn.setPreferredWidth(max(c.getPreferredSize().width + getIntercellSpacing().width + 20, tableColumn.getPreferredWidth()));
-
-                final boolean keyColumn = getModel().isKeyColumn(tableColumn.getModelIndex());
-                if (keyColumn) {
-                    c.setBackground(UIUtils.getKeyColumnColor(c.getBackground()));
-                }
-                return c;
-            }
-
-            @Override
-            public TableCellRenderer getCellRenderer(int row, int column) {
-                return valueColumnRenderer;
-            }
-
-            @Override
-            public TableResult.QTableModel getModel() {
-                return (TableResult.QTableModel) super.getModel();
-            }
-
-            @Override
-            protected TableColumnModel createDefaultColumnModel() {
-                return new MyTableColumnModel();
-            }
-
-            @Override
-            public void setModel(@NotNull TableModel model) {
-                super.setModel(model);
-
-                if (model instanceof TableResult.QTableModel) {
-                    final TableResult.QTableModel qModel = (TableResult.QTableModel) model;
-
-                    final TableRowSorter<TableResult.QTableModel> sorter = new TableRowSorter<>(qModel);
-                    sorter.setStringConverter(new TableStringConverter() {
-                        @Override
-                        public String toString(TableModel model, int row, int column) {
-                            final Object valueAt = model.getValueAt(row, column);
-                            if (valueAt == null) {
-                                return "";
-                            }
-                            return formatter.objectToString(valueAt);
-                        }
-                    });
-
-                    final TableResult.QColumnInfo[] columns = qModel.getColumns();
-                    for (int i = 0; i < columns.length; i++) {
-                        final Comparator<Object> comparator = columns[i].getComparator();
-                        if (comparator != null) {
-                            sorter.setComparator(i, comparator);
-                        }
-                    }
-                    setRowSorter(sorter);
-                }
-            }
-        };
+        myTable = createTable();
 
         myTable.setStriped(false);
         myTable.setShowGrid(tableOptions.isShowGrid());
@@ -181,12 +119,16 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             }
         });
 
-        initializeColumnHighlighter();
+        repeatAction = createRepeatAction(repeater);
+        searchAction = createSearchAction();
+        filterAction = createFilterAction();
+        showIndexAction = createShowIndexAction();
+        showThousandsAction = createShowThousandsAction();
+        chartActionGroup = new ChartActionGroup(myTable);
+        exportActionGroup = ExportDataProvider.createActionGroup(project, this);
 
         searchSession = new TableResultSearchSession(myTable, project, new FindModel());
         searchSession.getFindModel().addObserver(this::modelBeenUpdated);
-
-        createSearchComponent();
 
         tableScroll = ScrollPaneFactory.createScrollPane(myTable, true);
         if (tableOptions.isIndexColumn()) {
@@ -213,15 +155,71 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             add(statusBar, BorderLayout.SOUTH);
         }
 
-        add(createFilter(), BorderLayout.EAST);
-        add(createActions(), BorderLayout.WEST);
+        add(createLeftToolbar(), BorderLayout.WEST);
+        add(createRightToolbar(), BorderLayout.EAST);
+
+        PopupHandler.installPopupMenu(myTable, createPopupMenu(), "TableResultView.Context");
+    }
+
+    private AnAction createRepeatAction(BiConsumer<KdbQuery, TableResultView> repeater) {
+        if (repeater == null) {
+            return null;
+        }
+
+        return new BgtAction("_Repeat the Query", "Re-run the query related with this result", AllIcons.Actions.Refresh) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                if (tableResult != null) {
+                    repeater.accept(tableResult.getQuery(), TableResultView.this);
+                }
+            }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(tableResult != null);
+            }
+        };
     }
 
     @NotNull
-    private JComponent createFilter() {
-        final DefaultActionGroup group = new DefaultActionGroup();
+    private ToggleAction createShowThousandsAction() {
+        final ToggleAction action = new EdtToggleAction("Show Thousands Separator", "Format numbers with thousands separator", KdbIcons.Console.TableThousands) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return thousandsSeparator.getAsBoolean();
+            }
 
-        final ToggleAction action = new DumbAwareToggleAction("Filter Columns", "Filter columns list", KdbIcons.Console.ColumnsFilter) {
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                thousandsSeparator = () -> state;
+                myTable.repaint();
+                statusBar.recalculateValues();
+            }
+        };
+        action.registerCustomShortcutSet(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
+        return action;
+    }
+
+    @NotNull
+    private ToggleAction createShowIndexAction() {
+        final ToggleAction action = new EdtToggleAction("Show Index Column", "Show column with row indexes", KdbIcons.Console.TableIndex) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return isShowIndexColumn();
+            }
+
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                setShowIndexColumn(state);
+            }
+        };
+        action.registerCustomShortcutSet(KeyEvent.VK_I, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
+        return action;
+    }
+
+    @NotNull
+    private ToggleAction createFilterAction() {
+        final ToggleAction action = new BgtToggleAction("Filter Columns", "Filter columns list", KdbIcons.Console.ColumnsFilter) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return splitter.getSecondComponent() != null;
@@ -240,89 +238,216 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
                 }
             }
         };
-        group.add(action);
-
-        final ActionToolbar filterToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Filter", group, false);
-        filterToolbar.setTargetComponent(this);
-        return filterToolbar.getComponent();
+        action.registerCustomShortcutSet(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
+        return action;
     }
 
     @NotNull
-    private JComponent createActions() {
-        final DefaultActionGroup group = new DefaultActionGroup();
-
-        if (repeater != null) {
-            group.add(new DumbAwareAction("_Repeat the Query", "Re-run the query related with this result", AllIcons.Actions.Refresh) {
-                @Override
-                public void actionPerformed(@NotNull AnActionEvent e) {
-                    if (tableResult != null) {
-                        repeater.accept(tableResult.getQuery(), TableResultView.this);
-                    }
-                }
-
-                @Override
-                public void update(@NotNull AnActionEvent e) {
-                    e.getPresentation().setEnabled(tableResult != null);
-                }
-            });
-            group.addSeparator();
-        }
-
-        group.add(searchAction);
-        group.addSeparator();
-
-        final ToggleAction action = new DumbAwareToggleAction("Show Index Column", "Show column with row indexes", KdbIcons.Console.TableIndex) {
+    private ToggleAction createSearchAction() {
+        final ToggleAction action = new BgtToggleAction("_Search", "Search data in the table", AllIcons.Actions.Search) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
-                return isShowIndexColumn();
+                return searchSession.isOpened();
             }
 
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                setShowIndexColumn(state);
+                if (state) {
+                    searchSession.open();
+                } else {
+                    searchSession.close();
+                }
+            }
+        };
+        action.registerCustomShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK)), myTable);
+        return action;
+    }
+
+    @NotNull
+    private KdbOutputFormatter createOutputFormatter() {
+        return new KdbOutputFormatter(new FormatterOptions() {
+            final ConsoleOptions consoleOptions = KdbSettingsService.getInstance().getConsoleOptions();
+
+            @Override
+            public int getFloatPrecision() {
+                return consoleOptions.getFloatPrecision();
             }
 
             @Override
-            public @NotNull ActionUpdateThread getActionUpdateThread() {
-                return ActionUpdateThread.EDT;
+            public boolean isWrapStrings() {
+                return consoleOptions.isWrapStrings();
             }
-        };
-        action.registerCustomShortcutSet(KeyEvent.VK_I, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
-        group.add(action);
 
-        group.addSeparator();
-        group.addAll(ExportDataProvider.createActionGroup(project, this));
+            @Override
+            public boolean isPrefixSymbols() {
+                return consoleOptions.isPrefixSymbols();
+            }
 
-        group.addSeparator();
-        group.add(new ChartActionGroup(myTable));
+            @Override
+            public boolean isEnlistArrays() {
+                return consoleOptions.isEnlistArrays();
+            }
 
-        PopupHandler.installPopupMenu(myTable, group, "TableResultView.Context");
-
-        final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Actions", group, false);
-        actionToolbar.setTargetComponent(this);
-
-        return actionToolbar.getComponent();
+            @Override
+            public boolean isThousandsSeparator() {
+                return thousandsSeparator.getAsBoolean();
+            }
+        });
     }
 
-    private void initializeColumnHighlighter() {
-        final JTableHeader header = myTable.getTableHeader();
+    @NotNull
+    private JBTable createTable() {
+        final var valueColumnRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                final Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (!isSelected) {
+                    if (tableOptions.isStriped() && row % 2 == 0) {
+                        c.setBackground(UIUtil.getDecoratedRowColor());
+                    } else {
+                        c.setBackground(table.getBackground());
+                    }
+                }
+                return c;
+            }
+
+            @Override
+            protected void setValue(Object value) {
+                setText(formatter.objectToString(value));
+            }
+        };
+
+        final JBTable table = new JBTable(TableResult.EMPTY_MODEL) {
+            @Override
+            public @NotNull Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
+                final Component c = super.prepareRenderer(renderer, row, column);
+
+                final TableColumn tableColumn = getColumnModel().getColumn(column);
+                tableColumn.setPreferredWidth(max(c.getPreferredSize().width + getIntercellSpacing().width + 20, tableColumn.getPreferredWidth()));
+
+                final boolean keyColumn = getModel().isKeyColumn(tableColumn.getModelIndex());
+                if (keyColumn) {
+                    c.setBackground(UIUtils.getKeyColumnColor(c.getBackground()));
+                }
+                return c;
+            }
+
+            @Override
+            public TableCellRenderer getCellRenderer(int row, int column) {
+                return valueColumnRenderer;
+            }
+
+            @Override
+            public TableResult.QTableModel getModel() {
+                return (TableResult.QTableModel) super.getModel();
+            }
+
+            @Override
+            public void setModel(@NotNull TableModel model) {
+                super.setModel(model);
+
+                if (model instanceof TableResult.QTableModel qModel) {
+                    final TableRowSorter<TableResult.QTableModel> sorter = new TableRowSorter<>(qModel);
+                    sorter.setStringConverter(new TableStringConverter() {
+                        @Override
+                        public String toString(TableModel model, int row, int column) {
+                            final Object valueAt = model.getValueAt(row, column);
+                            if (valueAt == null) {
+                                return "";
+                            }
+                            return formatter.objectToString(valueAt);
+                        }
+                    });
+
+                    final TableResult.QColumnInfo[] columns = qModel.getColumns();
+                    for (int i = 0; i < columns.length; i++) {
+                        final Comparator<Object> comparator = columns[i].getComparator();
+                        if (comparator != null) {
+                            sorter.setComparator(i, comparator);
+                        }
+                    }
+                    setRowSorter(sorter);
+                }
+            }
+
+            @Override
+            protected TableColumnModel createDefaultColumnModel() {
+                return new MyTableColumnModel();
+            }
+        };
+
+        final JTableHeader header = table.getTableHeader();
 
         final Border normalBorder = JBUI.Borders.emptyBottom(1);
-        final Border selectedBorder = JBUI.Borders.customLine(myTable.getSelectionBackground(), 0, 0, 1, 0);
+        final Border selectedBorder = JBUI.Borders.customLine(table.getSelectionBackground(), 0, 0, 1, 0);
 
         final TableCellRenderer defaultRenderer = header.getDefaultRenderer();
-        header.setDefaultRenderer((table, value, isSelected, hasFocus, row, column) -> {
-            final Component cmp = defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            if (cmp instanceof JComponent) {
-                final JComponent component = (JComponent) cmp;
-                final boolean selectedIndex = table.getColumnModel().getSelectionModel().isSelectedIndex(column);
+        header.setDefaultRenderer((tbl, val, sel, focus, row, column) -> {
+            final Component cmp = defaultRenderer.getTableCellRendererComponent(tbl, val, sel, focus, row, column);
+            if (cmp instanceof JComponent component) {
+                final boolean selectedIndex = tbl.getColumnModel().getSelectionModel().isSelectedIndex(column);
                 final Border border = selectedIndex ? selectedBorder : normalBorder;
                 final Border merge = JBUI.Borders.merge(component.getBorder(), border, true);
                 component.setBorder(merge);
             }
             return cmp;
         });
-        myTable.getColumnModel().getSelectionModel().addListSelectionListener(e -> header.repaint());
+        table.getColumnModel().getSelectionModel().addListSelectionListener(e -> header.repaint());
+        return table;
+    }
+
+    @NotNull
+    private JComponent createLeftToolbar() {
+        final DefaultActionGroup group = new DefaultActionGroup();
+
+        if (repeatAction != null) {
+            group.add(repeatAction);
+            group.addSeparator();
+        }
+
+        final DefaultActionGroup view = new PopupActionGroup("View Settings", AllIcons.Actions.Show);
+        view.add(searchAction);
+        view.addSeparator();
+        view.add(showIndexAction);
+        view.add(showThousandsAction);
+
+        group.add(view);
+        group.addSeparator();
+        group.addAll(exportActionGroup);
+        group.addSeparator();
+        group.add(chartActionGroup);
+
+        final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Actions", group, false);
+        actionToolbar.setTargetComponent(this);
+        return actionToolbar.getComponent();
+    }
+
+    @NotNull
+    private JComponent createRightToolbar() {
+        final DefaultActionGroup group = new DefaultActionGroup();
+        group.add(filterAction);
+
+        final ActionToolbar filterToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.Filter", group, false);
+        filterToolbar.setTargetComponent(this);
+        return filterToolbar.getComponent();
+    }
+
+    private ActionGroup createPopupMenu() {
+        final DefaultActionGroup group = new DefaultActionGroup();
+
+        if (repeatAction != null) {
+            group.add(repeatAction);
+            group.addSeparator();
+        }
+        group.add(searchAction);
+        group.addSeparator();
+        group.add(showIndexAction);
+        group.add(showThousandsAction);
+        group.addSeparator();
+        group.addAll(exportActionGroup);
+        group.addSeparator();
+        group.add(chartActionGroup);
+        return group;
     }
 
     public boolean isShowIndexColumn() {
@@ -413,25 +538,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         return myTable;
     }
 
-    private void createSearchComponent() {
-        searchAction = new DumbAwareToggleAction("_Search", "Search data in the table", AllIcons.Actions.Search) {
-            @Override
-            public boolean isSelected(@NotNull AnActionEvent e) {
-                return searchSession.isOpened();
-            }
-
-            @Override
-            public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                if (state) {
-                    searchSession.open();
-                } else {
-                    searchSession.close();
-                }
-            }
-        };
-        searchAction.registerCustomShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK)), myTable);
-    }
-
     @NotNull
     static TableRowFilter createSimpleFilter(FindModel model) {
         final String text = model.getStringToFind();
@@ -460,8 +566,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     @Override
     public String getExportName() {
         final Container parent = getParent();
-        if (parent instanceof JBTabs) {
-            final JBTabs jbTabs = (JBTabs) parent;
+        if (parent instanceof JBTabs jbTabs) {
             for (TabInfo info : jbTabs.getTabs()) {
                 if (info.getObject() == this) {
                     return info.getText();
@@ -474,6 +579,11 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     @Override
     public Object getNativeObject() {
         return tableResult.getResult().getObject();
+    }
+
+    @Override
+    public KdbOutputFormatter getOutputFormatter() {
+        return formatter;
     }
 
     private static boolean containsIgnoreCase(String str, String searchStr, boolean ignoreCase) {

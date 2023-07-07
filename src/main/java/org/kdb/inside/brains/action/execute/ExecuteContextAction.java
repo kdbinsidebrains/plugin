@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.action;
+package org.kdb.inside.brains.action.execute;
 
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;

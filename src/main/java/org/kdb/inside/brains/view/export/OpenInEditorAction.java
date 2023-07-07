@@ -36,7 +36,7 @@ public class OpenInEditorAction extends AnExportAction<FileEditorManager> {
     }
 
     @Override
-    protected void exportResultView(Project project, ExportingType type, FileEditorManager editorManager, ExportDataProvider dataProvider, KdbOutputFormatter formatter, @NotNull ProgressIndicator indicator) {
+    protected void exportResultView(Project project, ExportingType type, FileEditorManager editorManager, ExportDataProvider dataProvider, @NotNull ProgressIndicator indicator) {
         final JTable table = dataProvider.getTable();
 
         final ExportingType.IndexIterator ri = type.rowsIterator(table);
@@ -45,6 +45,7 @@ public class OpenInEditorAction extends AnExportAction<FileEditorManager> {
         int count = 0;
         double totalCount = ri.count() * ci.count();
         indicator.setIndeterminate(false);
+        final KdbOutputFormatter formatter = KdbOutputFormatter.getDefault();
         for (int r = ri.reset(); r != -1 && !indicator.isCanceled(); r = ri.next()) {
             for (int c = ci.reset(); c != -1 && !indicator.isCanceled(); c = ci.next()) {
                 final Object value = table.getValueAt(r, c);

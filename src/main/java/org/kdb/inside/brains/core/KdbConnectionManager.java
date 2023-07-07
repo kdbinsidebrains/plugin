@@ -24,7 +24,7 @@ import kx.KxConnection;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.action.InstancesComboAction;
+import org.kdb.inside.brains.action.toolbar.InstancesComboAction;
 import org.kdb.inside.brains.core.credentials.CredentialService;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;

@@ -48,13 +48,14 @@ public class ExcelExportAction extends AnExportAction<File> {
     }
 
     @Override
-    protected void exportResultView(Project project, ExportingType type, File file, ExportDataProvider dataProvider, KdbOutputFormatter formatter, @NotNull ProgressIndicator indicator) throws Exception {
-        if (exportData(file, dataProvider, formatter, type, indicator)) {
+    protected void exportResultView(Project project, ExportingType type, File file, ExportDataProvider dataProvider, @NotNull ProgressIndicator indicator) throws Exception {
+        if (exportData(file, dataProvider, type, indicator)) {
             Desktop.getDesktop().open(file);
         }
     }
 
-    private boolean exportData(File file, ExportDataProvider dataProvider, KdbOutputFormatter formatter, ExportingType type, @NotNull ProgressIndicator indicator) throws Exception {
+    private boolean exportData(File file, ExportDataProvider dataProvider, ExportingType type, @NotNull ProgressIndicator indicator) throws Exception {
+        final KdbOutputFormatter formatter = KdbOutputFormatter.getDefault();
         try (final SXSSFWorkbook wb = new SXSSFWorkbook(null, 100, false, true)) {
             final Sheet sheet = wb.createSheet("KDB Exported Data");
 

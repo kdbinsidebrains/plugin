@@ -1,10 +1,11 @@
 package org.kdb.inside.brains.view.console;
 
 import org.kdb.inside.brains.settings.SettingsBean;
+import org.kdb.inside.brains.view.FormatterOptions;
 
 import java.util.Objects;
 
-public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
+public final class ConsoleOptions implements SettingsBean<ConsoleOptions>, FormatterOptions {
     private int floatPrecision = 7;
     private boolean wrapStrings = true;
     private boolean prefixSymbols = true;
@@ -20,6 +21,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     public ConsoleOptions() {
     }
 
+    @Override
     public boolean isWrapStrings() {
         return wrapStrings;
     }
@@ -28,6 +30,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.wrapStrings = wrapStrings;
     }
 
+    @Override
     public boolean isPrefixSymbols() {
         return prefixSymbols;
     }
@@ -44,6 +47,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.dictAsTable = dictAsTable;
     }
 
+    @Override
     public int getFloatPrecision() {
         return floatPrecision;
     }
@@ -52,6 +56,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
         this.floatPrecision = floatPrecision;
     }
 
+    @Override
     public boolean isEnlistArrays() {
         return enlistArrays;
     }
@@ -95,8 +100,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ConsoleOptions)) return false;
-        ConsoleOptions that = (ConsoleOptions) o;
+        if (!(o instanceof ConsoleOptions that)) return false;
         return floatPrecision == that.floatPrecision && wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && enlistArrays == that.enlistArrays && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable && consoleBackground == that.consoleBackground && clearTableResult == that.clearTableResult && splitType == that.splitType;
     }
 

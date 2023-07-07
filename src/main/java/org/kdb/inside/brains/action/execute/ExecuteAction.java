@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.action;
+package org.kdb.inside.brains.action.execute;
 
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ReadAction;
@@ -10,6 +10,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
+import org.kdb.inside.brains.action.ActionPlaces;
 import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.InstanceState;
 import org.kdb.inside.brains.core.KdbConnectionManager;
@@ -40,7 +41,7 @@ public class ExecuteAction extends DumbAwareAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
         final Presentation presentation = e.getPresentation();
-        if (ActionPlaces.KEYBOARD_SHORTCUT.equals(e.getPlace())) {
+        if (org.kdb.inside.brains.action.ActionPlaces.KEYBOARD_SHORTCUT.equals(e.getPlace())) {
             presentation.setEnabled(true);
             presentation.setVisible(false);
         } else {

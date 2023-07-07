@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.action;
+package org.kdb.inside.brains.action.execute;
 
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
@@ -28,8 +28,8 @@ import java.awt.*;
 public class ExecuteInlineAction extends ExecuteAction implements DumbAware {
     public static final Dimension MAX_SIZE = new Dimension(800, 500);
 
-    private TableResultView createTableHint(Project project, KdbOutputFormatter formatter, TableResult result) {
-        final TableResultView view = new TableResultView(project, formatter);
+    private TableResultView createTableHint(Project project, TableResult result) {
+        final TableResultView view = new TableResultView(project);
         view.showResult(result);
         view.setPreferredSize(MAX_SIZE);
         return view;
@@ -97,11 +97,11 @@ public class ExecuteInlineAction extends ExecuteAction implements DumbAware {
                 if (res.isError()) {
                     showTypedHint(createTextHint(((Exception) res.getObject()).getMessage(), true), editor);
                 } else {
-                    final KdbOutputFormatter formatter = KdbOutputFormatter.getInstance();
                     final TableResult tableResult = TableResult.from(query, res);
                     if (tableResult != null) {
-                        showTypedHint(createTableHint(project, formatter, tableResult), editor);
+                        showTypedHint(createTableHint(project, tableResult), editor);
                     } else {
+                        final KdbOutputFormatter formatter = KdbOutputFormatter.getDefault();
                         showTypedHint(createTextHint(formatter.resultToString(res, true, true), false), editor);
                     }
                 }

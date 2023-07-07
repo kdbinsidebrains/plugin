@@ -45,6 +45,10 @@ public abstract class MoveItemAction extends AbstractInstancesAction {
         }
 
         final int index = parent.childIndex(item);
+        if (index < 0) {
+            return null;
+        }
+
         if (direction == Direction.UP) {
             if (index != 0) {
                 final InstanceItem child = parent.getChild(index - 1);

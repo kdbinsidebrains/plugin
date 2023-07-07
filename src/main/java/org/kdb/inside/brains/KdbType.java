@@ -57,8 +57,7 @@ public enum KdbType implements Type {
     KEYED_TABLE(null, null, null) {
         @Override
         public boolean isOfType(Object object) {
-            if (object instanceof c.Dict) {
-                final c.Dict d = (c.Dict) object;
+            if (object instanceof c.Dict d) {
                 return d.x instanceof c.Flip && d.y instanceof c.Flip;
             }
             return false;
@@ -265,5 +264,9 @@ public enum KdbType implements Type {
 
     public static KdbType listOf(KdbType type) {
         return atomToList.getOrDefault(type, ANY_LIST);
+    }
+
+    public static boolean isNull(Object v) {
+        return c.qn(v);
     }
 }

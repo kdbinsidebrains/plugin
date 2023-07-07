@@ -11,6 +11,7 @@ public class TableOptionsPanel extends JPanel {
     private final JBCheckBox showGrid = new JBCheckBox("Show table grid");
     private final JBCheckBox striped = new JBCheckBox("Stripe table rows");
     private final JBCheckBox indexColumn = new JBCheckBox("Show index column");
+    private final JBCheckBox thousandsColumn = new JBCheckBox("Show thousands separator");
     private final JBCheckBox expandList = new JBCheckBox("Vector");
     private final JBCheckBox expandDict = new JBCheckBox("Dictionary");
     private final JBCheckBox expandFlip = new JBCheckBox("Table");
@@ -24,6 +25,7 @@ public class TableOptionsPanel extends JPanel {
         formBuilder.addComponent(showGrid);
         formBuilder.addComponent(striped);
         formBuilder.addComponent(indexColumn);
+        formBuilder.addComponent(thousandsColumn);
         addExpandPanel(formBuilder);
 
         add(formBuilder.getPanel());
@@ -50,6 +52,7 @@ public class TableOptionsPanel extends JPanel {
         options.setExpandDict(expandDict.isSelected());
         options.setExpandTable(expandFlip.isSelected());
         options.setXmasKeyColumn(xmasKeyColumn.isSelected());
+        options.setThousandsSeparator(thousandsColumn.isSelected());
         return options;
     }
 
@@ -61,5 +64,6 @@ public class TableOptionsPanel extends JPanel {
         expandDict.setSelected(options.isExpandDict());
         expandFlip.setSelected(options.isExpandTable());
         xmasKeyColumn.setSelected(options.isXmasKeyColumn());
+        thousandsColumn.setSelected(options.isThousandsSeparator());
     }
 }

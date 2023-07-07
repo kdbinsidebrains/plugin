@@ -1,6 +1,7 @@
-package org.kdb.inside.brains.action;
+package org.kdb.inside.brains.action.execute;
 
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
@@ -29,7 +30,8 @@ public class ExecuteOnAction extends ActionGroup implements DumbAware {
     }
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 
     @Override

@@ -1,5 +1,22 @@
 # KdbInsideBrains Changelog
 
+## [4.1.0]
+
+### Added
+
+- Show Thousands Separator functionality added to a Table Result View. It allows to show thousands comma separator for
+  any number. Thousands separators only shown in the Table Result View and copied to clipboard but not added to any
+  exporting data, like Excel or CSV: https://www.kdbinsidebrains.dev/features/tables#thousands-separator
+
+### Changed
+
+- Filters and Show Index Column as well as new Thousands Separator moved to inner popup 'View Settings' menu for space
+  optimization.
+
+### Fixed
+
+- Move a Instance Tree item to wrong position causes an exception.
+
 ## [4.0.0]
 
 ### Changed

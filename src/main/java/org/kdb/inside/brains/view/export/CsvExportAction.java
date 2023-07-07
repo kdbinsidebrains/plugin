@@ -29,7 +29,7 @@ public class CsvExportAction extends AnExportAction<VirtualFileWrapper> {
     }
 
     @Override
-    protected void exportResultView(Project project, ExportingType type, VirtualFileWrapper file, ExportDataProvider dataProvider, KdbOutputFormatter formatter, @NotNull ProgressIndicator indicator) throws Exception {
+    protected void exportResultView(Project project, ExportingType type, VirtualFileWrapper file, ExportDataProvider dataProvider, @NotNull ProgressIndicator indicator) throws Exception {
         final JTable table = dataProvider.getTable();
 
         final StringBuilder plainStr = new StringBuilder();
@@ -49,6 +49,7 @@ public class CsvExportAction extends AnExportAction<VirtualFileWrapper> {
         int count = 0;
         double totalCount = ri.count() * ci.count();
         indicator.setIndeterminate(false);
+        final KdbOutputFormatter formatter = KdbOutputFormatter.getDefault();
         for (int r = ri.reset(); r != -1 && !indicator.isCanceled(); r = ri.next()) {
             for (int c = ci.reset(); c != -1 && !indicator.isCanceled(); c = ci.next()) {
                 final String val = getValueAt(table, formatter, r, c);

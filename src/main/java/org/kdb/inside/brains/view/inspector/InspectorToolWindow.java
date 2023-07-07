@@ -705,7 +705,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
             return structureModel.getInvoker().invoke(() -> {
                 smartStructure.rebuildTree();
-                structureModel.invalidate();
+                structureModel.invalidateAsync();
             });
         }
 

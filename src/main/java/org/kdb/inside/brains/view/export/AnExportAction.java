@@ -14,7 +14,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.util.ui.IoErrorText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.view.KdbOutputFormatter;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -85,8 +84,7 @@ public abstract class AnExportAction<Config> extends AnAction implements DumbAwa
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 try {
-                    final KdbOutputFormatter formatter = KdbOutputFormatter.getInstance();
-                    exportResultView(project, type, config, dataProvider, formatter, indicator);
+                    exportResultView(project, type, config, dataProvider, indicator);
                 } catch (Exception ex) {
                     log.error("Data Can't Be Exported", ex);
                     ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(project, IoErrorText.message(ex), "Data Can't Be Exported"));
@@ -101,7 +99,7 @@ public abstract class AnExportAction<Config> extends AnAction implements DumbAwa
 
     protected abstract Config getExportConfig(Project project, ExportDataProvider view) throws IOException;
 
-    protected abstract void exportResultView(Project project, ExportingType type, Config config, ExportDataProvider dataProvider, KdbOutputFormatter formatter, @NotNull ProgressIndicator indicator) throws Exception;
+    protected abstract void exportResultView(Project project, ExportingType type, Config config, ExportDataProvider dataProvider, @NotNull ProgressIndicator indicator) throws Exception;
 
 
     @Nullable
