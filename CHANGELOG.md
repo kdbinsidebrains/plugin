@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [4.1.1]
+
+### Added
+
+- 2023.2 EAP version checked and added to supported list
+
 ## [4.1.0]
 
 ### Added
