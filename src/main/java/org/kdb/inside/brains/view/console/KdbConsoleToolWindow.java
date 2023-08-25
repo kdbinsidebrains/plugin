@@ -2,7 +2,12 @@ package org.kdb.inside.brains.view.console;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
@@ -10,22 +15,25 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.ui.content.ContentManagerEvent;
 import com.intellij.ui.content.ContentManagerListener;
+import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
-import org.kdb.inside.brains.core.InstanceConnection;
-import org.kdb.inside.brains.core.InstanceState;
-import org.kdb.inside.brains.core.KdbConnectionListener;
-import org.kdb.inside.brains.core.KdbConnectionManager;
+import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 
 import javax.swing.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class KdbConsoleToolWindow implements Disposable {
+@State(name = "KdbConsole", storages = {@Storage("kdb-console.xml")})
+public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, Disposable, DumbAware {
     private ContentManager contentManager;
 
     private final Project project;
     private final KdbConnectionManager connectionManager;
+    private final Map<KdbInstance, Element> statesCache = new HashMap<>();
 
     private final TheConnectionListener listener = new TheConnectionListener();
 
@@ -65,6 +73,19 @@ public class KdbConsoleToolWindow implements Disposable {
         toolWindow.setToHideOnEmptyContent(false);
         toolWindow.setTabActions(ActionManager.getInstance().getAction("Kdb.NewConnection"));
 
+        restoreState();
+    }
+
+    private void restoreState() {
+        for (Map.Entry<KdbInstance, Element> entry : statesCache.entrySet()) {
+            final InstanceConnection connection = connectionManager.register(entry.getKey());
+
+            final Content content = getOrcreateInstanceContent(connection);
+            if (content.getComponent() instanceof KdbConsolePanel console) {
+                console.loadState(entry.getValue());
+            }
+        }
+
         final List<InstanceConnection> connections = connectionManager.getConnections();
         for (InstanceConnection connection : connections) {
             if (connection.getState() == InstanceState.CONNECTED) {
@@ -86,19 +107,18 @@ public class KdbConsoleToolWindow implements Disposable {
     }
 
     private Content activateInstance(InstanceConnection connection) {
-        Content content = findContent(connection);
-        if (content == null) {
-            content = createInstanceContent(connection);
-            contentManager.addContent(content);
-        }
-
+        final Content content = getOrcreateInstanceContent(connection);
         contentManager.setSelectedContent(content, false, false, false);
-
         return content;
     }
 
     @NotNull
-    private Content createInstanceContent(InstanceConnection connection) {
+    private Content getOrcreateInstanceContent(InstanceConnection connection) {
+        final Content c = findContent(connection);
+        if (c != null) {
+            return c;
+        }
+
         final ConsoleSplitType splitType = KdbSettingsService.getInstance().getConsoleOptions().getSplitType();
 
         final KdbConsolePanel panel = new KdbConsolePanel(project, connection, splitType, p -> {
@@ -107,6 +127,7 @@ public class KdbConsoleToolWindow implements Disposable {
                 contentManager.removeContent(content, true);
             }
         });
+        Disposer.register(this, panel);
 
         final Content content = UIUtils.createContent(panel, connection.getCanonicalName(), true);
         content.setPinnable(true);
@@ -114,12 +135,9 @@ public class KdbConsoleToolWindow implements Disposable {
         content.setComponent(panel);
         content.setShouldDisposeContent(true);
 
-        return content;
-    }
+        contentManager.addContent(content);
 
-    @Override
-    public void dispose() {
-        connectionManager.removeConnectionListener(listener);
+        return content;
     }
 
     public static KdbConsoleToolWindow getInstance(Project project) {
@@ -143,6 +161,75 @@ public class KdbConsoleToolWindow implements Disposable {
             return ((KdbConsolePanel) component).getConnection();
         }
         return null;
+    }
+
+    @Override
+    public @Nullable Element getState() {
+        if (contentManager == null) {
+            return null;
+        }
+
+        final Element c = new Element("consoles");
+
+        statesCache.clear();
+        final Content[] contents = contentManager.getContents();
+        for (Content content : contents) {
+            if (content.getComponent() instanceof KdbConsolePanel console) {
+                final InstanceConnection connection = console.getConnection();
+                if (connection.isTemporal()) {
+                    continue;
+                }
+
+                final Element e = new Element("console");
+                e.setAttribute("scope", connection.getInstance().getScope().getName());
+                e.setAttribute("instance", connection.getCanonicalName());
+                e.setAttribute("connected", String.valueOf(connection.getState() == InstanceState.CONNECTED));
+                console.saveState(e);
+                statesCache.put(connection.getInstance(), e);
+
+                c.addContent(e);
+            }
+        }
+        return c;
+    }
+
+    @Override
+    public void loadState(@NotNull Element state) {
+        final KdbScopesManager scopesManager = KdbScopesManager.getManager(project);
+
+        statesCache.clear();
+        final List<Element> children = state.getChildren();
+        for (Element child : children) {
+            final String scopeName = child.getAttributeValue("scope");
+            if (scopeName == null) {
+                continue;
+            }
+            final KdbScope scope = scopesManager.getScope(scopeName);
+            if (scope == null) {
+                continue;
+            }
+
+            final String instanceName = child.getAttributeValue("instance");
+            if (instanceName == null) {
+                continue;
+            }
+            final KdbInstance instance = scopesManager.lookupInstance(instanceName);
+            if (instance == null) {
+                continue;
+            }
+            statesCache.put(instance, child);
+
+            final InstanceConnection connection = connectionManager.register(instance);
+            if (Boolean.parseBoolean(child.getAttributeValue("connected", "false"))) {
+                connection.connect();
+            }
+        }
+    }
+
+    @Override
+    public void dispose() {
+        statesCache.clear();
+        connectionManager.removeConnectionListener(listener);
     }
 
     private class TheConnectionListener implements KdbConnectionListener {

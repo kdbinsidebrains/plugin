@@ -101,6 +101,34 @@ public class KdbScopesManager implements PersistentStateComponent<KdbScopesManag
         listeners.forEach(l -> l.scopesReordered(oldSort, getScopes()));
     }
 
+    /**
+     * Implementation is very slow so should be used very often. Implemented just to state recovery and nothing else.
+     */
+    public KdbInstance lookupInstance(String canonicalName) {
+        for (KdbScope scope : scopes) {
+            final InstanceItem ii = lookupInstance(canonicalName, scope);
+            if (ii instanceof KdbInstance i) {
+                return i;
+            }
+        }
+        return null;
+    }
+
+    private InstanceItem lookupInstance(String canonicalName, InstanceItem item) {
+        if (canonicalName.equals(item.getCanonicalName())) {
+            return item;
+        }
+        if (item instanceof StructuralItem si) {
+            for (InstanceItem ii : si) {
+                final InstanceItem i = lookupInstance(canonicalName, ii);
+                if (i != null) {
+                    return i;
+                }
+            }
+        }
+        return null;
+    }
+
     private void restoreManager() {
         scopes.addAll(localScopeHolder.getScopes());
         scopes.addAll(sharedScopeHolder.getScopes());
@@ -134,6 +162,10 @@ public class KdbScopesManager implements PersistentStateComponent<KdbScopesManag
 
     public static KdbScopesManager getManager(Project project) {
         return project.getService(KdbScopesManager.class);
+    }
+
+    public KdbScope getScope(@NotNull String scopeName) {
+        return scopes.stream().filter(s -> s.getName().equals(scopeName)).findFirst().orElse(null);
     }
 
     private class TheScopeListener implements KdbScopeListener {

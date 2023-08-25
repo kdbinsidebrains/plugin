@@ -274,6 +274,88 @@
                         description="Importing QPad Servers.cfg file into current selection"/>
             </group>
         </group>
+
+        <!--
+                <group id="XDebugger.Watches.Tree.Popup">
+                </group>
+        -->
+
+        <group id="Kdb.WatchesView" text="Watches Variable Popup Menu" popup="true" searchable="false">
+            <action id="Kdb.WatchesView.ExpandWatches"
+                    class="org.kdb.inside.brains.view.console.watch.actions.ExpandWatchesAction"
+                    text="Open Watch Value"/>
+
+            <separator/>
+
+            <action id="Kdb.WatchesView.Create"
+                    class="org.kdb.inside.brains.view.console.watch.actions.AddWatchAction"
+                    text="New Watch"
+                    icon="AllIcons.General.Add">
+                <keyboard-shortcut first-keystroke="INSERT" keymap="$default"/>
+            </action>
+
+            <action id="Kdb.WatchesView.Remove"
+                    class="org.kdb.inside.brains.view.console.watch.actions.RemoveWatchAction"
+                    text="Remove Watch"
+                    icon="AllIcons.General.Remove"
+                    use-shortcut-of="$Delete"/>
+
+            <action id="Kdb.WatchesView.RemoveAll"
+                    class="org.kdb.inside.brains.view.console.watch.actions.RemoveAllWatchesAction"
+                    text="Remove All Watches"/>
+
+            <action id="Kdb.WatchesView.Edit"
+                    class="org.kdb.inside.brains.view.console.watch.actions.EditWatchAction"
+                    text="Edit Watch">
+                <keyboard-shortcut first-keystroke="F2" keymap="$default"/>
+            </action>
+
+            <separator/>
+
+            <action id="Kdb.WatchesView.CopyValue"
+                    class="org.kdb.inside.brains.view.console.watch.actions.CopyValueAction"
+                    text="Copy Value"
+                    icon="AllIcons.Actions.Copy"
+                    use-shortcut-of="$Copy"/>
+
+            <action id="Kdb.WatchesView.CopyName"
+                    class="org.kdb.inside.brains.view.console.watch.actions.CopyNameAction"
+                    text="Copy Name"/>
+
+            <separator/>
+
+            <action id="Kdb.WatchesView.RefreshVariable"
+                    class="org.kdb.inside.brains.view.console.watch.actions.RefreshWatchesAction"
+                    text="Refresh Watches"
+                    icon="AllIcons.Actions.Refresh">
+                <keyboard-shortcut first-keystroke="F5" keymap="$default"/>
+            </action>
+
+            <action id="Kdb.WatchesView.RefreshAllVariables"
+                    class="org.kdb.inside.brains.view.console.watch.actions.RefreshAllWatchesAction"
+                    text="Refresh All Watches"/>
+
+            <separator/>
+
+            <action id="Kdb.WatchesView.MoveWatchUp"
+                    class="org.kdb.inside.brains.view.console.watch.actions.MoveWatchUpAction"
+                    icon="AllIcons.Actions.MoveUp"
+                    text="Move Watches Up"
+                    use-shortcut-of="MoveLineUp"/>
+
+            <action id="Kdb.WatchesView.MoveWatchDown"
+                    class="org.kdb.inside.brains.view.console.watch.actions.MoveWatchDownAction"
+                    icon="AllIcons.Actions.MoveDown"
+                    text="Move Watches Down"
+                    use-shortcut-of="MoveLineDown"/>
+
+            <separator/>
+
+            <action id="Kdb.WatchesView.ShowTypes"
+                    class="org.kdb.inside.brains.view.console.watch.actions.ShowValueTypesAction"
+                    text="Show Value Type"/>
+
+        </group>
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">

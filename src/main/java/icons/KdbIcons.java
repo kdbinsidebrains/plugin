@@ -63,7 +63,7 @@ public final class KdbIcons {
         public static final Icon Table = AllIcons.Nodes.DataTables;
         public static final Icon Console = AllIcons.Debugger.Console;
 
-        public static final Icon ShowOnlyLast = AllIcons.Debugger.AddToWatch;
+        public static final Icon ShowHistory = AllIcons.Debugger.AddToWatch;
 
         public static final Icon CopyTable = load("/org/kdb/inside/brains/icons/copyTable.svg");
         public static final Icon CopyValues = load("/org/kdb/inside/brains/icons/copyValues.svg");

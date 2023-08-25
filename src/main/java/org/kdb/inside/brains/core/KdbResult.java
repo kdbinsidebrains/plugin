@@ -72,4 +72,16 @@ public class KdbResult {
     public long getRoundtripMillis() {
         return finishedMillis - statedMillis;
     }
+
+    @Override
+    public String toString() {
+        return "KdbResult{" +
+                "time=" + time +
+                ", statedMillis=" + statedMillis +
+                ", statedNanos=" + statedNanos +
+                ", finishedMillis=" + finishedMillis +
+                ", finishedNanos=" + finishedNanos +
+                ", result=" + (result != null ? result.getClass() : "null") +
+                '}';
+    }
 }

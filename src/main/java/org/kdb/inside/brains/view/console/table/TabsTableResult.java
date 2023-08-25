@@ -109,9 +109,11 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
         }
     }
 
-    public void hideConsole(TabInfo consoleTab) {
-        tabs.removeTab(consoleTab);
-        this.consoleTab = null;
+    public void hideConsole() {
+        if (this.consoleTab != null) {
+            tabs.removeTab(consoleTab);
+            this.consoleTab = null;
+        }
     }
 
     public void selectConsole() {

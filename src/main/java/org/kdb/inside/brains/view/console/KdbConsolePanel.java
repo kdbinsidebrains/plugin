@@ -1,29 +1,30 @@
 package org.kdb.inside.brains.view.console;
 
-import com.intellij.codeEditor.printing.PrintAction;
+import com.intellij.execution.actions.ClearConsoleAction;
 import com.intellij.execution.console.BaseConsoleExecuteActionHandler;
 import com.intellij.execution.console.GutterContentProvider;
 import com.intellij.execution.console.LanguageConsoleBuilder;
 import com.intellij.execution.console.LanguageConsoleView;
+import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.actions.NextOccurenceAction;
-import com.intellij.ide.actions.PreviousOccurenceAction;
+import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction;
+import com.intellij.openapi.editor.actions.AbstractToggleUseSoftWrapsAction;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.docking.DockContainer;
@@ -34,10 +35,13 @@ import com.intellij.util.ui.IoErrorText;
 import icons.KdbIcons;
 import kx.c;
 import org.apache.commons.io.FileUtils;
+import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QLanguage;
+import org.kdb.inside.brains.action.EdtAction;
+import org.kdb.inside.brains.action.EdtToggleAction;
 import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.action.connection.ToggleConnectAction;
 import org.kdb.inside.brains.core.*;
@@ -46,9 +50,12 @@ import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.settings.SettingsBean;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.LineNumberGutterProvider;
+import org.kdb.inside.brains.view.console.table.TableMode;
 import org.kdb.inside.brains.view.console.table.TableResult;
 import org.kdb.inside.brains.view.console.table.TableResultView;
 import org.kdb.inside.brains.view.console.table.TabsTableResult;
+import org.kdb.inside.brains.view.console.watch.VariableNode;
+import org.kdb.inside.brains.view.console.watch.WatchesView;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
@@ -57,19 +64,23 @@ import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvider, Disposable {
-    private final TabsTableResult resultTabs;
     private LanguageConsoleView console;
     private ConsoleSplitType activeSplitType;
-    private boolean showOnlyLast = false;
+
+    private final JBSplitter tabsSplitter;
+    private final JBSplitter watchesSplitter;
+    private final TabsTableResult resultTabs;
 
     private final JBTabs consoleTabs;
     private final TabInfo consoleTab;
-    private boolean scrollToTheEnd = true;
-
-    private final JBSplitter splitter;
+    private final List<String> watchesCache = new ArrayList<>();
+    private boolean softWrap = true;
+    private boolean showHistory = true;
 
     private final KdbScope scope;
     private final Project project;
@@ -85,6 +96,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     private final TheSettingsListener settingsListener = new TheSettingsListener();
 
     private final KdbSettingsService settingsService;
+    private boolean scrollToTheEnd = true;
 
     public static final DataKey<TabInfo> TAB_INFO_DATA_KEY = DataKey.create("KdbConsole.TabInfo");
 
@@ -108,9 +120,12 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         connectionManager = KdbConnectionManager.getManager(project);
         connectionManager.addConnectionListener(connectionListener);
 
-        splitter = createSplitter();
         consoleTabs = JBTabsFactory.createTabs(project, this);
-        splitter.setFirstComponent(consoleTabs.getComponent());
+
+        watchesSplitter = createWatchesSplitter();
+
+        tabsSplitter = createTabsSplitter();
+        tabsSplitter.setFirstComponent(consoleTabs.getComponent());
 
         consoleTab = createConsoleTab();
         resultTabs = new TabsTableResult(project, this);
@@ -121,7 +136,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
             }
 
             @Override
-            public void contentRemoved(Object key) {
+            public void contentRemoved(@NotNull Object key) {
                 changeSplitting();
             }
         }, this);
@@ -130,15 +145,25 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         setContent(resultTabs);
 
         changeSplitting(splitType);
+
         setToolbar(createMainToolbar().getComponent());
     }
 
-    private JBSplitter createSplitter() {
+    private JBSplitter createTabsSplitter() {
         JBSplitter splitter = new JBSplitter(true, 0.5f);
         splitter.setResizeEnabled(true);
         splitter.setHonorComponentsMinimumSize(false);
         splitter.setHonorComponentsPreferredSize(false);
-        splitter.setAndLoadSplitterProportionKey("KdbConsole.Tabs.Splitter");
+        splitter.setAndLoadSplitterProportionKey("KdbConsole.Splitter.Tabs");
+        return splitter;
+    }
+
+    private JBSplitter createWatchesSplitter() {
+        JBSplitter splitter = new JBSplitter(false, 0.5f);
+        splitter.setResizeEnabled(true);
+        splitter.setHonorComponentsMinimumSize(false);
+        splitter.setHonorComponentsPreferredSize(false);
+        splitter.setAndLoadSplitterProportionKey("KdbConsole.Splitter.Watches");
         return splitter;
     }
 
@@ -149,7 +174,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         b.initActions(new BaseConsoleExecuteActionHandler(true) {
             @Override
             protected void execute(@NotNull String text, @NotNull LanguageConsoleView console) {
-                if (showOnlyLast) {
+                if (!showHistory) {
                     clearHistory();
                     gutterProvider.beforeEvaluate(console.getHistoryViewer());
                 }
@@ -163,8 +188,10 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         printToConsole("Kdb console for instance: " + connection.getName() + ".\n", ConsoleViewContentType.SYSTEM_OUTPUT);
 
+        watchesSplitter.setFirstComponent(console.getComponent());
+
         final SimpleToolWindowPanel consolePanel = new SimpleToolWindowPanel(false);
-        consolePanel.setContent(console.getComponent());
+        consolePanel.setContent(watchesSplitter);
 
         final ActionManager am = ActionManager.getInstance();
 
@@ -198,46 +225,53 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     private DefaultActionGroup createConsoleActions() {
         final DefaultActionGroup actions = new DefaultActionGroup();
 
-        for (AnAction action : console.createConsoleActions()) {
-            if (action instanceof PreviousOccurenceAction || action instanceof NextOccurenceAction) {
-                continue;
+        final AnAction softWrapAction = new EdtToggleAction() {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return softWrap;
             }
 
-            if (action instanceof ScrollToTheEndToolbarAction) {
-                final Presentation tp = action.getTemplatePresentation();
-                actions.add(new DumbAwareToggleAction(tp.getText(), tp.getDescription(), tp.getIcon()) {
-                    @Override
-                    public boolean isSelected(@NotNull AnActionEvent e) {
-                        return scrollToTheEnd;
-                    }
-
-                    @Override
-                    public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                        scrollToTheEnd = state;
-                        if (state) {
-                            console.requestScrollingToEnd();
-                        }
-                    }
-                });
-            } else if (action instanceof PrintAction) {
-                actions.add(new DumbAwareToggleAction("Show History", "Show all history or only last one if disabled", KdbIcons.Console.ShowOnlyLast) {
-                    @Override
-                    public boolean isSelected(@NotNull AnActionEvent e) {
-                        return !showOnlyLast;
-                    }
-
-                    @Override
-                    public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                        showOnlyLast = !state;
-                        if (showOnlyLast) {
-                            clearHistory();
-                        }
-                    }
-                });
-            } else {
-                actions.add(action);
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                softWrap = state;
+                AbstractToggleUseSoftWrapsAction.toggleSoftWraps(((ConsoleViewImpl) console).getEditor(), null, softWrap);
             }
-        }
+        };
+        ActionUtil.copyFrom(softWrapAction, IdeActions.ACTION_EDITOR_USE_SOFT_WRAPS);
+        actions.add(softWrapAction);
+
+        final String message = ActionsBundle.message("action.EditorConsoleScrollToTheEnd.text");
+        actions.add(new EdtToggleAction(message, message, AllIcons.RunConfigurations.Scroll_down) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return scrollToTheEnd;
+            }
+
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                scrollToTheEnd = state;
+                if (state) {
+                    console.requestScrollingToEnd();
+                }
+            }
+        });
+
+        actions.add(new EdtToggleAction("Show History", "Show all history or only last one if disabled", KdbIcons.Console.ShowHistory) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return showHistory;
+            }
+
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                showHistory = state;
+                if (!showHistory) {
+                    clearHistory();
+                }
+            }
+        });
+
+        actions.add(new ClearConsoleAction());
         return actions;
     }
 
@@ -246,7 +280,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         final DefaultActionGroup actions = new DefaultActionGroup();
 
         actions.add(new ToggleConnectAction(connection));
-        actions.add(new DumbAwareAction("Modify Instance", "Change the instance settings across the application", AllIcons.General.Settings) {
+        actions.add(new EdtAction("Modify Instance", "Change the instance settings across the application", AllIcons.General.Settings) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 final KdbInstance instance = connection.getInstance();
@@ -259,7 +293,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                 }
             }
         });
-        actions.add(new DumbAwareAction("Cancel the Query", "Cancel current running query", AllIcons.Actions.Suspend) {
+        actions.add(new EdtAction("Cancel the Query", "Cancel current running query", AllIcons.Actions.Suspend) {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 e.getPresentation().setEnabled(connection.getQuery() != null);
@@ -272,8 +306,25 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         });
 
         actions.addSeparator();
+        actions.add(new EdtToggleAction("Show Watches Panel", "Show watches panel", AllIcons.Debugger.Watch) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return watchesSplitter.getSecondComponent() != null;
+            }
 
-        actions.add(new DumbAwareAction("Upload File to Instance", "Set content of a file into the instance variable", KdbIcons.Console.UploadFile) {
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                if (state) {
+                    showWatches();
+                } else {
+                    hideWatches();
+                }
+            }
+        });
+
+        actions.addSeparator();
+
+        actions.add(new EdtAction("Upload File to Instance", "Set content of a file into the instance variable", KdbIcons.Console.UploadFile) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 uploadFileToVariable();
@@ -316,27 +367,58 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         return kdbConsoleMainToolbar;
     }
 
+    private void showWatches() {
+        if (getWatchesView() != null) {
+            return;
+        }
+
+        final WatchesView view = new WatchesView(project, KdbConsolePanel.this, connection);
+        view.replaceVariables(watchesCache);
+        Disposer.register(KdbConsolePanel.this, view);
+        watchesSplitter.setSecondComponent(view);
+    }
+
+    private void hideWatches() {
+        final WatchesView oldWatchesView = getWatchesView();
+        if (oldWatchesView == null) {
+            return;
+        }
+
+        watchesCache.clear();
+        oldWatchesView.getAllVariables().stream().map(VariableNode::getExpression).forEach(watchesCache::add);
+
+        watchesSplitter.setSecondComponent(null);
+        Disposer.dispose(oldWatchesView);
+    }
+
+    private WatchesView getWatchesView() {
+        return (WatchesView) watchesSplitter.getSecondComponent();
+    }
+
     private void changeSplitting() {
         changeSplitting(activeSplitType);
     }
 
     private void changeSplitting(ConsoleSplitType type) {
-        final boolean splat = getContent() == splitter;
+        final boolean splat = getContent() == tabsSplitter;
         if (type == ConsoleSplitType.NO || (splat && resultTabs.getTabCount() == 0)) {
             if (splat) {
                 consoleTabs.removeTab(consoleTab);
                 resultTabs.showConsole(consoleTab);
-                splitter.setSecondComponent(null);
                 setContent(resultTabs);
             }
+            tabsSplitter.setSecondComponent(null);
         } else {
             if (activeSplitType == ConsoleSplitType.NO || (!splat && resultTabs.getTabCount() > 1)) {
-                resultTabs.hideConsole(consoleTab);
                 consoleTabs.addTab(consoleTab);
-                splitter.setSecondComponent(resultTabs);
-                setContent(splitter);
+                resultTabs.hideConsole();
+                setContent(tabsSplitter);
             }
-            splitter.setOrientation(type == ConsoleSplitType.DOWN);
+            final JComponent component = resultTabs.getTabCount() == 0 ? null : resultTabs;
+            if (tabsSplitter.getSecondComponent() != component) {
+                tabsSplitter.setSecondComponent(component);
+            }
+            tabsSplitter.setOrientation(type == ConsoleSplitType.DOWN);
         }
         activeSplitType = type;
     }
@@ -378,6 +460,10 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         }.queue();
     }
 
+    public void showTableResult(String name, TableResult result) {
+        resultTabs.showTab(name, result, TableMode.COMPACT, -1);
+    }
+
     public InstanceConnection getConnection() {
         return connection;
     }
@@ -387,7 +473,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     }
 
     private void execute(KdbQuery query, TableResultView resultView) {
-        if (showOnlyLast) {
+        if (!showHistory) {
             clearHistory();
         }
         gutterProvider.beforeEvaluate(console.getHistoryViewer());
@@ -456,6 +542,11 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
                         selectConsole(true);
                     }
                 }
+
+                final WatchesView watchesView = getWatchesView();
+                if (watchesView != null) {
+                    watchesView.refreshAllVariables();
+                }
             });
         } catch (ConcurrentQueryException ex) {
             final int i = Messages.showOkCancelDialog(project, "The instance already has running query. Would you like to cancel it (it's not always possible to cancel a query)?", "The Instance Is Busy", "Do Nothing and Wait More Time", "Cancel The Query", AllIcons.General.WarningDialog);
@@ -476,8 +567,8 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         if (scope != null) {
             scope.removeScopeListener(scopeListener);
         }
-        console.dispose();
-        resultTabs.dispose();
+//        Disposer.dispose(console);
+//        Disposer.dispose(resultTabs);
     }
 
     private void printInstanceError(Exception ex) {
@@ -516,6 +607,9 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
     @Override
     public @Nullable Object getData(@NotNull @NonNls String dataId) {
+        if (LangDataKeys.CONSOLE_VIEW.is(dataId)) {
+            return console;
+        }
         if (TAB_INFO_DATA_KEY.is(dataId)) {
             return resultTabs.getSelectedInfo();
         }
@@ -528,7 +622,94 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         return super.getData(dataId);
     }
 
-    private class SplitAction extends ToggleAction {
+    void saveState(@NotNull Element e) {
+        final WatchesView watchesView = getWatchesView();
+
+        final Element o = new Element("options");
+        o.setAttribute("showWatches", String.valueOf(watchesView != null));
+        o.setAttribute("tabsProportion", String.valueOf(tabsSplitter.getProportion()));
+        o.setAttribute("watchesProportion", String.valueOf(watchesSplitter.getProportion()));
+        o.setAttribute("softWrap", String.valueOf(softWrap));
+        o.setAttribute("showHistory", String.valueOf(showHistory));
+        o.setAttribute("scrollToTheEnd", String.valueOf(scrollToTheEnd));
+        o.setAttribute("activeSplitType", activeSplitType.name());
+        e.addContent(o);
+
+        if (watchesView != null) {
+            watchesCache.clear();
+            watchesView.getAllVariables().stream().map(VariableNode::getExpression).forEach(watchesCache::add);
+        }
+
+        if (!watchesCache.isEmpty()) {
+            final Element w = new Element("watches");
+            watchesCache.forEach(n -> w.addContent(new Element("watch").setText(n)));
+            e.addContent(w);
+        }
+    }
+
+    void loadState(@NotNull Element state) {
+        final Element options = state.getChild("options");
+        if (options == null) {
+            return;
+        }
+
+        watchesCache.clear();
+        final Element watches = state.getChild("watches");
+        if (watches != null) {
+            watches.getChildren().stream()
+                    .map(Element::getText)
+                    .filter(s -> s != null && !s.isBlank())
+                    .forEach(watchesCache::add);
+        }
+
+        final String showWatchesAttr = options.getAttributeValue("showWatches");
+        if (showWatchesAttr != null) {
+            if (Boolean.parseBoolean(showWatchesAttr)) {
+                showWatches();
+            } else {
+                hideWatches();
+            }
+        }
+
+        final String softWrapAttr = options.getAttributeValue("softWrap");
+        if (softWrapAttr != null) {
+            softWrap = Boolean.parseBoolean(softWrapAttr);
+        }
+
+        final String showOnlyLastAttr = options.getAttributeValue("showHistory");
+        if (showOnlyLastAttr != null) {
+            showHistory = Boolean.parseBoolean(showOnlyLastAttr);
+        }
+
+        final String scrollToTheEndAttr = options.getAttributeValue("scrollToTheEnd");
+        if (scrollToTheEndAttr != null) {
+            scrollToTheEnd = Boolean.parseBoolean(scrollToTheEndAttr);
+        }
+
+        try {
+            final String tabsProportionAttr = options.getAttributeValue("tabsProportion");
+            if (tabsProportionAttr != null) {
+                tabsSplitter.setProportion(Float.parseFloat(tabsProportionAttr));
+            }
+        } catch (Exception ignore) {
+        }
+
+        try {
+            final String watchesProportionAttr = options.getAttributeValue("watchesProportion");
+            if (watchesProportionAttr != null) {
+                watchesSplitter.setProportion(Float.parseFloat(watchesProportionAttr));
+            }
+        } catch (Exception ignore) {
+        }
+
+        try {
+            changeSplitting(ConsoleSplitType.valueOf(options.getAttributeValue("activeSplitType")));
+        } catch (Exception ignore) {
+
+        }
+    }
+
+    private class SplitAction extends EdtToggleAction {
         private final ConsoleSplitType splitType;
 
         public SplitAction(String text, String description, Icon icon, ConsoleSplitType splitType) {
