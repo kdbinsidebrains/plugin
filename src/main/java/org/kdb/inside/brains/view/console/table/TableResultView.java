@@ -494,18 +494,24 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private boolean expandSelectedCell() {
         final int c = myTable.getSelectedColumn();
         final int r = myTable.getSelectedRow();
-        if (c >= 0 && r >= 0) {
-            final Object v = myTable.getValueAt(r, c);
-            if (isExpandable(v)) {
-                final TabsTableResult owner = TabsTableResult.findParentTabs(this);
-                if (owner != null) {
-                    final TableResult from = TableResult.from(new KdbQuery("Expanded result at row=" + r + ", col=" + c), KdbResult.with(v));
-                    owner.showTabAfter("Expanded Result", from);
-                    return true;
-                }
-            }
+        if (c < 0 || r < 0) {
+            return false;
         }
-        return false;
+
+        final Object v = myTable.getValueAt(r, c);
+        if (!isExpandable(v)) {
+            return false;
+        }
+
+        final TabsTableResult owner = TabsTableResult.findParentTabs(this);
+        if (owner == null) {
+            return false;
+        }
+
+        final ExpandedTabDetails tabDetails = getExpandedTabDetails(r, c);
+        final TableResult from = TableResult.from(new KdbQuery(tabDetails.description), KdbResult.with(v));
+        owner.showTabAfter(tabDetails.name, from);
+        return true;
     }
 
     private boolean isExpandable(Object o) {
@@ -518,7 +524,22 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         if (TableResult.isTable(o) && tableOptions.isExpandTable()) {
             return true;
         }
-        return o instanceof c.Dict && tableOptions.isExpandDict();
+        return TableResult.isDict(o) && tableOptions.isExpandDict();
+    }
+
+    private ExpandedTabDetails getExpandedTabDetails(int r, int c) {
+        final Object nativeObject = getNativeObject();
+        if (nativeObject instanceof c.Dict && c == 1) {
+            Object val = myTable.getValueAt(r, 0);
+            if (val instanceof String s) {
+                return new ExpandedTabDetails(s, "Expanded result of " + s);
+            }
+            if (val instanceof char[] ch) {
+                final String s = new String(ch);
+                return new ExpandedTabDetails(s, "Expanded result of " + s);
+            }
+        }
+        return new ExpandedTabDetails("Expanded Result", "Expanded result at row=" + r + ", col=" + c);
     }
 
     public JComponent getFocusableComponent() {
@@ -638,11 +659,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
     }
 
-    @FunctionalInterface
-    private interface ValueFilter {
-        boolean check(String value);
-    }
-
     private void modelBeenUpdated(FindModel findModel) {
         final RowFilter<TableModel, Integer> filter = createFilter(findModel);
         ((TableRowSorter<? extends TableModel>) myTable.getRowSorter()).setRowFilter(filter);
@@ -657,7 +673,15 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
     }
 
-    static class TableRowFilter extends RowFilter<TableModel, Integer> {
+    @FunctionalInterface
+    private interface ValueFilter {
+        boolean check(String value);
+    }
+
+    record ExpandedTabDetails(String name, String description) {
+    }
+
+    private static class TableRowFilter extends RowFilter<TableModel, Integer> {
         private final ValueFilter filter;
 
         public TableRowFilter(ValueFilter filter) {

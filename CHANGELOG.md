@@ -1,5 +1,18 @@
 # KdbInsideBrains Changelog
 
+## [4.2.0]
+
+### Added
+
+- New Watches functionality has been introduced. Please check more details
+  here: https://www.kdbinsidebrains.dev/features/watches
+- KdbConsole restores last state after restart, including all open connections
+
+### Changed
+
+- Expanding a value of a dictionary uses the key name (if it's a string) for new tab name instead of default "Expanded
+  Result"
+
 ## [4.1.1]
 
 ### Added
@@ -21,7 +34,7 @@
 
 ### Fixed
 
-- Move a Instance Tree item to wrong position causes an exception.
+- Move an Instance Tree item to wrong position causes an exception.
 
 ## [4.0.0]
 

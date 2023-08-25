@@ -750,7 +750,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             final StringBuilder b = new StringBuilder();
             for (TreePath path : selectionPaths) {
                 final String name = getCanonicalName(path, false);
-                if (b.length() != 0) {
+                if (!b.isEmpty()) {
                     b.append(System.lineSeparator());
                 }
                 b.append(name);

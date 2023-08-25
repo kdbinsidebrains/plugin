@@ -73,8 +73,7 @@ public class TableResult {
             return new ListTableModel(k);
         }
 
-        if (k instanceof c.Dict) {
-            final c.Dict dict = (c.Dict) k;
+        if (k instanceof c.Dict dict) {
             final Object x = dict.x;
             final Object y = dict.y;
 
@@ -93,12 +92,18 @@ public class TableResult {
         return null;
     }
 
+    public static boolean isDict(Object o) {
+        if (o instanceof c.Dict) {
+            return !isTable(o);
+        }
+        return false;
+    }
+
     public static boolean isTable(Object o) {
         if (o instanceof c.Flip) {
             return true;
         }
-        if (o instanceof c.Dict) {
-            final c.Dict d = (c.Dict) o;
+        if (o instanceof c.Dict d) {
             return (d.x instanceof c.Flip || d.x.getClass().isArray()) && (d.y instanceof c.Flip || d.y.getClass().isArray());
         }
         return false;

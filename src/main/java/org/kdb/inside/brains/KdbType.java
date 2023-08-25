@@ -125,6 +125,8 @@ public enum KdbType implements Type {
             if (type.atomType != null) {
                 atomToList.put(type.atomType, type);
             }
+            classToType.put(c.Flip.class, TABLE);
+            classToType.put(c.Dict.class, DICTIONARY);
         }
     }
 
@@ -183,7 +185,7 @@ public enum KdbType implements Type {
 
     private static String typeName(KdbType type) {
         final String name = type.name().toLowerCase();
-        int i = name.indexOf('_');
+        int i = name.indexOf("_list");
         if (i > 0) {
             return name.substring(0, i) + "[]";
         }
@@ -248,6 +250,9 @@ public enum KdbType implements Type {
     public static KdbType typeOf(Object obj) {
         if (obj == null) {
             return ANY;
+        }
+        if (KEYED_TABLE.isOfType(obj)) {
+            return KEYED_TABLE;
         }
         return typeOf(obj.getClass());
     }

@@ -260,16 +260,17 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         private ProgressIndicator indicator;
 
         private final KdbQuery query;
-        private final Consumer<KdbResult> handler;
+        //        private final Consumer<KdbResult> handler;
         private final TheInstanceConnection myConnection;
 
         private final KdbResult result = new KdbResult();
 
         private static final int MB_SIZE = 1024 * 1024;
 
-        private QueryProgressive(TheInstanceConnection myConnection, KdbQuery query, Consumer<KdbResult> handler) {
+        private QueryProgressive(TheInstanceConnection myConnection, KdbQuery query) {
+//        private QueryProgressive(TheInstanceConnection myConnection, KdbQuery query, Consumer<KdbResult> handler) {
             this.query = query;
-            this.handler = handler;
+//            this.handler = handler;
             this.myConnection = myConnection;
         }
 
@@ -359,9 +360,10 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         }
 
         private void complete(Object res) {
-            ApplicationManager.getApplication().invokeLater(() ->
-                    handler.accept(result.complete(res))
-            );
+            result.complete(res);
+//            ApplicationManager.getApplication().invokeLater(() ->
+//                    handler.accept(result.complete(res))
+//            );
         }
 
         public void cancel() {
@@ -570,6 +572,8 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                 final CompletableFuture<KdbResult> res = new CompletableFuture<>();
                 doQuery(query, res::complete, true);
                 return res.get();
+            } catch (ConcurrentQueryException ex) {
+                throw ex;
             } catch (Exception ex) {
                 return new KdbResult().complete(ex);
             }
@@ -601,12 +605,20 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                 throw new ConcurrentQueryException("Another query is already running");
             }
 
-            queryProgressive = new QueryProgressive(this, query, handler);
-
+            queryProgressive = new QueryProgressive(this, query);
             processQueryStarted(TheInstanceConnection.this, query);
-            final Task task;
+            createTask(modal, queryProgressive, () -> {
+                final KdbResult result = queryProgressive.getResult();
+                queryProgressive = null;
+                handler.accept(result);
+                processQueryFinished(TheInstanceConnection.this, query, result);
+            }).queue();
+        }
+
+        private Task createTask(boolean modal, QueryProgressive progressive, Runnable finished) {
+            final String title = "Executing query on instance " + instance;
             if (modal) {
-                task = new Task.Modal(project, "Executing query on instance " + instance, true) {
+                return new Task.Modal(project, title, true) {
                     @Override
                     public void run(@NotNull ProgressIndicator indicator) {
                         queryProgressive.run(indicator);
@@ -614,13 +626,11 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
                     @Override
                     public void onFinished() {
-                        final KdbResult result = queryProgressive.getResult();
-                        queryProgressive = null;
-                        processQueryFinished(TheInstanceConnection.this, query, result);
+                        finished.run();
                     }
                 };
             } else {
-                task = new Task.Backgroundable(project, "Executing query on instance " + instance, true, PerformInBackgroundOption.DEAF) {
+                return new Task.Backgroundable(project, title, true, PerformInBackgroundOption.DEAF) {
                     @Override
                     public void run(@NotNull ProgressIndicator indicator) {
                         queryProgressive.run(indicator);
@@ -628,13 +638,10 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
                     @Override
                     public void onFinished() {
-                        final KdbResult result = queryProgressive.getResult();
-                        queryProgressive = null;
-                        processQueryFinished(TheInstanceConnection.this, query, result);
+                        finished.run();
                     }
                 };
             }
-            task.queue();
         }
 
         private KxConnection safeConnection() throws IOException {

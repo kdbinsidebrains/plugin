@@ -452,16 +452,7 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
         INSIDE
     }
 
-    private static class DnDPosition {
-        private final DnDPlace place;
-        private final Rectangle bound;
-        private final InstanceItem item;
-
-        private DnDPosition(DnDPlace place, InstanceItem item, Rectangle bound) {
-            this.place = place;
-            this.item = item;
-            this.bound = bound;
-        }
+    private record DnDPosition(DnDPlace place, InstanceItem item, Rectangle bound) {
     }
 }
 
