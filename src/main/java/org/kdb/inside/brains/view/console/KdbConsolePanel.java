@@ -72,7 +72,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
     private LanguageConsoleView console;
     private ConsoleSplitType activeSplitType;
 
-    private final JBSplitter tabsSplitter;
+    private final JBSplitter mainSplitter;
     private final JBSplitter watchesSplitter;
     private final TabsTableResult resultTabs;
 
@@ -124,25 +124,26 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         watchesSplitter = createWatchesSplitter();
 
-        tabsSplitter = createTabsSplitter();
-        tabsSplitter.setFirstComponent(consoleTabs.getComponent());
+        mainSplitter = createTabsSplitter();
+        setContent(mainSplitter);
+//        mainSplitter.setFirstComponent(consoleTabs.getComponent());
 
         consoleTab = createConsoleTab();
         resultTabs = new TabsTableResult(project, this);
         resultTabs.addListener(new DockContainer.Listener() {
             @Override
             public void contentAdded(@NotNull Object key) {
-                changeSplitting();
+                invalidateSplitting();
             }
 
             @Override
             public void contentRemoved(@NotNull Object key) {
-                changeSplitting();
+                invalidateSplitting();
             }
         }, this);
 
         resultTabs.showConsole(consoleTab);
-        setContent(resultTabs);
+        mainSplitter.setSecondComponent(resultTabs);
 
         changeSplitting(splitType);
 
@@ -395,30 +396,30 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         return (WatchesView) watchesSplitter.getSecondComponent();
     }
 
-    private void changeSplitting() {
+    private void invalidateSplitting() {
         changeSplitting(activeSplitType);
     }
 
     private void changeSplitting(ConsoleSplitType type) {
-        final boolean splat = getContent() == tabsSplitter;
-        if (type == ConsoleSplitType.NO || (splat && resultTabs.getTabCount() == 0)) {
-            if (splat) {
+        if (type == ConsoleSplitType.NO) {
+            if (mainSplitter.getFirstComponent() != null) {
                 consoleTabs.removeTab(consoleTab);
                 resultTabs.showConsole(consoleTab);
-                setContent(resultTabs);
+                mainSplitter.setFirstComponent(null);
             }
-            tabsSplitter.setSecondComponent(null);
         } else {
-            if (activeSplitType == ConsoleSplitType.NO || (!splat && resultTabs.getTabCount() > 1)) {
-                consoleTabs.addTab(consoleTab);
+            if (mainSplitter.getFirstComponent() == null) {
                 resultTabs.hideConsole();
-                setContent(tabsSplitter);
+                consoleTabs.addTab(consoleTab);
+                mainSplitter.setFirstComponent(consoleTabs.getComponent());
             }
-            final JComponent component = resultTabs.getTabCount() == 0 ? null : resultTabs;
-            if (tabsSplitter.getSecondComponent() != component) {
-                tabsSplitter.setSecondComponent(component);
+
+            mainSplitter.setSecondComponent(resultTabs.getTabCount() == 0 ? null : resultTabs);
+
+            final boolean verticalSplit = type == ConsoleSplitType.DOWN;
+            if (mainSplitter.getOrientation() != verticalSplit) {
+                mainSplitter.setOrientation(verticalSplit);
             }
-            tabsSplitter.setOrientation(type == ConsoleSplitType.DOWN);
         }
         activeSplitType = type;
     }
@@ -627,7 +628,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
         final Element o = new Element("options");
         o.setAttribute("showWatches", String.valueOf(watchesView != null));
-        o.setAttribute("tabsProportion", String.valueOf(tabsSplitter.getProportion()));
+        o.setAttribute("tabsProportion", String.valueOf(mainSplitter.getProportion()));
         o.setAttribute("watchesProportion", String.valueOf(watchesSplitter.getProportion()));
         o.setAttribute("softWrap", String.valueOf(softWrap));
         o.setAttribute("showHistory", String.valueOf(showHistory));
@@ -689,7 +690,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
         try {
             final String tabsProportionAttr = options.getAttributeValue("tabsProportion");
             if (tabsProportionAttr != null) {
-                tabsSplitter.setProportion(Float.parseFloat(tabsProportionAttr));
+                mainSplitter.setProportion(Float.parseFloat(tabsProportionAttr));
             }
         } catch (Exception ignore) {
         }

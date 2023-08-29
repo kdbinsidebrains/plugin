@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [4.2.1]
+
+### Fixed
+
+- Table Result tab is not visible in slat few for the first result.
+
 ## [4.2.0]
 
 ### Added
