@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [4.2.2]
+
+### Fixed
+
+- Supporting of sorted dictionaries (type 127) added
+
 ## [4.2.1]
 
 ### Fixed

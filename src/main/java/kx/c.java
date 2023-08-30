@@ -508,6 +508,12 @@ public class c {
                     return rt();
             }
         }
+
+        // dict or sorted dict
+        if (t == 99 || t == 127) {
+            return new Dict(r(), r());
+        }
+
         if (t > 99) {
             if (t == 100) {
                 rs();
@@ -550,9 +556,6 @@ public class c {
             return "Type" + t;
         }
 
-        if (t == 99) {
-            return new Dict(r(), r());
-        }
         j++;
         if (t == 98) {
             return new Flip((Dict) r());
