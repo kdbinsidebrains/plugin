@@ -1,5 +1,16 @@
 # KdbInsideBrains Changelog
 
+## [4.3.0]
+
+### Added
+
+- Inactive console tab with running query marked with an execution icon as well as finished query with notificaion icon
+  that allows track state of simultaneously running queries.
+
+### Fixed
+
+- Running query icon size fixed for coloured elements in InstanceView
+
 ## [4.2.2]
 
 ### Fixed

@@ -118,24 +118,22 @@ public class InstancesTreeRenderer extends ColoredTreeCellRenderer {
         return showConnectionDetails;
     }
 
-    private static class ColorItemIcon implements Icon {
-        private final Color color;
-        private final Icon original;
+    private record ColorItemIcon(Color color, Icon original) implements Icon {
+        private static final Rectangle R;
 
-        protected ColorItemIcon(Color color, Icon original) {
-            this.color = color;
-            this.original = original;
+        static {
+            final Icon baseIcon = KdbIcons.Node.Instance;
+            final int w = baseIcon.getIconWidth();
+            final int h = baseIcon.getIconHeight();
+            R = new Rectangle(w / 2 + 1, h / 2, w / 2, h / 2);
         }
 
         @Override
         public void paintIcon(Component c, Graphics g, int x, int y) {
             original.paintIcon(c, g, x, y);
 
-            final int w = original.getIconWidth();
-            final int h = original.getIconHeight();
-
             g.setColor(color);
-            g.fillOval(w / 2 + 1, h / 2, w / 2, h / 2);
+            g.fillOval(R.x, R.y, R.width, R.height);
         }
 
         @Override

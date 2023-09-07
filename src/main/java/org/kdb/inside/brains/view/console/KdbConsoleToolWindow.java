@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.view.console;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -37,10 +38,14 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
 
     private final TheConnectionListener listener = new TheConnectionListener();
 
+    private static final @NotNull Icon EXECUTE_ICON = AllIcons.Actions.Execute;
+    private static final @NotNull Icon EXECUTED_ICON = AllIcons.Toolwindows.Notifications;
+
     public KdbConsoleToolWindow(Project project) {
         this.project = project;
 
         connectionManager = KdbConnectionManager.getManager(project);
+        connectionManager.addQueryListener(listener);
         connectionManager.addConnectionListener(listener);
     }
 
@@ -49,11 +54,20 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
         contentManager.addContentManagerListener(new ContentManagerListener() {
             @Override
             public void selectionChanged(@NotNull ContentManagerEvent event) {
+                final Content content = event.getContent();
+                final InstanceConnection connection = getConnection(content);
+                if (connection == null) {
+                    return;
+                }
+
                 if (event.getOperation() == ContentManagerEvent.ContentOperation.add) {
-                    final Content content = event.getContent();
-                    final InstanceConnection connection = getConnection(content);
-                    if (connection != null && connectionManager.getActiveConnection() != connection) {
+                    content.setIcon(null);
+                    if (connectionManager.getActiveConnection() != connection) {
                         connectionManager.activate(connection.getInstance());
+                    }
+                } else {
+                    if (connection.getQuery() != null) {
+                        content.setIcon(EXECUTE_ICON);
                     }
                 }
             }
@@ -134,6 +148,7 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
         content.setCloseable(true);
         content.setComponent(panel);
         content.setShouldDisposeContent(true);
+        content.putUserData(ToolWindow.SHOW_CONTENT_ICON, Boolean.TRUE);
 
         contentManager.addContent(content);
 
@@ -229,10 +244,11 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
     @Override
     public void dispose() {
         statesCache.clear();
+        connectionManager.removeQueryListener(listener);
         connectionManager.removeConnectionListener(listener);
     }
 
-    private class TheConnectionListener implements KdbConnectionListener {
+    private class TheConnectionListener implements KdbConnectionListener, KdbQueryListener {
         @Override
         public void connectionCreated(InstanceConnection connection) {
             // TODO: add here?
@@ -254,6 +270,22 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
         public void connectionStateChanged(InstanceConnection connection, InstanceState oldState, InstanceState newState) {
             if (newState == InstanceState.CONNECTED) {
                 activateInstance(connection);
+            }
+        }
+
+        @Override
+        public void queryStarted(InstanceConnection connection, KdbQuery query) {
+            final Content content = findContent(connection);
+            if (content != null && contentManager.getSelectedContent() != content) {
+                content.setIcon(EXECUTE_ICON);
+            }
+        }
+
+        @Override
+        public void queryFinished(InstanceConnection connection, KdbQuery query, KdbResult result) {
+            final Content content = findContent(connection);
+            if (content != null && contentManager.getSelectedContent() != content) {
+                content.setIcon(EXECUTED_ICON);
             }
         }
     }
