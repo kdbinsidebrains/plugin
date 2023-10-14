@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.view.chart;
 
 import org.jdom.Element;
+import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.chart.types.ChartType;
 
 import java.util.List;
@@ -19,6 +20,8 @@ public interface ChartConfig {
     ChartConfig copy();
 
     String toHumanString();
+
+    KdbType getDomainType();
 
     List<ColumnConfig> getColumns();
 

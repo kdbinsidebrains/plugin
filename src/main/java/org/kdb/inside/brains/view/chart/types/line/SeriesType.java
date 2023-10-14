@@ -6,7 +6,7 @@ import org.jfree.chart.renderer.xy.*;
 import javax.swing.*;
 import java.util.List;
 
-enum SeriesType {
+public enum SeriesType {
     LINE("Line", KdbIcons.Chart.TypeLine) {
         @Override
         public XYItemRenderer createRenderer(LineChartConfig config, List<RangeConfig> axes) {

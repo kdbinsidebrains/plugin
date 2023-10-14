@@ -1,5 +1,22 @@
 # KdbInsideBrains Changelog
 
+## [4.4.0]
+
+### Added
+
+- Shortcuts added for Copy/Save active chart
+- All overlays/instruments are copied/saved into clipboard as well
+
+### Changed
+
+- Chart SVG library changed to the latest one
+
+### Fixed
+
+- IDEA Save dialog is used to save a chart as PNG or SVG
+- Charting takes into account local timezone for drawing correct scale
+- Measure charting tool shows temporal values for domain
+
 ## [4.3.0]
 
 ### Added

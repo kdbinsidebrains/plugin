@@ -13,6 +13,7 @@ import org.jfree.chart.panel.CrosshairOverlay;
 import org.jfree.chart.plot.Crosshair;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleAnchor;
+import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.chart.ChartOptions;
 import org.kdb.inside.brains.view.chart.ChartTool;
@@ -42,7 +43,7 @@ public class CrosshairTool extends CrosshairOverlay implements ChartTool, ChartM
     }
 
     @Override
-    public void setChart(JFreeChart chart) {
+    public void initialize(JFreeChart chart, KdbType domainType) {
         clearRangeCrosshairs();
         clearDomainCrosshairs();
 
@@ -78,13 +79,11 @@ public class CrosshairTool extends CrosshairOverlay implements ChartTool, ChartM
         crosshair.setLabelOutlinePaint(CROSSHAIR_OUTLINE);
         crosshair.setLabelBackgroundPaint(CROSSHAIR_BACKGROUND);
         final ValueAxis domainAxis = ((XYPlot) myPanel.getChart().getPlot()).getDomainAxis();
-        if (!vertical && domainAxis instanceof DateAxis) {
-            final DateAxis dateAxis = (DateAxis) domainAxis;
+        if (!vertical && domainAxis instanceof DateAxis dateAxis) {
             crosshair.setLabelGenerator(g -> dateAxis.getTickUnit().valueToString(g.getValue()));
         } else {
             crosshair.setLabelGenerator(new StandardCrosshairLabelGenerator("  {0}  ", NumberFormat.getNumberInstance()));
         }
-
         return crosshair;
     }
 

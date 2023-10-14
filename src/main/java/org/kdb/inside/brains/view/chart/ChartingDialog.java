@@ -4,23 +4,32 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.FrameWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.tabs.*;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
+import org.jfree.svg.SVGGraphics2D;
 import org.kdb.inside.brains.action.ActionPlaces;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.chart.template.ChartTemplate;
@@ -39,7 +48,16 @@ import org.kdb.inside.brains.view.export.ExportDataProvider;
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,6 +81,9 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
 
     protected ChartingDialog(@NotNull Project project, String title, ChartDataProvider dataProvider, ChartTemplate template) {
         super(project, "KdbInsideBrains-Charting", false, title);
+
+        final JPanel rootPanel = new JPanel(new BorderLayout());
+        setComponent(rootPanel);
 
         final ChartOptions chartOptions = KdbSettingsService.getInstance().getChartOptions();
 
@@ -108,12 +129,10 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
             splitter.setSecondComponent(valuesTool.getComponent());
         }
 
-        final JPanel rootPanel = new JPanel(new BorderLayout());
         rootPanel.add(eastPanel, BorderLayout.EAST);
         rootPanel.add(splitter, BorderLayout.CENTER);
         rootPanel.setBorder(new CompoundBorder(Borders.empty(0, 10, 10, 10), Borders.customLine(JBColor.LIGHT_GRAY)));
 
-        setComponent(rootPanel);
         setImage(IconLoader.toImage(KdbIcons.Chart.Icon));
         closeOnEsc();
         configChanged();
@@ -283,7 +302,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         final ChartTemplate template = templatesComboBox.getItem();
 
         templateButton.setEnabled(chart != null && (template == null || !config.equals(template.getConfig())));
-        List.of(valuesTool, measureTool, crosshairTool).forEach(s -> s.setChart(chart));
+        List.of(valuesTool, measureTool, crosshairTool).forEach(s -> s.initialize(chart, config.getDomainType()));
 
         cardLayout.show(chartLayoutPanel, chart == null ? EMPTY_CARD_PANEL_NAME : CHART_CARD_PANEL_NAME);
     }
@@ -376,11 +395,53 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
 
     private DefaultActionGroup createChartPanelMenu() {
         final DefaultActionGroup group = new DefaultActionGroup();
-        group.add(new ChartAction(ChartPanel.COPY_COMMAND, "_Copy", "Copy the chart", AllIcons.Actions.Copy));
+        final AnAction action = new EdtAction("_Copy", "Copy the chart", AllIcons.Actions.Copy) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                CopyPasteManager.getInstance().setContents(new ChartingDialog.ChartTransferable());
+            }
+        };
+        action.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK, getComponent());
+        group.add(action);
 
         final PopupActionGroup saveAs = new PopupActionGroup("_Save As", AllIcons.Actions.MenuSaveall);
-        saveAs.add(new ChartAction("SAVE_AS_PNG", "PNG...", "Save as PNG image"));
-        saveAs.add(new ChartAction("SAVE_AS_SVG", "SVG...", "Save as SVG image"));
+        final EdtAction png = new EdtAction("PNG...", "Save as PNG image", null) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                final FileSaverDescriptor d = new FileSaverDescriptor("Save as PNG Image", "Save chart view as PNG image", "png");
+                final VirtualFileWrapper file = FileChooserFactory.getInstance().createSaveFileDialog(d, e.getProject()).save(null);
+                if (file == null) {
+                    return;
+                }
+                try (final OutputStream out = new FileOutputStream(file.getFile())) {
+                    ChartUtils.writeBufferedImageAsPNG(out, createChartImage());
+                } catch (Exception ex) {
+                    Messages.showErrorDialog(e.getProject(), "PNG image can't be created: " + ex.getMessage(), "Save as PNG Failed");
+                }
+            }
+        };
+        png.registerCustomShortcutSet(KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, getComponent());
+        saveAs.add(png);
+
+        final EdtAction svg = new EdtAction("SVG...", "Save as SVG image", null) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                final FileSaverDescriptor d = new FileSaverDescriptor("Save as SVG Image", "Save chart view as SVG image", "svg");
+                final VirtualFileWrapper file = FileChooserFactory.getInstance().createSaveFileDialog(d, e.getProject()).save(null);
+                if (file == null) {
+                    return;
+                }
+
+                try (final BufferedWriter writer = new BufferedWriter(new FileWriter(file.getFile()))) {
+                    writer.write(createSVGDocument());
+                    writer.flush();
+                } catch (Exception ex) {
+                    Messages.showErrorDialog(e.getProject(), "SVG image can't be created: " + ex.getMessage(), "Save as SVG Failed");
+                }
+            }
+        };
+        svg.registerCustomShortcutSet(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, getComponent());
+        saveAs.add(svg);
         group.add(saveAs);
 
         group.addSeparator();
@@ -431,7 +492,41 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         }
     }
 
-    private class ChartAction extends AnAction {
+    private String createSVGDocument() {
+        final Dimension d = getChartDimension();
+        final SVGGraphics2D g2 = new SVGGraphics2D(d.width, d.height);
+        g2.setRenderingHint(JFreeChart.KEY_SUPPRESS_SHADOW_GENERATION, true);
+        chartPanel.paintComponent(g2);
+        return g2.getSVGDocument();
+    }
+
+    @Nullable
+    @Override
+    public Object getData(@NotNull String dataId) {
+        if (ExportDataProvider.DATA_KEY.is(dataId)) {
+            return valuesTool;
+        }
+        return super.getData(dataId);
+    }
+
+    private BufferedImage createChartImage() {
+        final Dimension d = getChartDimension();
+        final BufferedImage image = ImageUtil.createImage(d.width, d.height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = image.createGraphics();
+        chartPanel.paintComponent(g2);
+        g2.dispose();
+        return image;
+    }
+
+    @NotNull
+    private Dimension getChartDimension() {
+        final Insets insets = chartPanel.getInsets();
+        final int w = chartPanel.getWidth() - insets.left - insets.right;
+        final int h = chartPanel.getHeight() - insets.top - insets.bottom;
+        return new Dimension(w, h);
+    }
+
+    private class ChartAction extends EdtAction {
         private final String command;
 
         public ChartAction(String command, String text, String description) {
@@ -454,12 +549,29 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         }
     }
 
-    @Nullable
-    @Override
-    public Object getData(@NotNull String dataId) {
-        if (ExportDataProvider.DATA_KEY.is(dataId)) {
-            return valuesTool;
+    private class ChartTransferable implements Transferable {
+        /**
+         * The data flavor.
+         */
+        final DataFlavor imageFlavor = new DataFlavor("image/x-java-image; class=java.awt.Image", "Image");
+
+        @Override
+        public DataFlavor[] getTransferDataFlavors() {
+            return new DataFlavor[]{this.imageFlavor};
         }
-        return super.getData(dataId);
+
+        @Override
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+            return this.imageFlavor.equals(flavor);
+        }
+
+        @NotNull
+        @Override
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
+            if (!isDataFlavorSupported(flavor)) {
+                throw new UnsupportedFlavorException(flavor);
+            }
+            return createChartImage();
+        }
     }
 }

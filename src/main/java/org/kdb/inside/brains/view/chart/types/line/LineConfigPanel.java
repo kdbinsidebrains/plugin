@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class LineConfigPanel extends JPanel {
+public class LineConfigPanel extends JPanel {
     private boolean ignoreUpdate = false;
 
     private final Runnable callback;
@@ -110,10 +110,10 @@ class LineConfigPanel extends JPanel {
     }
 
     private void sortRanges(List<RangeConfig> requiredRanges, List<RangeConfig> items) {
-        final List<String> requiredOrder = requiredRanges.stream().map(ColumnConfig::getName).collect(Collectors.toList());
+        final List<String> requiredOrder = requiredRanges.stream().map(ColumnConfig::getName).toList();
 
-        final List<RangeConfig> currentRanges = items.stream().filter(r -> requiredOrder.contains(r.getName())).collect(Collectors.toList());
-        final List<String> currentOrder = currentRanges.stream().map(ColumnConfig::getName).collect(Collectors.toList());
+        final List<RangeConfig> currentRanges = items.stream().filter(r -> requiredOrder.contains(r.getName())).toList();
+        final List<String> currentOrder = currentRanges.stream().map(ColumnConfig::getName).toList();
         if (requiredOrder.equals(currentOrder)) {
             return;
         }

@@ -19,9 +19,11 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
+import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.chart.BaseChartPanel;
+import org.kdb.inside.brains.view.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.chart.ChartOptions;
 import org.kdb.inside.brains.view.chart.ChartTool;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
@@ -31,13 +33,14 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.sql.Timestamp;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseListener {
+    private KdbType domainType;
     private final ChartOptions myOptions;
 
     private final JPanel component;
@@ -105,7 +108,8 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
         component.add(BorderLayout.CENTER, ScrollPaneFactory.createScrollPane(pointsTable));
     }
 
-    public void setChart(JFreeChart chart) {
+    public void initialize(JFreeChart chart, KdbType domainType) {
+        this.domainType = domainType;
         if (chart != null) {
             final DefaultTableModel tableModel = createTableModel(chart);
 
@@ -194,11 +198,25 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
         final XYPlot plot = (XYPlot) chart.getPlot();
         final ValueAxis domain = plot.getDomainAxis();
         final MouseEvent trigger = event.getTrigger();
-        final Rectangle2D dataArea = myPanel.getScreenDataArea();
 
         final Point2D p = myPanel.calculateValuesPoint(event);
         final double x = p.getX();
-        final Object val = domain instanceof DateAxis ? new Timestamp((long) x) : Double.valueOf(x);
+        if (Double.isNaN(x)) {
+            return;
+        }
+
+        final Object val;
+        if (domain instanceof DateAxis) {
+            final long v = new Timestamp((long) x)
+                    .toInstant()
+                    .atZone(ZoneOffset.systemDefault())
+                    .toLocalDateTime()
+                    .toInstant(ZoneOffset.UTC)
+                    .toEpochMilli();
+            val = ChartDataProvider.createKdbTemporal(v, domainType);
+        } else {
+            val = x;
+        }
 
         final Vector<Object> values = new Vector<>();
         values.add(getKeyValue(trigger));

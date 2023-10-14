@@ -16,6 +16,7 @@ import org.kdb.inside.brains.view.console.table.TableResult;
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
 
@@ -55,9 +56,11 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
 
         htmlStr.append("<html>\n");
         htmlStr.append("<style>\n");
-        htmlStr.append("body {\n" +
-                "    background-color: #93B874;\n" +
-                "}\n");
+        htmlStr.append("""
+                body {
+                    background-color: #93B874;
+                }
+                """);
         if (options.isShowGrid()) {
             htmlStr.append("table {  border-collapse: collapse; }\n");
             htmlStr.append("table, th, td, tr { border: 1px solid black;}\n");
@@ -127,7 +130,7 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
     }
 
     private Colors[] getTable(JTable table, boolean odd) {
-        final TableResult.QTableModel model = (TableResult.QTableModel) table.getModel();
+        final TableModel model = table.getModel();
         final Colors[] res = new Colors[table.getColumnCount()];
         for (int i = 0; i < res.length; i++) {
             Colors c;
@@ -138,7 +141,7 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
             }
 
             final TableColumn column = table.getColumnModel().getColumn(i);
-            if (model.isKeyColumn(column.getModelIndex())) {
+            if (model instanceof TableResult.QTableModel m && m.isKeyColumn(column.getModelIndex())) {
                 c = c.toKeyColors();
             }
             res[i] = c;

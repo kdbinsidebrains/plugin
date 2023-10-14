@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.chart.types.line;
 
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.chart.ChartConfig;
 import org.kdb.inside.brains.view.chart.ColumnConfig;
 import org.kdb.inside.brains.view.chart.types.ChartType;
@@ -18,6 +19,11 @@ public class LineChartConfig implements ChartConfig {
         this.domain = domain;
         this.ranges = rangeColumns;
         this.drawShapes = drawShapes;
+    }
+
+    @Override
+    public KdbType getDomainType() {
+        return domain.getType();
     }
 
     @NotNull

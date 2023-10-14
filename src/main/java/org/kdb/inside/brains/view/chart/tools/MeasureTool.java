@@ -3,9 +3,7 @@ package org.kdb.inside.brains.view.chart.tools;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.ui.JBColor;
-import org.apache.commons.lang.time.DurationFormatUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
@@ -20,6 +18,8 @@ import org.jfree.chart.text.TextUtils;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
+import org.kdb.inside.brains.KdbType;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.chart.ChartColors;
 import org.kdb.inside.brains.view.chart.ChartOptions;
@@ -32,11 +32,12 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, ChartMouseListener {
+    private static final KeyStroke KEYSTROKE_ESC = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+
     private MeasureArea activeArea;
     private static final KeyStroke KEYSTROKE_DEL = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 
@@ -46,9 +47,9 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
 
     private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#0.00");
 
-    private static final KeyStroke KEYSTROKE_ESC = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
     private static final Stroke BASIC = new BasicStroke(2);
     private static final Stroke DASHED = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
+    private KdbType domainType;
     private MeasureArea highlighted;
 
     static {
@@ -66,51 +67,53 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
         myPanel.registerKeyboardAction(e -> remove(), KEYSTROKE_DEL, JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
 
-    @Override
-    public void setChart(JFreeChart chart) {
-/*
-        final String chartSnapshot = getChartSnapshot(chart);
-        if (!chartSnapshot.equals(currentChartSnapshot)) {
-            activeArea = null;
-            pinnedAreas.clear();
-            fireOverlayChanged();
+    private static String formatPeriod(long startMillis, long endMillis) {
+        final Calendar start = Calendar.getInstance(TimeZone.getDefault());
+        start.setTime(new Date(startMillis));
+
+        final Calendar end = Calendar.getInstance(TimeZone.getDefault());
+        end.setTime(new Date(endMillis));
+
+        int milliseconds = end.get(Calendar.MILLISECOND) - start.get(Calendar.MILLISECOND);
+        int seconds = end.get(Calendar.SECOND) - start.get(Calendar.SECOND);
+        int minutes = end.get(Calendar.MINUTE) - start.get(Calendar.MINUTE);
+        int hours = end.get(Calendar.HOUR_OF_DAY) - start.get(Calendar.HOUR_OF_DAY);
+        int days = end.get(Calendar.DAY_OF_MONTH) - start.get(Calendar.DAY_OF_MONTH);
+        int months = end.get(Calendar.MONTH) - start.get(Calendar.MONTH);
+
+        int years;
+        for (years = end.get(Calendar.YEAR) - start.get(Calendar.YEAR); milliseconds < 0; --seconds) {
+            milliseconds += 1000;
         }
-*/
+        while (seconds < 0) {
+            seconds += 60;
+            --minutes;
+        }
+        while (minutes < 0) {
+            minutes += 60;
+            --hours;
+        }
+        while (hours < 0) {
+            hours += 24;
+            --days;
+        }
+        while (days < 0) {
+            days += start.getActualMaximum(Calendar.DATE);
+            --months;
+            start.add(Calendar.MONTH, 1);
+        }
+        while (months < 0) {
+            months += 12;
+            --years;
+        }
+        return formatTime(years, months, days, hours, minutes, seconds, milliseconds);
     }
 
-    @Override
-    public ActionGroup getPopupActions() {
-        if (!isEnabled()) {
-            return ActionGroup.EMPTY_GROUP;
+    private static StringBuilder prepare(StringBuilder b) {
+        if (!b.isEmpty()) {
+            b.append(" ");
         }
-
-        return new DefaultActionGroup("Measure",
-                List.of(
-                        new DumbAwareAction("Remove Measure") {
-                            @Override
-                            public void update(@NotNull AnActionEvent e) {
-                                e.getPresentation().setEnabled(highlighted != null);
-                            }
-
-                            @Override
-                            public void actionPerformed(@NotNull AnActionEvent e) {
-                                remove();
-                            }
-                        },
-
-                        new DumbAwareAction("Clear Measures") {
-                            @Override
-                            public void update(@NotNull AnActionEvent e) {
-                                e.getPresentation().setEnabled(!pinnedAreas.isEmpty());
-                            }
-
-                            @Override
-                            public void actionPerformed(@NotNull AnActionEvent e) {
-                                clear();
-                            }
-                        }
-                )
-        );
+        return b;
     }
 
     @Override
@@ -153,15 +156,40 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
         }
     }
 
-    private MeasureArea findPinnedAreaByPoint(Point2D point) {
-        final ListIterator<MeasureArea> iterator = pinnedAreas.listIterator(pinnedAreas.size());
-        while (iterator.hasPrevious()) {
-            final MeasureArea area = iterator.previous();
-            if (area.contains(point)) {
-                return area;
-            }
+    private static String formatTime(int years, int months, int days, int hours, int minutes, int seconds, int milliseconds) {
+        final StringBuilder buffer = new StringBuilder();
+        if (years != 0) {
+            buffer.append(years).append("Y");
         }
-        return null;
+        if (months != 0) {
+            prepare(buffer).append(months).append("M");
+        }
+        if (days != 0) {
+            prepare(buffer).append(days).append("D");
+        }
+
+        if (!buffer.isEmpty() && hours != 0 && minutes != 0 && seconds != 0 && milliseconds != 0) {
+            prepare(buffer).append("T");
+        }
+
+        if (hours != 0) {
+            prepare(buffer).append(hours).append("H");
+        }
+        if (minutes != 0) {
+            prepare(buffer).append(minutes).append("M");
+        }
+
+        if (seconds != 0) {
+            prepare(buffer).append(seconds);
+            if (milliseconds != 0) {
+                buffer.append(".");
+                buffer.append(milliseconds);
+            }
+            buffer.append("S");
+        } else if (milliseconds != 0) {
+            prepare(buffer).append("0.").append(milliseconds).append("S");
+        }
+        return buffer.toString();
     }
 
     @Override
@@ -255,6 +283,69 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
         return b.toString();
     }
 
+    @Override
+    public void initialize(JFreeChart chart, KdbType domainType) {
+        this.domainType = domainType;
+/*
+        final String chartSnapshot = getChartSnapshot(chart);
+        if (!chartSnapshot.equals(currentChartSnapshot)) {
+            activeArea = null;
+            pinnedAreas.clear();
+            fireOverlayChanged();
+        }
+*/
+    }
+
+    @Override
+    public ActionGroup getPopupActions() {
+        if (!isEnabled()) {
+            return ActionGroup.EMPTY_GROUP;
+        }
+
+        return new DefaultActionGroup("Measure",
+                List.of(
+                        new EdtAction("Remove Measure") {
+                            @Override
+                            public void update(@NotNull AnActionEvent e) {
+                                e.getPresentation().setEnabled(highlighted != null);
+                            }
+
+                            @Override
+                            public void actionPerformed(@NotNull AnActionEvent e) {
+                                remove();
+                            }
+                        },
+
+                        new EdtAction("Clear Measures") {
+                            @Override
+                            public void update(@NotNull AnActionEvent e) {
+                                e.getPresentation().setEnabled(!pinnedAreas.isEmpty());
+                            }
+
+                            @Override
+                            public void actionPerformed(@NotNull AnActionEvent e) {
+                                clear();
+                            }
+                        }
+                )
+        );
+    }
+
+    private MeasureArea findPinnedAreaByPoint(Point2D point) {
+        if (Double.isNaN(point.getX()) || Double.isNaN(point.getY())) {
+            return null;
+        }
+
+        final ListIterator<MeasureArea> iterator = pinnedAreas.listIterator(pinnedAreas.size());
+        while (iterator.hasPrevious()) {
+            final MeasureArea area = iterator.previous();
+            if (area.contains(point)) {
+                return area;
+            }
+        }
+        return null;
+    }
+
     private static class MeasureArea {
         private final Point2D start;
         private Point2D finish;
@@ -291,18 +382,19 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
             g2.draw(area);
 
             drawRangeLabel(g2, diffYV, diffYP, foreground);
-            drawDomainLabel(g2, plot, screenArea);
+            drawDomainLabel(g2, plot);
         }
 
-        private void drawDomainLabel(Graphics2D g2, XYPlot plot, Rectangle2D screenArea) {
-            final double diff = Math.abs(finish.getX() - start.getX());
+        private void drawDomainLabel(Graphics2D g2, XYPlot plot) {
 
             String label;
             final ValueAxis domain = plot.getDomainAxis();
             if (domain instanceof DateAxis) {
-                label = DurationFormatUtils.formatDurationHMS((long) diff);
+                final long sp = (long) start.getX();
+                final long ep = (long) finish.getX();
+                label = (sp > ep) ? formatPeriod(ep, sp) : formatPeriod(sp, ep);
             } else {
-                label = NUMBER_FORMAT.format(diff);
+                label = NUMBER_FORMAT.format(Math.abs(finish.getX() - start.getX()));
             }
 
             g2.setPaint(JBColor.foreground());

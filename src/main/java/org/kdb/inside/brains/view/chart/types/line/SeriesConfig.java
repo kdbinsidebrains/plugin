@@ -5,7 +5,7 @@ import org.jfree.chart.axis.ValueAxis;
 
 import java.util.Objects;
 
-class SeriesConfig {
+public class SeriesConfig {
     private String name;
     private SeriesType type;
     private int lowerMargin = (int) (ValueAxis.DEFAULT_LOWER_MARGIN * 100);

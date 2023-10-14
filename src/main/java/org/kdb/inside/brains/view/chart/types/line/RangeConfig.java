@@ -10,7 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
 
-class RangeConfig extends ColumnConfig {
+public class RangeConfig extends ColumnConfig {
     private ColorIcon icon;
     private SeriesConfig series;
     private float width = 2.0f;
@@ -85,9 +85,8 @@ class RangeConfig extends ColumnConfig {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RangeConfig)) return false;
+        if (!(o instanceof RangeConfig that)) return false;
         if (!super.equals(o)) return false;
-        RangeConfig that = (RangeConfig) o;
         return Float.compare(that.width, width) == 0 && Objects.equals(icon, that.icon) && Objects.equals(series, that.series);
     }
 

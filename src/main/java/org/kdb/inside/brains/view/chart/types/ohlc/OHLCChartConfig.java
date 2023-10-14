@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.chart.types.ohlc;
 
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.chart.ChartConfig;
 import org.kdb.inside.brains.view.chart.ColumnConfig;
 import org.kdb.inside.brains.view.chart.types.ChartType;
@@ -111,6 +112,11 @@ public class OHLCChartConfig implements ChartConfig {
     }
 
     @Override
+    public KdbType getDomainType() {
+        return domain.getType();
+    }
+
+    @Override
     public OHLCChartConfig copy() {
         return new OHLCChartConfig(ColumnConfig.copy(domain), ColumnConfig.copy(openColumn), ColumnConfig.copy(highColumn), ColumnConfig.copy(lowColumn), ColumnConfig.copy(closeColumn), ColumnConfig.copy(volumeColumn));
     }
@@ -118,8 +124,7 @@ public class OHLCChartConfig implements ChartConfig {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof OHLCChartConfig)) return false;
-        OHLCChartConfig that = (OHLCChartConfig) o;
+        if (!(o instanceof OHLCChartConfig that)) return false;
         return Objects.equals(domain, that.domain) && Objects.equals(openColumn, that.openColumn) && Objects.equals(highColumn, that.highColumn) && Objects.equals(lowColumn, that.lowColumn) && Objects.equals(closeColumn, that.closeColumn) && Objects.equals(volumeColumn, that.volumeColumn);
     }
 

@@ -3,9 +3,7 @@ package org.kdb.inside.brains.view.chart.types.line;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.AxisLocation;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.axis.*;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.SeriesRenderingOrder;
@@ -18,6 +16,7 @@ import org.jfree.data.xy.IntervalXYDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.chart.ChartViewProvider;
 import org.kdb.inside.brains.view.chart.ColumnConfig;
@@ -28,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 public class LineChartProvider extends ChartViewProvider<LineConfigPanel, LineChartConfig> {
+    private static final DateTickUnit DATE_TICK_UNIT = new DateTickUnit(DateTickUnitType.DAY, 1);
+
     public LineChartProvider(ChartDataProvider dataProvider) {
         super("Line Chart", ChartType.LINE, dataProvider);
     }
@@ -41,6 +42,12 @@ public class LineChartProvider extends ChartViewProvider<LineConfigPanel, LineCh
         if (RangeConfig.isTemporal(domain.getType())) {
             datasets = createTimeDatasets(domain, ranges, dataProvider);
             chart = ChartFactory.createTimeSeriesChart(null, domain.getName(), "", null, true, true, false);
+
+            if (domain.getType() == KdbType.DATE) {
+                final XYPlot xyPlot = chart.getXYPlot();
+                final DateAxis newAxis = createFixedDateAxis((DateAxis) xyPlot.getDomainAxis());
+                xyPlot.setDomainAxis(newAxis);
+            }
         } else {
             datasets = createNumberDatasets(domain, ranges, dataProvider);
             chart = ChartFactory.createXYLineChart(null, domain.getName(), "", null, PlotOrientation.VERTICAL, true, false, false);
@@ -73,6 +80,23 @@ public class LineChartProvider extends ChartViewProvider<LineConfigPanel, LineCh
             i++;
         }
         return chart;
+    }
+
+    @NotNull
+    private static DateAxis createFixedDateAxis(DateAxis axis) {
+        final DateAxis newAxis = new DateAxis(axis.getLabel(), axis.getTimeZone(), axis.getLocale()) {
+            @Override
+            public void setTickUnit(DateTickUnit unit, boolean notify, boolean turnOffAutoSelection) {
+                final DateTickUnitType unitType = unit.getUnitType();
+                if (unitType != DateTickUnitType.DAY && unitType != DateTickUnitType.MONTH && unitType != DateTickUnitType.YEAR) {
+                    unit = (DateTickUnit) getStandardTickUnits().getCeilingTickUnit(DATE_TICK_UNIT);
+                }
+                super.setTickUnit(unit, notify, turnOffAutoSelection);
+            }
+        };
+        newAxis.setLowerMargin(axis.getLowerMargin());
+        newAxis.setUpperMargin(axis.getUpperMargin());
+        return newAxis;
     }
 
     @NotNull

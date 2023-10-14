@@ -8,7 +8,6 @@ import com.intellij.ui.JBColor;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.BlockBorder;
@@ -25,8 +24,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Field;
 import java.util.function.Supplier;
-
-import static kx.KxConnection.UTC_TIMEZONE;
 
 public class BaseChartPanel extends ChartPanel {
     private final ChartOptions myOptions;
@@ -75,10 +72,11 @@ public class BaseChartPanel extends ChartPanel {
         axis.setAxisLinePaint(JBColor.foreground());
         axis.setTickLabelPaint(JBColor.foreground());
 
-        if (axis instanceof NumberAxis) {
-            ((NumberAxis) axis).setAutoRangeIncludesZero(false);
-        } else if (axis instanceof DateAxis) {
-            ((DateAxis) axis).setTimeZone(UTC_TIMEZONE);
+        if (axis instanceof NumberAxis a) {
+            a.setAutoRangeIncludesZero(false);
+            // Leads to wrong values display
+//        } else if (axis instanceof DateAxis a) {
+//            a.setTimeZone(UTC_TIMEZONE);
         }
     }
 
@@ -122,11 +120,11 @@ public class BaseChartPanel extends ChartPanel {
 
         if (chart != null) {
             setMouseZoomable(true);
-            initializeChar(chart);
+            initializeChart(chart);
         }
     }
 
-    private void initializeChar(JFreeChart chart) {
+    private void initializeChart(JFreeChart chart) {
         chart.setBorderPaint(JBColor.foreground());
         chart.setBackgroundPaint(JBColor.background());
 
