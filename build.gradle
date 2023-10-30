@@ -2,7 +2,7 @@ import org.jetbrains.changelog.Changelog
 
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '1.13.3'
+    id 'org.jetbrains.intellij' version '1.16.0'
     id 'org.jetbrains.changelog' version '2.1.2'
     id "org.jetbrains.grammarkit" version "2022.3"
 }

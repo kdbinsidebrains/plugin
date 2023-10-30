@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [4.4.1]
+
+### Fixed
+
+- Code Completion causes deadlock from time to time: issue #76
+
 ## [4.4.0]
 
 ### Added

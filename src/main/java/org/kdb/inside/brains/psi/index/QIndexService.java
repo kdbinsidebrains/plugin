@@ -13,10 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QVarDeclaration;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class QIndexService {
@@ -88,19 +85,30 @@ public class QIndexService {
     }
 
     public void processValues(@NotNull Predicate<String> keyPredicate, @NotNull GlobalSearchScope scope, @NotNull QIndexService.ValuesProcessor processor) {
+        // We can't process all in the same thread so we collect value values firstly and then process each
+        // See https://github.com/kdbinsidebrains/plugin/issues/76
+        final List<String> keys = new ArrayList<>();
         processAllKeys(key -> {
             if (keyPredicate.test(key)) {
-                index.processValues(QIdentifiersIndex.INDEX_ID, key, null, (file, value) -> {
-                    for (IdentifierDescriptor d : value) {
-                        if (!processor.processValues(key, file, d)) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }, scope);
+                keys.add(key);
             }
             return true;
         }, scope);
+
+        for (String key : keys) {
+            final boolean result = index.processValues(QIdentifiersIndex.INDEX_ID, key, null, (file, value) -> {
+                for (IdentifierDescriptor d : value) {
+                    if (!processor.processValues(key, file, d)) {
+                        return false;
+                    }
+                }
+                return true;
+            }, scope);
+
+            if (!result) {
+                break;
+            }
+        }
     }
 
     @Nullable

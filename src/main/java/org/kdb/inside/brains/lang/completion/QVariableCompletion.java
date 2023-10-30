@@ -134,7 +134,12 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
             return;
         }
 
+        // ignore empty values
         final String qualifiedName = variable.getQualifiedName();
+        if (qualifiedName.isBlank()) {
+            return;
+        }
+
         addGlobal(qualifiedName, project, null, result);
         addLambda(qualifiedName, ElementContext.of(variable), result);
         addFunctions(qualifiedName, result);
