@@ -45,8 +45,18 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
         return options;
     }
 
+    /**
+     * Returns only `:host:port without username and password.
+     */
+    public String toAddress() {
+        return "`:" + host + ":" + port;
+    }
+
+    /**
+     * Returns only `:host:port:username:***
+     */
     public String toSymbol() {
-        final String s = "`:" + host + ":" + port;
+        final String s = toAddress();
         if (credentials == null) {
             return s;
         } else {

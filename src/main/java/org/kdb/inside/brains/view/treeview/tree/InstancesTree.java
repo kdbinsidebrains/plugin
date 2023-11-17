@@ -28,6 +28,7 @@ import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -103,6 +104,7 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
                     }
                     return !selectedItems.isEmpty() ? new DnDDragStartBean(selectedItems) : null;
                 })
+                .enableAsNativeTarget()
                 .setDisposableParent(this)
                 .setTargetChecker(this)
                 .setDropHandler(this)
@@ -199,7 +201,11 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
             return;
         }
 
-        @SuppressWarnings("unchecked") final List<InstanceItem> attachItems = (List<InstanceItem>) event.getAttachedObject();
+        final List<InstanceItem> attachItems = getDropInstance(event);
+        if (attachItems.isEmpty()) {
+            return;
+        }
+
         int pos = index;
         for (InstanceItem i : attachItems) {
             if (action == DnDAction.COPY) {
@@ -217,8 +223,8 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
     public boolean update(DnDEvent event) {
         event.setDropPossible(false, "");
 
-        @SuppressWarnings("unchecked") final List<InstanceItem> movingItems = (List<InstanceItem>) event.getAttachedObject();
-        if (movingItems == null) {
+        final List<InstanceItem> movingItems = getDropInstance(event);
+        if (movingItems.isEmpty()) {
             return false;
         }
 
@@ -256,6 +262,25 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
             event.setHighlighting(new RelativeRectangle(this, bound), DnDEvent.DropTargetHighlightingType.RECTANGLE);
         }
         return true;
+    }
+
+    @NotNull
+    private List<InstanceItem> getDropInstance(DnDEvent event) {
+        final Object attachedObject = event.getAttachedObject();
+        if (attachedObject instanceof List<?> l) {
+            return l.stream().filter(i -> i instanceof InstanceItem).map(i -> (InstanceItem) i).toList();
+        } else if (attachedObject instanceof DnDNativeTarget.EventInfo nt) {
+            final String text = nt.getTextForFlavor(DataFlavor.stringFlavor);
+            if (text == null) {
+                return List.of();
+            }
+            final KdbInstance instance = KdbInstance.parseInstance(text);
+            if (instance == null) {
+                return List.of();
+            }
+            return List.of(instance);
+        }
+        return List.of();
     }
 
     private DnDPosition getDnDPosition(DnDEvent event) {

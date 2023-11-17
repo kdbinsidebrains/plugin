@@ -55,7 +55,7 @@ public class KdbQueryLogger implements PersistentStateComponent<KdbQueryLogger.S
             final StringBuilder b = new StringBuilder("/ ");
             b.append(result.getTimeAsTimestampString());
             b.append(", ");
-            b.append(connection.getDetails());
+            b.append(connection.getSymbol());
             b.append(", ");
             b.append(connection.getCanonicalName());
             b.append(", ");

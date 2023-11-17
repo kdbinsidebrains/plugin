@@ -16,7 +16,7 @@ public class InstanceElement extends InspectorElement {
 
     @Override
     public String getLocationString() {
-        return connection.getDetails();
+        return connection.getSymbol();
     }
 
     public KdbResult getResult() {

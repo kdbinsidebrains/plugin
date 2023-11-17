@@ -286,7 +286,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
             if (tokens.length != 0 && !isValidInstance(connection.getInstance(), tokens)) {
                 continue;
             }
-            (connection.getState() == InstanceState.CONNECTED ? connected : disconnected).add(new SelectInstanceAction(connection, manager));
+            (connection.isConnected() ? connected : disconnected).add(new SelectInstanceAction(connection, manager));
         }
         group.add(connected);
         group.add(disconnected);

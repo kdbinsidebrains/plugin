@@ -7,13 +7,16 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.TextRange;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
-import org.kdb.inside.brains.core.*;
+import org.kdb.inside.brains.core.InstanceConnection;
+import org.kdb.inside.brains.core.KdbConnectionManager;
+import org.kdb.inside.brains.core.KdbQuery;
+import org.kdb.inside.brains.core.KdbResult;
 
 public class SendIntoAction extends AnExportAction<String> {
     private final InstanceConnection connection;
 
     public SendIntoAction(ExportDataProvider dataProvider, InstanceConnection connection) {
-        super(connection.getCanonicalName() + " (" + connection.getDetails() + ")", ExportingType.ALL_WITH_HEADER, dataProvider, null, null);
+        super(connection.getCanonicalName() + " (" + connection.getAddress() + ")", ExportingType.ALL_WITH_HEADER, dataProvider, null, null);
         this.connection = connection;
     }
 
@@ -51,11 +54,11 @@ public class SendIntoAction extends AnExportAction<String> {
 
         indicator.setIndeterminate(true);
 
-        if (connection.getState() != InstanceState.CONNECTED) {
+        if (!connection.isConnected()) {
             connection.connectAndWait();
         }
 
-        if (connection.getState() == InstanceState.CONNECTED) {
+        if (connection.isConnected()) {
             final KdbResult res = connection.query(new KdbQuery("set", name, obj));
             if (res.isError()) {
                 throw (Exception) res.getObject();

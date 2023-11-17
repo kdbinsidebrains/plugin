@@ -558,7 +558,12 @@ public class c {
 
         j++;
         if (t == 98) {
-            return new Flip((Dict) r());
+            final Dict r = (Dict) r();
+            // Special case - historical table
+            if (r.y instanceof String) {
+                return r;
+            }
+            return new Flip(r);
         }
         n = ri();
         switch (t) {

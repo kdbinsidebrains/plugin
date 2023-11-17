@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
 import org.kdb.inside.brains.action.ActionPlaces;
 import org.kdb.inside.brains.core.InstanceConnection;
-import org.kdb.inside.brains.core.InstanceState;
 import org.kdb.inside.brains.core.KdbConnectionManager;
 import org.kdb.inside.brains.view.console.KdbConsoleToolWindow;
 
@@ -24,7 +23,7 @@ public class ExecuteAction extends DumbAwareAction {
     }
 
     public ExecuteAction(InstanceConnection connection) {
-        super(connection.getName(), connection.getDetails(), null);
+        super(connection.getName(), connection.getSymbol(), null);
         myConnection = connection;
     }
 
@@ -55,7 +54,7 @@ public class ExecuteAction extends DumbAwareAction {
 
             if (allowed) {
                 final InstanceConnection activeInstance = getConnection(e.getProject());
-                presentation.setEnabled(activeInstance != null && activeInstance.getState() == InstanceState.CONNECTED);
+                presentation.setEnabled(activeInstance != null && activeInstance.isConnected());
             } else {
                 presentation.setEnabled(false);
             }

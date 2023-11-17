@@ -1,5 +1,21 @@
 # KdbInsideBrains Changelog
 
+## [4.5.0]
+
+### Added
+
+- Connection URI can be dropped into InstanceTree from any place
+
+### Changed
+
+- Send Data Into... splits connected and disconnected instance with connected at the top.
+- Testing version is 2023.2.5
+
+### Fixed
+
+- HDB table raises an error: the table is returned in format `col1...`colN!`<tableName> and can't be cast to Flip so
+  returned as Dict now instead.
+
 ## [4.4.1]
 
 ### Fixed

@@ -170,7 +170,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
     private TabInfo createConsoleTab() {
         final LanguageConsoleBuilder b = new LanguageConsoleBuilder();
-        b.executionEnabled(view -> connection != null && connection.getState() == InstanceState.CONNECTED);
+        b.executionEnabled(view -> connection != null && connection.isConnected());
 
         b.initActions(new BaseConsoleExecuteActionHandler(true) {
             @Override
@@ -333,7 +333,7 @@ public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvid
 
             @Override
             public void update(@NotNull AnActionEvent e) {
-                e.getPresentation().setEnabled(connection.getState() == InstanceState.CONNECTED);
+                e.getPresentation().setEnabled(connection.isConnected());
             }
         });
         actions.addSeparator();

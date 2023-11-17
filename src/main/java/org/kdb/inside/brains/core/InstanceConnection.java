@@ -39,11 +39,19 @@ public interface InstanceConnection {
         return getInstance().getName();
     }
 
-    default String getDetails() {
+    default String getSymbol() {
         return getInstance().toSymbol();
+    }
+
+    default String getAddress() {
+        return getInstance().toAddress();
     }
 
     default String getCanonicalName() {
         return getInstance().getCanonicalName();
+    }
+
+    default boolean isConnected() {
+        return getState() == InstanceState.CONNECTED;
     }
 }

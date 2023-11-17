@@ -102,7 +102,7 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
 
         final List<InstanceConnection> connections = connectionManager.getConnections();
         for (InstanceConnection connection : connections) {
-            if (connection.getState() == InstanceState.CONNECTED) {
+            if (connection.isConnected()) {
                 activateInstance(connection);
             }
         }
@@ -198,7 +198,7 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
                 final Element e = new Element("console");
                 e.setAttribute("scope", connection.getInstance().getScope().getName());
                 e.setAttribute("instance", connection.getCanonicalName());
-                e.setAttribute("connected", String.valueOf(connection.getState() == InstanceState.CONNECTED));
+                e.setAttribute("connected", String.valueOf(connection.isConnected()));
                 console.saveState(e);
                 statesCache.put(connection.getInstance(), e);
 
