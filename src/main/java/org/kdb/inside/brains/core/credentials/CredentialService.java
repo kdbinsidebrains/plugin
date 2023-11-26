@@ -72,7 +72,7 @@ public class CredentialService implements PersistentStateComponent<Element> {
         }
 
         // Resolve
-        final String resolved = provider.resolveCredentials(credentials);
+        final String resolved = provider.resolveCredentials(instance.getHost(), instance.getPort(), credentials);
 
         // Resolved or default?
         credentials = resolved != null ? resolved : credentials;

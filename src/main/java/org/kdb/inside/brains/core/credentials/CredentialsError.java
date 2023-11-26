@@ -2,20 +2,13 @@ package org.kdb.inside.brains.core.credentials;
 
 import javax.swing.*;
 
-public final class CredentialsError {
-    private final String message;
-    private final JComponent component;
-
-    public CredentialsError(String message, JComponent component) {
-        this.message = message;
-        this.component = component;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public JComponent getComponent() {
-        return component;
-    }
+/**
+ * Description of an error returned by {@link CredentialEditor#validateEditor()} method.
+ * <p>
+ * Each error contains a message cause the error and an optional component.
+ *
+ * @param message   the error message to be shown in UI
+ * @param component the component that caused the error, if known.
+ */
+public record CredentialsError(String message, JComponent component) {
 }

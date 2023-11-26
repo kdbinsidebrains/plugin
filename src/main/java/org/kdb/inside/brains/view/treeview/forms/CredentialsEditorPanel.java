@@ -131,7 +131,7 @@ public class CredentialsEditorPanel extends CredentialEditor implements Disposab
     }
 
     private List<CredentialsError> updateErrors(List<CredentialsError> errors) {
-        final List<ValidationInfo> info = errors == null || errors.isEmpty() ? List.of() : errors.stream().map(e -> new ValidationInfo(e.getMessage(), e.getComponent())).collect(Collectors.toList());
+        final List<ValidationInfo> info = errors == null || errors.isEmpty() ? List.of() : errors.stream().map(e -> new ValidationInfo(e.message(), e.component())).collect(Collectors.toList());
         if (!myInfo.equals(info)) {
             updateComponentErrors(info);
             myInfo = info;

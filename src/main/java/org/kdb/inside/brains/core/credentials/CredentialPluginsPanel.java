@@ -60,24 +60,12 @@ public class CredentialPluginsPanel extends JPanel implements ComponentWithEmpty
             @Override
             public Object getValueAt(int rowIndex, int columnIndex) {
                 final CredentialPlugin plugin = plugins.get(rowIndex);
-                switch (columnIndex) {
-                    case 0:
-                        return plugin.getName();
-                    case 1:
-                        return plugin.getVersion();
-                    case 2:
-                        return plugin.getDescription();
-                }
-                return "";
-            }
-
-            @Override
-            public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-            }
-
-            @Override
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return false;
+                return switch (columnIndex) {
+                    case 0 -> plugin.getName();
+                    case 1 -> plugin.getVersion();
+                    case 2 -> plugin.getDescription();
+                    default -> "";
+                };
             }
         };
 

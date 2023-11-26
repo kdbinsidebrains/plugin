@@ -27,11 +27,6 @@ public final class UsernameCredentialProvider implements CredentialProvider {
     }
 
     @Override
-    public String resolveCredentials(String credentials) {
-        return credentials;
-    }
-
-    @Override
     public CredentialEditor createEditor() {
         return new UsernameCredentialsEditor();
     }

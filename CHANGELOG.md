@@ -1,5 +1,12 @@
 # KdbInsideBrains Changelog
 
+## [4.6.0]
+
+### Changed
+
+- CredentialProvider redesigned to process hostname/port along with credentials as username/port is required for some
+  authentication methods.
+
 ## [4.5.0]
 
 ### Added

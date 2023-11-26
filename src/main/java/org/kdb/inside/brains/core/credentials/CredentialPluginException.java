@@ -1,6 +1,6 @@
 package org.kdb.inside.brains.core.credentials;
 
-class CredentialPluginException extends Exception {
+public class CredentialPluginException extends Exception {
     CredentialPluginException(String message) {
         super(message);
     }

@@ -260,7 +260,7 @@ public class InstanceEditorDialog extends DialogWrapper {
 
         final List<CredentialsError> validationInfo = credentialsEditor.validateEditor();
         if (validationInfo != null) {
-            res.addAll(validationInfo.stream().map(i -> new ValidationInfo(i.getMessage(), i.getComponent())).collect(Collectors.toList()));
+            res.addAll(validationInfo.stream().map(i -> new ValidationInfo(i.message(), i.component())).toList());
         }
         return res;
     }

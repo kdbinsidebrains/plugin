@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
-final class CredentialPlugin implements Closeable {
+public final class CredentialPlugin implements Closeable {
     private final String id;
     private final String name;
     private final String version;

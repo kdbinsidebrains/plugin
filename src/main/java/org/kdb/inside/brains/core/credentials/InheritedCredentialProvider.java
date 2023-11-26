@@ -26,11 +26,6 @@ public final class InheritedCredentialProvider implements CredentialProvider {
     }
 
     @Override
-    public String resolveCredentials(String credentials) {
-        return credentials;
-    }
-
-    @Override
     public CredentialEditor createEditor() {
         final String name;
         final String credentials;
