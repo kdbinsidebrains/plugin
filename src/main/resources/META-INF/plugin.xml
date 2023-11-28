@@ -36,7 +36,7 @@
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
-    <depends>com.intellij.modules.java</depends>
+    <depends optional="true" config-file="plugin-modules-java.xml">com.intellij.modules.java</depends>
 
     <actions>
         <action id="Kdb.Instances.Connect"
@@ -359,42 +359,21 @@
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!--  Project configuration -->
-        <sdkType implementation="org.kdb.inside.brains.ide.sdk.KdbSdkType"/>
-
-        <moduleType id="KDB_MODULE_TYPE" implementationClass="org.kdb.inside.brains.ide.module.KdbModuleType"/>
-        <moduleBuilder builderClass="org.kdb.inside.brains.ide.module.KdbModuleBuilder"
-                       id="KDB_INSIDE_BRAINS_MODULE"
-                       order="first"/>
-
-        <framework.detector implementation="org.kdb.inside.brains.ide.facet.KdbFrameworkDetector"/>
-        <projectStructureDetector implementation="org.kdb.inside.brains.ide.module.KdbProjectStructureDetector"/>
-
-        <moduleConfigurationEditorProvider implementation="org.kdb.inside.brains.ide.module.KdbModuleEditorsProvider"/>
-
-        <facetType id="KDB_FACET_TYPE" implementation="org.kdb.inside.brains.ide.facet.KdbFacetType"/>
-
-        <projectFacetListener facet-type="KDB_FACET_TYPE"
-                              implementation="org.kdb.inside.brains.ide.facet.KdbFacetStateManager"/>
-
         <fileType name="KDB+ Q" implementationClass="org.kdb.inside.brains.QFileType"
                   fieldName="INSTANCE" language="q" extensions="q;k"/>
-
-        <library.type implementation="org.kdb.inside.brains.ide.library.KdbLibraryType"/>
 
         <internalFileTemplate name="KDB+Q Blank File"/>
 
         <defaultLiveTemplates file="/liveTemplates/Markdown.xml"/>
         <liveTemplateContext contextId="KDB+ Q"
-                             implementation="org.kdb.inside.brains.ide.template.KdbTemplateContextType"/>
+                             implementation="org.kdb.inside.brains.lang.template.QTemplateContextType"/>
         <!--        <liveTemplateMacro implementation="org.kdb.inside.brains.ide.template.AnExampleMacro"/>-->
-
-        <configurationType implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationType"/>
-        <runConfigurationProducer implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationProducer"
-                                  order="last"/>
 
         <!-- General configuration -->
         <actionPromoter implementation="org.kdb.inside.brains.action.execute.ExecutionActionPromoter"/>
+
+        <projectService serviceImplementation="org.kdb.inside.brains.view.KdbToolWindowManager"/>
+
         <projectService serviceImplementation="org.kdb.inside.brains.core.KdbConnectionManager"/>
 
         <projectService serviceImplementation="org.kdb.inside.brains.lang.binding.EditorsBindingService"/>
@@ -431,23 +410,20 @@
 
         <projectService serviceImplementation="org.kdb.inside.brains.view.inspector.InspectorToolWindow"/>
 
-        <facet.toolWindow id="KDB Instances" icon="KdbIcons.Main.ToolWindow"
-                          facetIdList="KDB_FACET_TYPE"
-                          anchor="right"
-                          factoryClass="org.kdb.inside.brains.view.treeview.InstancesToolWindowFactory"/>
+        <toolWindow id="KDB Instances" icon="KdbIcons.Main.ToolWindow"
+                    anchor="right"
+                    factoryClass="org.kdb.inside.brains.view.treeview.InstancesToolWindowFactory"/>
 
-        <facet.toolWindow id="KDB Inspector" icon="KdbIcons.Main.InspectorWindow"
-                          facetIdList="KDB_FACET_TYPE"
-                          anchor="right"
-                          secondary="true"
-                          canCloseContents="false"
-                          factoryClass="org.kdb.inside.brains.view.inspector.InspectorToolWindowFactory"/>
+        <toolWindow id="KDB Inspector"
+                    icon="KdbIcons.Main.InspectorWindow"
+                    anchor="right"
+                    secondary="true"
+                    canCloseContents="false"
+                    factoryClass="org.kdb.inside.brains.view.inspector.InspectorToolWindowFactory"/>
 
-        <!-- KDB Console -->
-        <facet.toolWindow id="KDB Console" icon="KdbIcons.Main.ConsoleWindow"
-                          facetIdList="KDB_FACET_TYPE"
-                          anchor="bottom" canCloseContents="true"
-                          factoryClass="org.kdb.inside.brains.view.console.KdbConsoleToolWindowFactory"/>
+        <toolWindow id="KDB Console" icon="KdbIcons.Main.ConsoleWindow"
+                    anchor="bottom" canCloseContents="true"
+                    factoryClass="org.kdb.inside.brains.view.console.KdbConsoleToolWindowFactory"/>
 
         <projectService serviceImplementation="org.kdb.inside.brains.view.console.KdbConsoleToolWindow"/>
 

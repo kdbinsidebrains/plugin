@@ -1,19 +1,19 @@
-package org.kdb.inside.brains.ide.template;
+package org.kdb.inside.brains.lang.template;
 
 import com.intellij.codeInsight.template.*;
 import com.intellij.codeInsight.template.macro.MacroBase;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-public class AnExampleMacro extends MacroBase {
-    public AnExampleMacro() {
+public class QMacroExample extends MacroBase {
+    public QMacroExample() {
         super("titleCase", "titleCase(String)");
     }
 
     /**
      * Strictly to uphold contract for constructors in base class.
      */
-    private AnExampleMacro(String name, String description) {
+    private QMacroExample(String name, String description) {
         super(name, description);
     }
 
@@ -34,6 +34,6 @@ public class AnExampleMacro extends MacroBase {
     @Override
     public boolean isAcceptableInContext(TemplateContextType context) {
         // Might want to be less restrictive in future
-        return (context instanceof KdbTemplateContextType);
+        return (context instanceof QTemplateContextType);
     }
 }

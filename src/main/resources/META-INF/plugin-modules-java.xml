@@ -1,0 +1,27 @@
+<idea-plugin require-restart="false">
+    <extensions defaultExtensionNs="com.intellij">
+        <!--  Project configuration -->
+        <sdkType implementation="org.kdb.inside.brains.ide.sdk.KdbSdkType"/>
+
+        <moduleType id="KDB_MODULE_TYPE" implementationClass="org.kdb.inside.brains.ide.module.KdbModuleType"/>
+        <moduleBuilder builderClass="org.kdb.inside.brains.ide.module.KdbModuleBuilder"
+                       id="KDB_INSIDE_BRAINS_MODULE"
+                       order="first"/>
+
+        <framework.detector implementation="org.kdb.inside.brains.ide.facet.KdbFrameworkDetector"/>
+        <projectStructureDetector implementation="org.kdb.inside.brains.ide.module.KdbProjectStructureDetector"/>
+
+        <moduleConfigurationEditorProvider implementation="org.kdb.inside.brains.ide.module.KdbModuleEditorsProvider"/>
+
+        <facetType id="KDB_FACET_TYPE" implementation="org.kdb.inside.brains.ide.facet.KdbFacetType"/>
+
+        <projectFacetListener facet-type="KDB_FACET_TYPE"
+                              implementation="org.kdb.inside.brains.ide.facet.KdbFacetStateListener"/>
+
+        <configurationType implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationType"/>
+        <runConfigurationProducer implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationProducer"
+                                  order="last"/>
+
+        <library.type implementation="org.kdb.inside.brains.ide.library.KdbLibraryType"/>
+    </extensions>
+</idea-plugin>

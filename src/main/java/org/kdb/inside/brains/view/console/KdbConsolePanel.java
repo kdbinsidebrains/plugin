@@ -49,6 +49,7 @@ import org.kdb.inside.brains.settings.KdbSettingsListener;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.settings.SettingsBean;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
+import org.kdb.inside.brains.view.KdbToolWindowPanel;
 import org.kdb.inside.brains.view.LineNumberGutterProvider;
 import org.kdb.inside.brains.view.console.table.TableMode;
 import org.kdb.inside.brains.view.console.table.TableResult;
@@ -68,7 +69,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class KdbConsolePanel extends SimpleToolWindowPanel implements DataProvider, Disposable {
+public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider, Disposable {
     private LanguageConsoleView console;
     private ConsoleSplitType activeSplitType;
 

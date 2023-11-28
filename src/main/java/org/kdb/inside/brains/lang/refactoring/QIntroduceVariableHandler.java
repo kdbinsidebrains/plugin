@@ -14,7 +14,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
@@ -34,7 +33,7 @@ public class QIntroduceVariableHandler implements RefactoringActionHandler {
     }
 
     private static void showErrorMessage(Project project, Editor editor) {
-        CommonRefactoringUtil.showErrorHint(project, editor, "Selected block should represent an expression", RefactoringBundle.message("introduce.parameter.title"), HelpID.INTRODUCE_PARAMETER);
+        CommonRefactoringUtil.showErrorHint(project, editor, "Selected block should represent an expression", RefactoringBundle.message("introduce.parameter.title"), null);
     }
 
     @Override

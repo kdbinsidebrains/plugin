@@ -1,9 +1,10 @@
 package org.kdb.inside.brains.action.toolbar;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.ide.facet.KdbFacetStateManager;
+import org.kdb.inside.brains.view.KdbToolWindowManager;
 
 public class MainToolbarActionGroup extends DefaultActionGroup {
     public MainToolbarActionGroup() {
@@ -11,6 +12,11 @@ public class MainToolbarActionGroup extends DefaultActionGroup {
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-        e.getPresentation().setVisible(KdbFacetStateManager.isFacetEnabled());
+        e.getPresentation().setVisible(KdbToolWindowManager.isPluginEnabled(e.getProject()));
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.EDT;
     }
 }

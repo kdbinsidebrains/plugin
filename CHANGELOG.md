@@ -1,5 +1,17 @@
 # KdbInsideBrains Changelog
 
+## [5.0.0]
+
+### Added
+
+- PyCharm as well as other Platforms supporting has been added. All ToolWindows are always enabled and no additional
+  IDEA features, like external source code, run KDB instance and so on are available in these platforms.
+- EAP 2023.3 added into supported platforms
+
+### Fixed
+
+- Adding and removing Facet to a project causes many issues in ToolWindows manipulation
+
 ## [4.6.0]
 
 ### Changed

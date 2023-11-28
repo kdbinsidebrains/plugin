@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.view.inspector.model;
 
 import com.google.common.io.Resources;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -18,12 +19,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class InstanceScanner {
-    private static final Logger log = Logger.getInstance(InstanceScanner.class);
+public class InstanceScanner implements Disposable {
     private final String query;
     private final Project project;
     private final ScanListener listener;
     private final Map<InstanceConnection, Task> activeQueries = new ConcurrentHashMap<>();
+
+    private static final Logger log = Logger.getInstance(InstanceScanner.class);
 
     public InstanceScanner(@NotNull Project project, @NotNull ScanListener listener) {
         query = getScanQuery();
@@ -87,6 +89,11 @@ public class InstanceScanner {
         } catch (Exception ex) {
             processError(connection, ex);
         }
+    }
+
+    @Override
+    public void dispose() {
+        activeQueries.clear();
     }
 
     public interface ScanListener {

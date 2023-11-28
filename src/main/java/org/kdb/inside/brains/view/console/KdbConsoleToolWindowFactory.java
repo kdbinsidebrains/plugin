@@ -1,15 +1,13 @@
 package org.kdb.inside.brains.view.console;
 
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.view.KdbToolWindowFactory;
 
-public class KdbConsoleToolWindowFactory implements ToolWindowFactory, DumbAware {
+public class KdbConsoleToolWindowFactory implements KdbToolWindowFactory {
     @Override
-    public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        project.getService(KdbConsoleToolWindow.class).initToolWindow((ToolWindowEx) toolWindow);
+    public void createToolWindowContentEx(@NotNull Project project, @NotNull ToolWindowEx toolWindow) {
+        KdbConsoleToolWindow.getInstance(project).initToolWindow(toolWindow);
     }
 }

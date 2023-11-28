@@ -31,7 +31,6 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -46,6 +45,7 @@ import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.tree.TreeVisitor;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.IoErrorText;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
@@ -57,12 +57,14 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.Promise;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.psi.QAssignmentExpr;
 import org.kdb.inside.brains.psi.QExpression;
 import org.kdb.inside.brains.psi.QVarDeclaration;
 import org.kdb.inside.brains.psi.index.QIndexService;
 import org.kdb.inside.brains.settings.KdbSettingsService;
+import org.kdb.inside.brains.view.KdbToolWindowPanel;
 import org.kdb.inside.brains.view.console.KdbConsoleToolWindow;
 import org.kdb.inside.brains.view.inspector.model.*;
 
@@ -83,35 +85,42 @@ import static org.kdb.inside.brains.action.ActionPlaces.INSPECTOR_VIEW_TOOLBAR;
 
 
 @State(name = "KdbInspectorView", storages = {@Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)})
-public class InspectorToolWindow extends SimpleToolWindowPanel implements PersistentStateComponent<InspectorToolState>, KdbConnectionListener, InstanceScanner.ScanListener, DataProvider, Disposable {
+public class InspectorToolWindow extends KdbToolWindowPanel implements PersistentStateComponent<InspectorToolState>, KdbConnectionListener, DataProvider, Disposable {
     private final Project project;
+    private final Map<InstanceConnection, CacheElement> instancesCache = new HashMap<>();
+    private boolean visible;
 
-    private InstanceConnection connection;
     private final KdbConnectionManager connectionManager;
-    private final ModelWrapper modelWrapper;
+    private InstanceScanner scanner;
+    private InstanceConnection activeConnection;
+    private Tree tree;
+    private ModelWrapper modelWrapper;
 
-    private final Tree tree;
-    private final InstanceScanner scanner;
     private final CopyProvider copyProvider = new MyCopyProvider();
-    private final RefreshAction refreshAction = new RefreshAction();
-    private final MyAutoScrollToSourceHandler scrollToSourceHandler;
     private final InspectorToolState settings = new InspectorToolState();
 
-    private final Map<InstanceConnection, CacheElement> instancesCache = new HashMap<>();
-
     private final JLabel statusBar = new JLabel("", JLabel.RIGHT);
-    private boolean visible;
-    private boolean disposed;
+    private MessageBusConnection toolWindowListener;
 
     private static final DateTimeFormatter STATUS_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public InspectorToolWindow(@NotNull Project project) {
         super(true);
         this.project = project;
-        this.scanner = new InstanceScanner(project, this);
         this.connectionManager = KdbConnectionManager.getManager(project);
 
-        this.modelWrapper = new ModelWrapper(project, settings, this);
+        createStatusBar();
+    }
+
+    public void initToolWindow(ToolWindowEx toolWindow) {
+        final ContentManager cm = toolWindow.getContentManager();
+        final Content content = cm.getFactory().createContent(this, null, false);
+        cm.addContent(content);
+        Disposer.register(this, content);
+
+        this.visible = toolWindow.isVisible();
+
+        this.modelWrapper = new ModelWrapper(project, settings);
 
         this.tree = new Tree(modelWrapper.asyncTreeMode);
         tree.setRootVisible(true);
@@ -120,7 +129,20 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
 
-        scrollToSourceHandler = new MyAutoScrollToSourceHandler(tree);
+        this.scanner = new InstanceScanner(project, new InstanceScanner.ScanListener() {
+            @Override
+            public void scanFailed(InstanceConnection connection, Exception exception) {
+                updateEmptyText(exception);
+                modelWrapper.updateElement(null);
+            }
+
+            @Override
+            public void scanFinished(InstanceConnection connection, KdbResult result) {
+                updateEmptyText(null);
+                modelWrapper.updateElement(new InstanceElement(connection, result));
+            }
+        });
+
 
         registerAutoExpandListener(tree, modelWrapper.treeModel);
 
@@ -128,9 +150,8 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
         new TreeSpeedSearch(tree, true, path -> InspectorElement.unwrap(path).map(InspectorElement::getCanonicalName).orElse(null));
 
-        setContent(ScrollPaneFactory.createScrollPane(tree));
         setToolbar(createToolbar());
-        createStatusBar();
+        setContent(ScrollPaneFactory.createScrollPane(tree));
 
         final DefaultActionGroup popup = createPopup();
 
@@ -144,11 +165,47 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
                 return executeSelectedPath(tree.getSelectionPath());
             }
         }.installOn(tree);
+
+        connectionManager.addConnectionListener(this);
+        activeConnection = connectionManager.getActiveConnection();
+
+        toolWindowListener = project.getMessageBus().connect();
+        toolWindowListener.subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
+            @Override
+            public void toolWindowShown(@NotNull ToolWindow tw) {
+                if (toolWindow == tw) {
+                    visible = true;
+                    connectionActivated(activeConnection, connectionManager.getActiveConnection());
+                }
+            }
+
+            @Override
+            public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+                if (visible && !toolWindow.isVisible()) {
+                    connectionActivated(activeConnection, null);
+                    visible = false;
+                }
+            }
+        });
+    }
+
+    private @NotNull JComponent createToolbar() {
+        final DefaultActionGroup result = new DefaultActionGroup();
+        result.add(new RefreshAction());
+        result.addSeparator();
+        result.addAll(modelWrapper.createActions());
+        result.addSeparator();
+        result.add(new MyAutoScrollToSourceHandler(tree).createToggleAction());
+
+        final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(INSPECTOR_VIEW_TOOLBAR, result, true);
+        toolbar.setTargetComponent(tree);
+
+        return toolbar.getComponent();
     }
 
     @NotNull
     private DefaultActionGroup createPopup() {
-        final DumbAwareAction scroll = new DumbAwareAction(ActionsBundle.messagePointer("action.EditSource.text"), ActionsBundle.messagePointer("action.EditSource.description"), AllIcons.Actions.EditSource) {
+        final DumbAwareAction scroll = new EdtAction(ActionsBundle.messagePointer("action.EditSource.text"), ActionsBundle.messagePointer("action.EditSource.description"), AllIcons.Actions.EditSource) {
             public void update(@NotNull AnActionEvent e) {
                 final Presentation presentation = e.getPresentation();
                 presentation.setEnabled(isExecutableSelected());
@@ -161,7 +218,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         };
         scroll.registerCustomShortcutSet(KeyEvent.VK_F4, 0, tree);
 
-        final DumbAwareAction query = new DumbAwareAction("Query Item Value", "Query value of the element from the instance", KdbIcons.Instance.Execute) {
+        final DumbAwareAction query = new EdtAction("Query Item Value", "Query value of the element from the instance", KdbIcons.Instance.Execute) {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 final Presentation presentation = e.getPresentation();
@@ -175,7 +232,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         };
         query.registerCustomShortcutSet(KeyEvent.VK_ENTER, 0, tree);
 
-        final DumbAwareAction diffAction = new DumbAwareAction("Diff Source Vs Instance", "Show difference of source code vs defined in the instance.", AllIcons.Actions.Diff) {
+        final DumbAwareAction diffAction = new EdtAction("Diff Source Vs Instance", "Show difference of source code vs defined in the instance.", AllIcons.Actions.Diff) {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 final FunctionElement el = getSelectedElement(FunctionElement.class);
@@ -218,7 +275,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 try {
-                    final KdbResult query = connection.query(new KdbQuery(canonicalName));
+                    final KdbResult query = activeConnection.query(new KdbQuery(canonicalName));
                     final Object object = query.getObject();
                     if (object instanceof c.Function) {
                         final String text = ((c.Function) object).getContent();
@@ -289,49 +346,6 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         add(statusBar, BorderLayout.SOUTH);
     }
 
-    public void initToolWindow(ToolWindowEx toolWindow) {
-        final ContentManager cm = toolWindow.getContentManager();
-        final Content content = cm.getFactory().createContent(this, null, false);
-        cm.addContent(content);
-
-        visible = toolWindow.isVisible();
-
-        connectionManager.addConnectionListener(this);
-
-        project.getMessageBus().connect(this).subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
-            @Override
-            public void toolWindowShown(@NotNull ToolWindow tw) {
-                if (toolWindow == tw) {
-                    visible = true;
-                    connectionActivated(connection, connectionManager.getActiveConnection());
-                }
-            }
-
-            @Override
-            public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
-                if (visible && !toolWindow.isVisible()) {
-                    connectionActivated(connection, null);
-                    visible = false;
-                }
-            }
-        });
-    }
-
-    @NotNull
-    private JComponent createToolbar() {
-        final DefaultActionGroup result = new DefaultActionGroup();
-
-        result.add(refreshAction);
-        result.addSeparator();
-        result.addAll(modelWrapper.createActions());
-        result.addSeparator();
-        result.add(scrollToSourceHandler.createToggleAction());
-
-        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(INSPECTOR_VIEW_TOOLBAR, result, true);
-        toolbar.setTargetComponent(tree);
-        return toolbar.getComponent();
-    }
-
     private boolean executeSelectedPath(TreePath path) {
         if (path == null) {
             return false;
@@ -342,20 +356,8 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             return false;
         }
 
-        KdbConsoleToolWindow.getInstance(project).execute(connection, name);
+        KdbConsoleToolWindow.getInstance(project).execute(activeConnection, name);
         return true;
-    }
-
-    @Override
-    public void scanFailed(InstanceConnection connection, Exception exception) {
-        updateEmptyText(exception);
-        modelWrapper.updateElement(null);
-    }
-
-    @Override
-    public void scanFinished(InstanceConnection connection, KdbResult result) {
-        updateEmptyText(null);
-        modelWrapper.updateElement(new InstanceElement(connection, result));
     }
 
     private void updateEmptyText(Exception ex) {
@@ -390,17 +392,17 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
         final InstanceElement element = modelWrapper.getElement();
         if (element != null) {
-            instancesCache.computeIfAbsent(connection, c -> new CacheElement(element)).storeState(tree);
+            instancesCache.computeIfAbsent(activeConnection, c -> new CacheElement(element)).storeState(tree);
         }
 
-        connection = activated;
+        activeConnection = activated;
 
-        final CacheElement cached = instancesCache.get(connection);
+        final CacheElement cached = instancesCache.get(activeConnection);
         if (cached != null) {
             modelWrapper.updateElement(cached.element).onProcessed(cached::restoreState);
         } else {
             modelWrapper.updateElement(null);
-            if (connection != null && KdbSettingsService.getInstance().getInspectorOptions().isScanOnConnect() && connection.getState() != InstanceState.DISCONNECTED) {
+            if (activeConnection != null && KdbSettingsService.getInstance().getInspectorOptions().isScanOnConnect() && activeConnection.getState() != InstanceState.DISCONNECTED) {
                 refreshInstance();
             }
         }
@@ -410,9 +412,10 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     @Override
     public void dispose() {
         visible = false;
-        disposed = true;
         instancesCache.clear();
         modelWrapper.dispose();
+        toolWindowListener.dispose();
+        scanner.dispose();
         connectionManager.removeConnectionListener(this);
     }
 
@@ -446,10 +449,10 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
     }
 
     private void refreshInstance() {
-        if (connection == null) {
+        if (activeConnection == null) {
             return;
         }
-        scanner.scanInstance(connection);
+        scanner.scanInstance(activeConnection);
     }
 
     @Override
@@ -587,12 +590,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         public void restoreState(AsyncTreeModel model) {
             if (expandedPaths != null) {
                 for (String expandedPath : expandedPaths) {
-                    restoreElement(new NameResolver(expandedPath, true), new BiConsumer<Tree, TreeVisitor>() {
-                        @Override
-                        public void accept(Tree tree, TreeVisitor treeVisitor) {
-                            TreeUtil.promiseExpand(tree, treeVisitor);
-                        }
-                    });
+                    restoreElement(new NameResolver(expandedPath, true), TreeUtil::promiseExpand);
                 }
             }
 
@@ -625,7 +623,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
         private final SmartTreeStructure smartStructure;
         private final StructureTreeModel<SmartTreeStructure> structureModel;
 
-        public ModelWrapper(Project project, InspectorToolState settings, Disposable disposable) {
+        public ModelWrapper(Project project, InspectorToolState settings) {
             treeModel = new InspectorTreeModel();
 
             actionsOwner = new TreeActionsOwner() {
@@ -644,7 +642,7 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
             smartStructure = new SmartTreeStructure(project, new TreeModelWrapper(treeModel, actionsOwner)) {
                 @Override
                 public void rebuildTree() {
-                    if (disposed) {
+                    if (!visible) {
                         return;
                     }
                     super.rebuildTree();
@@ -664,8 +662,6 @@ public class InspectorToolWindow extends SimpleToolWindowPanel implements Persis
 
             structureModel = new StructureTreeModel<>(smartStructure, this);
             asyncTreeMode = new AsyncTreeModel(structureModel, false, this);
-
-            Disposer.register(disposable, this);
         }
 
         public ActionGroup createActions() {

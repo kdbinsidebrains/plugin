@@ -7,7 +7,6 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
@@ -20,13 +19,14 @@ import org.kdb.inside.brains.action.ActionPlaces;
 import org.kdb.inside.brains.core.InstanceItem;
 import org.kdb.inside.brains.core.KdbConnectionManager;
 import org.kdb.inside.brains.core.KdbScope;
+import org.kdb.inside.brains.view.KdbToolWindowPanel;
 import org.kdb.inside.brains.view.treeview.tree.InstancesTree;
 
 import javax.swing.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class InstancesScopeView extends SimpleToolWindowPanel implements Disposable, DataProvider, DumbAware {  // implements DataProvider, DockContainer
+public class InstancesScopeView extends KdbToolWindowPanel implements Disposable, DataProvider, DumbAware {  // implements DataProvider, DockContainer
     private final KdbScope scope;
 
     private final InstancesTree tree;
