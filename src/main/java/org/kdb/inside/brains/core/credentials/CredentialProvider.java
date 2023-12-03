@@ -1,7 +1,7 @@
 package org.kdb.inside.brains.core.credentials;
 
 /**
- * {@code CredentialProvider} class implements authentication logic based on an {@link KdbInstance} object and
+ * {@code CredentialProvider} class implements authentication logic based on an {@link org.kdb.inside.brains.core.KdbInstance} object and
  * appropriate credentials string.
  * <p>
  * The provider is also responsible for creation new editor that could manage provider parameters in UI form.

@@ -2,6 +2,8 @@ import org.jetbrains.changelog.Changelog
 
 plugins {
     id 'java'
+    id 'signing'
+    id 'maven-publish'
     id 'org.jetbrains.intellij' version '1.16.0'
     id 'org.jetbrains.changelog' version '2.1.2'
     id "org.jetbrains.grammarkit" version "2022.3"
@@ -108,4 +110,66 @@ runPluginVerifier {
 
 publishPlugin {
     token = System.getenv("KDBINSIDEBRAINS_RELEASE_PLUGIN_TOKEN")
+}
+
+// Release to Maven Central: https://docs.gradle.org/current/userguide/publishing_maven.html
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+sourcesJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+javadoc {
+    options.addBooleanOption('Xdoclint:none', true)
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "OSSRH"
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = System.getenv("MAVEN_USERNAME")
+                password = System.getenv("MAVEN_PASSWORD")
+            }
+        }
+    }
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'plugin'
+
+            from components.java
+
+            pom {
+                name = 'KdbInsideBrains'
+                description = "Open-Source IntelliJ-based IDEA plugin for <a href=\"https://kx.com/\">kdb+</a> time-series realtime database."
+                url = 'https://www.kdbinsidebrains.dev'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'kdbinsidebrains'
+                        name = 'Support KdbInsideBrains'
+                        email = 'support@kdbinsidebrains.dev'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/kdbinsidebrains/plugin'
+                    connection = 'scm:git:git://github.com/kdbinsidebrains/plugin.git'
+                    developerConnection = 'scm:git:ssh://github.com:kdbinsidebrains/plugin.git'
+                }
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
 }
