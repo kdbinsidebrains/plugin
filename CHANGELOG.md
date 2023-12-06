@@ -1,5 +1,16 @@
 # KdbInsideBrains Changelog
 
+## [5.0.1]
+
+### Changed
+
+- Line/Inline comments processing has been changed to support code style formatting (issue #82). New formatting option
+  added: "Trim spaces before inline comment" - enabled by default.
+
+### Fixed
+
+- Search in InstancesTree not cancelled by Esc (issue #83)
+
 ## [5.0.0]
 
 ### Added

@@ -19,10 +19,12 @@ import static org.kdb.inside.brains.lang.QNodeFactory.getNextNotEmptySibling;
 
 public abstract class AbstractQBlock extends AbstractBlock {
     private final Indent indent;
+    protected static final Indent SPACE_INDENT = Indent.getSpaceIndent(1);
+
     protected static final Indent NONE_INDENT = Indent.getNoneIndent();
+    protected static final Indent ABSOLLUTE_NONE_INDENT = Indent.getAbsoluteNoneIndent();
     protected static final Indent NORMAL_INDENT = Indent.getNormalIndent();
     protected final QFormatter formatter;
-    protected static final Indent SPACE_INDENT = Indent.getSpaceIndent(1);
 
     public AbstractQBlock(@NotNull ASTNode node,
                           @NotNull QFormatter formatter) {
@@ -68,6 +70,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
         final IElementType type = node.getElementType();
         if (type == QTypes.NEW_LINE) {
             return null;
+        }
+
+        if (type == QTypes.BLOCK_COMMENT) { // block comment must never be formatted
+            return new LeafBlock(node, formatter, null, null, ABSOLLUTE_NONE_INDENT);
         }
 
         if (node instanceof LeafPsiElement) {

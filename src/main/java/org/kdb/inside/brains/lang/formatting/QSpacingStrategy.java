@@ -161,7 +161,7 @@ public class QSpacingStrategy {
         builder.beforeInside(VAR_DECLARATION, CONTEXT).spaces(1);
         builder.afterInside(COLON, RETURN_EXPR).spaceIf(custom.RETURN_SPACE_AFTER_COLON);
         builder.afterInside(ITERATOR, SIGNAL_EXPR).spaceIf(custom.SIGNAL_SPACE_AFTER_SIGNAL);
-        builder.between(SEMICOLON, LINE_COMMENT).spacing(0, Integer.MAX_VALUE, 0, true, common.KEEP_BLANK_LINES_IN_CODE);
+        builder.before(LINE_COMMENT).spacing(1, custom.LINE_COMMENT_TRIM_SPACES ? 1 : Integer.MAX_VALUE, 0, common.KEEP_LINE_BREAKS, common.KEEP_BLANK_LINES_IN_CODE);
         builder.after(SEMICOLON).spaceIf(custom.SEMICOLON_SPACE_AFTER);
         builder.before(SEMICOLON).spacing(0, custom.EXPRESSION_SEMICOLON_TRIM_SPACES ? 0 : Integer.MAX_VALUE, 0, !custom.EXPRESSION_SEMICOLON_REMOVE_LINES, custom.EXPRESSION_SEMICOLON_REMOVE_LINES ? 0 : common.KEEP_BLANK_LINES_IN_CODE);
     }

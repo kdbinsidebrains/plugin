@@ -124,6 +124,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
 
     // Other
     public boolean SEMICOLON_SPACE_AFTER = true;
+    public boolean LINE_COMMENT_TRIM_SPACES = true;
     public boolean RETURN_SPACE_AFTER_COLON = false;
     public boolean SIGNAL_SPACE_AFTER_SIGNAL = false;
     public boolean EXPRESSION_SEMICOLON_TRIM_SPACES = true;

@@ -207,6 +207,7 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 %state COMMENT_BLOCK_STATE
 %state DROP_CUT_STATE
 %state NEGATIVE_ATOM_STATE
+%state LINE_COMMENT_STATE
 
 %%
 
@@ -228,7 +229,7 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 
 <COMMAND_SYSTEM_ARGUMENTS_STATE> {
   {NewLine}                                  { yyresetstate(); return NEW_LINE; }
-  {WhiteSpace}+"/".*                         { yybegin(YYINITIAL); return LINE_COMMENT; }
+  {WhiteSpace}+/"/".*                        { yybegin(LINE_COMMENT_STATE); return WHITE_SPACE; }
   {CommandArguments}                         { return COMMAND_ARGUMENTS;}
 }
 
@@ -252,6 +253,10 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 
 <QUERY_SOURCE_STATE> {
   {Where}                                    { yybegin(YYINITIAL); return QUERY_WHERE; }
+}
+
+<LINE_COMMENT_STATE> {
+    "/".*                                    { yybegin(YYINITIAL); return LINE_COMMENT; }
 }
 
 <YYINITIAL, QUERY_COLUMNS_STATE, QUERY_SOURCE_STATE> {
@@ -294,7 +299,7 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   {OperatorWeight}                           { return OPERATOR_WEIGHT;}
   {OperatorOthers}                           { return OPERATOR_OTHERS;}
 
-  {WhiteSpace}+"/".*                         { return LINE_COMMENT; }
+  {WhiteSpace}+/"/".*                        { yybegin(LINE_COMMENT_STATE); return WHITE_SPACE; }
   {NewLine}+/{LineSpace}*"/"                 { return WHITE_SPACE; }
   ^"/"/{NewLine}                             { yybegin(COMMENT_BLOCK_STATE); return BLOCK_COMMENT; }
   ^"\\"/{NewLine}                            { yybegin(COMMENT_ALL_STATE); return BLOCK_COMMENT; }

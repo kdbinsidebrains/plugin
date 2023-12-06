@@ -33,6 +33,9 @@ public class LambdaBlock extends AbstractQBlock {
 
         return iterateChildren((node, first) -> {
             final IElementType elementType = node.getElementType();
+            if (elementType == QTypes.LINE_COMMENT) {
+                return createBlock(node, formatter, NORMAL_INDENT);
+            }
             if (elementType == QTypes.PARAMETERS) {
                 return BracketsBlock.parameters(node, formatter, null, null, NORMAL_INDENT);
             }

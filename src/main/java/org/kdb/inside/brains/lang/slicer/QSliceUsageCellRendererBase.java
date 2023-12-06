@@ -14,11 +14,9 @@ public class QSliceUsageCellRendererBase extends SliceUsageCellRendererBase {
         final QSliceUsage usage = (QSliceUsage) sliceUsage;
 
         final PsiElement element = sliceUsage.getElement();
-        if (!(element instanceof QVarDeclaration)) {
+        if (!(element instanceof QVarDeclaration declaration)) {
             return;
         }
-
-        final QVarDeclaration declaration = (QVarDeclaration) element;
 
         setIcon(declaration.getIcon(0));
         append(String.valueOf(sliceUsage.getLine()), SimpleTextAttributes.GRAY_ATTRIBUTES);
