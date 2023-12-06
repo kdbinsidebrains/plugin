@@ -45,11 +45,10 @@ public class QSliceUsage extends SliceUsage {
         }
 
         final PsiElement parent = element.getParent();
-        if (!(parent instanceof QAssignmentExpr)) {
+        if (!(parent instanceof QAssignmentExpr exp)) {
             return;
         }
 
-        final QAssignmentExpr exp = (QAssignmentExpr) parent;
         if (!(exp.getExpression() instanceof QLambdaExpr)) {
             return;
         }
@@ -61,10 +60,9 @@ public class QSliceUsage extends SliceUsage {
                 continue;
             }
             final PsiElement el = reference.resolve();
-            if (!(el instanceof QVarDeclaration) || (params.valueFilter != null && !params.valueFilter.allowed(el)) || !params.scope.contains(el)) {
+            if (!(el instanceof QVarDeclaration d) || (params.valueFilter != null && !params.valueFilter.allowed(el)) || !params.scope.contains(el)) {
                 continue;
             }
-            final QVarDeclaration d = (QVarDeclaration) el;
             if (QPsiUtil.isGlobalDeclaration(d)) {
                 uniqueProcessor.process(new QSliceUsage(d, QSliceUsage.this, params));
             }

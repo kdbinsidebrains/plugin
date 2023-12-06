@@ -16,7 +16,7 @@ import java.util.List;
 public class InstancesSpeedSearch extends TreeSpeedSearch {
     private final TheSpeedSearchComparator comparator = new TheSpeedSearchComparator();
 
-    private InstancesSpeedSearch(JTree tree) {
+    InstancesSpeedSearch(JTree tree) {
         super(tree, true, InstancesSpeedSearch::pathToString);
         setComparator(comparator);
     }
@@ -26,15 +26,10 @@ public class InstancesSpeedSearch extends TreeSpeedSearch {
     }
 
     private static String itemToString(Object c) {
-        if (c instanceof KdbInstance) {
-            final KdbInstance i = (KdbInstance) c;
+        if (c instanceof KdbInstance i) {
             return i.getCanonicalName() + " " + i.toSymbol();
         }
         return c.toString();
-    }
-
-    public static void install(JTree tree) {
-        new InstancesSpeedSearch(tree);
     }
 
     @Override

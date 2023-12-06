@@ -17,7 +17,7 @@ end:{(neg union/[w[; ; 0]])@\:(`.u.end;x)}
 var3:indexed[;0];
 indexed[0;0]:var1;
 
-tbl0:([] a:1; b:2); / This is tbl0 definition
+tbl0:([] a:1; b:2);         / This is tbl0 definition
 
 tbl1:(  [      ]     col1:`long$()  ; col2:`float$());
 

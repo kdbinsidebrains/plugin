@@ -46,12 +46,14 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
 
     private final TheManagerListener managerListener = new TheManagerListener();
 
-    public InstancesTree(KdbScope scope, KdbConnectionManager manager) {
+    public InstancesTree(@NotNull KdbScope scope, @NotNull KdbConnectionManager manager) {
         this.manager = manager;
 
         this.model = new InstancesTreeModel(scope);
 
         cellRenderer = new InstancesTreeRenderer(manager);
+
+        final InstancesSpeedSearch speedSearch = new InstancesSpeedSearch(this);
 
         final DefaultTreeSelectionModel selectionModel = new DefaultTreeSelectionModel();
         selectionModel.setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
@@ -62,10 +64,15 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
         manager.addQueryListener(managerListener);
         manager.addConnectionListener(managerListener);
 
+
         new DumbAwareAction() {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                cancelCutCopy();
+                if (speedSearch.isPopupActive()) {
+                    speedSearch.hidePopup();
+                } else {
+                    cancelCutCopy();
+                }
             }
         }.registerCustomShortcutSet(KeyEvent.VK_ESCAPE, 0, this);
 
@@ -80,8 +87,6 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
         setSelectionModel(selectionModel);
 
         PopupHandler.installPopupMenu(this, "Kdb.InstancesScopeView", ActionPlaces.getActionGroupPopupPlace(ActionPlaces.INSTANCES_VIEW_POPUP));
-
-        InstancesSpeedSearch.install(this);
 
         ToolTipManager.sharedInstance().registerComponent(this);
 

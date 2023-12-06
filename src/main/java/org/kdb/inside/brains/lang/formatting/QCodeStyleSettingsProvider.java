@@ -175,6 +175,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         others.item("FUNCTION_INVOKE_SPACE_BEFORE_SYMBOL", "Before symbol(s) in an invoke");
         others.item("SEMICOLON_SPACE_AFTER", "After expression's semicolon");
         others.item("EXPRESSION_SEMICOLON_TRIM_SPACES", "Trim spaces before semicolon");
+        others.item("LINE_COMMENT_TRIM_SPACES", "Trim spaces before inline comment");
         others.item("EXPRESSION_SEMICOLON_REMOVE_LINES", "Remove bank lines before semicolon");
     }
 
