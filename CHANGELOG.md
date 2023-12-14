@@ -29,16 +29,6 @@
 
 - Search in InstancesTree not cancelled by Esc (issue #83)
 
-## [5.1.0]
-
-### Added
-
-- Replace functionality in InstancesViews that allows to bulk replaces hostname, port or the instance name.
-
-### Fixed
-
-- Escape key doesn't cancel speed search in InstancesView
-
 ## [5.0.0]
 
 ### Added
