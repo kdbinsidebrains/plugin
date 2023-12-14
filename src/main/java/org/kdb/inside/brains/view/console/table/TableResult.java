@@ -248,8 +248,7 @@ public class TableResult {
 
         public Object getRow(int columnIndex) {
             final Object o = columnIndex < keysCount ? keys : values;
-            if (o instanceof c.Flip) {
-                final c.Flip flip = (c.Flip) o;
+            if (o instanceof c.Flip flip) {
                 final int index = columnIndex < keysCount ? columnIndex : columnIndex - keysCount;
                 return flip.y[index];
             }

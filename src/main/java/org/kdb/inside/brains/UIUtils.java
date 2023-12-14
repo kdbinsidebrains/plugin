@@ -53,6 +53,46 @@ public final class UIUtils {
         return new Color(Math.max((int) (c.getRed() * 0.85), 0), Math.max((int) (c.getGreen() * 0.9), 0), Math.max((int) (c.getBlue() * 0.85), 0), c.getAlpha());
     }
 
+    // Taken from https://stackoverflow.com/questions/1126227/indexof-case-sensitive
+    public static int indexOfIgnoreCase(final String where, final String what) {
+        return indexOfIgnoreCase(where, what, 0);
+    }
+
+    public static int indexOfIgnoreCase(final String where, final String what, int startFrom) {
+        if (what.isEmpty() || where.isEmpty()) {
+            // Fallback to legacy behavior.
+            return where.indexOf(what);
+        }
+
+        final int whatLength = what.length();
+        final int whereLength = where.length();
+        for (int i = startFrom; i < whereLength; ++i) {
+            // Early out, if possible.
+            if (i + whatLength > whereLength) {
+                return -1;
+            }
+
+            // Attempt to match substring starting at position i of where.
+            int j = 0;
+            int ii = i;
+            while (ii < whereLength && j < whatLength) {
+                char c = Character.toLowerCase(where.charAt(ii));
+                char c2 = Character.toLowerCase(what.charAt(j));
+                if (c != c2) {
+                    break;
+                }
+                j++;
+                ii++;
+            }
+            // Walked all the way to the end of the what, return the start
+            // position that this was found.
+            if (j == whatLength) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public static void createNameDialog(Project project, String title, String currentName, DataContext dataContext, Predicate<String> validName, Consumer<String> action) {
         final InputValidator validator = new InputValidator() {
             @Override

@@ -1,5 +1,23 @@
 # KdbInsideBrains Changelog
 
+## [5.1.0]
+
+### Added
+
+- Searching text is highlighted in ResultTable
+- 'And' search (comma separator) introduced in ResultTable searching. Enabled by default.
+- Search&Replace by Parameters added for InstancesView with ability to group instances update
+
+### Changed
+
+- Base testing version is 2023.3.1
+- Updating KdbInstance name update the tab name in KdbConsole
+- Updating KdbInstance connection details forces reconnection in KdbConsole
+
+### Fixed
+
+- RegEx and WholeWord search fixed in TableResult view
+
 ## [5.0.1]
 
 ### Changed
@@ -10,6 +28,16 @@
 ### Fixed
 
 - Search in InstancesTree not cancelled by Esc (issue #83)
+
+## [5.1.0]
+
+### Added
+
+- Replace functionality in InstancesViews that allows to bulk replaces hostname, port or the instance name.
+
+### Fixed
+
+- Escape key doesn't cancel speed search in InstancesView
 
 ## [5.0.0]
 

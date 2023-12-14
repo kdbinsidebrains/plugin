@@ -1,6 +1,9 @@
 package org.kdb.inside.brains.view.treeview.tree;
 
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.LoadingNode;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.speedSearch.SpeedSearchUtil;
 import com.intellij.util.text.DateFormatUtil;
 import icons.KdbIcons;
@@ -14,9 +17,11 @@ public class InstancesTreeRenderer extends ColoredTreeCellRenderer {
     private boolean showConnectionDetails = true;
 
     private final KdbConnectionManager manager;
+    private final InstancesSearchSession searchSession;
 
-    public InstancesTreeRenderer(KdbConnectionManager manager) {
+    public InstancesTreeRenderer(KdbConnectionManager manager, InstancesSearchSession searchSession) {
         this.manager = manager;
+        this.searchSession = searchSession;
         this.myUsedCustomSpeedSearchHighlighting = true;
     }
 
@@ -36,11 +41,11 @@ public class InstancesTreeRenderer extends ColoredTreeCellRenderer {
             scopeRenderer((KdbScope) item);
         } else if (item instanceof PackageItem) {
             packageRenderer(item, cutting);
-        } else if (item instanceof KdbInstance) {
-            instanceRenderer((KdbInstance) item, cutting);
+        } else if (item instanceof KdbInstance inst) {
+            instanceRenderer(inst, cutting);
+            searchSession.customizeSearchItem(inst, this, selected);
         }
-
-        SpeedSearchUtil.applySpeedSearchHighlightingFiltered(tree, value, (SimpleColoredComponent) this, false, selected);
+        SpeedSearchUtil.applySpeedSearchHighlightingFiltered(tree, value, this, false, selected);
     }
 
     private void scopeRenderer(KdbScope scope) {
@@ -92,7 +97,7 @@ public class InstancesTreeRenderer extends ColoredTreeCellRenderer {
 
         append(instance.getName(), new SimpleTextAttributes(mainStyle, mainColour), true);
         if (showConnectionDetails) {
-            append(" (" + instance + ")", SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES, false);
+            append(" (" + instance.toSymbol() + ")", SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES, true);
         }
 
         if (comment != null) {

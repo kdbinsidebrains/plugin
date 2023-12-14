@@ -225,6 +225,32 @@
 
             <separator/>
 
+            <reference ref="$Cut"/>
+            <reference ref="$Copy"/>
+            <reference ref="$Paste"/>
+
+            <separator/>
+
+            <action id="Kdb.Instances.SpeedSearchAction"
+                    text="Find Quick"
+                    class="org.kdb.inside.brains.view.treeview.actions.SpeedSearchAction">
+                <keyboard-shortcut first-keystroke="ctrl F" keymap="$default"/>
+            </action>
+
+            <action id="Kdb.Instances.FindInPathAction"
+                    text="Find by Parameters"
+                    class="org.kdb.inside.brains.view.treeview.actions.FindInPathAction">
+                <keyboard-shortcut first-keystroke="ctrl shift F" keymap="$default"/>
+            </action>
+
+            <action id="Kdb.Instances.ReplaceInPathAction"
+                    text="Replace Parameters"
+                    class="org.kdb.inside.brains.view.treeview.actions.ReplaceInPathAction">
+                <keyboard-shortcut first-keystroke="ctrl shift R" keymap="$default"/>
+            </action>
+
+            <separator/>
+
             <action id="Kdb.Instances.MoveItemUp"
                     text="Move Up"
                     icon="AllIcons.Actions.MoveUp"
@@ -238,12 +264,6 @@
                     class="org.kdb.inside.brains.view.treeview.actions.MoveItemDown">
                 <keyboard-shortcut first-keystroke="alt DOWN" keymap="$default"/>
             </action>
-
-            <separator/>
-
-            <reference ref="$Cut"/>
-            <reference ref="$Copy"/>
-            <reference ref="$Paste"/>
 
             <separator/>
 

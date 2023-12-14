@@ -1,134 +1,101 @@
 package org.kdb.inside.brains.view.console.table;
 
-import com.intellij.find.FindBundle;
 import com.intellij.find.FindModel;
 import com.intellij.find.SearchReplaceComponent;
-import com.intellij.find.SearchSession;
-import com.intellij.find.editorHeaderActions.Embeddable;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.actionSystem.ex.CheckboxAction;
-import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.SmartList;
-import com.intellij.util.ui.ComponentWithEmptyText;
+import com.intellij.openapi.util.TextRange;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.BgtToggleAction;
+import org.kdb.inside.brains.view.QSearchSession;
 
 import javax.swing.*;
+import javax.swing.table.TableModel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-class TableResultSearchSession implements SearchSession {
-    private static final int DELAY_TIMEOUT = 300;
-    private final Lock delayLock = new ReentrantLock();
+class TableResultSearchSession extends QSearchSession {
     private Timer searchTime;
     private DelayText delayText;
     private boolean delaySearchEnabled = false;
 
-    private final FindModel findModel;
-    private final SearchReplaceComponent searchComponent;
+    private static final int DELAY_TIMEOUT = 300;
+    private final Lock delayLock = new ReentrantLock();
+    private QSearchSession.RangeExtractor[] rangeExtractors = NO_EXTRACTORS;
 
-    public TableResultSearchSession(JComponent component, Project project, @NotNull FindModel findModel) {
-        this.findModel = findModel;
-        searchComponent = SearchReplaceComponent
-                .buildFor(project, component)
-                .addExtraSearchActions(
-                        SearchTypeAction.matchCase(findModel),
-                        SearchTypeAction.wholeWords(findModel),
-                        SearchTypeAction.regex(findModel)
+    public TableResultSearchSession(@Nullable Project project, @NotNull JComponent component, @NotNull FindModel findModel) {
+        super(project, component, findModel);
+    }
+
+    @Override
+    protected SearchReplaceComponent.Builder initializeComponent(SearchReplaceComponent.Builder builder) {
+        return builder.addExtraSearchActions(
+                        new CommaSeparatorToggleAction(),
+                        new ToggleMatchCase(),
+                        new ToggleWholeWordsOnlyAction(),
+                        new ToggleRegex()
                 )
-                .addPrimarySearchActions(new DelaySearchAction())
-                .withDataProvider(dataId -> SearchSession.KEY.is(dataId) ? TableResultSearchSession.this : null)
-                .withMultilineEnabled(false)
-                .withCloseAction(this::close)
-                .build();
-        searchComponent.setVisible(false);
-
-        searchComponent.update("", "", false, false);
-
-        searchComponent.addListener(new SearchReplaceComponent.Listener() {
-            @Override
-            public void searchFieldDocumentChanged() {
-                fireTextChanged(searchComponent.getSearchTextComponent().getText());
-            }
-
-            @Override
-            public void replaceFieldDocumentChanged() {
-            }
-
-            @Override
-            public void multilineStateChanged() {
-            }
-        });
-
-        fireModelChanged();
-        findModel.addObserver(m -> fireModelChanged());
-    }
-
-    @Override
-    public @NotNull FindModel getFindModel() {
-        return findModel;
-    }
-
-    @Override
-    public @NotNull SearchReplaceComponent getComponent() {
-        return searchComponent;
-    }
-
-    public boolean isOpened() {
-        return searchComponent.isVisible();
-    }
-
-    public boolean isDelaySearchEnabled() {
-        return delaySearchEnabled;
+                .addPrimarySearchActions(new DelaySearchAction());
     }
 
     public void setDelaySearchEnabled(boolean delaySearchEnabled) {
         this.delaySearchEnabled = delaySearchEnabled;
     }
 
-    public void open() {
-        searchComponent.setVisible(true);
-        searchComponent.getSearchTextComponent().requestFocusInWindow();
-    }
-
-    @Override
-    public void close() {
-        searchComponent.setVisible(false);
-        searchComponent.getSearchTextComponent().setText("");
-    }
-
-    @Override
-    public boolean hasMatches() {
-        return false;
-    }
-
-    @Override
-    public void searchForward() {
-    }
-
-    @Override
-    public void searchBackward() {
-    }
-
-    private void fireModelChanged() {
-        if (searchComponent.getSearchTextComponent() instanceof ComponentWithEmptyText) {
-            String emptyText = getEmptyText();
-            ((ComponentWithEmptyText) searchComponent.getSearchTextComponent()).getEmptyText().setText(StringUtil.capitalize(emptyText));
+    public List<TextRange> extract(String text) {
+        if (rangeExtractors.length == 0) {
+            return List.of();
         }
-        searchComponent.updateActions();
+        if (rangeExtractors.length == 1) {
+            return rangeExtractors[0].extract(text);
+        }
+
+        final List<TextRange> res = new ArrayList<>(rangeExtractors.length);
+        for (QSearchSession.RangeExtractor extractor : rangeExtractors) {
+            res.addAll(extractor.extract(text));
+        }
+        return res;
     }
 
-    private void fireTextChanged(String text) {
+    public RowFilter<TableModel, Integer> createTableFilter() {
+        if (rangeExtractors.length == 0) {
+            return null;
+        }
+        if (rangeExtractors.length == 1) {
+            return new TableRowFilter(rangeExtractors[0]::matches);
+        }
+        return RowFilter.andFilter(Stream.of(rangeExtractors).map(e -> new TableRowFilter(e::matches)).toList());
+    }
+
+    @Override
+    protected void processModelChanged(FindModel model) {
+        final String text = model.getStringToFind();
+        if (model.isFindAll()) {
+            final String[] split = text.split(",");
+            if (split.length == 0) {
+                rangeExtractors = NO_EXTRACTORS;
+            } else if (split.length == 1) {
+                final QSearchSession.RangeExtractor extractor = buildExtractor(model, split[0]);
+                rangeExtractors = extractor == null ? NO_EXTRACTORS : new QSearchSession.RangeExtractor[]{extractor};
+            } else {
+                rangeExtractors = Stream.of(split).map(v -> buildExtractor(model, v)).filter(Objects::nonNull).toArray(QSearchSession.RangeExtractor[]::new);
+            }
+        } else {
+            final QSearchSession.RangeExtractor extractor = buildExtractor(model, text);
+            rangeExtractors = extractor == null ? NO_EXTRACTORS : new QSearchSession.RangeExtractor[]{extractor};
+        }
+    }
+
+    @Override
+    protected void processSearchChanged(FindModel model, String text) {
         if (!delaySearchEnabled) {
-            findModel.setStringToFind(text);
+            model.setStringToFind(text);
             return;
         }
 
@@ -155,38 +122,13 @@ class TableResultSearchSession implements SearchSession {
                     delayLock.unlock();
                 }
                 if (update) {
-                    findModel.setStringToFind(delayText.text);
+                    model.setStringToFind(delayText.text);
                 }
             });
             searchTime.start();
         } finally {
             delayLock.unlock();
         }
-    }
-
-
-    private String getEmptyText() {
-        if (!findModel.getStringToFind().isEmpty()) {
-            return "";
-        }
-
-        final SmartList<String> chosenOptions = new SmartList<>();
-        if (findModel.isCaseSensitive()) {
-            chosenOptions.add("match case");
-        }
-        if (findModel.isWholeWordsOnly()) {
-            chosenOptions.add("words");
-        }
-        if (findModel.isRegularExpressions()) {
-            chosenOptions.add("regex");
-        }
-        if (chosenOptions.isEmpty()) {
-            return "";
-        }
-        if (chosenOptions.size() == 1) {
-            return FindBundle.message("emptyText.used.option", chosenOptions.get(0));
-        }
-        return FindBundle.message("emptyText.used.options", chosenOptions.get(0), chosenOptions.get(1));
     }
 
     private static class DelayText {
@@ -198,87 +140,32 @@ class TableResultSearchSession implements SearchSession {
         }
     }
 
-    public static class SearchTypeAction extends CheckboxAction implements DumbAware, Embeddable, TooltipDescriptionProvider {
-        private final Consumer<Boolean> consumer;
-        private final Supplier<Boolean> supplier;
+    @FunctionalInterface
+    private interface ValueFilter {
+        boolean check(String value);
+    }
 
-        public SearchTypeAction(String text, Icon icon, Icon hoveredIcon, Icon selectedIcon, Supplier<Boolean> supplier, Consumer<Boolean> consumer) {
-            super(text);
-            this.supplier = supplier;
-            this.consumer = consumer;
-            getTemplatePresentation().setIcon(icon);
-            getTemplatePresentation().setHoveredIcon(hoveredIcon);
-            getTemplatePresentation().setSelectedIcon(selectedIcon);
+    private static class TableRowFilter extends RowFilter<TableModel, Integer> {
+        private final ValueFilter filter;
+
+        public TableRowFilter(ValueFilter filter) {
+            this.filter = filter;
         }
 
-        public static SearchTypeAction matchCase(FindModel findModel) {
-            return new SearchTypeAction(
-                    FindBundle.message("find.case.sensitive"),
-                    AllIcons.Actions.MatchCase,
-                    AllIcons.Actions.MatchCaseHovered,
-                    AllIcons.Actions.MatchCaseSelected,
-                    findModel::isCaseSensitive, findModel::setCaseSensitive
-            );
-        }
-
-        public static SearchTypeAction regex(FindModel findModel) {
-            return new SearchTypeAction(
-                    FindBundle.message("find.regex"),
-                    AllIcons.Actions.Regex,
-                    AllIcons.Actions.RegexHovered,
-                    AllIcons.Actions.RegexSelected,
-                    findModel::isRegularExpressions, findModel::setRegularExpressions
-            ) {
-                @Override
-                public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                    super.setSelected(e, state);
-                    findModel.setWholeWordsOnly(false);
+        @Override
+        public boolean include(Entry<? extends TableModel, ? extends Integer> value) {
+            int index = value.getValueCount();
+            while (--index >= 0) {
+                final String stringValue = value.getStringValue(index);
+                if (filter.check(stringValue)) {
+                    return true;
                 }
-            };
-        }
-
-        public static SearchTypeAction wholeWords(FindModel findModel) {
-            return new SearchTypeAction(
-                    FindBundle.message("find.whole.words"),
-                    AllIcons.Actions.Words,
-                    AllIcons.Actions.WordsHovered,
-                    AllIcons.Actions.WordsSelected,
-                    findModel::isWholeWordsOnly, findModel::setWholeWordsOnly
-            ) {
-                @Override
-                public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                    super.setSelected(e, state);
-                    findModel.setRegularExpressions(false);
-                }
-            };
-        }
-
-        @Override
-        public boolean displayTextInToolbar() {
-            return true;
-        }
-
-        @NotNull
-        @Override
-        public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
-            JComponent customComponent = super.createCustomComponent(presentation, place);
-            customComponent.setFocusable(false);
-            customComponent.setOpaque(false);
-            return customComponent;
-        }
-
-        @Override
-        public boolean isSelected(@NotNull AnActionEvent e) {
-            return supplier.get();
-        }
-
-        @Override
-        public void setSelected(@NotNull AnActionEvent e, boolean state) {
-            consumer.accept(state);
+            }
+            return false;
         }
     }
 
-    private class DelaySearchAction extends ToggleAction {
+    private class DelaySearchAction extends BgtToggleAction {
         public DelaySearchAction() {
             super(null, "<html><strong>Delay Search Update</strong><br>Wait " + DELAY_TIMEOUT + "ms before search update after the text change to reduce UI freezes for huge table result.</html>", KdbIcons.Console.DelaySearchUpdate);
         }

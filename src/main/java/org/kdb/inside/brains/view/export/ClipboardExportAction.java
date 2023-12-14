@@ -4,7 +4,7 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jdesktop.swingx.plaf.basic.core.BasicTransferable;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.UIUtils;

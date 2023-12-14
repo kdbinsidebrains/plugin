@@ -20,10 +20,7 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
     public KdbInstance(@NotNull String name, @NotNull String host, int port, @Nullable String credentials, @NotNull InstanceOptions options) {
         super(name);
         this.host = Objects.requireNonNull(host);
-        if (port < 0 || port >= 65536) {
-            throw new IllegalArgumentException("Port is out of range");
-        }
-        this.port = port;
+        this.port = validatePort(port);
         this.credentials = credentials;
         this.options = options;
     }
@@ -32,8 +29,20 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
         return port;
     }
 
+    private static int validatePort(int port) {
+        if (port < 0 || port >= 65536) {
+            throw new IllegalArgumentException("Port is out of range");
+        }
+        return port;
+    }
+
     public String getHost() {
         return host;
+    }
+
+    public void setPort(int port) {
+        this.port = validatePort(port);
+        notifyItemUpdated();
     }
 
     @Override
@@ -80,6 +89,11 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
         return s + "?" + options.toParameters();
     }
 
+    public void setHost(String host) {
+        this.host = Objects.requireNonNull(host);
+        notifyItemUpdated();
+    }
+
     public void updateFrom(KdbInstance instance) {
         setName(instance.getName());
         this.host = instance.host;
@@ -90,9 +104,21 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
         notifyItemUpdated();
     }
 
-    @Override
-    public String toString() {
-        return toSymbol();
+    public void updateAddress(String value) {
+        if (value.charAt(0) == '`') {
+            value = value.substring(1);
+        }
+        if (value.charAt(0) == ':') {
+            value = value.substring(1);
+        }
+
+        int i = value.indexOf(':');
+        if (i < 0) {
+            throw new IllegalArgumentException("No port");
+        }
+        // Order is important or host can be changed without the port
+        port = Integer.parseInt(value.substring(i + 1));
+        host = value.substring(0, i);
     }
 
     @Override
@@ -160,5 +186,10 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
     @Override
     public @NotNull KdbInstance copy() {
         return new KdbInstance(getName(), host, port, credentials, options);
+    }
+
+    @Override
+    public String toString() {
+        return getName() + "@" + toSymbol();
     }
 }

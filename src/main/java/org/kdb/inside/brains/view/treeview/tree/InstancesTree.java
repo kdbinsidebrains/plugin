@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.view.treeview.tree;
 
+import com.intellij.find.FindModel;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
@@ -7,18 +8,20 @@ import com.intellij.ide.PasteProvider;
 import com.intellij.ide.dnd.*;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.awt.RelativeRectangle;
 import com.intellij.util.NullableFunction;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.action.ActionPlaces;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.view.treeview.actions.ConnectAction;
@@ -38,32 +41,34 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnDDropHandler, CopyProvider, CutProvider, DeleteProvider, PasteProvider, Disposable {
+public class InstancesTree extends DnDAwareTree implements DataProvider, DnDTargetChecker, DnDDropHandler, CopyProvider, CutProvider, DeleteProvider, PasteProvider, Disposable {
     private final KdbScope scope;
     private final InstancesTreeModel model;
     private final KdbConnectionManager manager;
     private final InstancesTreeRenderer cellRenderer;
+    private final InstancesSpeedSearch speedSearch;
+    private final InstancesSearchSession searchSession;
 
     private final TheManagerListener managerListener = new TheManagerListener();
 
-    public InstancesTree(@NotNull KdbScope scope, @NotNull KdbConnectionManager manager) {
+    public InstancesTree(@Nullable Project project, @NotNull KdbScope scope, @NotNull KdbConnectionManager manager) {
         this.manager = manager;
 
         this.model = new InstancesTreeModel(scope);
 
-        cellRenderer = new InstancesTreeRenderer(manager);
-
-        final InstancesSpeedSearch speedSearch = new InstancesSpeedSearch(this);
+        this.searchSession = createSearchSession(project);
+        this.speedSearch = new InstancesSpeedSearch(this);
 
         final DefaultTreeSelectionModel selectionModel = new DefaultTreeSelectionModel();
         selectionModel.setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+
+        this.cellRenderer = new InstancesTreeRenderer(manager, searchSession);
 
         this.scope = scope;
         this.scope.addScopeListener(model);
 
         manager.addQueryListener(managerListener);
         manager.addConnectionListener(managerListener);
-
 
         new DumbAwareAction() {
             @Override
@@ -75,6 +80,11 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
                 }
             }
         }.registerCustomShortcutSet(KeyEvent.VK_ESCAPE, 0, this);
+
+        final ActionManager am = ActionManager.getInstance();
+        am.getAction("Kdb.Instances.SpeedSearchAction").registerCustomShortcutSet(this, this);
+        am.getAction("Kdb.Instances.FindInPathAction").registerCustomShortcutSet(this, this);
+        am.getAction("Kdb.Instances.ReplaceInPathAction").registerCustomShortcutSet(this, this);
 
         setOpaque(true);
         setRootVisible(true);
@@ -93,6 +103,19 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
         enableDnD();
 
         initListeners();
+    }
+
+    @NotNull
+    private InstancesSearchSession createSearchSession(@Nullable Project project) {
+        final FindModel findModel = new FindModel();
+        findModel.setFindAll(true);
+
+        return new InstancesSearchSession(project, this, findModel);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.EDT;
     }
 
     private void enableDnD() {
@@ -165,6 +188,11 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
     public void selectItems(List<InstanceItem> selectedItems) {
         final TreePath[] paths = selectedItems.stream().map(InstanceItem::getTreePath).toArray(TreePath[]::new);
         setSelectionPaths(paths);
+    }
+
+    public InstanceItem getSelectedItem() {
+        final List<InstanceItem> selectedItems = getSelectedItems();
+        return selectedItems.isEmpty() ? null : selectedItems.get(0);
     }
 
     public List<InstanceItem> getSelectedItems() {
@@ -310,7 +338,6 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
         return new DnDPosition(DnDPlace.INSIDE, item, bound);
     }
 
-
     @Override
     public void performPaste(@NotNull DataContext dataContext) {
         final StructuralItem target = getPasteTargetElement();
@@ -444,6 +471,41 @@ public class InstancesTree extends DnDAwareTree implements DnDTargetChecker, DnD
 
     public boolean isShownConnectionDetails() {
         return cellRenderer.isShownConnectionDetails();
+    }
+
+    public JComponent getSearchComponent() {
+        return searchSession.getComponent();
+    }
+
+    @Override
+    public @Nullable Object getData(@NotNull @NonNls String dataId) {
+        if (PlatformDataKeys.CUT_PROVIDER.is(dataId)) {
+            return this;
+        }
+        if (PlatformDataKeys.COPY_PROVIDER.is(dataId)) {
+            return this;
+        }
+        if (PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+            return this;
+        }
+        if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
+            return this;
+        }
+        return null;
+    }
+
+    public void showSpeedSearch() {
+        if (searchSession.isOpened()) {
+            searchSession.close();
+        }
+        speedSearch.showPopup();
+    }
+
+    public void showSearchAndReplace(boolean replace) {
+        if (speedSearch.isPopupActive()) {
+            speedSearch.hidePopup();
+        }
+        searchSession.open(replace);
     }
 
     private class TheManagerListener implements KdbConnectionListener, KdbQueryListener {

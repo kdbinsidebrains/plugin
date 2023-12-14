@@ -18,13 +18,15 @@ import java.util.stream.Stream;
 public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
     private static final boolean COLLAPSED_BY_DEFAULT = false;
 
+    private static final FoldingDescriptor[] EMPTY_ARRAY = new FoldingDescriptor[0];
+
     @NotNull
     @Override
     public FoldingDescriptor @NotNull [] buildFoldRegions(@NotNull PsiElement root, @NotNull Document document, boolean quick) {
         final Collection<QTableExpr> tables = PsiTreeUtil.findChildrenOfType(root, QTableExpr.class);
         final Collection<QLambdaExpr> lambdas = PsiTreeUtil.findChildrenOfType(root, QLambdaExpr.class);
         if (lambdas.isEmpty() && tables.isEmpty()) {
-            return FoldingDescriptor.EMPTY;
+            return EMPTY_ARRAY;
         }
         return Stream.concat(tables.stream(), lambdas.stream()).map(l -> new FoldingDescriptor(l, l.getTextRange())).toArray(FoldingDescriptor[]::new);
     }
@@ -32,11 +34,9 @@ public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
     @Override
     public String getPlaceholderText(@NotNull ASTNode node) {
         final PsiElement psi = node.getPsi();
-        if (psi instanceof QLambdaExpr) {
-            final QLambdaExpr lambda = (QLambdaExpr) psi;
+        if (psi instanceof QLambdaExpr lambda) {
             return "{" + Optional.of(lambda).map(QLambdaExpr::getParameters).map(QParameters::getVariables).map(Collection::stream).map(v -> "[" + v.map(QVariable::getQualifiedName).collect(Collectors.joining(";")) + "]").orElse("") + "...}";
-        } else if (psi instanceof QTableExpr) {
-            final QTableExpr tbl = (QTableExpr) psi;
+        } else if (psi instanceof QTableExpr tbl) {
             return "([" + getColumnsCount(tbl.getKeys()) + "]" + getColumnsCount(tbl.getValues()) + ")";
         }
         return "...";

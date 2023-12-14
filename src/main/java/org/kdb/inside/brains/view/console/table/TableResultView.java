@@ -5,8 +5,9 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.ui.PopupHandler;
-import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.*;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.tabs.JBTabs;
@@ -43,10 +44,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Comparator;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.lang.Math.max;
 
@@ -67,6 +67,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private final JBTable myTable;
     private final Splitter splitter;
     private final JScrollPane tableScroll;
+
     private final TableResultSearchSession searchSession;
 
     private final KdbOutputFormatter formatter;
@@ -75,6 +76,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private TableResultStatusPanel statusBar;
 
     private BooleanSupplier thousandsSeparator;
+
+    private static final Color DECORATED_ROW_COLOR = UIUtil.getDecoratedRowColor();
+    private static final JBColor SEARCH_FOREGROUND = new JBColor(Gray._50, Gray._0);
+    private static final JBColor SEARCH_BACKGROUND = UIUtil.getSearchMatchGradientStartColor();
 
     public static final DataKey<TableResultView> DATA_KEY = DataKey.create("KdbConsole.TableResultView");
 
@@ -127,7 +132,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         chartActionGroup = new ChartActionGroup(myTable);
         exportActionGroup = ExportDataProvider.createActionGroup(project, this);
 
-        searchSession = new TableResultSearchSession(myTable, project, new FindModel());
+        final FindModel findModel = new FindModel();
+        findModel.setFindAll(true);
+
+        searchSession = new TableResultSearchSession(project, myTable, findModel);
         searchSession.getFindModel().addObserver(this::modelBeenUpdated);
 
         tableScroll = ScrollPaneFactory.createScrollPane(myTable, true);
@@ -219,7 +227,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
     @NotNull
     private ToggleAction createFilterAction() {
-        final ToggleAction action = new BgtToggleAction("Filter Columns", "Filter columns list", KdbIcons.Console.ColumnsFilter) {
+        final ToggleAction action = new BgtToggleAction("Filter Columns", "Filter columns list", KdbIcons.Console.ColumnFilter) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return splitter.getSecondComponent() != null;
@@ -253,7 +261,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
                 if (state) {
-                    searchSession.open();
+                    searchSession.open(false);
                 } else {
                     searchSession.close();
                 }
@@ -303,12 +311,50 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
                 final Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 if (!isSelected) {
                     if (tableOptions.isStriped() && row % 2 == 0) {
-                        c.setBackground(UIUtil.getDecoratedRowColor());
+                        c.setBackground(DECORATED_ROW_COLOR);
                     } else {
                         c.setBackground(table.getBackground());
                     }
                 }
+
+                final String text = getText();
+                final List<TextRange> extract = searchSession.extract(text);
+                if (!extract.isEmpty()) {
+                    setText(createColoredText(text, extract));
+                }
                 return c;
+            }
+
+            @NotNull
+            private String createColoredText(String text, List<TextRange> ranges) {
+                final StringBuilder b = new StringBuilder("<html>");
+                int s = 0;
+                boolean rollover = false;
+                for (int i = 0; i < text.length(); i++) {
+                    boolean a = inRanges(i, ranges);
+                    if (rollover != a) {
+                        b.append(StringUtil.escapeXmlEntities(text.substring(s, i)));
+                        if (a) {
+                            b.append("<span bgcolor=\"").append(ColorUtil.toHtmlColor(SEARCH_BACKGROUND)).append("\" color=\"").append(ColorUtil.toHtmlColor(SEARCH_FOREGROUND)).append("\">");
+                        } else {
+                            b.append("</span>");
+                        }
+                        s = i;
+                        rollover = a;
+                    }
+                }
+                b.append(StringUtil.escapeXmlEntities(text.substring(s)));
+                b.append("</html>");
+                return b.toString();
+            }
+
+            private boolean inRanges(int offset, List<TextRange> ranges) {
+                for (TextRange range : ranges) {
+                    if (range.contains(offset)) {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             @Override
@@ -546,33 +592,9 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         return myTable;
     }
 
-    static TableRowFilter createFilter(FindModel model) {
-        final String text = model.getStringToFind();
-        if (text.isBlank()) {
-            return null;
-        }
-        return createSimpleFilter(model);
-    }
-
     @Override
     public JBTable getTable() {
         return myTable;
-    }
-
-    @NotNull
-    static TableRowFilter createSimpleFilter(FindModel model) {
-        final String text = model.getStringToFind();
-        if (model.isRegularExpressions()) {
-            final Matcher matcher = model.compileRegExp().matcher("");
-            return new TableRowFilter(v -> matcher.reset(v).find());
-        } else if (model.isWholeWordsOnly()) {
-            final int flags = model.isCaseSensitive() ? 0 : Pattern.CASE_INSENSITIVE;
-            final Pattern compile = Pattern.compile(".*\\b" + text + "\\b.*", flags);
-            final Matcher matcher = compile.matcher("");
-            return new TableRowFilter(v -> matcher.reset(v).find());
-        } else {
-            return new TableRowFilter(v -> containsIgnoreCase(v, text, !model.isCaseSensitive()));
-        }
     }
 
     @Nullable
@@ -660,7 +682,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     }
 
     private void modelBeenUpdated(FindModel findModel) {
-        final RowFilter<TableModel, Integer> filter = createFilter(findModel);
+        final RowFilter<TableModel, Integer> filter = searchSession.createTableFilter();
         ((TableRowSorter<? extends TableModel>) myTable.getRowSorter()).setRowFilter(filter);
 
         final RowNumberView numberTable = getNumberTable();
@@ -673,31 +695,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
     }
 
-    @FunctionalInterface
-    private interface ValueFilter {
-        boolean check(String value);
-    }
-
     record ExpandedTabDetails(String name, String description) {
-    }
-
-    private static class TableRowFilter extends RowFilter<TableModel, Integer> {
-        private final ValueFilter filter;
-
-        public TableRowFilter(ValueFilter filter) {
-            this.filter = filter;
-        }
-
-        @Override
-        public boolean include(Entry<? extends TableModel, ? extends Integer> value) {
-            int index = value.getValueCount();
-            while (--index >= 0) {
-                final String stringValue = value.getStringValue(index);
-                if (filter.check(stringValue)) {
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 }

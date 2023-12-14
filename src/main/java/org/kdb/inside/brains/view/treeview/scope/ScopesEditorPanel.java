@@ -18,6 +18,7 @@ import com.intellij.util.xmlb.annotations.XCollection;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.view.treeview.actions.ExportScopesAction;
 import org.kdb.inside.brains.view.treeview.actions.ImportScopesAction;
@@ -43,7 +44,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
     public ScopesEditorPanel(Project project) {
         super(new ScopesOrdersState());
         this.project = project;
-        this.scopesManager = project.getService(KdbScopesManager.class);
+        this.scopesManager = KdbScopesManager.getManager(project);
         initTree();
     }
 
@@ -74,8 +75,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
 
     public KdbScope getSelectedScope() {
         final NamedConfigurable<?> selectedConfigurable = getSelectedConfigurable();
-        if (selectedConfigurable instanceof ScopeConfigurable) {
-            final ScopeConfigurable configurable = (ScopeConfigurable) selectedConfigurable;
+        if (selectedConfigurable instanceof ScopeConfigurable configurable) {
             return configurable.getOriginalScope();
         }
         return null;
@@ -123,14 +123,12 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
         final Map<KdbScope, String> instancesCount = new LinkedHashMap<>();
         myTree.setCellRenderer((tree, value, selected, expanded, leaf, row, hasFocus) -> {
             cellRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-            if (value instanceof MyNode && ((MyNode) value).getConfigurable() != null) {
-                final MyNode node = (MyNode) value;
+            if (value instanceof MyNode node && ((MyNode) value).getConfigurable() != null) {
                 final Object editableObject = node.getConfigurable();
-                if (!(editableObject instanceof ScopeConfigurable)) {
+                if (!(editableObject instanceof ScopeConfigurable scopeConfigurable)) {
                     return cellRenderer;
                 }
 
-                final ScopeConfigurable scopeConfigurable = (ScopeConfigurable) editableObject;
                 final KdbScope scope = scopeConfigurable.getOriginalScope();
                 final String note = instancesCount.computeIfAbsent(scope, s -> {
                     final int i = calculateInstancesCount(scope);
@@ -177,7 +175,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
     public void apply() throws ConfigurationException {
         super.apply();
 
-        final List<KdbScope> newScopes = collectScopeConfigurable().stream().map(ScopeConfigurable::getOriginalScope).collect(Collectors.toList());
+        final List<KdbScope> newScopes = collectScopeConfigurable().stream().map(ScopeConfigurable::getOriginalScope).toList();
         final List<KdbScope> oldScopes = new ArrayList<>(scopesManager.getScopes());
         oldScopes.removeAll(newScopes);
         oldScopes.forEach(scopesManager::removeScope);
@@ -193,7 +191,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
             return true;
         }
 
-        if (!scopes.stream().map(KdbScope::getName).collect(Collectors.toList()).equals(strings)) {
+        if (!scopes.stream().map(KdbScope::getName).toList().equals(strings)) {
             return true;
         }
 
@@ -282,9 +280,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
         @Override
         public void update(@NotNull AnActionEvent e) {
             super.update(e);
-            if (fromPopup) {
-                setPopup(false);
-            }
+            e.getPresentation().setPopupGroup(!fromPopup);
         }
 
         @Override
@@ -334,9 +330,14 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
             }
             return 0;
         }
+
+        @Override
+        public @NotNull ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.EDT;
+        }
     }
 
-    private class MyMoveAction extends AnAction {
+    private class MyMoveAction extends EdtAction {
         private final int myDirection;
 
         protected MyMoveAction(String text, Icon icon, int direction) {
@@ -367,7 +368,7 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
         }
     }
 
-    private class MyCopyAction extends AnAction {
+    private class MyCopyAction extends EdtAction {
         MyCopyAction() {
             super("Copy", "Copy", COPY_ICON);
             registerCustomShortcutSet(CommonShortcuts.getDuplicate(), myTree);

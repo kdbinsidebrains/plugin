@@ -70,6 +70,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider, Disposable {
+    private final TheSettingsListener settingsListener = new TheSettingsListener();
+
     private LanguageConsoleView console;
     private ConsoleSplitType activeSplitType;
 
@@ -93,8 +95,8 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     private final KdbConnectionManager connectionManager;
 
     private final TheScopeListener scopeListener = new TheScopeListener();
+    private KdbInstance instanceCopy;
     private final TheKdbConnectionListener connectionListener = new TheKdbConnectionListener();
-    private final TheSettingsListener settingsListener = new TheSettingsListener();
 
     private final KdbSettingsService settingsService;
     private boolean scrollToTheEnd = true;
@@ -106,6 +108,8 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
         this.project = project;
         this.connection = connection;
         this.panelKillerConsumer = panelKillerConsumer;
+
+        instanceCopy = connection.getInstance().copy();
 
         this.settingsService = KdbSettingsService.getInstance();
         settingsService.addSettingsListener(settingsListener);
@@ -215,7 +219,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     }
 
     private void updateTabColor(TabInfo tab) {
-        final Color inheritedColor = connection.getInstance().getInheritedColor();
+        final Color inheritedColor = getInstance().getInheritedColor();
         tab.setTabColor(inheritedColor);
 
         final Color consoleColor = settingsService.getConsoleOptions().isConsoleBackground() ? inheritedColor : null;
@@ -285,7 +289,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
         actions.add(new EdtAction("Modify Instance", "Change the instance settings across the application", AllIcons.General.Settings) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                final KdbInstance instance = connection.getInstance();
+                final KdbInstance instance = getInstance();
                 if (instance == null) {
                     return;
                 }
@@ -483,6 +487,10 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
         processQuery(query, resultView);
     }
 
+    private KdbInstance getInstance() {
+        return connection.getInstance();
+    }
+
     private void selectConsole(boolean clearTableResult) {
         if (clearTableResult && settingsService.getConsoleOptions().isClearTableResult()) {
             resultTabs.clearTableResult();
@@ -593,7 +601,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     }
 
     private void printInstanceConnected() {
-        printToConsole("Instance has been connected: " + connection.getInstance().toSymbol() + ".\n", ConsoleViewContentType.SYSTEM_OUTPUT);
+        printToConsole("Instance has been connected: " + getInstance().toSymbol() + ".\n", ConsoleViewContentType.SYSTEM_OUTPUT);
     }
 
     private void printInstanceDisconnected() {
@@ -605,6 +613,17 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
         if (scrollToTheEnd) {
             console.requestScrollingToEnd();
         }
+    }
+
+    private void processInstanceChanged(KdbInstance instance) {
+        if (!instanceCopy.toTransferableSymbol().equals(instance.toTransferableSymbol())) {
+            connection.disconnect();
+            connection.connect();
+        }
+
+        final KdbInstance oldInstance = instanceCopy;
+        instanceCopy = instance.copy();
+        firePropertyChange("instanceParameters", oldInstance, instanceCopy);
     }
 
     @Override
@@ -733,12 +752,16 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     private class TheScopeListener implements KdbScopeListener {
         @Override
         public void itemUpdated(KdbScope scope, InstanceItem item) {
-            InstanceItem i = connection.getInstance();
+            InstanceItem i = getInstance();
             while (i != null && i != item) {
                 i = i.getParent();
             }
             if (i != null) {
                 updateTabColor(consoleTab);
+            }
+
+            if (item == getInstance()) {
+                processInstanceChanged(getInstance());
             }
         }
     }
