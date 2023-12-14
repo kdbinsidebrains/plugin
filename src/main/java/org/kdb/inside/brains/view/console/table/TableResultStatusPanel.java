@@ -85,7 +85,7 @@ class TableResultStatusPanel extends JPanel {
 
             final double v = result.getRoundtripMillis() / 1000d;
             final double v1 = ((int) (v * 100)) / 100d;
-            timeLabel.setText(formatter.formatTimestamp(new Timestamp(result.getFinishedMillis())) + " (" + v1 + "sec)");
+            timeLabel.setText(formatter.formatTimestamp(new Timestamp(result.getFinishedMillis())).substring(0, 23) + " (" + v1 + "sec)");
             queryLabel.setText(tableResult.getQuery().getExpression());
 
             invalidateRowsCount();

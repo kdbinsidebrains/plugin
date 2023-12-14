@@ -38,8 +38,7 @@ public class ModifyItemAction extends SingleItemAction {
             ScopesEditorDialog.showDialog(project, (KdbScope) item);
         } else if (item instanceof PackageItem) {
             NewPackageAction.modifyPackage(e, (PackageItem) item);
-        } else if (item instanceof KdbInstance) {
-            final KdbInstance instance = (KdbInstance) item;
+        } else if (item instanceof KdbInstance instance) {
             final InstanceEditorDialog instanceEditor = new InstanceEditorDialog(InstanceEditorDialog.Mode.UPDATE, project, instance);
             if (instanceEditor.showAndGet()) {
                 instance.updateFrom(instanceEditor.createInstance());

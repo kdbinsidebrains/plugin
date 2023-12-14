@@ -94,7 +94,7 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
         for (Map.Entry<KdbInstance, Element> entry : statesCache.entrySet()) {
             final InstanceConnection connection = connectionManager.register(entry.getKey());
 
-            final Content content = getOrcreateInstanceContent(connection);
+            final Content content = getOrCreateInstanceContent(connection);
             if (content.getComponent() instanceof KdbConsolePanel console) {
                 console.loadState(entry.getValue());
             }
@@ -121,13 +121,13 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
     }
 
     private Content activateInstance(InstanceConnection connection) {
-        final Content content = getOrcreateInstanceContent(connection);
+        final Content content = getOrCreateInstanceContent(connection);
         contentManager.setSelectedContent(content, false, false, false);
         return content;
     }
 
     @NotNull
-    private Content getOrcreateInstanceContent(InstanceConnection connection) {
+    private Content getOrCreateInstanceContent(InstanceConnection connection) {
         final Content c = findContent(connection);
         if (c != null) {
             return c;
@@ -149,6 +149,8 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
         content.setComponent(panel);
         content.setShouldDisposeContent(true);
         content.putUserData(ToolWindow.SHOW_CONTENT_ICON, Boolean.TRUE);
+
+        panel.addPropertyChangeListener("instanceParameters", evt -> content.setDisplayName(connection.getCanonicalName()));
 
         contentManager.addContent(content);
 

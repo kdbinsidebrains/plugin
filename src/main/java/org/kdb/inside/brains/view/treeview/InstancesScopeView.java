@@ -5,7 +5,6 @@ import com.intellij.ide.util.treeView.TreeState;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBScrollPane;
@@ -16,6 +15,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.action.ActionPlaces;
+import org.kdb.inside.brains.action.EdtToggleAction;
 import org.kdb.inside.brains.core.InstanceItem;
 import org.kdb.inside.brains.core.KdbConnectionManager;
 import org.kdb.inside.brains.core.KdbScope;
@@ -23,6 +23,7 @@ import org.kdb.inside.brains.view.KdbToolWindowPanel;
 import org.kdb.inside.brains.view.treeview.tree.InstancesTree;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -36,59 +37,20 @@ public class InstancesScopeView extends KdbToolWindowPanel implements Disposable
 
     public static final DataKey<InstancesScopeView> INSTANCES_VIEW_DATA_KEY = DataKey.create("Kdb.Instances.View");
 
-    public InstancesScopeView(Project project, KdbScope scope, KdbConnectionManager connectionManager) {
+    public InstancesScopeView(@Nullable Project project, @NotNull KdbScope scope, KdbConnectionManager connectionManager) {
         super(true);
 
         this.scope = scope;
-        this.tree = new InstancesTree(scope, connectionManager);
+        this.tree = new InstancesTree(project, scope, connectionManager);
 
+        final JPanel panel = new JPanel(new BorderLayout());
+        panel.add(tree.getSearchComponent(), BorderLayout.NORTH);
+        panel.add(new JBScrollPane(tree), BorderLayout.CENTER);
+
+        setContent(panel);
         setToolbar(createToolbar());
-        setContent(new JBScrollPane(tree));
 
         setBackground(UIUtil.SIDE_PANEL_BACKGROUND);
-
-
-/*
-        final AnActionButton addActionButton = AnActionButton.fromAction(ActionManager.getInstance().getAction("AddNewFavoritesList"));
-        addActionButton.getTemplatePresentation().setIcon(CommonActionsPanel.Buttons.ADD.getIcon());
-        addActionButton.setShortcut(CommonActionsPanel.getCommonShortcut(CommonActionsPanel.Buttons.ADD));
-
-        final AnActionButton editActionButton = AnActionButton.fromAction(ActionManager.getInstance().getAction("EditFavorites"));
-        editActionButton.setShortcut(CommonShortcuts.CTRL_ENTER);
-
-        final AnActionButton deleteActionButton = new DeleteFromFavoritesAction();
-        deleteActionButton.setShortcut(CustomShortcutSet.fromString("DELETE", "BACK_SPACE"));
-*/
-
-        /*
-         */
-        //.addExtraAction(exportActionButton);
-
-/*
-        final AnAction action = ActionManager.getInstance().getAction(IdeActions.ACTION_NEW_ELEMENT);
-        action.registerCustomShortcutSet(action.getShortcutSet(), tree);
-*/
-//        final JPanel panel = decorator.createPanel();
-
-//        panel.setBorder(JBUI.Borders.empty());
-//        add(panel, BorderLayout.CENTER);
-//        setBorder(JBUI.Borders.empty());
-/*
-
-        autoScrollToSourceHandler = new AutoScrollToSourceHandler() {
-            @Override
-            protected boolean isAutoScrollMode() {
-                return false;
-                //myFavoritesManager.getViewSettings().isAutoScrollToSource();
-            }
-
-            @Override
-            protected void setAutoScrollMode(boolean state) {
-//                myFavoritesManager.getViewSettings().setAutoScrollToSource(state);
-            }
-        };
-        autoScrollToSourceHandler.install(tree);
-*/
     }
 
     public KdbScope getScope() {
@@ -110,7 +72,7 @@ public class InstancesScopeView extends KdbToolWindowPanel implements Disposable
         group.add(am.getAction("Kdb.Instances.MoveItemUp"));
         group.add(am.getAction("Kdb.Instances.MoveItemDown"));
         group.addSeparator();
-        group.add(new DumbAwareToggleAction("Show Connection Details", "Show connection details with the node name", KdbIcons.Node.ShowConnectionFilter) {
+        group.add(new EdtToggleAction("Show Connection Details", "Show connection details with the node name", KdbIcons.Node.ShowConnectionFilter) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return tree.isShownConnectionDetails();
@@ -147,6 +109,14 @@ public class InstancesScopeView extends KdbToolWindowPanel implements Disposable
         return tree.getSelectedItems();
     }
 
+    public void showSpeedSearch() {
+        tree.showSpeedSearch();
+    }
+
+    public void showSearchAndReplace(boolean replace) {
+        tree.showSearchAndReplace(replace);
+    }
+
     @Override
     public void dispose() {
         Disposer.dispose(tree);
@@ -158,20 +128,6 @@ public class InstancesScopeView extends KdbToolWindowPanel implements Disposable
         if (INSTANCES_VIEW_DATA_KEY.is(dataId)) {
             return this;
         }
-
-        if (PlatformDataKeys.CUT_PROVIDER.is(dataId)) {
-            return tree;
-        }
-        if (PlatformDataKeys.COPY_PROVIDER.is(dataId)) {
-            return tree;
-        }
-        if (PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
-            return tree;
-        }
-        if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
-            return tree;
-        }
-
         return super.getData(dataId);
     }
 
@@ -187,7 +143,8 @@ public class InstancesScopeView extends KdbToolWindowPanel implements Disposable
     public void writeExternal(Element element) {
         element.setAttribute("ShowConnectionDetails", String.valueOf(tree.isShownConnectionDetails()));
 
-        saveExpandedPaths();
+        // TreeUI should be accessed only from EDT
+        UIUtil.invokeAndWaitIfNeeded((Runnable) this::saveExpandedPaths);
 
         if (readTreeState != null) {
             readTreeState.writeExternal(element);

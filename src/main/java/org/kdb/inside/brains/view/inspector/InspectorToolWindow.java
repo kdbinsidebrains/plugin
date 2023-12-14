@@ -57,6 +57,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.Promise;
+import org.kdb.inside.brains.action.BgtAction;
 import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.psi.QAssignmentExpr;
@@ -713,7 +714,7 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
         }
     }
 
-    private final class RefreshAction extends DumbAwareAction {
+    private final class RefreshAction extends BgtAction {
         RefreshAction() {
             super("Refresh Instance", "Reloads the instance structure", KdbIcons.Inspector.Refresh);
         }
@@ -727,11 +728,6 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
         public void update(@NotNull AnActionEvent e) {
             final Presentation presentation = e.getPresentation();
             presentation.setEnabled(connectionManager.getActiveConnection() != null);
-        }
-
-        @Override
-        public @NotNull ActionUpdateThread getActionUpdateThread() {
-            return ActionUpdateThread.BGT;
         }
     }
 

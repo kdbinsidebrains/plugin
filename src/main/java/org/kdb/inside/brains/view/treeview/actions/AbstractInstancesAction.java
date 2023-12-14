@@ -1,12 +1,12 @@
 package org.kdb.inside.brains.view.treeview.actions;
 
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.treeview.InstancesScopeView;
 
-public abstract class AbstractInstancesAction extends AnAction implements DumbAware {
+public abstract class AbstractInstancesAction extends EdtAction implements DumbAware {
     public abstract void update(@NotNull AnActionEvent e, @NotNull InstancesScopeView view);
 
     public abstract void actionPerformed(@NotNull AnActionEvent e, @NotNull InstancesScopeView view);
