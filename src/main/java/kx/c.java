@@ -51,29 +51,12 @@ public class c {
     /**
      * Encoding specifies the character encoding to use when [de]-serializing strings.
      */
-    private static String encoding = "ISO-8859-1";
+    protected String encoding = "UTF-8";
 
-    /**
-     * Stream for printing kdb+ objects. Defaults to System.out
-     */
-    private static PrintStream out = System.out;
     /**
      * {@code sync}  tracks how many response messages the remote is expecting
      */
     protected int sync = 0;
-
-    /**
-     * Sets character encoding for serialising/deserialising strings.
-     *
-     * @param encoding The name of a supported
-     *                 <a href="../lang/package-summary.html#charenc">
-     *                 character encoding</a>
-     * @throws UnsupportedEncodingException If the named encoding is not supported
-     */
-    public static void setEncoding(String encoding) throws UnsupportedEncodingException {
-        c.encoding = encoding;
-        out = new PrintStream(System.out, true, encoding);
-    }
 
     /**
      * {@code s} is the socket used to communicate with the remote kdb+ process.
@@ -1256,7 +1239,7 @@ public class c {
      * @return number of bytes required to serialise a string
      * @throws UnsupportedEncodingException If the named charset is not supported
      */
-    static int ns(String s) throws UnsupportedEncodingException {
+    int ns(String s) throws UnsupportedEncodingException {
         int i;
         if (s == null) {
             return 0;
@@ -1277,7 +1260,7 @@ public class c {
      * @return number of elements in an object.
      * @throws UnsupportedEncodingException If the named charset is not supported
      */
-    public static int n(Object x) throws UnsupportedEncodingException {
+    public int n(Object x) throws UnsupportedEncodingException {
         return x instanceof Dict
                 ? n(((Dict) x).x)
                 : x instanceof Flip
@@ -1840,80 +1823,6 @@ public class c {
     }
 
     /**
-     * Removes the key from a keyed table.
-     * <p>
-     * A keyed table(a.k.a. Flip) is a dictionary where both key and value are tables
-     * themselves. For ease of processing, this method, td, table from dictionary, can be used to remove the key.
-     * </p>
-     *
-     * @param X A table or keyed table.
-     * @return A simple table
-     * @throws UnsupportedEncodingException If the named charset is not supported
-     */
-    public static Flip td(Object X) throws UnsupportedEncodingException {
-        if (X instanceof Flip) {
-            return (Flip) X;
-        }
-        Dict d = (Dict) X;
-        Flip a = (Flip) d.x, b = (Flip) d.y;
-        int m = n(a.x), n = n(b.x);
-        String[] x = new String[m + n];
-        System.arraycopy(a.x, 0, x, 0, m);
-        System.arraycopy(b.x, 0, x, m, n);
-        Object[] y = new Object[m + n];
-        System.arraycopy(a.y, 0, y, 0, m);
-        System.arraycopy(b.y, 0, y, m, n);
-        return new Flip(new Dict(x, y));
-    }
-
-    /**
-     * Prints x to {@code out} stream
-     *
-     * @param x object to print
-     * @return object that has been printed
-     */
-    public static Object O(Object x) {
-        out.println(x);
-        return x;
-    }
-
-    /**
-     * Prints x to {@code out} stream
-     *
-     * @param x value to print
-     */
-    public static void O(int x) {
-        out.println(x);
-    }
-
-    /**
-     * Prints x to {@code out} stream
-     *
-     * @param x value to print
-     */
-    public static void O(boolean x) {
-        out.println(x);
-    }
-
-    /**
-     * Prints x to {@code out} stream
-     *
-     * @param x value to print
-     */
-    public static void O(long x) {
-        out.println(x);
-    }
-
-    /**
-     * Prints x to {@code out} stream
-     *
-     * @param x value to print
-     */
-    public static void O(double x) {
-        out.println(x);
-    }
-
-    /**
      * Current time in milliseconds
      *
      * @return current time in millis.
@@ -1923,14 +1832,6 @@ public class c {
     }
 
     static long t;
-
-    public static void tm() {
-        long u = t;
-        t = t();
-        if (u > 0) {
-            O(t - u);
-        }
-    }
 
     static String i2(int i) {
         return new DecimalFormat("00").format(i);

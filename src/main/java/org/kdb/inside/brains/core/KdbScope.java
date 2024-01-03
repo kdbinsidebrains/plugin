@@ -14,7 +14,7 @@ public final class KdbScope extends StructuralItem implements CredentialsItem {
     private final List<KdbScopeListener> listeners = new ArrayList<>();
 
     public KdbScope(@NotNull String name, @NotNull ScopeType type) {
-        this(name, type, new InstanceOptions(), null);
+        this(name, type, InstanceOptions.INHERITED, null);
     }
 
     public KdbScope(@NotNull String name, @NotNull ScopeType type, @NotNull InstanceOptions options, String credentials) {

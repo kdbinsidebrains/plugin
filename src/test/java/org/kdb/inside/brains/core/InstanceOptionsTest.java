@@ -17,7 +17,9 @@ class InstanceOptionsTest {
         assertFalse(b.create().isSafeAsync());
         assertFalse(b.create().hasTimeout());
         assertEquals(InstanceOptions.DEFAULT_TIMEOUT, b.create().getSafeTimeout());
-        assertOptions(b.create(), null, null, null, null);
+        assertFalse(b.create().hasEncoding());
+        assertEquals(InstanceOptions.DEFAULT_ENCODING, b.create().getSafeEncoding());
+        assertOptions(b.create(), null, null, null, null, null);
 
         b.tls(true);
         assertTrue(b.create().hasTls());
@@ -28,7 +30,9 @@ class InstanceOptionsTest {
         assertFalse(b.create().isSafeAsync());
         assertFalse(b.create().hasTimeout());
         assertEquals(InstanceOptions.DEFAULT_TIMEOUT, b.create().getSafeTimeout());
-        assertOptions(b.create(), true, null, null, null);
+        assertFalse(b.create().hasEncoding());
+        assertEquals(InstanceOptions.DEFAULT_ENCODING, b.create().getSafeEncoding());
+        assertOptions(b.create(), true, null, null, null, null);
 
         b.zip(true);
         assertTrue(b.create().hasTls());
@@ -39,7 +43,9 @@ class InstanceOptionsTest {
         assertFalse(b.create().isSafeAsync());
         assertFalse(b.create().hasTimeout());
         assertEquals(InstanceOptions.DEFAULT_TIMEOUT, b.create().getSafeTimeout());
-        assertOptions(b.create(), true, true, null, null);
+        assertFalse(b.create().hasEncoding());
+        assertEquals(InstanceOptions.DEFAULT_ENCODING, b.create().getSafeEncoding());
+        assertOptions(b.create(), true, true, null, null, null);
 
         b.async(true);
         assertTrue(b.create().hasTls());
@@ -50,7 +56,9 @@ class InstanceOptionsTest {
         assertTrue(b.create().isSafeAsync());
         assertFalse(b.create().hasTimeout());
         assertEquals(InstanceOptions.DEFAULT_TIMEOUT, b.create().getSafeTimeout());
-        assertOptions(b.create(), true, true, true, null);
+        assertFalse(b.create().hasEncoding());
+        assertEquals(InstanceOptions.DEFAULT_ENCODING, b.create().getSafeEncoding());
+        assertOptions(b.create(), true, true, true, null, null);
 
         b.timeout(2333);
         assertTrue(b.create().hasTls());
@@ -61,7 +69,22 @@ class InstanceOptionsTest {
         assertTrue(b.create().isSafeAsync());
         assertTrue(b.create().hasTimeout());
         assertEquals(2333, b.create().getSafeTimeout());
-        assertOptions(b.create(), true, true, true, 2333);
+        assertFalse(b.create().hasEncoding());
+        assertEquals(InstanceOptions.DEFAULT_ENCODING, b.create().getSafeEncoding());
+        assertOptions(b.create(), true, true, true, 2333, null);
+
+        b.encoding("GBK");
+        assertTrue(b.create().hasTls());
+        assertTrue(b.create().isSafeTls());
+        assertTrue(b.create().hasZip());
+        assertTrue(b.create().isSafeZip());
+        assertTrue(b.create().hasAsync());
+        assertTrue(b.create().isSafeAsync());
+        assertTrue(b.create().hasTimeout());
+        assertEquals(2333, b.create().getSafeTimeout());
+        assertTrue(b.create().hasEncoding());
+        assertEquals("GBK", b.create().getSafeEncoding());
+        assertOptions(b.create(), true, true, true, 2333, "GBK");
     }
 
     @Test
@@ -71,12 +94,12 @@ class InstanceOptionsTest {
         assertEquals("", o1.toParameters());
 
         final InstanceOptions o2 = InstanceOptions.fromParameters("");
-        assertOptions(o2, null, null, null, null);
+        assertOptions(o2, null, null, null, null, null);
         assertEquals("", o2.toParameters());
 
-        final InstanceOptions o3 = InstanceOptions.fromParameters("tls=true&zip=false&async=true&timeout=3000&mock=dfsdf");
-        assertOptions(o3, true, false, true, 3000);
-        assertEquals("tls=true&zip=false&async=true&timeout=3000", o3.toParameters());
+        final InstanceOptions o3 = InstanceOptions.fromParameters("tls=true&zip=false&async=true&timeout=3000&encoding=GBK&mock=dfsdf");
+        assertOptions(o3, true, false, true, 3000, "GBK");
+        assertEquals("tls=true&zip=false&async=true&timeout=3000&encoding=GBK", o3.toParameters());
     }
 
     @Test
@@ -107,6 +130,11 @@ class InstanceOptionsTest {
         b.create().store(e);
         assertEquals("2343", e.getAttributeValue("timeout"));
         assertEquals(b.create(), InstanceOptions.restore(e));
+
+        b.encoding("GBK");
+        b.create().store(e);
+        assertEquals("GBK", e.getAttributeValue("encoding"));
+        assertEquals(b.create(), InstanceOptions.restore(e));
     }
 
     @Test
@@ -120,10 +148,12 @@ class InstanceOptionsTest {
         assertFalse(b.create().isSafeAsync());
         assertTrue(b.create().hasTimeout());
         assertEquals(1000, b.create().getSafeTimeout());
-        assertOptions(b.create(), false, false, false, 1000);
+        assertTrue(b.create().hasEncoding());
+        assertEquals("UTF-8", b.create().getSafeEncoding());
+        assertOptions(b.create(), false, false, false, 1000, "UTF-8");
     }
 
-    private void assertOptions(InstanceOptions options, Boolean tsl, Boolean zip, Boolean async, Integer timeout) {
+    private void assertOptions(InstanceOptions options, Boolean tsl, Boolean zip, Boolean async, Integer timeout, String encoding) {
         if (tsl == null) {
             assertFalse(options.hasTls());
         } else {
@@ -146,6 +176,12 @@ class InstanceOptionsTest {
             assertFalse(options.hasTimeout());
         } else {
             assertEquals(timeout, options.getSafeTimeout());
+        }
+
+        if (encoding == null) {
+            assertFalse(options.hasEncoding());
+        } else {
+            assertEquals(encoding, options.getSafeEncoding());
         }
     }
 }
