@@ -698,7 +698,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                 final double ticks = timeout / (double) PROGRESS_TICK_MILLIS;
 
                 // create connection - an error could be here
-                connection = new KxConnection(instance.getHost(), instance.getPort(), options.isSafeAsync(), options.isSafeTls(), options.isSafeZip());
+                connection = new KxConnection(instance.getHost(), instance.getPort(), options.isSafeAsync(), options.isSafeTls(), options.isSafeZip(), options.getSafeEncoding());
                 if (isCancelled(indicator)) {
                     throw new CancellationException();
                 }

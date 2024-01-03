@@ -616,7 +616,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     }
 
     private void processInstanceChanged(KdbInstance instance) {
-        if (!instanceCopy.toTransferableSymbol().equals(instance.toTransferableSymbol())) {
+        if (!instanceCopy.toQualifiedSymbol().equals(instance.toQualifiedSymbol())) {
             connection.disconnect();
             connection.connect();
         }

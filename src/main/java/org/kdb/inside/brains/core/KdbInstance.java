@@ -86,7 +86,11 @@ public class KdbInstance extends InstanceItem implements CredentialsItem {
         if (options == null) {
             return s;
         }
-        return s + "?" + options.toParameters();
+        final String parameters = options.toParameters();
+        if (parameters.isEmpty()) {
+            return s;
+        }
+        return s + "?" + parameters;
     }
 
     public void setHost(String host) {

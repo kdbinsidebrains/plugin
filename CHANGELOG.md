@@ -1,5 +1,12 @@
 # KdbInsideBrains Changelog
 
+## [5.2.0]
+
+### Added
+
+- CodePage added to InstanceOption that allows to specify which charset encoding should be used for encoding/decoding
+  text data.
+
 ## [5.1.0]
 
 ### Added

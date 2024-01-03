@@ -16,14 +16,13 @@ public class KxConnection extends c implements Closeable {
 
     public static final TimeZone UTC_TIMEZONE = TimeZone.getTimeZone("UTC");
 
-    public KxConnection(String host, int port, boolean async, boolean tls, boolean zip) throws IOException {
-        tz = UTC_TIMEZONE;
-        setEncoding("UTF-8");
-
+    public KxConnection(String host, int port, boolean async, boolean tls, boolean zip, String encoding) throws IOException {
+        this.tz = UTC_TIMEZONE;
         this.zip = zip;
         this.msgType = async ? 0 : 1;
+        this.encoding = encoding != null ? encoding : "UTF-8";
 
-        // We have to split original constructor into socket creating and authentification to be able to cancel
+        // We have to split the original constructor into socket creating and authentification to be able to cancel
         // authentication - it could take too long if the instance is busy.
         s = new Socket(host.isBlank() ? "localhost" : host, port);
         if (tls) {
@@ -130,7 +129,6 @@ public class KxConnection extends c implements Closeable {
         if (o == null) {
             return true;
         }
-
         for (Object o1 : NULL) {
             if (Objects.equals(o, o1)) {
                 return true;

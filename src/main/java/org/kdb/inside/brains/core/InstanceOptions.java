@@ -12,11 +12,6 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public final class InstanceOptions implements SettingsBean<InstanceOptions> {
-    public static final int DEFAULT_TIMEOUT = 1000;
-    public static final boolean DEFAULT_TLS = false;
-    public static final boolean DEFAULT_ZIP = false;
-    public static final boolean DEFAULT_ASYNC = false;
-    public static final InstanceOptions INHERITED = new InstanceOptions();
     @Attribute
     private Boolean tls;
     @Attribute
@@ -25,15 +20,24 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
     private Boolean async;
     @Attribute
     private Integer timeout;
+    public static final int DEFAULT_TIMEOUT = 1000;
+    public static final boolean DEFAULT_TLS = false;
+    public static final boolean DEFAULT_ZIP = false;
+    public static final boolean DEFAULT_ASYNC = false;
+    public static final String DEFAULT_ENCODING = "UTF-8";
+    public static final InstanceOptions INHERITED = new InstanceOptions();
+    @Attribute
+    private String encoding;
 
     public InstanceOptions() {
     }
 
-    private InstanceOptions(Boolean tls, Boolean zip, Boolean async, Integer timeout) {
+    private InstanceOptions(Boolean tls, Boolean zip, Boolean async, Integer timeout, String encoding) {
         this.tls = tls;
         this.zip = zip;
         this.async = async;
         this.timeout = timeout;
+        this.encoding = encoding;
     }
 
     public static InstanceOptions fromParameters(String params) {
@@ -93,6 +97,12 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
             if (zip != null) {
                 b.zip(Boolean.valueOf(zip));
             }
+
+            final String encoding = el.getAttributeValue("encoding");
+            if (encoding != null) {
+                b.encoding(encoding);
+            }
+
             return b.create();
         } catch (Exception ignore) {
             return INHERITED;
@@ -113,6 +123,7 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
                 .zip(resolve(options, o -> o.zip))
                 .async(resolve(options, o -> o.async))
                 .timeout(resolve(options, o -> o.timeout))
+                .encoding(resolve(options, o -> o.encoding))
                 .safe()
                 .create();
     }
@@ -174,25 +185,35 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
         return hasTimeout() ? timeout : DEFAULT_TIMEOUT;
     }
 
+    @Transient
+    public boolean hasEncoding() {
+        return encoding != null;
+    }
+
+    @Transient
+    public String getSafeEncoding() {
+        return hasEncoding() ? encoding : DEFAULT_ENCODING;
+    }
+
     @Override
     public void copyFrom(InstanceOptions options) {
         this.tls = options.tls;
         this.zip = options.zip;
         this.async = options.async;
         this.timeout = options.timeout;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(tls, zip, async, timeout);
+        this.encoding = options.encoding;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof InstanceOptions)) return false;
-        InstanceOptions that = (InstanceOptions) o;
-        return Objects.equals(tls, that.tls) && Objects.equals(zip, that.zip) && Objects.equals(async, that.async) && Objects.equals(timeout, that.timeout);
+        if (!(o instanceof InstanceOptions that)) return false;
+        return Objects.equals(tls, that.tls) && Objects.equals(zip, that.zip) && Objects.equals(async, that.async) && Objects.equals(timeout, that.timeout) && Objects.equals(encoding, that.encoding);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tls, zip, async, timeout, encoding);
     }
 
     @Override
@@ -202,11 +223,12 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
                 ", zip=" + zip +
                 ", async=" + async +
                 ", timeout=" + timeout +
+                ", encoding=" + encoding +
                 '}';
     }
 
     public String toParameters() {
-        final List<String> b = new ArrayList<>(4);
+        final List<String> b = new ArrayList<>(5);
         if (hasTls()) {
             b.add("tls=" + tls);
         }
@@ -218,6 +240,9 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
         }
         if (hasTimeout()) {
             b.add("timeout=" + timeout);
+        }
+        if (hasEncoding()) {
+            b.add("encoding=" + encoding);
         }
         return String.join("&", b);
     }
@@ -235,6 +260,9 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
         if (timeout != null) {
             el.setAttribute("timeout", String.valueOf(timeout));
         }
+        if (encoding != null) {
+            el.setAttribute("encoding", encoding);
+        }
     }
 
     public static class Builder {
@@ -242,6 +270,7 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
         private Boolean zip;
         private Boolean async;
         private Integer timeout;
+        private String encoding;
 
         public Builder tls(Boolean tls) {
             this.tls = tls;
@@ -266,6 +295,11 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
             return this;
         }
 
+        public Builder encoding(String encoding) {
+            this.encoding = encoding;
+            return this;
+        }
+
         public Builder safe() {
             if (tls == null) {
                 tls = DEFAULT_TLS;
@@ -279,11 +313,14 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
             if (timeout == null) {
                 timeout = DEFAULT_TIMEOUT;
             }
+            if (encoding == null) {
+                encoding = DEFAULT_ENCODING;
+            }
             return this;
         }
 
         public InstanceOptions create() {
-            return new InstanceOptions(tls, zip, async, timeout);
+            return new InstanceOptions(tls, zip, async, timeout, encoding);
         }
     }
 }
