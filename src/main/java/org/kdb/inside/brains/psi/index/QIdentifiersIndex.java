@@ -41,12 +41,12 @@ public class QIdentifiersIndex extends FileBasedIndexExtension<String, List<Iden
             public void save(@NotNull DataOutput out, List<IdentifierDescriptor> value) throws IOException {
                 out.writeInt(value.size());
                 for (IdentifierDescriptor d : value) {
-                    final TextRange range = d.getRange();
-                    out.writeUTF(d.getType().name());
+                    final TextRange range = d.range();
+                    out.writeUTF(d.type().name());
                     out.writeInt(range.getStartOffset());
                     out.writeInt(range.getEndOffset());
 
-                    final List<String> params = d.getParams();
+                    final List<String> params = d.params();
                     out.writeInt(params.size());
                     for (String param : params) {
                         out.writeUTF(param);

@@ -47,10 +47,6 @@ public class ImportScopesAction extends DumbAwareAction {
         final FileChooserDialog chooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, project, null);
 
         final VirtualFile[] choose = chooserDialog.choose(project);
-        if (choose.length == 0) {
-            return;
-        }
-
         for (VirtualFile file : choose) {
             // String that contains XML
             try {

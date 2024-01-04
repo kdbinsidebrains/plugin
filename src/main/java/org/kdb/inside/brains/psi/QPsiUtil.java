@@ -130,7 +130,7 @@ public final class QPsiUtil {
     }
 
     public static QSymbol createSymbol(Project project, String name) {
-        if (name.length() == 0 || name.charAt(0) != '`') {
+        if (name.isEmpty() || name.charAt(0) != '`') {
             throw new IllegalArgumentException("Symbol must start with '`' char");
         }
         final QFile file = QFileType.createFactoryFile(project, name);

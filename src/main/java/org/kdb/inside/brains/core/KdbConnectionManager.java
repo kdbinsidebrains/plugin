@@ -361,9 +361,6 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
         private void complete(Object res) {
             result.complete(res);
-//            ApplicationManager.getApplication().invokeLater(() ->
-//                    handler.accept(result.complete(res))
-//            );
         }
 
         public void cancel() {

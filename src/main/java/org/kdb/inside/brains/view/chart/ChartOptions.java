@@ -53,8 +53,7 @@ public class ChartOptions implements SettingsBean<ChartOptions> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ChartOptions)) return false;
-        ChartOptions that = (ChartOptions) o;
+        if (!(o instanceof ChartOptions that)) return false;
         return valuesToolEnabled == that.valuesToolEnabled && measureToolEnabled == that.measureToolEnabled && crosshairToolEnabled == that.crosshairToolEnabled && snapType == that.snapType;
     }
 

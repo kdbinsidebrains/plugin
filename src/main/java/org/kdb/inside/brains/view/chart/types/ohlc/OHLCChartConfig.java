@@ -12,22 +12,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class OHLCChartConfig implements ChartConfig {
-    private final ColumnConfig domain;
-    private final ColumnConfig openColumn;
-    private final ColumnConfig highColumn;
-    private final ColumnConfig lowColumn;
-    private final ColumnConfig closeColumn;
-    private final ColumnConfig volumeColumn;
-
-    public OHLCChartConfig(ColumnConfig domain, ColumnConfig openColumn, ColumnConfig highColumn, ColumnConfig lowColumn, ColumnConfig closeColumn, ColumnConfig volumeColumn) {
-        this.domain = domain;
-        this.openColumn = openColumn;
-        this.highColumn = highColumn;
-        this.lowColumn = lowColumn;
-        this.closeColumn = closeColumn;
-        this.volumeColumn = volumeColumn;
-    }
+public record OHLCChartConfig(ColumnConfig domain, ColumnConfig openColumn, ColumnConfig highColumn,
+                              ColumnConfig lowColumn, ColumnConfig closeColumn,
+                              ColumnConfig volumeColumn) implements ChartConfig {
 
     public static @NotNull OHLCChartConfig restore(Element element) {
         final ColumnConfig date = ColumnConfig.restore(element.getChild("domain"));
@@ -42,30 +29,6 @@ public class OHLCChartConfig implements ChartConfig {
     @Override
     public ChartType getType() {
         return ChartType.OHLC;
-    }
-
-    public ColumnConfig getOpenColumn() {
-        return openColumn;
-    }
-
-    public ColumnConfig getHighColumn() {
-        return highColumn;
-    }
-
-    public ColumnConfig getLowColumn() {
-        return lowColumn;
-    }
-
-    public ColumnConfig getCloseColumn() {
-        return closeColumn;
-    }
-
-    public ColumnConfig getVolumeColumn() {
-        return volumeColumn;
-    }
-
-    public ColumnConfig getDomain() {
-        return domain;
     }
 
     @Override
@@ -119,17 +82,5 @@ public class OHLCChartConfig implements ChartConfig {
     @Override
     public OHLCChartConfig copy() {
         return new OHLCChartConfig(ColumnConfig.copy(domain), ColumnConfig.copy(openColumn), ColumnConfig.copy(highColumn), ColumnConfig.copy(lowColumn), ColumnConfig.copy(closeColumn), ColumnConfig.copy(volumeColumn));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof OHLCChartConfig that)) return false;
-        return Objects.equals(domain, that.domain) && Objects.equals(openColumn, that.openColumn) && Objects.equals(highColumn, that.highColumn) && Objects.equals(lowColumn, that.lowColumn) && Objects.equals(closeColumn, that.closeColumn) && Objects.equals(volumeColumn, that.volumeColumn);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(domain, openColumn, highColumn, lowColumn, closeColumn, volumeColumn);
     }
 }

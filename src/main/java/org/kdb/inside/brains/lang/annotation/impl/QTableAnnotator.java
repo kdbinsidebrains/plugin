@@ -79,11 +79,9 @@ public class QTableAnnotator extends QElementAnnotator<QTableExpr> {
     }
 
     private static PsiElement getMissedColumnDeclaration(PsiElement firstChild) {
-        if (!(firstChild instanceof QInvokeFunction)) {
+        if (!(firstChild instanceof QInvokeFunction invoke)) {
             return null;
         }
-
-        final QInvokeFunction invoke = (QInvokeFunction) firstChild;
 
         final PsiElement first = QPsiUtil.getFirstNonWhitespaceAndCommentsChild(invoke);
         if (!(first instanceof QCustomFunction)) {

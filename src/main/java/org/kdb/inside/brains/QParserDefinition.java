@@ -48,12 +48,12 @@ public final class QParserDefinition implements ParserDefinition {
     }
 
     @Override
-    public PsiParser createParser(final Project project) {
+    public @NotNull PsiParser createParser(final Project project) {
         return new QParser();
     }
 
     @Override
-    public IFileElementType getFileNodeType() {
+    public @NotNull IFileElementType getFileNodeType() {
         return FILE;
     }
 
@@ -63,12 +63,12 @@ public final class QParserDefinition implements ParserDefinition {
     }
 
     @Override
-    public PsiFile createFile(FileViewProvider viewProvider) {
+    public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {
         return new QFile(viewProvider);
     }
 
     @Override
-    public SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
+    public @NotNull SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
         return SpaceRequirements.MAY;
     }
 }

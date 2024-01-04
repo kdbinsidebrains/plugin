@@ -78,19 +78,11 @@ public abstract class MoveItemAction extends AbstractInstancesAction {
         return null;
     }
 
-    protected enum Direction {
+    public enum Direction {
         UP,
         DOWN
     }
 
-    private static class MovePosition {
-        final int index;
-
-        final StructuralItem parent;
-
-        private MovePosition(StructuralItem parent, int index) {
-            this.index = index;
-            this.parent = parent;
-        }
+    private record MovePosition(StructuralItem parent, int index) {
     }
 }

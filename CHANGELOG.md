@@ -1,5 +1,16 @@
 # KdbInsideBrains Changelog
 
+## [5.2.1]
+
+### Fixed
+
+- Create new connection from Quick Search actions causes NullPointerException (issue #89)
+- KdbInspector doesn't allow to execute unexecutable items, like historical tables.
+
+### Changed
+
+- Minor code improvements
+
 ## [5.2.0]
 
 ### Added

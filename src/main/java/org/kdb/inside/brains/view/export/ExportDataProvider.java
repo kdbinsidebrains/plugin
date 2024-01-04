@@ -58,22 +58,6 @@ public interface ExportDataProvider {
         final ActionGroup sendTo = new PopupActionGroup("Send Data Into ...", KdbIcons.Console.SendInto) {
             @Override
             public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
-/*
-                final List<AnAction> res = new ArrayList<>();
-                final Map<Boolean, List<InstanceConnection>> map = KdbConnectionManager.getManager(project).getConnections().stream().collect(Collectors.groupingBy(InstanceConnection::isConnected));
-                final List<InstanceConnection> connected = map.get(Boolean.TRUE);
-                if (!connected.isEmpty()) {
-                    res.add(Separator.create("Connected Instances"));
-                    connected.stream().map(c -> new SendIntoAction(dataProvider, c)).forEach(res::add);
-                }
-
-                final List<InstanceConnection> disconnected = map.get(Boolean.FALSE);
-                if (!disconnected.isEmpty()) {
-                    res.add(Separator.create("Disconnected Instances"));
-                    disconnected.stream().map(c -> new SendIntoAction(dataProvider, c)).forEach(res::add);
-                }
-                return res.toArray(AnAction[]::new);
-*/
                 return KdbConnectionManager.getManager(project).getConnections().stream().filter(InstanceConnection::isConnected).map(c -> new SendIntoAction(dataProvider, c)).toArray(AnAction[]::new);
             }
         };

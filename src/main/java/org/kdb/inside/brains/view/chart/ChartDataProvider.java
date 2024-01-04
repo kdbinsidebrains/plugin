@@ -102,7 +102,7 @@ public interface ChartDataProvider {
     }
 
     static Date createDate(Object value) {
-        // SQL Date, Time, Timestamp are here
+        // SQL Date, Time, Timestamp is here
         Date res;
         if (value instanceof Date date) {
             res = date;

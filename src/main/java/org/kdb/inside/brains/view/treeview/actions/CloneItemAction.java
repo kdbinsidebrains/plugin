@@ -22,11 +22,10 @@ public class CloneItemAction extends SingleItemAction {
             return;
         }
 
-        if (!(item instanceof KdbInstance)) {
+        if (!(item instanceof KdbInstance instance)) {
             return;
         }
 
-        final KdbInstance instance = (KdbInstance) item;
         final Set<String> busyNames = instance.getParent().getChildren().stream().map(InstanceItem::getName).collect(Collectors.toSet());
         final InstanceEditorDialog editor = new InstanceEditorDialog(InstanceEditorDialog.Mode.CREATE, e.getProject(), instance, s -> !s.isBlank() && !busyNames.contains(s));
         if (editor.showAndGet()) {

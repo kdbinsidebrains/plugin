@@ -23,7 +23,7 @@ public class ImportQPadAction extends SingleItemAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e, InstanceItem item) {
-        if (!(item instanceof StructuralItem)) {
+        if (!(item instanceof StructuralItem s)) {
             return;
         }
 
@@ -40,7 +40,6 @@ public class ImportQPadAction extends SingleItemAction {
             return;
         }
 
-        final StructuralItem s = (StructuralItem) item;
         try {
             final String text = VfsUtil.loadText(choose[0]);
             importData(text, s);

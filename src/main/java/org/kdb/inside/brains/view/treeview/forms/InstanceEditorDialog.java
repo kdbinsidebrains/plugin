@@ -410,11 +410,6 @@ public class InstanceEditorDialog extends DialogWrapper {
         p.add(p2, BorderLayout.LINE_END);
 
         panel.add(p, c.next());
-/*
-        panel.add(new TitledSeparator("Advanced"), c.nextLine().next().coverLine(2).insetLeft(0));
-        panel.add(Box.createHorizontalBox(), c.nextLine().next());
-        panel.add(new JBCheckBox("Asynchronous connection"), c.next());
-*/
 
         return panel;
     }

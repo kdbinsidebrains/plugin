@@ -110,7 +110,7 @@ public class LineChartConfig implements ChartConfig {
             for (RangeConfig range : entry.getValue()) {
                 builder.append("<tr><th align=\"left\">");
                 if (first) {
-                    builder.append(key.getName()).append("");
+                    builder.append(key.getName());
                     first = false;
                 }
                 builder.append("</th><td>").append(range.getName()).append("</td>");
@@ -139,8 +139,7 @@ public class LineChartConfig implements ChartConfig {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof LineChartConfig)) return false;
-        LineChartConfig that = (LineChartConfig) o;
+        if (!(o instanceof LineChartConfig that)) return false;
         final boolean equals = Objects.equals(ranges, that.ranges);
         return drawShapes == that.drawShapes && Objects.equals(domain, that.domain) && equals;
     }

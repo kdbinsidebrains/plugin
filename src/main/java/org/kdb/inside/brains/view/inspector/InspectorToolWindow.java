@@ -223,7 +223,7 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
             @Override
             public void update(@NotNull AnActionEvent e) {
                 final Presentation presentation = e.getPresentation();
-                presentation.setEnabled(isExecutableSelected());
+                presentation.setEnabled(getCanonicalName(tree.getSelectionPath(), true) != null);
             }
 
             @Override

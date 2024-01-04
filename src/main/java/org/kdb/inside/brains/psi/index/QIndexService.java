@@ -123,7 +123,7 @@ public class QIndexService {
             return null;
         }
 
-        final PsiElement el = pf.findElementAt(descriptor.getRange().getStartOffset());
+        final PsiElement el = pf.findElementAt(descriptor.range().getStartOffset());
         if (el == null) {
             return null;
         }

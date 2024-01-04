@@ -72,19 +72,8 @@ public class BracketsBlock extends AbstractQBlock {
         });
     }
 
-    private static final class Descriptor {
-        private final IElementType open;
-        private final IElementType close;
-        private final Function<QCodeStyleSettings, Integer> wrap;
-        private final Function<QCodeStyleSettings, Boolean> alignBrac;
-        private final Function<QCodeStyleSettings, Boolean> alignExpr;
-
-        Descriptor(IElementType open, IElementType close, Function<QCodeStyleSettings, Integer> wrap, Function<QCodeStyleSettings, Boolean> alignBrac, Function<QCodeStyleSettings, Boolean> alignExpr) {
-            this.open = open;
-            this.close = close;
-            this.wrap = wrap;
-            this.alignBrac = alignBrac;
-            this.alignExpr = alignExpr;
-        }
+    private record Descriptor(IElementType open, IElementType close, Function<QCodeStyleSettings, Integer> wrap,
+                              Function<QCodeStyleSettings, Boolean> alignBrac,
+                              Function<QCodeStyleSettings, Boolean> alignExpr) {
     }
 }

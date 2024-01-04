@@ -78,8 +78,7 @@ public class ColumnConfig {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ColumnConfig)) return false;
-        ColumnConfig that = (ColumnConfig) o;
+        if (!(o instanceof ColumnConfig that)) return false;
         return Objects.equals(name, that.name) && type == that.type;
     }
 

@@ -31,8 +31,7 @@ public class UnresolvedImportInspection extends ElementInspection<QImport> {
                 continue;
             }
 
-            if (reference instanceof PsiPolyVariantReference) {
-                final PsiPolyVariantReference pvr = (PsiPolyVariantReference) reference;
+            if (reference instanceof PsiPolyVariantReference pvr) {
                 if (pvr.multiResolve(false).length != 0) {
                     continue;
                 }

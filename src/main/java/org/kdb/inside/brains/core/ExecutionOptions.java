@@ -105,8 +105,7 @@ public class ExecutionOptions implements SettingsBean<ExecutionOptions> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ExecutionOptions)) return false;
-        ExecutionOptions that = (ExecutionOptions) o;
+        if (!(o instanceof ExecutionOptions that)) return false;
         return autoReconnect == that.autoReconnect && normalizeQuery == that.normalizeQuery && showConnectionChange == that.showConnectionChange && connectionChangeTimeout == that.connectionChangeTimeout && warningMessageMb == that.warningMessageMb && logQueries == that.logQueries && splitLogsByMonths == that.splitLogsByMonths && selectActiveConnectionInTree == that.selectActiveConnectionInTree && bindingStrategy == that.bindingStrategy;
     }
 

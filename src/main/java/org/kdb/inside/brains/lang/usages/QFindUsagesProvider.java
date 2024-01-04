@@ -59,8 +59,7 @@ public final class QFindUsagesProvider implements FindUsagesProvider {
     @NotNull
     @Override
     public String getNodeText(@NotNull PsiElement element, boolean useFullName) {
-        if (element instanceof QVariable) {
-            final QVariable var = (QVariable) element;
+        if (element instanceof QVariable var) {
             return useFullName ? var.getQualifiedName() : var.getName();
         }
         if (element instanceof QSymbol) {

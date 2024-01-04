@@ -105,17 +105,14 @@ public class KdbScopeHelper {
             final String name = item.getName();
             final String id = generateNextId(parentId, name, i);
 
-            if (item instanceof PackageItem) {
-                final PackageItem packageItem = (PackageItem) item;
+            if (item instanceof PackageItem packageItem) {
                 final Element packEl = new Element("package");
                 packEl.setAttribute("name", name);
                 writeColor(item, packEl);
                 parent.addContent(packEl);
 
                 writeChildren(packageItem, packEl, id, exportCredentials);
-            } else if (item instanceof KdbInstance) {
-                final KdbInstance instance = (KdbInstance) item;
-
+            } else if (item instanceof KdbInstance instance) {
                 final Element instEl = new Element("instance");
                 instEl.setAttribute("name", name);
                 instEl.setAttribute("host", instance.getHost());

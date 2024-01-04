@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable> {
@@ -55,14 +54,11 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
         }
 
         private ResolveResult[] resolveVariable(QVariable variable, ElementContext context) {
-            switch (context.getScope()) {
-                case QUERY:
-                    return resolveQuery(variable, context.query());
-                case LAMBDA:
-                    return resolveLambda(variable, context.lambda());
-                default:
-                    return resolveElement(variable);
-            }
+            return switch (context.getScope()) {
+                case QUERY -> resolveQuery(variable, context.query());
+                case LAMBDA -> resolveLambda(variable, context.lambda());
+                default -> resolveElement(variable);
+            };
         }
 
         private ResolveResult[] resolveQuery(QVariable var, QQueryExpr query) {
@@ -100,7 +96,7 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
                     .map(e -> ((QAssignmentExpr) e).getExpression())
                     .filter(e -> e instanceof QTableExpr)
                     .map(e -> (QTableExpr) e)
-                    .collect(Collectors.toList());
+                    .toList();
 
             final String qualifiedName = var.getQualifiedName();
             List<QVarDeclaration> res = new ArrayList<>();

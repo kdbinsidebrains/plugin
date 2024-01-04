@@ -91,8 +91,7 @@ public class SeriesConfig {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof SeriesConfig)) return false;
-        SeriesConfig that = (SeriesConfig) o;
+        if (!(o instanceof SeriesConfig that)) return false;
         return lowerMargin == that.lowerMargin && upperMargin == that.upperMargin && Objects.equals(name, that.name) && type == that.type;
     }
 

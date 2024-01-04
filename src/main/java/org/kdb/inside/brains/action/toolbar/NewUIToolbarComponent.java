@@ -30,8 +30,7 @@ public class NewUIToolbarComponent extends AnAction implements CustomComponentAc
         toolbar.setReservePlaceAutoPopupIcon(false);
         toolbar.setMinimumButtonSize(JBUI.size(36, 30));
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
-        if (toolbar instanceof ActionToolbarImpl) {
-            final ActionToolbarImpl t = (ActionToolbarImpl) toolbar;
+        if (toolbar instanceof ActionToolbarImpl t) {
             t.setOpaque(false);
             t.setBorder(JBUI.Borders.empty());
             t.setActionButtonBorder(JBUI.Borders.empty());
@@ -53,7 +52,7 @@ public class NewUIToolbarComponent extends AnAction implements CustomComponentAc
         return component;
     }
 
-    private class RunWidgetButtonLook extends IdeaActionButtonLook {
+    private static class RunWidgetButtonLook extends IdeaActionButtonLook {
         @Override
         protected Color getStateBackground(JComponent component, int state) {
             return Color.RED;
