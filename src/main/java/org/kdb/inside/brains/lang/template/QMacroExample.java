@@ -24,7 +24,7 @@ public class QMacroExample extends MacroBase {
         if (text == null) {
             return null;
         }
-        if (text.length() > 0) {
+        if (!text.isEmpty()) {
             // Capitalize the start of every word
             text = StringUtil.toTitleCase(text);
         }

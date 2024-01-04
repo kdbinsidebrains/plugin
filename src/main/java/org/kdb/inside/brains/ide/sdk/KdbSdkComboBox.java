@@ -67,8 +67,7 @@ public class KdbSdkComboBox extends ComponentWithBrowseButton<JComboBox<Object>>
         final ComboBoxModel<Object> model = comboBox.getModel();
         for (int i = 0; i < model.getSize(); i++) {
             final Object elementAt = model.getElementAt(i);
-            if (elementAt instanceof Sdk) {
-                Sdk msdk = (Sdk) elementAt;
+            if (elementAt instanceof Sdk msdk) {
                 if (Objects.equals(sdk.getName(), msdk.getName())) {
                     return msdk;
                 }

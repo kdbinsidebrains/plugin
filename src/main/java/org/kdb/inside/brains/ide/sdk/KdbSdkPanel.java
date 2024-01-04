@@ -46,8 +46,7 @@ public class KdbSdkPanel extends JPanel {
         builder.setHorizontalGap(0);
 
         final var component = new JTextPane();
-        component.setText("" +
-                "To be able to run Q code locally, you have to setup KDB SDK on the local PC. If it's not required, you can continue without SDK setup.\n\r" +
+        component.setText("To be able to run Q code locally, you have to setup KDB SDK on the local PC. If it's not required, you can continue without SDK setup.\n\r" +
                 "To setup new KDB SKD, select home folder of KDB binaries that usually is located at C:\\q for Windows or ~/q for Linux");
         component.setBorder(JBUI.Borders.empty());
 

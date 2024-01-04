@@ -71,8 +71,7 @@ class RowNumberView extends JTable implements Disposable {
         super.addNotify();
 
         final Component c = getParent();
-        if (c instanceof JViewport) {
-            JViewport viewport = (JViewport) c;
+        if (c instanceof JViewport viewport) {
             viewport.addChangeListener(listener);
         }
     }
@@ -114,8 +113,7 @@ class RowNumberView extends JTable implements Disposable {
         main.getModel().removeTableModelListener(listener);
 
         final Component c = getParent();
-        if (c instanceof JViewport) {
-            JViewport viewport = (JViewport) c;
+        if (c instanceof JViewport viewport) {
             viewport.removeChangeListener(listener);
         }
     }

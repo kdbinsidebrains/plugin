@@ -15,12 +15,11 @@ import java.util.Collection;
 public class SystemFunctionsMarkerProvider extends RelatedItemLineMarkerProvider {
     @Override
     protected void collectNavigationMarkers(@NotNull PsiElement element, @NotNull Collection<? super RelatedItemLineMarkerInfo<?>> result) {
-        if (!(element instanceof QAssignmentExpr)) {
+        if (!(element instanceof QAssignmentExpr assignment)) {
             return;
         }
 
         // TODO: check any function override
-        final QAssignmentExpr assignment = (QAssignmentExpr) element;
         final QVarDeclaration variable = assignment.getVarDeclaration();
         if (variable == null) {
             return;

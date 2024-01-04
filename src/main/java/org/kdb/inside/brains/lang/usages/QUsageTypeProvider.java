@@ -26,24 +26,17 @@ public final class QUsageTypeProvider implements UsageTypeProvider {
             return SYMBOL_REFERENCE;
         }
 
-        if (element instanceof QVarDeclaration) {
-            final QVarDeclaration declaration = (QVarDeclaration) element;
+        if (element instanceof QVarDeclaration declaration) {
             final ElementContext elementContext = QPsiUtil.getElementContext(declaration);
             final ElementScope scope = elementContext.getScope();
-            switch (scope) {
-                case FILE:
-                    return GLOBAL_ASSIGNMENT;
-                case TABLE:
-                    return TABLE_COLUMN;
-                case QUERY:
-                    return QUERY_COLUMN;
-                case LAMBDA:
-                    return LOCAL_ASSIGNMENT;
-                case PARAMETERS:
-                    return PARAMETER;
-                default:
-                    return UNKNOWN_ASSIGNMENT;
-            }
+            return switch (scope) {
+                case FILE -> GLOBAL_ASSIGNMENT;
+                case TABLE -> TABLE_COLUMN;
+                case QUERY -> QUERY_COLUMN;
+                case LAMBDA -> LOCAL_ASSIGNMENT;
+                case PARAMETERS -> PARAMETER;
+                default -> UNKNOWN_ASSIGNMENT;
+            };
         }
         return null;
     }

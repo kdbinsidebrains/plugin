@@ -2,9 +2,7 @@ package org.kdb.inside.brains.action.execute;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.*;
 import com.intellij.openapi.util.Pair;
@@ -14,6 +12,7 @@ import com.intellij.util.IconUtil;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.KdbConnectionManager;
 import org.kdb.inside.brains.core.KdbQuery;
@@ -26,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CancelQueriesAction extends DumbAwareAction {
+public class CancelQueriesAction extends EdtAction {
     private WeakReference<JBPopup> myActivePopupRef = null;
 
     @Override
@@ -106,7 +105,7 @@ public class CancelQueriesAction extends DumbAwareAction {
         IPopupChooserBuilder<HandlerItem> builder = JBPopupFactory.getInstance().createPopupChooserBuilder(items)
                 .setMovable(true)
                 .setRenderer(new GroupedItemsListRenderer<>(new HandlerItemRenderer()))
-                .setTitle(items.size() == 1 ? "Confirm the Query Should Be Cancelled" : "Cance the Query on the Instance")
+                .setTitle(items.size() == 1 ? "Confirm the Query Should Be Cancelled" : "Cancel the Query on the Instance")
                 .setNamerForFiltering(o -> o.displayName)
                 .setItemsChosenCallback((valuesList) -> {
                     for (HandlerItem item : valuesList) {
@@ -126,19 +125,19 @@ public class CancelQueriesAction extends DumbAwareAction {
         }
 
         JBPopup popup = builder.createPopup();
-
         myActivePopupRef = new WeakReference<>(popup);
 
-        final Project project = e.getProject();
         final InputEvent inputEvent = e.getInputEvent();
-        final DataContext dataContext = e.getDataContext();
         Component component = inputEvent != null ? inputEvent.getComponent() : null;
         if (component != null) {
             popup.showUnderneathOf(component);
-        } else if (project == null) {
-            popup.showInBestPositionFor(dataContext);
         } else {
-            popup.showCenteredInCurrentWindow(project);
+            final Project project = e.getProject();
+            if (project != null) {
+                popup.showCenteredInCurrentWindow(project);
+            } else {
+                popup.showInBestPositionFor(e.getDataContext());
+            }
         }
     }
 

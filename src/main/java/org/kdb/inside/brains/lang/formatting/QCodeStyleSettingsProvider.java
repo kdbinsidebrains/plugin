@@ -78,7 +78,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
     }
 
     @Override
-    public CustomCodeStyleSettings createCustomSettings(CodeStyleSettings settings) {
+    public CustomCodeStyleSettings createCustomSettings(@NotNull CodeStyleSettings settings) {
         return new QCodeStyleSettings(settings);
     }
 
@@ -86,7 +86,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
     public @NotNull CodeStyleConfigurable createConfigurable(@NotNull CodeStyleSettings settings, @NotNull CodeStyleSettings modelSettings) {
         return new CodeStyleAbstractConfigurable(settings, modelSettings, this.getConfigurableDisplayName()) {
             @Override
-            protected CodeStyleAbstractPanel createPanel(CodeStyleSettings settings) {
+            protected @NotNull CodeStyleAbstractPanel createPanel(@NotNull CodeStyleSettings settings) {
                 return new QCodeStylePanel(getCurrentSettings(), settings);
             }
         };
@@ -252,13 +252,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         return Stream.of(enums).map(Enum::name).toArray(String[]::new);
     }
 
-    private static class Customizer {
-        private final CodeStyleSettingsCustomizable consumer;
-
-        public Customizer(CodeStyleSettingsCustomizable consumer) {
-            this.consumer = consumer;
-        }
-
+    private record Customizer(CodeStyleSettingsCustomizable consumer) {
         Group group(String name) {
             return new Group(name, consumer);
         }
@@ -269,15 +263,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         }
     }
 
-    private static class Group {
-        private final String group;
-        private final CodeStyleSettingsCustomizable consumer;
-
-        public Group(String group, CodeStyleSettingsCustomizable consumer) {
-            this.group = group;
-            this.consumer = consumer;
-        }
-
+    private record Group(String group, CodeStyleSettingsCustomizable consumer) {
         void item(@NotNull String fieldName, @NotNull String title) {
             consumer.showCustomOption(QCodeStyleSettings.class, fieldName, title, group);
         }

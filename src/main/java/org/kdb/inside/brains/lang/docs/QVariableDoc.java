@@ -12,27 +12,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class QVariableDoc {
-    private final String definition;
-    private final String description;
-    private final List<Parameter> parameters;
+public record QVariableDoc(String definition, String description, List<Parameter> parameters) {
+    static String getDefinition(QAssignmentExpr assignment) {
+        final QVarDeclaration variable = assignment.getVarDeclaration();
+        if (variable == null) {
+            return null;
+        }
 
-    public QVariableDoc(String definition, String description, List<Parameter> parameters) {
-        this.definition = definition;
-        this.description = description;
-        this.parameters = parameters;
+        final QExpression expression = assignment.getExpression();
+        if (!(expression instanceof QLambdaExpr lambda)) {
+            return null;
+        }
+
+        final QParameters parameters = lambda.getParameters();
+        if (parameters == null) {
+            return variable.getQualifiedName() + "[]";
+        }
+        final String params = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
+        return variable.getQualifiedName() + "[" + params + "]";
     }
 
-    public String getDefinition() {
-        return definition;
+    private static void appendSection(HtmlBuilder builder, String sectionName, String sectionContent) {
+        HtmlChunk headerCell = DocumentationMarkup.SECTION_HEADER_CELL.child(HtmlChunk.text(sectionName).wrapWith("p"));
+        HtmlChunk contentCell = DocumentationMarkup.SECTION_CONTENT_CELL.addText(sectionContent);
+        builder.append(HtmlChunk.tag("tr").children(headerCell, contentCell));
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public List<Parameter> getParameters() {
-        return parameters;
+    public static QVariableDoc from(QAssignmentExpr variable) {
+        return from(getDefinition(variable), extractDocs(variable));
     }
 
     public String toHtml() {
@@ -57,40 +64,10 @@ public class QVariableDoc {
 
         final HtmlBuilder sectionsBuilder = new HtmlBuilder();
         for (Parameter parameter : parameters) {
-            appendSection(sectionsBuilder, parameter.getName(), parameter.getDescription());
+            appendSection(sectionsBuilder, parameter.name(), parameter.description());
         }
         builder.append(sectionsBuilder.wrapWith(DocumentationMarkup.SECTIONS_TABLE));
         return builder.toString();
-    }
-
-    private static void appendSection(HtmlBuilder builder, String sectionName, String sectionContent) {
-        HtmlChunk headerCell = DocumentationMarkup.SECTION_HEADER_CELL.child(HtmlChunk.text(sectionName).wrapWith("p"));
-        HtmlChunk contentCell = DocumentationMarkup.SECTION_CONTENT_CELL.addText(sectionContent);
-        builder.append(HtmlChunk.tag("tr").children(headerCell, contentCell));
-    }
-
-    public static QVariableDoc from(QAssignmentExpr variable) {
-        return from(getDefinition(variable), extractDocs(variable));
-    }
-
-    static String getDefinition(QAssignmentExpr assignment) {
-        final QVarDeclaration variable = assignment.getVarDeclaration();
-        if (variable == null) {
-            return null;
-        }
-
-        final QExpression expression = assignment.getExpression();
-        if (!(expression instanceof QLambdaExpr)) {
-            return null;
-        }
-
-        final QLambdaExpr lambda = (QLambdaExpr) expression;
-        final QParameters parameters = lambda.getParameters();
-        if (parameters == null) {
-            return variable.getQualifiedName() + "[]";
-        }
-        final String params = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
-        return variable.getQualifiedName() + "[" + params + "]";
     }
 
     public static QVariableDoc from(String definition, String documentations) {
@@ -171,21 +148,6 @@ public class QVariableDoc {
         return b.toString();
     }
 
-    public static final class Parameter {
-        private final String name;
-        private final String description;
-
-        public Parameter(String name, String description) {
-            this.name = name;
-            this.description = description;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
+    public record Parameter(String name, String description) {
     }
 }

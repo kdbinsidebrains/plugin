@@ -374,7 +374,7 @@ final class TabsDockingManager implements Disposable {
 
             myContainer.addListener(new DockContainer.Listener() {
                 @Override
-                public void contentRemoved(Object key) {
+                public void contentRemoved(@NotNull Object key) {
                     getReady().doWhenDone(() -> {
                         if (myContainer.isEmpty()) {
                             close();

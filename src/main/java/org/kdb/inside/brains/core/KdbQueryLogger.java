@@ -26,7 +26,14 @@ public class KdbQueryLogger implements PersistentStateComponent<KdbQueryLogger.S
     private State state;
     private Path logsFolder;
 
-    private static final String FILE_HEADER = "" + "/\n" + "File format:\n" + " <timestamp>, <instance uri>, <instance name>, <roundtrip, nanos>, <result type or error message>\n" + " <Full query>\n" + " <line separator>\n" + "\\\n";
+    private static final String FILE_HEADER = """
+            /
+            File format:
+             <timestamp>, <instance uri>, <instance name>, <roundtrip, nanos>, <result type or error message>
+             <Full query>
+             <line separator>
+            \\
+            """;
 
     private static final Logger log = Logger.getInstance(KdbQueryLogger.class);
 

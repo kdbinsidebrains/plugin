@@ -27,11 +27,10 @@ public class NewInstanceAction extends SingleItemAction {
             return;
         }
 
-        if (!(item instanceof StructuralItem)) {
+        if (!(item instanceof StructuralItem folder)) {
             return;
         }
 
-        final StructuralItem folder = (StructuralItem) item;
         final InstanceEditorDialog editor = new InstanceEditorDialog(InstanceEditorDialog.Mode.CREATE, e.getProject(), folder, null);
         if (editor.showAndGet()) {
             final KdbInstance updated = editor.createInstance();

@@ -437,9 +437,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
 
             final List<AnAction> items = new ArrayList<>();
             for (AnAction action : group.getChildren(null)) {
-                if (action instanceof ActionGroup) {
-                    final ActionGroup actionGroup = (ActionGroup) action;
-
+                if (action instanceof ActionGroup actionGroup) {
                     final AnAction[] children = actionGroup.getChildren(null);
                     if (children.length != 0) {
                         captionItems.put(children[0], actionGroup.getTemplatePresentation().getText());

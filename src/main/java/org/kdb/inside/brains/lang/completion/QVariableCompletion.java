@@ -85,11 +85,10 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
         }
 
         final InspectorElement element = inspector.getElement(tableName);
-        if (!(element instanceof TableElement)) {
+        if (!(element instanceof TableElement table)) {
             return;
         }
 
-        final TableElement table = (TableElement) element;
         for (TableElement.Column column : table.getColumns()) {
             LookupElementBuilder b = LookupElementBuilder.create(column.getName()).withIcon(column.getIcon()).withTailText(" " + KdbType.typeOf(column.getType()).getTypeName()).withTypeText(tableName + "@inspector", true);
             result.addElement(b);
@@ -98,11 +97,10 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
 
     private void addSourceTableColumns(QVarDeclaration tableName, CompletionResultSet result) {
         final PsiElement parent = tableName.getParent();
-        if (!(parent instanceof QAssignmentExpr)) {
+        if (!(parent instanceof QAssignmentExpr assignmentExpr)) {
             return;
         }
 
-        final QAssignmentExpr assignmentExpr = (QAssignmentExpr) parent;
         final QExpression expression = assignmentExpr.getExpression();
         if (!(expression instanceof QTableExpr)) {
             return;
@@ -190,14 +188,14 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
                 return true;
             }
 
-            final IdentifierType type = descriptor.getType();
+            final IdentifierType type = descriptor.type();
             if (identifierType != null && identifierType != type) {
                 return true;
             }
 
             LookupElementBuilder b = LookupElementBuilder.create(key).withIcon(type.getIcon()).withTypeText(file.getName(), true);
 
-            final List<String> params = descriptor.getParams();
+            final List<String> params = descriptor.params();
             if (type == IdentifierType.LAMBDA) {
                 final String join = params == null ? "" : String.join(";", params);
                 b = b.withTailText("[" + join + "]");

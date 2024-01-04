@@ -9,7 +9,6 @@ import com.intellij.openapi.vfs.VirtualFileWrapper;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.nio.file.Files;
 
 public class BinaryExportAction extends AnExportAction<VirtualFileWrapper> {
@@ -23,7 +22,7 @@ public class BinaryExportAction extends AnExportAction<VirtualFileWrapper> {
     }
 
     @Override
-    protected VirtualFileWrapper getExportConfig(Project project, ExportDataProvider view) throws IOException {
+    protected VirtualFileWrapper getExportConfig(Project project, ExportDataProvider view) {
         final FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Export to KDB Binary", "Exporting data into native KDB IPC format", "kib");
         final FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, project);
         return saveFileDialog.save("Table Result");

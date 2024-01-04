@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class VariableElement extends ExecutableElement {
     private final short type;
-    private final Object description;
     private static final String[] TYPE_NAMES = {
             "list", // 0
             "boolean", // 1
@@ -33,8 +32,7 @@ public class VariableElement extends ExecutableElement {
     public VariableElement(String namespace, Object[] item) {
         super((String) item[0], namespace, KdbIcons.Node.Variable);
         type = ((Number) item[1]).shortValue();
-        description = item[2];
-        location = typeName(type, description);
+        location = typeName(type, item[2]);
     }
 
     private static String typeName(int type, Object description) {

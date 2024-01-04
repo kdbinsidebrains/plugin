@@ -23,14 +23,13 @@ public class ImportConverter extends BaseElementAtCaretIntentionAction implement
     }
 
     @Override
-    public void invoke(@NotNull Project project, Editor editor, @NotNull PsiElement element) throws IncorrectOperationException {
+    public void invoke(@NotNull Project project, @NotNull Editor editor, @NotNull PsiElement element) throws IncorrectOperationException {
         System.out.println("Invoke");
     }
 
     @Override
-    public boolean isAvailable(@NotNull Project project, Editor editor, @NotNull PsiElement element) {
-        if (element.getParent() instanceof QImport) {
-            QImport qImport = (QImport) element.getParent();
+    public boolean isAvailable(@NotNull Project project, @NotNull Editor editor, @NotNull PsiElement element) {
+        if (element.getParent() instanceof QImport qImport) {
             System.out.println("asdasd");
             return true;
         }

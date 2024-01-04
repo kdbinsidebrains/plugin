@@ -13,9 +13,9 @@ class QVariableDocTest {
     @MethodSource("docExamples")
     void docsGroup(String txt) {
         final QVariableDoc docs = QVariableDoc.from(".asd.qwe[x;qe;f]", txt);
-        assertEquals("This is test function", docs.getDescription());
+        assertEquals("This is test function", docs.description());
 
-        final List<QVariableDoc.Parameter> parameters = docs.getParameters();
+        final List<QVariableDoc.Parameter> parameters = docs.parameters();
         assertEquals(4, parameters.size());
         assertParameter("params", "z this is test but many lines", parameters.get(0));
         assertParameter("returns", "z*10", parameters.get(1));
@@ -26,8 +26,8 @@ class QVariableDocTest {
     }
 
     private void assertParameter(String name, String description, QVariableDoc.Parameter parameter) {
-        assertEquals(name, parameter.getName());
-        assertEquals(description, parameter.getDescription());
+        assertEquals(name, parameter.name());
+        assertEquals(description, parameter.description());
     }
 
     private static Stream<String> docExamples() {

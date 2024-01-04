@@ -64,8 +64,7 @@ public class KdbProcessRunConfiguration extends ApplicationConfiguration impleme
         return new RefactoringElementAdapter() {
             @Override
             protected void elementRenamedOrMoved(@NotNull PsiElement newElement) {
-                if (newElement instanceof QFile) {
-                    final QFile file = (QFile) newElement;
+                if (newElement instanceof QFile file) {
                     final String scriptFilePath = ScriptFileUtil.getScriptFilePath(file.getVirtualFile());
                     getOptions().setMainClassName(FileUtil.toSystemDependentName(scriptFilePath));
                 }

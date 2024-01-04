@@ -41,7 +41,7 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
     private static JFreeChart createChart(OHLCChartConfig config, ChartDataProvider dataProvider) {
         final OHLCDataset dataset = createDataset(config, dataProvider);
 
-        final JFreeChart chart = ChartFactory.createCandlestickChart(null, config.getDomain().getName(), "", dataset, false);
+        final JFreeChart chart = ChartFactory.createCandlestickChart(null, config.domain().getName(), "", dataset, false);
 
         final MyCandlestickRenderer renderer = new MyCandlestickRenderer();
         renderer.setUpPaint(ChartColors.POSITIVE);
@@ -55,13 +55,13 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
 
     @NotNull
     private static OHLCDataset createDataset(OHLCChartConfig config, ChartDataProvider dataProvider) {
-        final Date[] dates = dataProvider.getDates(config.getDomain());
-        final double[] high = dataProvider.getDoubles(config.getHighColumn());
-        final double[] low = dataProvider.getDoubles(config.getLowColumn());
-        final double[] open = dataProvider.getDoubles(config.getOpenColumn());
-        final double[] close = dataProvider.getDoubles(config.getCloseColumn());
+        final Date[] dates = dataProvider.getDates(config.domain());
+        final double[] high = dataProvider.getDoubles(config.highColumn());
+        final double[] low = dataProvider.getDoubles(config.lowColumn());
+        final double[] open = dataProvider.getDoubles(config.openColumn());
+        final double[] close = dataProvider.getDoubles(config.closeColumn());
 
-        final ColumnConfig volumeColumn = config.getVolumeColumn();
+        final ColumnConfig volumeColumn = config.volumeColumn();
         final double[] volume = volumeColumn == null ? new double[dataProvider.getRowsCount()] : dataProvider.getDoubles(volumeColumn);
 
         return new DefaultHighLowDataset("", dates, high, low, open, close, volume);
@@ -206,13 +206,13 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
     public void setChartConfig(OHLCChartConfig config) {
         ignoreUpdate = true;
         try {
-            domainComponent.setSelectedItem(config.getDomain());
+            domainComponent.setSelectedItem(config.domain());
 
-            setSelectedConfig(1, config.getOpenColumn());
-            setSelectedConfig(2, config.getHighColumn());
-            setSelectedConfig(3, config.getLowColumn());
-            setSelectedConfig(4, config.getCloseColumn());
-            setSelectedConfig(5, config.getVolumeColumn());
+            setSelectedConfig(1, config.openColumn());
+            setSelectedConfig(2, config.highColumn());
+            setSelectedConfig(3, config.lowColumn());
+            setSelectedConfig(4, config.closeColumn());
+            setSelectedConfig(5, config.volumeColumn());
         } finally {
             ignoreUpdate = false;
         }

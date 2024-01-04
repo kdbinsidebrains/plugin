@@ -127,7 +127,7 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
             b.append(parameter);
             b.append(";");
         }
-        if (b.length() != 0) {
+        if (!b.isEmpty()) {
             b.setLength(b.length() - 1);
         }
         context.setupUIComponentPresentation(b.toString(), startOffset, endOffset, false, false, true, context.getDefaultParameterColor());
@@ -193,9 +193,7 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
         }
 
         final PsiElement parent = resolve.getParent();
-        if (parent instanceof QAssignmentExpr) {
-            final QAssignmentExpr assignment = (QAssignmentExpr) parent;
-
+        if (parent instanceof QAssignmentExpr assignment) {
             final QExpression expression = assignment.getExpression();
             if (expression instanceof QLambdaExpr) {
                 return (QLambdaExpr) expression;

@@ -75,8 +75,7 @@ class TemplatesEditorPanel extends MasterDetailsComponent {
 
         myTree.setCellRenderer((tree, value, selected, expanded, leaf, row, hasFocus) -> {
             cellRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-            if (value instanceof MyNode && ((MyNode) value).getConfigurable() != null) {
-                final MyNode node = (MyNode) value;
+            if (value instanceof MyNode node && ((MyNode) value).getConfigurable() != null) {
                 final Object editableObject = node.getConfigurable();
                 if (!(editableObject instanceof TemplateConfigurable)) {
                     return cellRenderer;
@@ -121,9 +120,7 @@ class TemplatesEditorPanel extends MasterDetailsComponent {
     public void reset() {
         myRoot.removeAllChildren();
 
-        templateService.getTemplates().forEach(t -> {
-            myRoot.add(new MyNode(new TemplateConfigurable(t, TemplatesEditorPanel.this::containsName, TREE_UPDATER)));
-        });
+        templateService.getTemplates().forEach(t -> myRoot.add(new MyNode(new TemplateConfigurable(t, TemplatesEditorPanel.this::containsName, TREE_UPDATER))));
         ((DefaultTreeModel) myTree.getModel()).reload(myRoot);
     }
 }

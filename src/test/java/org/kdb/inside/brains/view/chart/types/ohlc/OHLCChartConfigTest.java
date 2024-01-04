@@ -59,11 +59,11 @@ public class OHLCChartConfigTest {
     @Test
     void restore() throws IOException, JDOMException {
         final OHLCChartConfig c = OHLCChartConfig.restore(JDOMUtil.load(MESSAGE));
-        ColumnConfigTest.assertColumn(c.getDomain(), "date", KdbType.TIMESTAMP);
-        ColumnConfigTest.assertColumn(c.getOpenColumn(), "open", KdbType.FLOAT);
-        ColumnConfigTest.assertColumn(c.getHighColumn(), "high", KdbType.FLOAT);
-        ColumnConfigTest.assertColumn(c.getLowColumn(), "low", KdbType.FLOAT);
-        ColumnConfigTest.assertColumn(c.getCloseColumn(), "close", KdbType.FLOAT);
-        ColumnConfigTest.assertColumn(c.getVolumeColumn(), "volume", KdbType.FLOAT);
+        ColumnConfigTest.assertColumn(c.domain(), "date", KdbType.TIMESTAMP);
+        ColumnConfigTest.assertColumn(c.openColumn(), "open", KdbType.FLOAT);
+        ColumnConfigTest.assertColumn(c.highColumn(), "high", KdbType.FLOAT);
+        ColumnConfigTest.assertColumn(c.lowColumn(), "low", KdbType.FLOAT);
+        ColumnConfigTest.assertColumn(c.closeColumn(), "close", KdbType.FLOAT);
+        ColumnConfigTest.assertColumn(c.volumeColumn(), "volume", KdbType.FLOAT);
     }
 }

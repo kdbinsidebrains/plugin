@@ -35,13 +35,11 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
     }
 
     public static @Nullable QStructureViewElement createViewElement(PsiElement child) {
-        if (child instanceof QImport) {
-            final QImport qImport = (QImport) child;
+        if (child instanceof QImport qImport) {
             return new QStructureViewElement(child, StructureElementType.IMPORT, qImport.getFilePath());
         } else if (child instanceof QCommand) {
             return new QStructureViewElement(child, StructureElementType.COMMAND, child.getText());
-        } else if (child instanceof QContext) {
-            final QContext context = (QContext) child;
+        } else if (child instanceof QContext context) {
             final QContextBody body = context.getContextBody();
             final QVarDeclaration nameVar = context.getVariable();
             if (nameVar != null) {
@@ -51,16 +49,14 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
             }
         } else if (child instanceof QLambdaExpr) {
             return createLambdaElement(child, (QLambdaExpr) child, "\uD835\uDF06");
-        } else if (child instanceof QTableColumn) {
-            final QTableColumn col = (QTableColumn) child;
+        } else if (child instanceof QTableColumn col) {
             final boolean keys = col.getParent() instanceof QTableKeys;
             final QVarDeclaration varDeclaration = col.getVarDeclaration();
 
             String name = varDeclaration == null ? "" : varDeclaration.getQualifiedName();
             name += getExpressionType(col.getExpression());
             return new QStructureViewElement(child, keys ? StructureElementType.TABLE_KEY_COLUMN : StructureElementType.TABLE_VALUE_COLUMN, name);
-        } else if (child instanceof QAssignmentExpr) {
-            final QAssignmentExpr assignment = (QAssignmentExpr) child;
+        } else if (child instanceof QAssignmentExpr assignment) {
             final QVarDeclaration variable = assignment.getVarDeclaration();
             if (variable == null) {
                 return null;

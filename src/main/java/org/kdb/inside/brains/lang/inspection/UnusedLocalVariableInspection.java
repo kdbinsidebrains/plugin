@@ -108,15 +108,13 @@ public class UnusedLocalVariableInspection extends ElementInspection<QVarDeclara
             p = (e = p).getParent();
         }
 
-        if (p instanceof QControlExpr) {
-            final QControlExpr c = (QControlExpr) p;
+        if (p instanceof QControlExpr c) {
             final List<QExpression> expressions = c.getExpressions();
             final int i = expressions.indexOf(e);
             return i == 0;
         }
 
-        if (p instanceof QConditionExpr) {
-            final QConditionExpr c = (QConditionExpr) p;
+        if (p instanceof QConditionExpr c) {
             final List<QExpression> expressions = c.getExpressions();
             final int i = expressions.indexOf(e);
             return i >= 0 && i < expressions.size() && (i % 2) == 0;

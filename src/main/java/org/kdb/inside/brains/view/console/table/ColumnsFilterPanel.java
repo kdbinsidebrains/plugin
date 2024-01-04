@@ -46,7 +46,7 @@ class ColumnsFilterPanel extends NonOpaquePanel {
                     }
                 }
 
-                if (selected.size() > 0) {
+                if (!selected.isEmpty()) {
                     String text = StringUtil.join(selected, "\n");
                     CopyPasteManager.getInstance().setContents(new StringSelection(text));
                 }
