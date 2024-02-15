@@ -55,6 +55,7 @@ generateLexer {
     targetDir = "src/main/gen/org/kdb/inside/brains"
     targetClass = "QLexer"
     purgeOldFiles = true
+    dependsOn("sourcesJar")
 }
 
 generateParser {
@@ -63,6 +64,7 @@ generateParser {
     pathToParser = 'org/kdb/inside/brains/parser/QParser.java'
     pathToPsiRoot = 'org/kdb/inside/brains/psi'
     purgeOldFiles = true
+    dependsOn("sourcesJar")
 }
 
 dependencies {
