@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TemplatesEditorDialog extends SettingsDialog {
-    protected TemplatesEditorDialog(@NotNull Project project, @NotNull TemplatesEditorPanel templatePanel) {
+    TemplatesEditorDialog(@NotNull Project project, @NotNull TemplatesEditorPanel templatePanel) {
         super(project, "KdbChartTemplates", templatePanel, true, false);
     }
 

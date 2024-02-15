@@ -421,7 +421,7 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
         }
     }
 
-    private class RenameTabAction extends AnAction {
+    private class RenameTabAction extends EdtAction {
         public RenameTabAction() {
             super("Rename/Pin", "Rename the result set to keep it in memory", null);
             registerCustomShortcutSet(KeyEvent.VK_R, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, tabs.getComponent());

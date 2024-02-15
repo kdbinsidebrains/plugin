@@ -9,7 +9,6 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.WriteExternalException;
@@ -24,6 +23,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
+import org.kdb.inside.brains.action.EdtToggleAction;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.treeview.actions.ExportScopesAction;
@@ -89,7 +89,7 @@ public class InstancesToolWindow implements Disposable, PersistentStateComponent
         final DefaultActionGroup group = new DefaultActionGroup();
         group.add(manageScopes);
         group.addSeparator();
-        group.add(new DumbAwareToggleAction("Select Activate Instance", "Select active instance based on the instances toolbar", null) {
+        group.add(new EdtToggleAction("Select Activate Instance", "Select active instance based on the instances toolbar", null) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return executionOptions.isSelectActiveConnectionInTree();

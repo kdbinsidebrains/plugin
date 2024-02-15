@@ -1,5 +1,19 @@
 # KdbInsideBrains Changelog
 
+## [5.3.0]
+
+### Added
+
+- IDEA 2024.1 added to supported versions
+
+### Changed
+
+- All libs upgraded to the latest versions.
+
+### Fixed
+
+- Table View scroll doesn't work in NewUI when row number column is enabled.
+
 ## [5.2.1]
 
 ### Fixed

@@ -1,16 +1,16 @@
 package org.kdb.inside.brains.action.connection;
 
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.KdbConnectionManager;
 import org.kdb.inside.brains.core.KdbInstance;
 import org.kdb.inside.brains.view.treeview.forms.InstanceEditorDialog;
 
-public class ModifyConnectionAction extends AnAction {
+public class ModifyConnectionAction extends EdtAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
         final Project project = e.getProject();

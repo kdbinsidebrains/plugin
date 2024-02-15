@@ -1,19 +1,18 @@
 package org.kdb.inside.brains.view.chart;
 
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.NlsActions;
 import com.intellij.ui.tabs.TabInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.chart.template.ChartTemplate;
 import org.kdb.inside.brains.view.console.KdbConsolePanel;
 
 import javax.swing.*;
 import java.util.function.Supplier;
 
-public class ShowChartAction extends AnAction implements DumbAware {
+public class ShowChartAction extends EdtAction {
     private final ChartTemplate template;
     private final Supplier<ChartDataProvider> dataProvider;
 

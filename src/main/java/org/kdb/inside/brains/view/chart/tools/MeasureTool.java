@@ -49,7 +49,6 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
 
     private static final Stroke BASIC = new BasicStroke(2);
     private static final Stroke DASHED = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
-    private KdbType domainType;
     private MeasureArea highlighted;
 
     static {
@@ -285,8 +284,7 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
 
     @Override
     public void initialize(JFreeChart chart, KdbType domainType) {
-        this.domainType = domainType;
-/*
+        /*
         final String chartSnapshot = getChartSnapshot(chart);
         if (!chartSnapshot.equals(currentChartSnapshot)) {
             activeArea = null;

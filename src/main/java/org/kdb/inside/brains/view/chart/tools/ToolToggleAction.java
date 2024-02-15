@@ -1,13 +1,12 @@
 package org.kdb.inside.brains.view.chart.tools;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.project.DumbAware;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.action.EdtToggleAction;
 
 import javax.swing.*;
 
-public class ToolToggleAction extends ToggleAction implements DumbAware {
+public class ToolToggleAction extends EdtToggleAction {
     private final IsSelected isSelected;
     private final SetSelected setSelected;
 

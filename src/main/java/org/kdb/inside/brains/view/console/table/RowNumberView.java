@@ -85,12 +85,18 @@ class RowNumberView extends JTable implements Disposable {
     }
 
     @Override
+    public int getRowHeight() {
+        return main.getRowHeight();
+    }
+
+    @Override
+    public int getRowMargin() {
+        return main.getRowMargin();
+    }
+
+    @Override
     public int getRowHeight(int row) {
-        int rowHeight = main.getRowHeight(row);
-        if (rowHeight != super.getRowHeight(row)) {
-            super.setRowHeight(row, rowHeight);
-        }
-        return rowHeight;
+        return main.getRowHeight(row);
     }
 
     @Override
@@ -155,7 +161,7 @@ class RowNumberView extends JTable implements Disposable {
         public void propertyChange(PropertyChangeEvent e) {
             //  Keep the row table in sync with the main table
             if ("selectionModel".equals(e.getPropertyName())) {
-                setSelectionModel(main.getSelectionModel());
+                setSelectionModel(new ListSelectionModelWrapper(main));
             }
 
             if ("rowHeight".equals(e.getPropertyName())) {

@@ -4,8 +4,10 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.actionSystem.impl.IdeaActionButtonLook;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.action.EdtAction;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,7 +17,7 @@ import java.awt.*;
  * <p>
  * In com.intellij.execution.ui.RedesignedRunWidget.kt they have redefined all UI classes to support correct view. Not sure, I'd like to do the same for now.
  */
-public class NewUIToolbarComponent extends AnAction implements CustomComponentAction {
+public class NewUIToolbarComponent extends EdtAction implements CustomComponentAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
     }
@@ -55,7 +57,7 @@ public class NewUIToolbarComponent extends AnAction implements CustomComponentAc
     private static class RunWidgetButtonLook extends IdeaActionButtonLook {
         @Override
         protected Color getStateBackground(JComponent component, int state) {
-            return Color.RED;
+            return JBColor.RED;
 //            return JBUI.CurrentTheme.RunWidget.BACKGROUND;
         }
 /*

@@ -1,24 +1,23 @@
 package org.kdb.inside.brains.view.export;
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.ui.IoErrorText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.BgtAction;
 
 import javax.swing.*;
 import java.io.IOException;
 
-public abstract class AnExportAction<Config> extends AnAction implements DumbAware {
+public abstract class AnExportAction<Config> extends BgtAction {
     private final ExportingType type;
     private final ExportDataProvider exportingView;
 

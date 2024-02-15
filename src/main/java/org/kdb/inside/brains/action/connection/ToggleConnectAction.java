@@ -1,19 +1,18 @@
 package org.kdb.inside.brains.action.connection;
 
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.core.InstanceConnection;
 import org.kdb.inside.brains.core.InstanceState;
 import org.kdb.inside.brains.core.KdbConnectionManager;
 
-public class ToggleConnectAction extends AnAction implements DumbAware, Toggleable {
+public class ToggleConnectAction extends EdtAction implements Toggleable {
     private final InstanceConnection connection;
 
     public ToggleConnectAction() {

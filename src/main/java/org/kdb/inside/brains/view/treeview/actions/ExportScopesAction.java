@@ -7,7 +7,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
@@ -16,6 +15,7 @@ import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.util.ui.IoErrorText;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.action.BgtAction;
 import org.kdb.inside.brains.core.KdbScope;
 import org.kdb.inside.brains.core.KdbScopeHelper;
 
@@ -23,7 +23,7 @@ import java.io.FileWriter;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class ExportScopesAction extends DumbAwareAction {
+public class ExportScopesAction extends BgtAction {
     private static final Logger log = Logger.getInstance(ExportScopesAction.class);
     private final Supplier<List<KdbScope>> scopesConsumer;
 

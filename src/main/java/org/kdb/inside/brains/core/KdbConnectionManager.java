@@ -163,7 +163,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
     }
 
     private void processConnectionState(InstanceConnection conn, InstanceState oldState, InstanceState state) {
-        UIUtil.invokeAndWaitIfNeeded((Runnable) () -> {
+        UIUtil.invokeAndWaitIfNeeded(() -> {
                     connectionListeners.forEach(l -> l.connectionStateChanged(conn, oldState, state));
 
                     final String name = conn.getName();

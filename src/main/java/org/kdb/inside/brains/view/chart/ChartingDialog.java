@@ -490,6 +490,11 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
                 chartPanel.setSnapType(SnapType.NO);
             }
         }
+
+        @Override
+        public @NotNull ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.EDT;
+        }
     }
 
     private String createSVGDocument() {

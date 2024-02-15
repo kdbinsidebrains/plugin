@@ -3,12 +3,12 @@ package org.kdb.inside.brains.view.chart;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.view.chart.template.ChartTemplatesService;
 import org.kdb.inside.brains.view.chart.template.TemplatesEditorDialog;
@@ -27,7 +27,7 @@ public class ChartActionGroup extends PopupActionGroup {
         this.table = table;
 
         showChartAction = new ShowChartAction("Create _Chart", "Open current table in Excel or compatible application", icons.KdbIcons.Chart.Icon, () -> ChartDataProvider.copy(table));
-        showTemplatesManager = new DumbAwareAction("Manage _Templates", "Show charting templates manager", KdbIcons.Chart.Templates) {
+        showTemplatesManager = new EdtAction("Manage _Templates", "Show charting templates manager", KdbIcons.Chart.Templates) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 TemplatesEditorDialog.showDialog(e.getProject(), null);

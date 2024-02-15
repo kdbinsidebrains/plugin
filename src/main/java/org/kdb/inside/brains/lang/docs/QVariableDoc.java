@@ -75,16 +75,16 @@ public record QVariableDoc(String definition, String description, List<Parameter
             return null;
         }
 
-        String mainText = null;
+        StringBuilder mainText = null;
         List<Parameter> parameters = new ArrayList<>();
 
         final List<String> strings = splitDocs(documentations);
         for (String string : strings) {
             if (!string.startsWith("@")) {
                 if (mainText == null) {
-                    mainText = string;
+                    mainText = new StringBuilder(string);
                 } else {
-                    mainText += " " + string;
+                    mainText.append(" ").append(string);
                 }
             } else {
                 final int i = string.indexOf(' ');
@@ -95,13 +95,12 @@ public record QVariableDoc(String definition, String description, List<Parameter
                 }
             }
         }
-        return new QVariableDoc(definition, mainText, parameters);
+        return new QVariableDoc(definition, mainText == null ? null : mainText.toString(), parameters);
     }
 
     static List<String> splitDocs(String docString) {
-        List<String> res = new ArrayList<>();
-
-        String line = "";
+        StringBuilder line = new StringBuilder();
+        final List<String> res = new ArrayList<>();
 
         final String[] split = docString.split("\\r?\\n");
         for (String s : split) {
@@ -124,13 +123,13 @@ public record QVariableDoc(String definition, String description, List<Parameter
             }
 
             if (s.charAt(0) == '@') {
-                res.add(line.strip());
-                line = s;
+                res.add(line.toString().strip());
+                line = new StringBuilder(s);
             } else {
-                line += " " + s;
+                line.append(" ").append(s);
             }
         }
-        res.add(line.strip());
+        res.add(line.toString().strip());
         return res;
     }
 

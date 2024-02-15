@@ -4,9 +4,10 @@ plugins {
     id 'java'
     id 'signing'
     id 'maven-publish'
-    id 'org.jetbrains.intellij' version '1.16.0'
-    id 'org.jetbrains.changelog' version '2.1.2'
-    id "org.jetbrains.grammarkit" version "2022.3"
+    id 'org.jetbrains.intellij' version '1.17.1'
+    id 'org.jetbrains.changelog' version '2.2.0'
+    // 2022.3.2.1 has an issue: https://github.com/JetBrains/gradle-grammar-kit-plugin/issues/168
+    id "org.jetbrains.grammarkit" version "2022.3.2"
 }
 
 Properties versionProps = new Properties()
@@ -50,14 +51,14 @@ apply plugin: 'org.jetbrains.changelog'
 
 apply plugin: 'org.jetbrains.grammarkit'
 generateLexer {
-    source = "src/main/resources/org/kdb/inside/brains/q.flex"
+    sourceFile = file("src/main/resources/org/kdb/inside/brains/q.flex")
     targetDir = "src/main/gen/org/kdb/inside/brains"
     targetClass = "QLexer"
     purgeOldFiles = true
 }
 
 generateParser {
-    source = "src/main/resources/org/kdb/inside/brains/q.bnf"
+    sourceFile = file("src/main/resources/org/kdb/inside/brains/q.bnf")
     targetRoot = 'src/main/gen'
     pathToParser = 'org/kdb/inside/brains/parser/QParser.java'
     pathToPsiRoot = 'org/kdb/inside/brains/psi'
@@ -68,12 +69,12 @@ dependencies {
     implementation 'org.jfree:jfreechart:1.5.4'
     implementation 'org.jfree:org.jfree.svg:5.0.5'
 
-    implementation 'org.apache.poi:poi:5.2.3'
-    implementation 'org.apache.poi:poi-ooxml:5.2.3'
+    implementation 'org.apache.poi:poi:5.2.5'
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'
 
-    testImplementation 'org.mockito:mockito-core:5.5.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.0'
+    testImplementation 'org.mockito:mockito-core:5.10.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
 }
 
 sourceSets {
@@ -86,7 +87,7 @@ test {
     useJUnitPlatform()
 }
 
-task generateCode() {
+tasks.register('generateCode') {
     dependsOn generateLexer
     dependsOn generateParser
 }

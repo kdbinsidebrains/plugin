@@ -1,13 +1,13 @@
 package org.kdb.inside.brains.lang.binding;
 
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.action.EdtAction;
 
-public class BindConnectionAction extends AnAction implements Toggleable {
+public class BindConnectionAction extends EdtAction implements Toggleable {
     @Override
     public void update(@NotNull AnActionEvent e) {
         final Project project = e.getProject();
@@ -37,6 +37,4 @@ public class BindConnectionAction extends AnAction implements Toggleable {
         service.toggleBinding(bind);
         Toggleable.setSelected(presentation, bind);
     }
-
-
 }

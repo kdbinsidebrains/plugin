@@ -34,7 +34,6 @@ import org.kdb.inside.brains.action.connection.CreateConnectionAction;
 import org.kdb.inside.brains.core.*;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.plaf.basic.BasicHTML;
@@ -244,10 +243,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         panel.add(button, PANEL_BUTTON);
         panel.add(editor, PANEL_EDITOR);
 
-        final Border border = UIUtil.isUnderDefaultMacTheme() ?
-                JBUI.Borders.empty(0, 2) : JBUI.Borders.empty(0, 5, 0, 4);
-//        JBUI.Borders.empty(JBUI.CurrentTheme.RunWidget.toolbarBorderHeight(), 6);
-        panel.setBorder(border);
+        panel.setBorder(JBUI.Borders.empty(0, 5, 0, 4));
 
         notificationComponent = panel;
         return panel;
@@ -576,5 +572,10 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         protected boolean isActionClick(MouseEvent e) {
             return UIUtil.isActionClick(e, MouseEvent.MOUSE_RELEASED, true);
         }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.EDT;
     }
 }
