@@ -37,7 +37,7 @@ public class KdbSettingsConfigurable extends KdbConfigurable {
                 .addComponent(consoleOptionsPanel)
 
                 .setFormLeftIndent(0)
-                .addComponent(new TitledSeparator("Numerical Format"))
+                .addComponent(new TitledSeparator("Decimal Format"))
                 .setFormLeftIndent(FORM_LEFT_INDENT)
                 .addComponent(numericalOptionsPanel)
 

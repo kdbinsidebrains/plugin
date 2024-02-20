@@ -88,7 +88,7 @@ public class NumericalOptionsPanel extends JPanel {
     }
 
     private void addScientificNotation(FormBuilder formBuilder) {
-        final ContextHelpLabel infoLabel = ContextHelpLabel.create("<html>Display decimal numbers less or equal 10<sup>-5</sup> or more or equal 10<sup>7<sup></html> in scientific notation (like 1.2345e-003)");
+        final ContextHelpLabel infoLabel = ContextHelpLabel.create("<html>Display decimal numbers less or equal 10<sup>-5</sup> or more or equal 10<sup>7</sup></html> in scientific notation (like 1.2345e-003)");
 
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         p.add(scientificNotation);
