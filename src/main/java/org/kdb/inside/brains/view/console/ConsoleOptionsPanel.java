@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.view.console;
 
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.FormBuilder;
@@ -17,7 +16,6 @@ public class ConsoleOptionsPanel extends JPanel {
     private final JBCheckBox dictAsTable = new JBCheckBox("Show dict as table");
     private final JBCheckBox consoleBackground = new JBCheckBox("Use an instance color for console background");
     private final JBCheckBox clearTableResult = new JBCheckBox("Clear 'Table Result' if result is not a table");
-    private final JBIntSpinner floatPrecisionEditor = new JBIntSpinner(7, 0, ConsoleOptions.MAX_DECIMAL_PRECISION);
     private final ComboBox<ConsoleSplitType> splitTypes = new ComboBox<>(ConsoleSplitType.values());
 
     public ConsoleOptionsPanel() {
@@ -33,7 +31,7 @@ public class ConsoleOptionsPanel extends JPanel {
         formBuilder.addComponent(prefixSymbols);
         formBuilder.addComponent(clearTableResult);
         formBuilder.addComponent(consoleBackground);
-        formBuilder.addLabeledComponent("Float precision: ", floatPrecisionEditor);
+
         createSplitTypes(formBuilder);
 
         add(formBuilder.getPanel());
@@ -59,7 +57,6 @@ public class ConsoleOptionsPanel extends JPanel {
     public ConsoleOptions getOptions() {
         final ConsoleOptions consoleOptions = new ConsoleOptions();
         consoleOptions.setEnlistArrays(enlistArrays.isSelected());
-        consoleOptions.setFloatPrecision(floatPrecisionEditor.getNumber());
         consoleOptions.setWrapStrings(wrapString.isSelected());
         consoleOptions.setPrefixSymbols(prefixSymbols.isSelected());
         consoleOptions.setListAsTable(listAsTable.isSelected());
@@ -71,7 +68,6 @@ public class ConsoleOptionsPanel extends JPanel {
     }
 
     public void setOptions(ConsoleOptions consoleOptions) {
-        floatPrecisionEditor.setNumber(consoleOptions.getFloatPrecision());
         enlistArrays.setSelected(consoleOptions.isEnlistArrays());
         wrapString.setSelected(consoleOptions.isWrapStrings());
         prefixSymbols.setSelected(consoleOptions.isPrefixSymbols());

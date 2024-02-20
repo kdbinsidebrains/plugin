@@ -3,8 +3,10 @@ package org.kdb.inside.brains.view.console;
 import kx.c;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.kdb.inside.brains.view.FormatterOptions;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 
+import java.math.RoundingMode;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -13,12 +15,19 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class KdbOutputFormatterTest {
-    private ConsoleOptions options;
+    private FormatterOptions options;
+
+    private ConsoleOptions consoleOptions;
+    private NumericalOptions numericalOptions;
 
     @BeforeEach
     void init() {
-        options = new ConsoleOptions();
-        options.setEnlistArrays(false);
+        consoleOptions = new ConsoleOptions();
+        consoleOptions.setEnlistArrays(false);
+
+        numericalOptions = new NumericalOptions();
+
+        options = new FormatterOptions(consoleOptions, numericalOptions);
     }
 
     @Test
@@ -299,14 +308,89 @@ class KdbOutputFormatterTest {
 
     @Test
     void precision() {
-        options.setFloatPrecision(15);
+        numericalOptions.setScientificNotation(false);
+        numericalOptions.setFloatPrecision(15);
         assertEquals("24.123456789098764", convert(24.1234567890987654321));
 
-        options.setFloatPrecision(2);
+        numericalOptions.setFloatPrecision(2);
         assertEquals("24.12", convert(24.1234567890987654321));
 
-        options.setFloatPrecision(0);
+        numericalOptions.setFloatPrecision(0);
         assertEquals("24.", convert(24.1234567890987654321));
+    }
+
+    @Test
+    void scientists() {
+        numericalOptions.setScientificNotation(true);
+        assertEquals("0n", convert(Double.NaN));
+        assertEquals("-\u221E", convert(Double.NEGATIVE_INFINITY));
+        assertEquals("\u221E", convert(Double.POSITIVE_INFINITY));
+
+        assertEquals("0f", convert(0.));
+        assertEquals("0.1", convert(0.1));
+        assertEquals("0.0001", convert(0.0001));
+        assertEquals("1e-005", convert(0.00001));
+        assertEquals("1f", convert(1.));
+        assertEquals("1000000f", convert(1000000.));
+        assertEquals("1e+007", convert(10000000.));
+        assertEquals("1e+008", convert(100000000.));
+        assertEquals("1e+009", convert(1000000000.));
+        assertEquals("-0.1", convert(-0.1));
+        assertEquals("-0.0001", convert(-0.0001));
+        assertEquals("-1e-005", convert(-0.00001));
+        assertEquals("-1f", convert(-1.));
+        assertEquals("-1000000f", convert(-1000000.));
+        assertEquals("-1e+007", convert(-10000000.));
+        assertEquals("-1e+008", convert(-100000000.));
+        assertEquals("-1e+009", convert(-1000000000.));
+
+        numericalOptions.setFloatPrecision(15);
+        assertEquals("2.567575757567641e+014", convert(256757575756764.1234567890987654321));
+
+        numericalOptions.setFloatPrecision(2);
+        assertEquals("2.57e+014", convert(256757575756764.1234567890987654321));
+
+        numericalOptions.setFloatPrecision(0);
+        assertEquals("3.e+014", convert(256757575756764.1234567890987654321));
+    }
+
+    @Test
+    void thousands() {
+        assertEquals("1", convert(1L));
+        assertEquals("1000", convert(1000L));
+        assertEquals("1000000.123", convert(1000000.123));
+
+        options = options.withThousandsSeparator(() -> true);
+        assertEquals("1", convert(1L));
+        assertEquals("1,000", convert(1000L));
+        assertEquals("1,000,000.123", convert(1000000.123));
+    }
+
+    @Test
+    void rounding() {
+        numericalOptions.setFloatPrecision(0);
+        final double[] in = new double[]{5.5, 2.5, 1.6, 1.1, 1.0, -1.0, -1.1, -1.6, -2.5, -5.5};
+
+        numericalOptions.setRoundingMode(RoundingMode.UP);
+        assertEquals("6. 3. 2. 2. 1. -1. -2. -2. -3. -6.", convert(in));
+
+        numericalOptions.setRoundingMode(RoundingMode.DOWN);
+        assertEquals("5. 2. 1. 1. 1. -1. -1. -1. -2. -5.", convert(in));
+
+        numericalOptions.setRoundingMode(RoundingMode.CEILING);
+        assertEquals("6. 3. 2. 2. 1. -1. -1. -1. -2. -5.", convert(in));
+
+        numericalOptions.setRoundingMode(RoundingMode.FLOOR);
+        assertEquals("5. 2. 1. 1. 1. -1. -2. -2. -3. -6.", convert(in));
+
+        numericalOptions.setRoundingMode(RoundingMode.HALF_UP);
+        assertEquals("6. 3. 2. 1. 1. -1. -1. -2. -3. -6.", convert(in));
+
+        numericalOptions.setRoundingMode(RoundingMode.HALF_DOWN);
+        assertEquals("5. 2. 2. 1. 1. -1. -1. -2. -2. -5.", convert(in));
+
+        numericalOptions.setRoundingMode(RoundingMode.HALF_EVEN);
+        assertEquals("6. 2. 2. 1. 1. -1. -1. -2. -2. -6.", convert(in));
     }
 
     private String convert(Object o) {

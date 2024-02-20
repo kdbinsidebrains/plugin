@@ -1,12 +1,11 @@
 package org.kdb.inside.brains.view.console;
 
+import com.intellij.util.xmlb.annotations.Property;
 import org.kdb.inside.brains.settings.SettingsBean;
-import org.kdb.inside.brains.view.FormatterOptions;
 
 import java.util.Objects;
 
-public final class ConsoleOptions implements SettingsBean<ConsoleOptions>, FormatterOptions {
-    private int floatPrecision = 7;
+public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     private boolean wrapStrings = true;
     private boolean prefixSymbols = true;
     private boolean enlistArrays = true;
@@ -16,12 +15,16 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions>, Forma
     private boolean clearTableResult = true;
     private ConsoleSplitType splitType = ConsoleSplitType.NO;
 
-    public static final int MAX_DECIMAL_PRECISION = 16;
+    @Property
+    @Deprecated(forRemoval = true)
+    private int floatPrecision = -1;
 
-    public ConsoleOptions() {
+    public int getLegacyFloatPrecision() {
+        int asd = floatPrecision;
+        floatPrecision = -1;
+        return asd;
     }
 
-    @Override
     public boolean isWrapStrings() {
         return wrapStrings;
     }
@@ -30,7 +33,6 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions>, Forma
         this.wrapStrings = wrapStrings;
     }
 
-    @Override
     public boolean isPrefixSymbols() {
         return prefixSymbols;
     }
@@ -47,16 +49,6 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions>, Forma
         this.dictAsTable = dictAsTable;
     }
 
-    @Override
-    public int getFloatPrecision() {
-        return floatPrecision;
-    }
-
-    public void setFloatPrecision(int floatPrecision) {
-        this.floatPrecision = floatPrecision;
-    }
-
-    @Override
     public boolean isEnlistArrays() {
         return enlistArrays;
     }
@@ -114,7 +106,6 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions>, Forma
         this.wrapStrings = options.wrapStrings;
         this.prefixSymbols = options.prefixSymbols;
         this.enlistArrays = options.enlistArrays;
-        this.floatPrecision = options.floatPrecision;
         this.listAsTable = options.listAsTable;
         this.dictAsTable = options.dictAsTable;
         this.splitType = options.splitType;
@@ -125,8 +116,7 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions>, Forma
     @Override
     public String toString() {
         return "ConsoleOptions{" +
-                "floatPrecision=" + floatPrecision +
-                ", wrapStrings=" + wrapStrings +
+                "wrapStrings=" + wrapStrings +
                 ", prefixSymbols=" + prefixSymbols +
                 ", enlistArrays=" + enlistArrays +
                 ", dictAsTable=" + dictAsTable +

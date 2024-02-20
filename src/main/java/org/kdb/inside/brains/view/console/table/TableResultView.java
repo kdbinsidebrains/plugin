@@ -29,7 +29,7 @@ import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.FormatterOptions;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.chart.ChartActionGroup;
-import org.kdb.inside.brains.view.console.ConsoleOptions;
+import org.kdb.inside.brains.view.console.NumericalOptions;
 import org.kdb.inside.brains.view.console.TableOptions;
 import org.kdb.inside.brains.view.export.ClipboardExportAction;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
@@ -57,7 +57,8 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private final ToggleAction searchAction;
     private final ToggleAction filterAction;
     private final ToggleAction showIndexAction;
-    private final ToggleAction showThousandsAction;
+    private final ShowTableOptionAction showThousandsAction;
+    private final ShowTableOptionAction showScientificAction;
     private final ActionGroup chartActionGroup;
     private final ActionGroup exportActionGroup;
 
@@ -74,8 +75,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
     private ColumnsFilterPanel columnsFilter;
     private TableResultStatusPanel statusBar;
-
-    private BooleanSupplier thousandsSeparator;
 
     private static final Color DECORATED_ROW_COLOR = UIUtil.getDecoratedRowColor();
     private static final JBColor SEARCH_FOREGROUND = new JBColor(Gray._50, Gray._0);
@@ -94,8 +93,9 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     public TableResultView(Project project, TableMode mode, BiConsumer<KdbQuery, TableResultView> repeater) {
         this.project = project;
 
-        this.tableOptions = KdbSettingsService.getInstance().getTableOptions();
-        this.thousandsSeparator = tableOptions::isThousandsSeparator;
+        final KdbSettingsService settingsService = KdbSettingsService.getInstance();
+
+        this.tableOptions = settingsService.getTableOptions();
         this.formatter = createOutputFormatter();
 
         myTable = createTable();
@@ -128,7 +128,8 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         searchAction = createSearchAction();
         filterAction = createFilterAction();
         showIndexAction = createShowIndexAction();
-        showThousandsAction = createShowThousandsAction();
+        showScientificAction = createShowScientificAction(settingsService.getNumericalOptions());
+        showThousandsAction = createShowThousandsAction(settingsService.getTableOptions());
         chartActionGroup = new ChartActionGroup(myTable);
         exportActionGroup = ExportDataProvider.createActionGroup(project, this);
 
@@ -190,22 +191,13 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     }
 
     @NotNull
-    private ToggleAction createShowThousandsAction() {
-        final ToggleAction action = new EdtToggleAction("Show Thousands Separator", "Format numbers with thousands separator", KdbIcons.Console.TableThousands) {
-            @Override
-            public boolean isSelected(@NotNull AnActionEvent e) {
-                return thousandsSeparator.getAsBoolean();
-            }
+    private ShowTableOptionAction createShowScientificAction(NumericalOptions options) {
+        return new ShowTableOptionAction("Show Scientific Notation", "Format as computerized scientific notation", KdbIcons.Console.TableScientific, KeyEvent.VK_E, options::isScientificNotation);
+    }
 
-            @Override
-            public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                thousandsSeparator = () -> state;
-                myTable.repaint();
-                statusBar.recalculateValues();
-            }
-        };
-        action.registerCustomShortcutSet(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
-        return action;
+    @NotNull
+    private ShowTableOptionAction createShowThousandsAction(TableOptions options) {
+        return new ShowTableOptionAction("Show Thousands Separator", "Format numbers with thousands separator", KdbIcons.Console.TableThousands, KeyEvent.VK_S, options::isThousandsSeparator);
     }
 
     @NotNull
@@ -273,34 +265,8 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
     @NotNull
     private KdbOutputFormatter createOutputFormatter() {
-        return new KdbOutputFormatter(new FormatterOptions() {
-            final ConsoleOptions consoleOptions = KdbSettingsService.getInstance().getConsoleOptions();
-
-            @Override
-            public int getFloatPrecision() {
-                return consoleOptions.getFloatPrecision();
-            }
-
-            @Override
-            public boolean isWrapStrings() {
-                return consoleOptions.isWrapStrings();
-            }
-
-            @Override
-            public boolean isPrefixSymbols() {
-                return consoleOptions.isPrefixSymbols();
-            }
-
-            @Override
-            public boolean isEnlistArrays() {
-                return consoleOptions.isEnlistArrays();
-            }
-
-            @Override
-            public boolean isThousandsSeparator() {
-                return thousandsSeparator.getAsBoolean();
-            }
-        });
+        // We can't pass the supplier itself here as it's changed inside the action so use a wrapper
+        return new KdbOutputFormatter(new FormatterOptions().withThousandAndScientific(() -> showThousandsAction.supplier.getAsBoolean(), () -> showScientificAction.supplier.getAsBoolean()));
     }
 
     @NotNull
@@ -456,6 +422,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         view.addSeparator();
         view.add(showIndexAction);
         view.add(showThousandsAction);
+        view.add(showScientificAction);
 
         group.add(view);
         group.addSeparator();
@@ -487,8 +454,11 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
         group.add(searchAction);
         group.addSeparator();
-        group.add(showIndexAction);
-        group.add(showThousandsAction);
+        final DefaultActionGroup view = new PopupActionGroup("View Settings", AllIcons.Actions.Show);
+        view.add(showIndexAction);
+        view.add(showThousandsAction);
+        view.add(showScientificAction);
+        group.add(view);
         group.addSeparator();
         group.addAll(exportActionGroup);
         group.addSeparator();
@@ -696,5 +666,31 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     }
 
     record ExpandedTabDetails(String name, String description) {
+    }
+
+    private class ShowTableOptionAction extends EdtToggleAction {
+        private BooleanSupplier supplier;
+
+        public ShowTableOptionAction(String text, String description, Icon icon, int keyCode, BooleanSupplier supplier) {
+            super(text, description, icon);
+            this.supplier = supplier;
+            registerCustomShortcutSet(keyCode, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, myTable);
+        }
+
+        public boolean isSelected() {
+            return supplier.getAsBoolean();
+        }
+
+        @Override
+        public boolean isSelected(@NotNull AnActionEvent e) {
+            return isSelected();
+        }
+
+        @Override
+        public void setSelected(@NotNull AnActionEvent e, boolean state) {
+            supplier = () -> state;
+            myTable.repaint();
+            statusBar.recalculateValues();
+        }
     }
 }

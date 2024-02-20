@@ -1,5 +1,16 @@
 # KdbInsideBrains Changelog
 
+## [5.4.0]
+
+### Added
+
+- Issue #91: Support for scientific notation in table output (disabled by default. Can be enabled in the Settings)
+- Decimal Rounding Mode added with Half-Even by default as before (can be changed in the Settings)
+
+### Changed
+
+- Numerical Format settings moved into a separate configuration section in the Settings
+
 ## [5.3.0]
 
 ### Added

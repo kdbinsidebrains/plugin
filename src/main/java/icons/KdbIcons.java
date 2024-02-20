@@ -92,6 +92,7 @@ public final class KdbIcons {
         public static final @NotNull Icon FlipTable = load("/org/kdb/inside/brains/icons/console/flipTable.svg");
         public static final @NotNull Icon TableIndex = load("/org/kdb/inside/brains/icons/console/tableIndex.svg");
         public static final @NotNull Icon TableThousands = load("/org/kdb/inside/brains/icons/console/thousandsSeparator.svg");
+        public static final @NotNull Icon TableScientific = load("/org/kdb/inside/brains/icons/console/scientificNotation.svg");
 
         public static final @NotNull Icon SelectAll = AllIcons.Actions.Selectall;
         public static final @NotNull Icon UnselectAll = AllIcons.Actions.Unselectall;

@@ -6,11 +6,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.util.xmlb.annotations.Transient;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.ExecutionOptions;
 import org.kdb.inside.brains.core.InstanceOptions;
 import org.kdb.inside.brains.view.chart.ChartOptions;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
+import org.kdb.inside.brains.view.console.NumericalOptions;
 import org.kdb.inside.brains.view.console.TableOptions;
 import org.kdb.inside.brains.view.inspector.InspectorOptions;
 
@@ -19,7 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-@State(name = "KdbSettings", storages = {@Storage("kdb-settings.xml")})
+@State(name = "KdbSettings", storages = {@Storage(value = "kdb-settings.xml")})
 public class KdbSettingsService implements PersistentStateComponent<KdbSettingsService.State> {
     private final State myState = new State();
 
@@ -124,6 +126,17 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         }
     }
 
+    public NumericalOptions getNumericalOptions() {
+        return myState.numericalOptions;
+    }
+
+    public void setNumericalOptions(NumericalOptions options) {
+        if (!myState.numericalOptions.equals(options)) {
+            myState.numericalOptions.copyFrom(options);
+            notifySettingsChanged(myState.numericalOptions);
+        }
+    }
+
     private void notifySettingsChanged(SettingsBean<?> bean) {
         listeners.forEach(l -> l.settingsChanged(this, bean));
     }
@@ -143,6 +156,12 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         myState.setInstanceOptions(state.instanceOptions);
         myState.setCredentialPlugins(state.credentialPlugins);
         myState.setInspectorOptions(state.inspectorOptions);
+        myState.setNumericalOptions(state.numericalOptions);
+
+        // Legacy migration. To be removed one day
+        if (state.legacyConsoleOptions.floatPrecision != -1) {
+            myState.numericalOptions.setFloatPrecision(state.legacyConsoleOptions.floatPrecision);
+        }
     }
 
     public static KdbSettingsService getInstance() {
@@ -152,7 +171,11 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         return instance;
     }
 
-    static class State {
+    private static final class LegacyConsoleOptions {
+        private int floatPrecision;
+    }
+
+    public static class State {
         private final List<String> credentialPlugins = new ArrayList<>();
         private final ChartOptions chartOptions = new ChartOptions();
         private final TableOptions tableOptions = new TableOptions();
@@ -160,6 +183,11 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         private final InstanceOptions instanceOptions = new InstanceOptions();
         private final ExecutionOptions executionOptions = new ExecutionOptions();
         private final InspectorOptions inspectorOptions = new InspectorOptions();
+        private final NumericalOptions numericalOptions = new NumericalOptions();
+
+        @Transient
+        // Collection of all legacy options for migration copied from other options
+        private final LegacyConsoleOptions legacyConsoleOptions = new LegacyConsoleOptions();
 
         public List<String> getCredentialPlugins() {
             return credentialPlugins;
@@ -186,6 +214,7 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
 
         public void setConsoleOptions(ConsoleOptions consoleOptions) {
             this.consoleOptions.copyFrom(consoleOptions);
+            legacyConsoleOptions.floatPrecision = consoleOptions.getLegacyFloatPrecision();
         }
 
         public InstanceOptions getInstanceOptions() {
@@ -218,6 +247,14 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
 
         public void setChartOptions(ChartOptions options) {
             chartOptions.copyFrom(options);
+        }
+
+        public NumericalOptions getNumericalOptions() {
+            return numericalOptions;
+        }
+
+        public void setNumericalOptions(NumericalOptions options) {
+            numericalOptions.copyFrom(options);
         }
     }
 }
