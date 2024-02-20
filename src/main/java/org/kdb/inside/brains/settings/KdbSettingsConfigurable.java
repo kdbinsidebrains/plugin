@@ -6,6 +6,7 @@ import com.intellij.util.ui.FormBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.ExecutionOptionsPanel;
 import org.kdb.inside.brains.view.console.ConsoleOptionsPanel;
+import org.kdb.inside.brains.view.console.NumericalOptionsPanel;
 import org.kdb.inside.brains.view.console.TableOptionsPanel;
 import org.kdb.inside.brains.view.inspector.InspectorOptionsPanel;
 
@@ -13,6 +14,7 @@ import javax.swing.*;
 
 public class KdbSettingsConfigurable extends KdbConfigurable {
     private final TableOptionsPanel tableOptionsPanel = new TableOptionsPanel();
+    private final NumericalOptionsPanel numericalOptionsPanel = new NumericalOptionsPanel();
     private final ConsoleOptionsPanel consoleOptionsPanel = new ConsoleOptionsPanel();
     private final ExecutionOptionsPanel executionOptionsPanel = new ExecutionOptionsPanel();
     private final InspectorOptionsPanel inspectorOptionsPanel = new InspectorOptionsPanel();
@@ -35,7 +37,12 @@ public class KdbSettingsConfigurable extends KdbConfigurable {
                 .addComponent(consoleOptionsPanel)
 
                 .setFormLeftIndent(0)
-                .addComponent(new TitledSeparator("Table View Options"))
+                .addComponent(new TitledSeparator("Numerical Format"))
+                .setFormLeftIndent(FORM_LEFT_INDENT)
+                .addComponent(numericalOptionsPanel)
+
+                .setFormLeftIndent(0)
+                .addComponent(new TitledSeparator("Table Options"))
                 .setFormLeftIndent(FORM_LEFT_INDENT)
                 .addComponent(tableOptionsPanel)
 
@@ -60,6 +67,10 @@ public class KdbSettingsConfigurable extends KdbConfigurable {
             return true;
         }
 
+        if (!Comparing.equal(settingsService.getNumericalOptions(), numericalOptionsPanel.getOptions())) {
+            return true;
+        }
+
         if (!Comparing.equal(settingsService.getTableOptions(), tableOptionsPanel.getOptions())) {
             return true;
         }
@@ -80,6 +91,7 @@ public class KdbSettingsConfigurable extends KdbConfigurable {
         settingsService.setConsoleOptions(consoleOptionsPanel.getOptions());
         settingsService.setExecutionOptions(executionOptionsPanel.getOptions());
         settingsService.setInspectorOptions(inspectorOptionsPanel.getOptions());
+        settingsService.setNumericalOptions(numericalOptionsPanel.getOptions());
     }
 
     @Override
@@ -88,5 +100,6 @@ public class KdbSettingsConfigurable extends KdbConfigurable {
         consoleOptionsPanel.setOptions(settingsService.getConsoleOptions());
         executionOptionsPanel.setOptions(settingsService.getExecutionOptions());
         inspectorOptionsPanel.setOptions(settingsService.getInspectorOptions());
+        numericalOptionsPanel.setOptions(settingsService.getNumericalOptions());
     }
 }

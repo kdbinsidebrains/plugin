@@ -5,16 +5,14 @@ import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.core.KdbResult;
-import org.kdb.inside.brains.settings.KdbSettingsService;
-import org.kdb.inside.brains.view.console.ConsoleOptions;
+import org.kdb.inside.brains.view.console.NumericalOptions;
 
 import java.lang.reflect.Array;
+import java.math.RoundingMode;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.text.*;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -26,11 +24,13 @@ public final class KdbOutputFormatter {
     private static final DateFormat DATETIME_FORMAT = new SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS");
     private static final DateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy.MM.dd'D'HH:mm:ss");
 
-    private static final DecimalFormat NUMBER_SEPARATOR = new DecimalFormat("#,##0");
-    private static final DecimalFormat[] DECIMAL_FORMAT_SEPARATOR = new DecimalFormat[ConsoleOptions.MAX_DECIMAL_PRECISION + 1];
+    private static final DecimalFormat INTEGER = new DecimalFormat("0");
+    private static final DecimalFormat INTEGER_SEPARATOR = new DecimalFormat("#,##0");
 
-    private static final DecimalFormat NUMBER = new DecimalFormat("0");
-    private static final DecimalFormat[] DECIMAL_FORMAT = new DecimalFormat[ConsoleOptions.MAX_DECIMAL_PRECISION + 1];
+    private static final DecimalFormat[][] DECIMAL = new DecimalFormat[RoundingMode.values().length][NumericalOptions.MAX_DECIMAL_PRECISION + 1];
+    private static final DecimalFormat[][] DECIMAL_SEPARATOR = new DecimalFormat[RoundingMode.values().length][NumericalOptions.MAX_DECIMAL_PRECISION + 1];
+    private static final DecimalFormat[][] DECIMAL_SCIENTIFIC = new DecimalFormat[RoundingMode.values().length][NumericalOptions.MAX_DECIMAL_PRECISION + 1];
+
     private static KdbOutputFormatter defaultInstance;
 
     static {
@@ -39,11 +39,18 @@ public final class KdbOutputFormatter {
         DATETIME_FORMAT.setTimeZone(KxConnection.UTC_TIMEZONE);
         TIMESTAMP_FORMAT.setTimeZone(KxConnection.UTC_TIMEZONE);
 
-        DECIMAL_FORMAT[0] = new DecimalFormat("0.");
-        DECIMAL_FORMAT_SEPARATOR[0] = new DecimalFormat("#,##0.");
-        for (int i = 1; i <= ConsoleOptions.MAX_DECIMAL_PRECISION; i++) {
-            DECIMAL_FORMAT[i] = new DecimalFormat("0." + "#".repeat(i));
-            DECIMAL_FORMAT_SEPARATOR[i] = new DecimalFormat("#,##0." + "#".repeat(i));
+        for (RoundingMode mode : RoundingMode.values()) {
+            final int modeId = mode.ordinal();
+            for (int precision = 0; precision < NumericalOptions.MAX_DECIMAL_PRECISION; precision++) {
+                DECIMAL[modeId][precision] = new DecimalFormat("0." + "#".repeat(precision));
+                DECIMAL[modeId][precision].setRoundingMode(mode);
+
+                DECIMAL_SEPARATOR[modeId][precision] = new DecimalFormat("#,##0." + "#".repeat(precision));
+                DECIMAL_SEPARATOR[modeId][precision].setRoundingMode(mode);
+
+                DECIMAL_SCIENTIFIC[modeId][precision] = createExponentialFormat("0." + "#".repeat(precision));
+                DECIMAL_SCIENTIFIC[modeId][precision].setRoundingMode(mode);
+            }
         }
     }
 
@@ -77,7 +84,7 @@ public final class KdbOutputFormatter {
      */
     public static KdbOutputFormatter getDefault() {
         if (defaultInstance == null) {
-            defaultInstance = new KdbOutputFormatter(KdbSettingsService.getInstance().getConsoleOptions());
+            defaultInstance = new KdbOutputFormatter(new FormatterOptions());
         }
         return defaultInstance;
     }
@@ -471,12 +478,23 @@ public final class KdbOutputFormatter {
         return b.toString();
     }
 
-    @NotNull
-    public String formatDouble(double v) {
-        if (v % 1 == 0) {
-            return ((long) v) + "f";
-        }
-        return isNull(v) ? "0n" : doubleToStr(v);
+    private static DecimalFormat createExponentialFormat(String pattern) {
+        final DecimalFormat decimalFormat = new DecimalFormat(pattern + "E000") {
+            @Override
+            public StringBuffer format(double number, StringBuffer result, FieldPosition fieldPosition) {
+                final StringBuffer format = super.format(number, result, fieldPosition);
+                if (number < -1 || number > 1) {
+                    format.insert(format.length() - 3, "+");
+                }
+                return format;
+            }
+        };
+
+        final DecimalFormatSymbols symbols = decimalFormat.getDecimalFormatSymbols();
+        symbols.setExponentSeparator("e");
+        decimalFormat.setDecimalFormatSymbols(symbols);
+
+        return decimalFormat;
     }
 
     @NotNull
@@ -649,16 +667,33 @@ public final class KdbOutputFormatter {
         return options.isThousandsSeparator() ? longToStr(s) : String.valueOf(s);
     }
 
-    private String longToStr(long s) {
-        return (options.isThousandsSeparator() ? NUMBER_SEPARATOR : NUMBER).format(s);
+    @NotNull
+    public String formatDouble(double v) {
+        if (v % 1 == 0) {
+            if (isScientificNotation(v)) {
+                return doubleToStr(v);
+            }
+            return ((long) v) + "f";
+        }
+        return isNull(v) ? "0n" : doubleToStr(v);
     }
 
     private String floatToStr(float s) {
         return doubleToStr(s);
     }
 
+    private String longToStr(long s) {
+        return (options.isThousandsSeparator() ? INTEGER_SEPARATOR : INTEGER).format(s);
+    }
+
     private String doubleToStr(double s) {
-        return (options.isThousandsSeparator() ? DECIMAL_FORMAT_SEPARATOR : DECIMAL_FORMAT)[options.getFloatPrecision()].format(s);
+        final DecimalFormat[][] formats;
+        if (isScientificNotation(s)) {
+            formats = DECIMAL_SCIENTIFIC;
+        } else {
+            formats = options.isThousandsSeparator() ? DECIMAL_SEPARATOR : DECIMAL;
+        }
+        return formats[options.getRoundingMode().ordinal()][options.getFloatPrecision()].format(s);
     }
 
     private boolean isNull(short v) {
@@ -688,5 +723,9 @@ public final class KdbOutputFormatter {
     private String getKdbTypeName(Class<?> aClass) {
         final KdbType kdbType = KdbType.typeOf(aClass);
         return kdbType == null || kdbType == KdbType.ANY ? null : kdbType.getTypeName();
+    }
+
+    private boolean isScientificNotation(double s) {
+        return options.isScientificNotation() && !Double.isInfinite(s) && !Double.isNaN(s) && ((s > 0 && s <= 0.00001) || (s >= -0.00001 && s < 0) || s <= -10000000 || s >= 10000000);
     }
 }

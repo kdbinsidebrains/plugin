@@ -14,7 +14,6 @@ public class TableOptions implements SettingsBean<TableOptions> {
     private boolean expandTable = true;
     private boolean thousandsSeparator = false;
 
-
     public boolean isStriped() {
         return striped;
     }
