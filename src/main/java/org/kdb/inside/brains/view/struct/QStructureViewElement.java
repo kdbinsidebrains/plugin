@@ -14,6 +14,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.kdb.inside.brains.psi.QPsiUtil.getImportContent;
+import static org.kdb.inside.brains.psi.QPsiUtil.getLambdaDescriptor;
+
 public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
     private final String text;
     private final PsiElement content;
@@ -36,7 +39,7 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
 
     public static @Nullable QStructureViewElement createViewElement(PsiElement child) {
         if (child instanceof QImport qImport) {
-            return new QStructureViewElement(child, StructureElementType.IMPORT, qImport.getFilePath());
+            return new QStructureViewElement(child, StructureElementType.IMPORT, getImportContent(qImport));
         } else if (child instanceof QCommand) {
             return new QStructureViewElement(child, StructureElementType.COMMAND, child.getText());
         } else if (child instanceof QContext context) {
@@ -82,14 +85,7 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
 
     @NotNull
     private static QStructureViewElement createLambdaElement(PsiElement element, QLambdaExpr lambda, String namePrefix) {
-        final QParameters parameters = lambda.getParameters();
-        if (parameters == null) {
-            namePrefix += "[]";
-        } else {
-            final String collect = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
-            namePrefix += "[" + collect + "]";
-        }
-        return new QStructureViewElement(element, StructureElementType.LAMBDA, namePrefix, lambda.getExpressions());
+        return new QStructureViewElement(element, StructureElementType.LAMBDA, getLambdaDescriptor(namePrefix, lambda), lambda.getExpressions());
     }
 
     private static String getExpressionType(QExpression expression) {

@@ -460,8 +460,9 @@
                                  implementationClass="org.kdb.inside.brains.lang.refactoring.QRefactoringSupportProvider"/>
         <lang.syntaxHighlighterFactory language="q"
                                        implementationClass="org.kdb.inside.brains.lang.QSyntaxHighlighterFactory"/>
-        <lang.sliceProvider language="q"
-                            implementationClass="org.kdb.inside.brains.lang.slicer.QSliceLanguageSupportProvider"/>
+
+        <callHierarchyProvider language="q"
+                               implementationClass="org.kdb.inside.brains.lang.hierarchy.QCallHierarchyProvider"/>
 
         <spellchecker.support language="q" implementationClass="org.kdb.inside.brains.lang.QSpellcheckingStrategy"/>
 
