@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
 
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public final class QPsiUtil {
     private QPsiUtil() {
@@ -41,7 +42,8 @@ public final class QPsiUtil {
     }
 
     public static boolean isGlobalDeclaration(@NotNull QAssignmentExpr assignment) {
-        return isGlobalDeclaration(assignment.getVarDeclaration());
+        final QVarDeclaration varDeclaration = assignment.getVarDeclaration();
+        return varDeclaration != null && isGlobalDeclaration(varDeclaration);
     }
 
     public static boolean isGlobalDeclaration(@NotNull QVarDeclaration declaration) {
@@ -61,6 +63,16 @@ public final class QPsiUtil {
                 return el1 instanceof QAssignmentType && "::".equals(el1.getText());
         }
         return false;
+    }
+
+    public static String getLambdaDescriptor(String name, QLambdaExpr lambda) {
+        final QParameters parameters = lambda.getParameters();
+        if (parameters == null) {
+            return name + "[]";
+        } else {
+            final String collect = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
+            return name + "[" + collect + "]";
+        }
     }
 
     /**
@@ -158,6 +170,23 @@ public final class QPsiUtil {
         b.append(global ? '\n' : "  ");
         b.append('}');
         return QFileType.createFactoryFile(project, b.toString()).getFirstChild();
+    }
+
+    public static String getImportContent(QImport qImport) {
+        if (qImport instanceof QImportFunction f && f.getExpression() != null) {
+            String text = "\"" + f.getExpression().getText().trim().substring(3); // remove 'l ';
+            if (text.startsWith("\"\"")) {
+                text = text.substring(2);
+            }
+            if (text.charAt(0) == '"' && text.charAt(text.length() - 1) == '"') {
+                text = text.substring(1, text.length() - 1);
+            }
+            if (text.charAt(0) == ',') {
+                text = text.substring(1);
+            }
+            return text;
+        }
+        return qImport.getFilePath();
     }
 
     public static QVarDeclaration createVarDeclaration(Project project, String name) {

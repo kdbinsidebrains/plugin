@@ -1,5 +1,15 @@
 # KdbInsideBrains Changelog
 
+## [5.5.0]
+
+### Added
+
+- _Call Hierarchy_ functionality added: https://www.kdbinsidebrains.dev/features/navigation
+
+### Fixed
+
+- _Structure View_ doesn't display loading file for import system function.
+
 ## [5.4.0]
 
 ### Added
