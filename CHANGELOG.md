@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.5.1]
+
+### Fixed
+
+- issue #96: floating point precision Exception
+
 ## [5.5.0]
 
 ### Added

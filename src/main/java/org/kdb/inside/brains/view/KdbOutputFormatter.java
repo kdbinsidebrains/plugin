@@ -41,7 +41,7 @@ public final class KdbOutputFormatter {
 
         for (RoundingMode mode : RoundingMode.values()) {
             final int modeId = mode.ordinal();
-            for (int precision = 0; precision < NumericalOptions.MAX_DECIMAL_PRECISION; precision++) {
+            for (int precision = 0; precision <= NumericalOptions.MAX_DECIMAL_PRECISION; precision++) {
                 DECIMAL[modeId][precision] = new DecimalFormat("0." + "#".repeat(precision));
                 DECIMAL[modeId][precision].setRoundingMode(mode);
 

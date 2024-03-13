@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.kdb.inside.brains.view.FormatterOptions;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Date;
 import java.sql.Time;
@@ -13,6 +14,7 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class KdbOutputFormatterTest {
     private FormatterOptions options;
@@ -309,14 +311,20 @@ class KdbOutputFormatterTest {
     @Test
     void precision() {
         numericalOptions.setScientificNotation(false);
-        numericalOptions.setFloatPrecision(15);
-        assertEquals("24.123456789098764", convert(24.1234567890987654321));
+        assertThrows(IllegalArgumentException.class, () -> numericalOptions.setFloatPrecision(-1));
+        assertThrows(IllegalArgumentException.class, () -> numericalOptions.setFloatPrecision(NumericalOptions.MAX_DECIMAL_PRECISION + 1));
 
-        numericalOptions.setFloatPrecision(2);
-        assertEquals("24.12", convert(24.1234567890987654321));
+        final double d = 1.1234567891234567891;
+        final String s = new BigDecimal(d).toPlainString();
+        numericalOptions.setRoundingMode(RoundingMode.DOWN);
+        for (int i = 0; i <= NumericalOptions.MAX_DECIMAL_PRECISION; i++) {
+            numericalOptions.setFloatPrecision(i);
+            numericalOptions.setScientificNotation(false);
+            assertEquals(s.substring(0, i + 2), convert(d));
 
-        numericalOptions.setFloatPrecision(0);
-        assertEquals("24.", convert(24.1234567890987654321));
+            numericalOptions.setScientificNotation(true);
+            assertEquals(s.substring(0, i + 2), convert(d));
+        }
     }
 
     @Test

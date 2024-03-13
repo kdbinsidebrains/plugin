@@ -16,6 +16,12 @@ public class NumericalOptions implements SettingsBean<NumericalOptions> {
     }
 
     public void setFloatPrecision(int floatPrecision) {
+        if (floatPrecision < 0) {
+            throw new IllegalArgumentException("Precision can't be < 0");
+        }
+        if (floatPrecision > MAX_DECIMAL_PRECISION) {
+            throw new IllegalArgumentException("Precision can't be > MAX_DECIMAL_PRECISION (" + MAX_DECIMAL_PRECISION + ")");
+        }
         this.floatPrecision = floatPrecision;
     }
 
