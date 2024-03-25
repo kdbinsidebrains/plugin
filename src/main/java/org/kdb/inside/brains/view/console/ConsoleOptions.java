@@ -1,6 +1,5 @@
 package org.kdb.inside.brains.view.console;
 
-import com.intellij.util.xmlb.annotations.Property;
 import org.kdb.inside.brains.settings.SettingsBean;
 
 import java.util.Objects;
@@ -14,16 +13,6 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     private boolean consoleBackground = true;
     private boolean clearTableResult = true;
     private ConsoleSplitType splitType = ConsoleSplitType.NO;
-
-    @Property
-    @Deprecated(forRemoval = true)
-    private int floatPrecision = -1;
-
-    public int getLegacyFloatPrecision() {
-        int asd = floatPrecision;
-        floatPrecision = -1;
-        return asd;
-    }
 
     public boolean isWrapStrings() {
         return wrapStrings;
@@ -93,12 +82,12 @@ public final class ConsoleOptions implements SettingsBean<ConsoleOptions> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ConsoleOptions that)) return false;
-        return floatPrecision == that.floatPrecision && wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && enlistArrays == that.enlistArrays && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable && consoleBackground == that.consoleBackground && clearTableResult == that.clearTableResult && splitType == that.splitType;
+        return wrapStrings == that.wrapStrings && prefixSymbols == that.prefixSymbols && enlistArrays == that.enlistArrays && dictAsTable == that.dictAsTable && listAsTable == that.listAsTable && consoleBackground == that.consoleBackground && clearTableResult == that.clearTableResult && splitType == that.splitType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(floatPrecision, wrapStrings, prefixSymbols, enlistArrays, dictAsTable, listAsTable, consoleBackground, clearTableResult, splitType);
+        return Objects.hash(wrapStrings, prefixSymbols, enlistArrays, dictAsTable, listAsTable, consoleBackground, clearTableResult, splitType);
     }
 
     @Override

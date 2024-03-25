@@ -1,5 +1,17 @@
 # KdbInsideBrains Changelog
 
+## [5.5.2]
+
+### Fixed
+
+- Floating point precision sessions lost at unclear conditions (precision settings will be lost if you are updateding
+  from any version before 5.4)
+- Tabs binding doesn't work in NewUI
+
+### Added
+
+- Editors to connection binding stored in settings now
+
 ## [5.5.1]
 
 ### Fixed

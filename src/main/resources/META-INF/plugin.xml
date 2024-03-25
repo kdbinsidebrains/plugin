@@ -378,6 +378,11 @@
         </group>
     </actions>
 
+    <projectListeners>
+        <listener class="org.kdb.inside.brains.lang.binding.EditorsBindingListener"
+                  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+    </projectListeners>
+
     <extensions defaultExtensionNs="com.intellij">
         <fileType name="KDB+ Q" implementationClass="org.kdb.inside.brains.QFileType"
                   fieldName="INSTANCE" language="q" extensions="q;k"/>

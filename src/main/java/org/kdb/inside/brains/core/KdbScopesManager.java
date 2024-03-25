@@ -115,7 +115,7 @@ public class KdbScopesManager implements PersistentStateComponent<KdbScopesManag
     }
 
     private InstanceItem lookupInstance(String canonicalName, InstanceItem item) {
-        if (canonicalName.equals(item.getCanonicalName())) {
+        if (item.getCanonicalName().equals(canonicalName)) {
             return item;
         }
         if (item instanceof StructuralItem si) {

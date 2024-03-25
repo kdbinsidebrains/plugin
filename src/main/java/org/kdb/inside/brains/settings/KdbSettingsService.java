@@ -6,7 +6,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.util.xmlb.annotations.Transient;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.ExecutionOptions;
 import org.kdb.inside.brains.core.InstanceOptions;
@@ -157,11 +156,6 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         myState.setCredentialPlugins(state.credentialPlugins);
         myState.setInspectorOptions(state.inspectorOptions);
         myState.setNumericalOptions(state.numericalOptions);
-
-        // Legacy migration. To be removed one day
-        if (state.legacyConsoleOptions.floatPrecision != -1) {
-            myState.numericalOptions.setFloatPrecision(state.legacyConsoleOptions.floatPrecision);
-        }
     }
 
     public static KdbSettingsService getInstance() {
@@ -169,10 +163,6 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
             instance = ApplicationManager.getApplication().getService(KdbSettingsService.class);
         }
         return instance;
-    }
-
-    private static final class LegacyConsoleOptions {
-        private int floatPrecision;
     }
 
     public static class State {
@@ -184,10 +174,6 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         private final ExecutionOptions executionOptions = new ExecutionOptions();
         private final InspectorOptions inspectorOptions = new InspectorOptions();
         private final NumericalOptions numericalOptions = new NumericalOptions();
-
-        @Transient
-        // Collection of all legacy options for migration copied from other options
-        private final LegacyConsoleOptions legacyConsoleOptions = new LegacyConsoleOptions();
 
         public List<String> getCredentialPlugins() {
             return credentialPlugins;
@@ -214,7 +200,6 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
 
         public void setConsoleOptions(ConsoleOptions consoleOptions) {
             this.consoleOptions.copyFrom(consoleOptions);
-            legacyConsoleOptions.floatPrecision = consoleOptions.getLegacyFloatPrecision();
         }
 
         public InstanceOptions getInstanceOptions() {

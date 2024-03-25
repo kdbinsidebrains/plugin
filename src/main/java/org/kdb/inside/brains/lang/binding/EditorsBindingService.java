@@ -1,13 +1,15 @@
 package org.kdb.inside.brains.lang.binding;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.settings.KdbSettingsListener;
 import org.kdb.inside.brains.settings.KdbSettingsService;
@@ -17,7 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class EditorsBindingService implements Disposable {
+@State(name = "EditorsBinding", storages = {@Storage(value = "kdb-settings.xml")})
+public class EditorsBindingService implements Disposable, PersistentStateComponent<Element> {
     private boolean disposed;
 
     private VirtualFile activeFile;
@@ -25,25 +28,24 @@ public class EditorsBindingService implements Disposable {
 
     private EditorsBindingStrategy strategy;
 
-    private final KdbSettingsService settingsService;
-    private final MessageBusConnection busConnection;
-    private final KdbConnectionManager connectionManager;
-
+    private final Project project;
     private final Map<VirtualFile, KdbInstance> connections = new HashMap<>();
+
+    private final KdbSettingsService settingsService;
+    private final KdbConnectionManager connectionManager;
 
     private final TheSettingsListener settingsListener = new TheSettingsListener();
     private final TheConnectionListener connectionListener = new TheConnectionListener();
 
     public EditorsBindingService(Project project) {
+        this.project = project;
+
         connectionManager = KdbConnectionManager.getManager(project);
         connectionManager.addConnectionListener(connectionListener);
 
         settingsService = KdbSettingsService.getInstance();
         settingsService.addSettingsListener(settingsListener);
         strategy = settingsService.getExecutionOptions().getBindingStrategy();
-
-        busConnection = project.getMessageBus().connect(this);
-        busConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new TheFileEditorManagerListener());
     }
 
     public void toggleBinding(boolean bind) {
@@ -51,11 +53,7 @@ public class EditorsBindingService implements Disposable {
             return;
         }
 
-        if (bind) {
-            connections.put(activeFile, activeInstance);
-        } else {
-            connections.remove(activeFile);
-        }
+        changeInstance(activeFile, bind ? activeInstance : null);
     }
 
     public boolean isBindable() {
@@ -75,24 +73,30 @@ public class EditorsBindingService implements Disposable {
         disposed = true;
         settingsService.removeSettingsListener(settingsListener);
         connectionManager.removeConnectionListener(connectionListener);
-        busConnection.disconnect();
         connections.clear();
     }
 
-
-    private void editorClosed(@NotNull VirtualFile file) {
+    protected void editorOpened(@NotNull VirtualFile file) {
         if (disposed) {
             return;
         }
 
-        connections.remove(file);
+        editorActivated(file);
+    }
+
+    protected void editorClosed(@NotNull VirtualFile file) {
+        if (disposed) {
+            return;
+        }
+
+        changeInstance(file, null);
 
         if (Objects.equals(activeFile, file)) {
             activeFile = null;
         }
     }
 
-    private void editorActivated(@NotNull VirtualFile file) {
+    protected void editorActivated(@NotNull VirtualFile file) {
         if (disposed) {
             return;
         }
@@ -103,7 +107,7 @@ public class EditorsBindingService implements Disposable {
         if (instance != null) {
             connectionManager.activate(instance);
         } else if (activeInstance != null && strategy == EditorsBindingStrategy.TAB_TO_CONNECT) {
-            connections.put(activeFile, activeInstance);
+            changeInstance(activeFile, activeInstance);
         }
     }
 
@@ -115,14 +119,48 @@ public class EditorsBindingService implements Disposable {
         activeInstance = activated;
 
         if (activeFile != null && strategy == EditorsBindingStrategy.CONNECT_TO_TAB) {
-            if (activated == null) {
-                connections.remove(activeFile);
-            } else {
-                connections.put(activeFile, activeInstance);
-            }
+            changeInstance(activeFile, activeInstance);
         }
     }
 
+    @Override
+    public @Nullable Element getState() {
+        final Element e = new Element("bindings");
+        for (Map.Entry<VirtualFile, KdbInstance> entry : connections.entrySet()) {
+            e.addContent(new Element("binding").setAttribute("url", entry.getKey().getUrl()).setAttribute("instance", entry.getValue().getCanonicalName()));
+        }
+        return e;
+    }
+
+    @Override
+    public void loadState(@NotNull Element state) {
+        final KdbScopesManager scopesManager = KdbScopesManager.getManager(project);
+        final VirtualFileManager fileManager = VirtualFileManager.getInstance();
+        for (Element child : state.getChildren()) {
+            final String url = child.getAttributeValue("url");
+            final String inst = child.getAttributeValue("instance");
+            if (url == null || inst == null) {
+                continue;
+            }
+            final VirtualFile vf = fileManager.findFileByUrl(url);
+            if (vf == null || !vf.exists()) {
+                continue;
+            }
+            final KdbInstance instance = scopesManager.lookupInstance(inst);
+            if (instance == null) {
+                continue;
+            }
+            connections.put(vf, instance);
+        }
+    }
+
+    private void changeInstance(VirtualFile file, KdbInstance instance) {
+        if (instance == null) {
+            connections.remove(file);
+        } else {
+            connections.put(file, instance);
+        }
+    }
 
     private class TheSettingsListener implements KdbSettingsListener {
         @Override
@@ -131,21 +169,6 @@ public class EditorsBindingService implements Disposable {
                 return;
             }
             strategy = ((ExecutionOptions) bean).getBindingStrategy();
-        }
-    }
-
-    private class TheFileEditorManagerListener implements FileEditorManagerListener {
-        @Override
-        public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-            final VirtualFile newFile = event.getNewFile();
-            if (newFile != null) {
-                editorActivated(newFile);
-            }
-        }
-
-        @Override
-        public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-            editorClosed(file);
         }
     }
 
