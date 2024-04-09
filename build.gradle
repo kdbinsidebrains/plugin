@@ -6,8 +6,7 @@ plugins {
     id 'maven-publish'
     id 'org.jetbrains.intellij' version '1.17.1'
     id 'org.jetbrains.changelog' version '2.2.0'
-    // 2022.3.2.1 has an issue: https://github.com/JetBrains/gradle-grammar-kit-plugin/issues/168
-    id "org.jetbrains.grammarkit" version "2022.3.2"
+    id "org.jetbrains.grammarkit" version "2022.3.2.2"
 }
 
 Properties versionProps = new Properties()
@@ -52,7 +51,7 @@ apply plugin: 'org.jetbrains.changelog'
 apply plugin: 'org.jetbrains.grammarkit'
 generateLexer {
     sourceFile = file("src/main/resources/org/kdb/inside/brains/q.flex")
-    targetDir = "src/main/gen/org/kdb/inside/brains"
+    targetOutputDir = file("src/main/gen/org/kdb/inside/brains")
     targetClass = "QLexer"
     purgeOldFiles = true
     dependsOn("sourcesJar")
@@ -60,7 +59,7 @@ generateLexer {
 
 generateParser {
     sourceFile = file("src/main/resources/org/kdb/inside/brains/q.bnf")
-    targetRoot = 'src/main/gen'
+    targetRootOutputDir = file('src/main/gen')
     pathToParser = 'org/kdb/inside/brains/parser/QParser.java'
     pathToPsiRoot = 'org/kdb/inside/brains/psi'
     purgeOldFiles = true

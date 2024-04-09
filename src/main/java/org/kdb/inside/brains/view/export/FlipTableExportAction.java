@@ -91,7 +91,7 @@ public class FlipTableExportAction extends AnExportAction<Boolean> {
         private final TableResultView resultView;
 
         public ResultDialog(@Nullable Project project, TableResultView resultView) {
-            super(project, false, DialogWrapper.IdeModalityType.PROJECT);
+            super(project, false, DialogWrapper.IdeModalityType.IDE);
             this.resultView = resultView;
             setOKButtonText("Close");
             init();

@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.6.0]
+
+### Changed
+
+- IDEA 2024.1 is the default dev version. Deprecation errors removed. Grammar Kit upgraded to 2022.3.2.2.
+
 ## [5.5.2]
 
 ### Fixed

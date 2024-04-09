@@ -31,7 +31,7 @@ class UploadFileDialog extends DialogWrapper {
     private TextFieldWithBrowseButton browseButton;
 
     protected UploadFileDialog(@Nullable Project project) {
-        super(project, false, IdeModalityType.PROJECT);
+        super(project, false, IdeModalityType.IDE);
         this.project = project;
         setTitle("Uploading File to Instance");
         init();

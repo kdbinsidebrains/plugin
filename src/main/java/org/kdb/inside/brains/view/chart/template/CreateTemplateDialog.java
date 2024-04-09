@@ -20,7 +20,7 @@ public class CreateTemplateDialog extends DialogWrapper {
     private final JBCheckBox quickAction = new JBCheckBox("Add to quick popup actions");
 
     public CreateTemplateDialog(@NotNull Project project, @NotNull ChartTemplate template) {
-        super(project, false, IdeModalityType.PROJECT);
+        super(project, false, IdeModalityType.IDE);
         setTitle("Creating Chart Template");
 
         this.template = template;

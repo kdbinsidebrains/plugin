@@ -76,7 +76,7 @@ public class InstanceEditorDialog extends DialogWrapper {
     }
 
     public InstanceEditorDialog(@NotNull Mode mode, @NotNull Project project, @Nullable StructuralItem parent, @Nullable KdbInstance instance, @NotNull Predicate<String> nameValidator) {
-        super(project, false, IdeModalityType.PROJECT);
+        super(project, false, IdeModalityType.IDE);
         this.mode = mode;
         this.project = project;
         this.nameValidator = nameValidator;
