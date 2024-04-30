@@ -12,6 +12,7 @@ import org.kdb.inside.brains.view.KdbOutputFormatter;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;
+import java.util.stream.Stream;
 
 public interface ExportDataProvider {
     DataKey<ExportDataProvider> DATA_KEY = DataKey.create("KdbConsole.ExportDataProvider");
@@ -50,6 +51,7 @@ public interface ExportDataProvider {
         group.addSeparator();
         final DefaultActionGroup exportGroup = new PopupActionGroup("Export Data _Into ...", KdbIcons.Console.Export);
         exportGroup.add(new CsvExportAction("CSV format", ExportingType.ALL_WITH_HEADER, dataProvider, "Export current table into Comma Separated File format"));
+        exportGroup.add(new JsonExportAction("JSON format", ExportingType.ALL_WITH_HEADER, dataProvider, "Export current table into JSON File format"));
         exportGroup.add(new ExcelExportAction("Excel xls format", ExportingType.ALL_WITH_HEADER, dataProvider, "Export current table into Excel XLS format", true, null));
         exportGroup.add(new BinaryExportAction("KDB binary format", ExportingType.ALL_WITH_HEADER, dataProvider, "Binary KDB IPC file format. Can be imported directly into KDB."));
         group.add(exportGroup);
@@ -58,7 +60,14 @@ public interface ExportDataProvider {
         final ActionGroup sendTo = new PopupActionGroup("Send Data Into ...", KdbIcons.Console.SendInto) {
             @Override
             public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
-                return KdbConnectionManager.getManager(project).getConnections().stream().filter(InstanceConnection::isConnected).map(c -> new SendIntoAction(dataProvider, c)).toArray(AnAction[]::new);
+                final KdbConnectionManager manager = KdbConnectionManager.getManager(project);
+                final InstanceConnection activeConnection = manager.getActiveConnection();
+
+                Stream<InstanceConnection> connections = manager.getConnections().stream().filter(InstanceConnection::isConnected).filter(c -> c != activeConnection);
+                if (activeConnection != null && activeConnection.isConnected()) {
+                    connections = Stream.concat(Stream.of(activeConnection, null), connections);
+                }
+                return connections.map(c -> c == null ? Separator.getInstance() : new SendIntoAction(dataProvider, c)).toArray(AnAction[]::new);
             }
         };
         group.add(sendTo);

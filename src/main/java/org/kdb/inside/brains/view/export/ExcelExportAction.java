@@ -39,8 +39,7 @@ public class ExcelExportAction extends AnExportAction<File> {
         if (saveOnDisk) {
             final FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Export to Excel", "Exporting data into Excel file format", "xlsx");
             final FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, project);
-
-            final VirtualFileWrapper vfw = saveFileDialog.save("Table Result");
+            final VirtualFileWrapper vfw = saveFileDialog.save(dataProvider.getExportName());
             return vfw == null ? null : vfw.getFile();
         } else {
             return File.createTempFile("kdbinsidebrains_exel_export_", ".xlsx");

@@ -1,5 +1,16 @@
 # KdbInsideBrains Changelog
 
+## [5.7.0]
+
+### Added
+
+- 'Export to JSON' has been added
+
+### Changed
+
+- In 'Send Data Into' active connection is always at top with a separator
+- Any 'Export' action uses the tab name for the file name
+
 ## [5.6.0]
 
 ### Changed
