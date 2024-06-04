@@ -282,20 +282,14 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
                         c.setBackground(table.getBackground());
                     }
                 }
-
-                final String text = getText();
-                final List<TextRange> extract = searchSession.extract(text);
-                if (!extract.isEmpty()) {
-                    setText(createColoredText(text, extract));
-                }
                 return c;
             }
 
             @NotNull
             private String createColoredText(String text, List<TextRange> ranges) {
-                final StringBuilder b = new StringBuilder("<html>");
                 int s = 0;
                 boolean rollover = false;
+                final StringBuilder b = new StringBuilder("<html>");
                 for (int i = 0; i < text.length(); i++) {
                     boolean a = inRanges(i, ranges);
                     if (rollover != a) {
@@ -323,9 +317,19 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
                 return false;
             }
 
+            private String fixSystemChars(String text) {
+                return text.replace('\n', '\u21B5').replace('\t', ' ');
+            }
+
             @Override
             protected void setValue(Object value) {
-                setText(formatter.objectToString(value));
+                String text = formatter.objectToString(value);
+                final List<TextRange> extract = searchSession.extract(text);
+                if (!extract.isEmpty()) {
+                    text = createColoredText(text, extract);
+                }
+                text = fixSystemChars(text);
+                super.setText(text);
             }
         };
 

@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.7.1]
+
+### Added
+
+- In TableView new line char is shown as '"↵" U+21B5 Downwards Arrow with Corner Leftwards' char.
+
 ## [5.7.0]
 
 ### Added
