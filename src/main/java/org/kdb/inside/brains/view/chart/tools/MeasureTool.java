@@ -1,8 +1,6 @@
 package org.kdb.inside.brains.view.chart.tools;
 
-import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartMouseEvent;
@@ -20,10 +18,7 @@ import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.action.EdtAction;
-import org.kdb.inside.brains.view.chart.BaseChartPanel;
-import org.kdb.inside.brains.view.chart.ChartColors;
-import org.kdb.inside.brains.view.chart.ChartOptions;
-import org.kdb.inside.brains.view.chart.ChartTool;
+import org.kdb.inside.brains.view.chart.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -295,37 +290,35 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
     }
 
     @Override
-    public ActionGroup getPopupActions() {
+    public ToolActions getToolActions() {
         if (!isEnabled()) {
-            return ActionGroup.EMPTY_GROUP;
+            return ToolActions.NO_ACTIONS;
         }
 
-        return new DefaultActionGroup("Measure",
-                List.of(
-                        new EdtAction("Remove Measure") {
-                            @Override
-                            public void update(@NotNull AnActionEvent e) {
-                                e.getPresentation().setEnabled(highlighted != null);
-                            }
+        return new ToolActions("Measure",
+                new EdtAction("Remove Measure") {
+                    @Override
+                    public void update(@NotNull AnActionEvent e) {
+                        e.getPresentation().setEnabled(highlighted != null);
+                    }
 
-                            @Override
-                            public void actionPerformed(@NotNull AnActionEvent e) {
-                                remove();
-                            }
-                        },
+                    @Override
+                    public void actionPerformed(@NotNull AnActionEvent e) {
+                        remove();
+                    }
+                },
 
-                        new EdtAction("Clear Measures") {
-                            @Override
-                            public void update(@NotNull AnActionEvent e) {
-                                e.getPresentation().setEnabled(!pinnedAreas.isEmpty());
-                            }
+                new EdtAction("Clear Measures") {
+                    @Override
+                    public void update(@NotNull AnActionEvent e) {
+                        e.getPresentation().setEnabled(!pinnedAreas.isEmpty());
+                    }
 
-                            @Override
-                            public void actionPerformed(@NotNull AnActionEvent e) {
-                                clear();
-                            }
-                        }
-                )
+                    @Override
+                    public void actionPerformed(@NotNull AnActionEvent e) {
+                        clear();
+                    }
+                }
         );
     }
 

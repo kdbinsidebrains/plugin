@@ -12,6 +12,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.ui.ScreenUtil;
+import com.intellij.ui.awt.DevicePoint;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.awt.RelativeRectangle;
 import com.intellij.ui.components.panels.NonOpaquePanel;
@@ -175,16 +176,17 @@ final class TabsDockingManager implements Disposable {
         containers.remove(myCurrentDragSession.myStartDragContainer);
         containers.add(0, myCurrentDragSession.myStartDragContainer);
 
+        final DevicePoint dp = new DevicePoint(point);
         for (DockContainer each : containers) {
             RelativeRectangle rec = each.getAcceptArea();
-            if (rec.contains(point) && each.getContentResponse(content, point).canAccept()) {
+            if (rec.contains(dp) && each.getContentResponse(content, point).canAccept()) {
                 return each;
             }
         }
 
         for (DockContainer each : containers) {
             RelativeRectangle rec = each.getAcceptAreaFallback();
-            if (rec.contains(point) && each.getContentResponse(content, point).canAccept()) {
+            if (rec.contains(dp) && each.getContentResponse(content, point).canAccept()) {
                 return each;
             }
         }
@@ -263,11 +265,12 @@ final class TabsDockingManager implements Disposable {
 
         @Override
         public @NotNull DockContainer.ContentResponse getResponse(MouseEvent e) {
-            RelativePoint point = new RelativePoint(e);
+            final DevicePoint dp = new DevicePoint(e);
+            final RelativePoint rp = new RelativePoint(e);
             for (DockContainer each : getContainers()) {
-                RelativeRectangle rec = each.getAcceptArea();
-                if (rec.contains(point)) {
-                    DockContainer.ContentResponse response = each.getContentResponse(myContent, point);
+                final RelativeRectangle rec = each.getAcceptArea();
+                if (rec.contains(dp)) {
+                    DockContainer.ContentResponse response = each.getContentResponse(myContent, rp);
                     if (response.canAccept()) {
                         return response;
                     }
@@ -278,7 +281,7 @@ final class TabsDockingManager implements Disposable {
 
         @Override
         public void process(MouseEvent e) {
-            RelativePoint point = new RelativePoint(e);
+            final RelativePoint point = new RelativePoint(e);
 
             Image img = null;
             if (e.getID() == MouseEvent.MOUSE_DRAGGED) {

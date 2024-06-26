@@ -1,7 +1,7 @@
 package org.kdb.inside.brains.view.chart;
 
 import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.ui.JBColor;
@@ -23,17 +23,18 @@ import java.awt.event.InputEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class BaseChartPanel extends ChartPanel {
     private final ChartOptions myOptions;
     private boolean defaultCursor = false;
 
-    private final Supplier<ActionGroup> popupActionsProvider;
+    private final Supplier<List<ToolActions>> popupActionsProvider;
 
     private static final JBColor COLOR_GRID = new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4));
 
-    public BaseChartPanel(ChartOptions options, Supplier<ActionGroup> popupActionsProvider) {
+    public BaseChartPanel(ChartOptions options, Supplier<List<ToolActions>> popupActionsProvider) {
         super(null, false, false, false, false, false);
         this.popupActionsProvider = popupActionsProvider;
         myOptions = options;
@@ -143,9 +144,17 @@ public class BaseChartPanel extends ChartPanel {
 
     @Override
     protected void displayPopupMenu(int x, int y) {
-        final ActionGroup group = popupActionsProvider.get();
-        if (group == null || group.getChildren(null).length == 0) {
+        final List<ToolActions> actions = popupActionsProvider.get();
+        if (actions.isEmpty()) {
             return;
+        }
+
+        final DefaultActionGroup group = new DefaultActionGroup();
+        for (ToolActions action : actions) {
+            if (action.name() != null) {
+                group.addSeparator(action.name());
+            }
+            group.addAll(action.actions());
         }
 
         final ListPopup popup = JBPopupFactory.getInstance().createActionGroupPopup(null, group, DataManager.getInstance().getDataContext(this), JBPopupFactory.ActionSelectionAid.MNEMONICS, true);

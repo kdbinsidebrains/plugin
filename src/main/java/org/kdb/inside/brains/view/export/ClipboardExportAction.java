@@ -103,7 +103,7 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
                 plainStr.append(val).append('\t');
 
                 htmlStr.append("  <td class=\"").append(t).append(c).append("\">");
-                htmlStr.append(StringEscapeUtils.escapeXml(val));
+                htmlStr.append(StringEscapeUtils.escapeHtml3(val));
                 htmlStr.append("</td>\n");
                 indicator.setFraction(count++ / totalCount);
             }

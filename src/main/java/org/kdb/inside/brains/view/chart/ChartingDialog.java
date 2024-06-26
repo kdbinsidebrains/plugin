@@ -60,6 +60,7 @@ import java.io.FileWriter;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.intellij.util.ui.JBUI.Borders;
 
@@ -233,24 +234,8 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         return p;
     }
 
-    private ActionGroup createPopupMenu() {
-        final DefaultActionGroup g = new DefaultActionGroup();
-        final List<ChartTool> crosshairTool = List.of(this.crosshairTool, measureTool, valuesTool);
-        for (ChartTool tool : crosshairTool) {
-            if (!tool.isEnabled()) {
-                continue;
-            }
-
-            final ActionGroup popupActions = tool.getPopupActions();
-            if (popupActions.getChildren(null).length != 0) {
-                final String templateText = popupActions.getTemplateText();
-                if (templateText != null) {
-                    g.addSeparator(templateText);
-                }
-                g.addAll(popupActions);
-            }
-        }
-        return g;
+    private List<ToolActions> createPopupMenu() {
+        return Stream.of(crosshairTool, measureTool, valuesTool).filter(ChartTool::isEnabled).map(ChartTool::getToolActions).filter(ToolActions::hasActions).toList();
     }
 
     private JBTabs createTabs(Project project, ChartDataProvider dataProvider) {

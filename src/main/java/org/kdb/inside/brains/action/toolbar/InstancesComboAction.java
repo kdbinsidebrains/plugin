@@ -425,16 +425,16 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
             setEmptyText("Type an instance URI or search mask");
         }
 
-        void setActionGroup(ActionGroup group) {
+        void setActionGroup(DefaultActionGroup group) {
             captionItems.clear();
             myLastSelectedIndex = -2;
             myLastMouseLocation = null;
             setSelectionModel(new SingleSelectionModel()); // clear selection model here
 
             final List<AnAction> items = new ArrayList<>();
-            for (AnAction action : group.getChildren(null)) {
-                if (action instanceof ActionGroup actionGroup) {
-                    final AnAction[] children = actionGroup.getChildren(null);
+            for (AnAction action : group.getChildActionsOrStubs()) {
+                if (action instanceof DefaultActionGroup actionGroup) {
+                    final AnAction[] children = actionGroup.getChildActionsOrStubs();
                     if (children.length != 0) {
                         captionItems.put(children[0], actionGroup.getTemplatePresentation().getText());
                         for (int i = 0; i < children.length; i++) {

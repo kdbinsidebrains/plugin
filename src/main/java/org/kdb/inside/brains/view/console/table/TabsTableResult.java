@@ -59,12 +59,7 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
 
         tabs = (JBTabsEx) JBTabsFactory.createTabs(project, this);
         // We can't use Supplier here as it's been Getter before and some versions are not compatiable anymore.
-        tabs.setPopupGroup(new ActionGroup() {
-            @Override
-            public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
-                return buildTabsPopupGroup().getChildren(e);
-            }
-        }, "KdbConsoleTabsMenu", true);
+        tabs.setPopupGroup(createTabsPopup(), "KdbConsoleTabsMenu", true);
 
         renameAction = new RenameTabAction();
 
@@ -126,15 +121,6 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
     public void addListener(@NotNull Listener listener, Disposable parent) {
         listeners.add(listener);
         Disposer.register(parent, () -> listeners.remove(listener));
-    }
-
-    private @NotNull ActionGroup buildTabsPopupGroup() {
-        final TabInfo info = tabs.getTargetInfo();
-        if (info == null || info == consoleTab) {
-            return ActionGroup.EMPTY_GROUP;
-        }
-
-        return new DefaultActionGroup(renameAction);
     }
 
     public int getTabCount() {
@@ -251,20 +237,6 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
         return this;
     }
 
-    private @Nullable JBTabs getTabsAt(DockableContent<?> content, RelativePoint point) {
-        if (content instanceof TableResultContent) {
-            final Point p = point.getPoint(tabs.getComponent());
-            Component c = SwingUtilities.getDeepestComponentAt(tabs.getComponent(), p.x, p.y);
-            while (c != null) {
-                if (c instanceof JBTabs) {
-                    return (JBTabs) c;
-                }
-                c = c.getParent();
-            }
-        }
-        return null;
-    }
-
     public void showTab(String name, TableResult tableResult) {
         showTab(name, tableResult, -1);
     }
@@ -288,6 +260,28 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
             index = tabs.getIndexOf(selectedInfo) + 1;
         }
         showTab(name, result, mode, index);
+    }
+
+    private @NotNull ActionGroup createTabsPopup() {
+        final TabInfo info = tabs.getTargetInfo();
+        if (info == null || info == consoleTab) {
+            return ActionGroup.EMPTY_GROUP;
+        }
+        return new DefaultActionGroup(renameAction);
+    }
+
+    private @Nullable JBTabs getTabsAt(DockableContent<?> content, RelativePoint point) {
+        if (content instanceof TableResultContent) {
+            final Point p = point.getPoint(tabs.getComponent());
+            Component c = SwingUtilities.getDeepestComponentAt(tabs.getComponent(), p.x, p.y);
+            while (c != null) {
+                if (c instanceof JBTabs) {
+                    return (JBTabs) c;
+                }
+                c = c.getParent();
+            }
+        }
+        return null;
     }
 
     private void insertNewTab(TabInfo info, int index) {

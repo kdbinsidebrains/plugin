@@ -64,17 +64,17 @@
             <keyboard-shortcut first-keystroke="ctrl shift G" keymap="$default"/>
         </action>
 
-        <action id="Kdb.QuickExecute"
+        <action id="Kdb.ExecuteQuick"
                 text="Quick Execute Line/Selection"
                 description="Execute current line or selection in active KDB process"
-                icon="KdbIcons.Instance.QuickExecute"
+                icon="KdbIcons.Instance.ExecuteQuick"
                 class="org.kdb.inside.brains.action.execute.ExecuteInlineAction">
 
             <keyboard-shortcut first-keystroke="shift ENTER" keymap="$default"/>
             <keyboard-shortcut first-keystroke="ctrl shift D" keymap="$default"/>
         </action>
 
-        <action id="Kdb.ContextExecute"
+        <action id="Kdb.ExecuteContext"
                 text="Execute Global Assignment"
                 description="Execute global variable/function definition"
                 icon="KdbIcons.Instance.ExecuteContext"
@@ -82,6 +82,14 @@
 
             <keyboard-shortcut first-keystroke="ctrl shift ENTER" keymap="$default"/>
             <keyboard-shortcut first-keystroke="ctrl shift S" keymap="$default"/>
+        </action>
+
+        <action id="Kdb.ExecuteFile"
+                text="Execute Q File"
+                description="Sends the whole content of the file into the instance"
+                icon="KdbIcons.Instance.ExecuteFile"
+                class="org.kdb.inside.brains.action.execute.ExecuteFileAction">
+            <keyboard-shortcut first-keystroke="ctrl alt F10" keymap="$default"/>
         </action>
 
         <action id="Kdb.Instances.QuickSelection"
@@ -106,13 +114,15 @@
                 text="Cancel Active Queries"
                 description="Cancels all active queries, if possible"
                 icon="AllIcons.Actions.Suspend"/>
+        <!--
 
-        <group id="Kdb.ExecuteOn" popup="true"
-               text="Execute Line/Selection On ..."
-               description="Execute current line or selection in specified KDB process"
-               icon="KdbIcons.Instance.ExecuteOn"
-               class="org.kdb.inside.brains.action.execute.ExecuteOnAction">
-        </group>
+                <group id="Kdb.ExecuteOn" popup="true"
+                       text="Execute Line/Selection On ..."
+                       description="Execute current line or selection in specified KDB process"
+                       icon="KdbIcons.Instance.ExecuteOn"
+                       class="org.kdb.inside.brains.action.execute.ExecuteOnAction">
+                </group>
+        -->
 
         <!--
 
@@ -141,7 +151,7 @@
             <reference ref="Kdb.Instances.BindConnection"/>
 
             <reference ref="Kdb.Execute"/>
-            <reference ref="Kdb.QuickExecute"/>
+            <reference ref="Kdb.ExecuteQuick"/>
             <reference ref="Kdb.CancelQueriesAction"/>
 
             <separator/>
@@ -170,7 +180,7 @@
         </group>
 
         <group id="Kdb.MoreRunToolbarActionsGroup" popup="true" searchable="false">
-            <reference ref="Kdb.ContextExecute"/>
+            <reference ref="Kdb.ExecuteContext"/>
             <separator/>
             <reference ref="Kdb.Instances.ToggleActiveConnection"/>
             <separator/>
@@ -183,14 +193,18 @@
         <group id="Kdb.EditorContextActionGroup" searchable="false">
             <separator/>
             <reference ref="Kdb.Execute"/>
-            <reference ref="Kdb.QuickExecute"/>
-            <separator/>
-            <reference ref="Kdb.ContextExecute"/>
-            <separator/>
-            <reference ref="Kdb.ExecuteOn"/>
+            <reference ref="Kdb.ExecuteQuick"/>
+            <!--            <separator/>-->
+            <reference ref="Kdb.ExecuteContext"/>
+            <!--
+                        <separator/>
+                        <reference ref="Kdb.ExecuteOn"/>
+                        <separator/>
+            -->
+            <reference ref="Kdb.ExecuteFile"/>
             <separator/>
 
-            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="EditorPopupMenu3"/>
+            <add-to-group group-id="RunContextPopupGroup" anchor="first"/>
         </group>
 
         <group id="Kdb.InstancesScopeView" text="Instances Tree Popup Menu" popup="true" searchable="false">

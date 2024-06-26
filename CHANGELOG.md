@@ -1,5 +1,25 @@
 # KdbInsideBrains Changelog
 
+## [5.8.0]
+
+### Added
+
+- Execute Q File action added (mapped to Ctrl + Alt + F10 by default) that sends and executes content of whole file
+  till 'exit the script' command (\).
+
+### Changed
+
+- Execute action doesn't block reading thread now and runs in the background instead.
+
+### Removed
+
+- Execute On TP action removed. See no real use-case. Never used.
+
+### Fixed
+
+- Docking deprecation API resolved
+- IDEA 2024 @ApiStatus.OverrideOnly issues resolved
+
 ## [5.7.1]
 
 ### Added

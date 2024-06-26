@@ -3,11 +3,11 @@ package org.kdb.inside.brains.action.execute;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.ide.TooltipEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.ui.HintHint;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
@@ -25,7 +25,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
 
-public class ExecuteInlineAction extends ExecuteAction implements DumbAware {
+public class ExecuteInlineAction extends ExecuteAction {
     public static final Dimension MAX_SIZE = new Dimension(800, 500);
 
     private TableResultView createTableHint(Project project, TableResult result) {
@@ -90,9 +90,10 @@ public class ExecuteInlineAction extends ExecuteAction implements DumbAware {
     }
 
     @Override
-    protected void execute(Project project, Editor editor, InstanceConnection connection, TextRange range) {
+    protected void execute(Project project, InstanceConnection connection, String text, DataContext context) {
+        final Editor editor = CommonDataKeys.EDITOR.getData(context);
         try {
-            final KdbQuery query = new KdbQuery(editor.getDocument().getText(range));
+            final KdbQuery query = new KdbQuery(text);
             connection.query(query, res -> {
                 if (res.isError()) {
                     showTypedHint(createTextHint(((Exception) res.getObject()).getMessage(), true), editor);

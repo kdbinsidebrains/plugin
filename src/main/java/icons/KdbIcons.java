@@ -152,7 +152,8 @@ public final class KdbIcons {
         public static final @NotNull Icon Execute = AllIcons.Actions.Execute;
         public static final @NotNull Icon ExecuteOn = AllIcons.Actions.Expandall;
         public static final @NotNull Icon ExecuteContext = load("/org/kdb/inside/brains/icons/executeContext.svg");
-        public static final @NotNull Icon QuickExecute = AllIcons.Debugger.EvaluateExpression;
+        public static final @NotNull Icon ExecuteQuick = AllIcons.Debugger.EvaluateExpression;
+        public static final @NotNull Icon ExecuteFile = load("/org/kdb/inside/brains/icons/executeFile.svg");
 
         public static final @NotNull Icon Connected = load("/org/kdb/inside/brains/icons/connected.svg");
         public static final @NotNull Icon Disconnected = load("/org/kdb/inside/brains/icons/disconnected.svg");
