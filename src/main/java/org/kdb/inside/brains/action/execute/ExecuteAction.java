@@ -43,11 +43,7 @@ public class ExecuteAction extends BgtAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
         final Presentation presentation = e.getPresentation();
-        final Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
-        if (editor == null) {
-            presentation.setEnabled(false);
-            presentation.setVisible(false);
-        } else if (org.kdb.inside.brains.action.ActionPlaces.KEYBOARD_SHORTCUT.equals(e.getPlace())) {
+        if (org.kdb.inside.brains.action.ActionPlaces.KEYBOARD_SHORTCUT.equals(e.getPlace())) {
             presentation.setEnabled(true);
             presentation.setVisible(false);
         } else {
@@ -58,7 +54,8 @@ public class ExecuteAction extends BgtAction {
                 presentation.setVisible(allowed);
             }
 
-            if (allowed) {
+            final Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
+            if (allowed && editor != null) {
                 final InstanceConnection activeInstance = getConnection(e.getProject());
                 presentation.setEnabled(activeInstance != null && activeInstance.isConnected());
             } else {
