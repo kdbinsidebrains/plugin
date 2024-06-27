@@ -163,7 +163,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
     }
 
     private void processConnectionState(InstanceConnection conn, InstanceState oldState, InstanceState state) {
-        UIUtil.invokeAndWaitIfNeeded(() -> {
+        UIUtil.invokeAndWaitIfNeeded((Runnable) () -> {
                     connectionListeners.forEach(l -> l.connectionStateChanged(conn, oldState, state));
 
                     final String name = conn.getName();
@@ -335,7 +335,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
         private void validateMessageSize(int size) throws CancellationException {
             if (size > getOptions().getWarningMessageMb() * MB_SIZE) {
-                final int sizeMb = ((int) ((size / MB_SIZE) * 100d)) / 100;
+                final int sizeMb = ((int) ((size / (double) MB_SIZE) * 100)) / 100;
 
                 final CompletableFuture<Boolean> res = new CompletableFuture<>();
                 ApplicationManager.getApplication().invokeAndWait(() -> {

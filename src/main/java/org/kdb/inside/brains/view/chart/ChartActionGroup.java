@@ -2,7 +2,7 @@ package org.kdb.inside.brains.view.chart;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
 import icons.KdbIcons;
@@ -13,6 +13,7 @@ import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.view.chart.template.ChartTemplatesService;
 import org.kdb.inside.brains.view.chart.template.TemplatesEditorDialog;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,7 @@ public class ChartActionGroup extends PopupActionGroup {
             return new AnAction[]{showChartAction};
         }
 
-        final DefaultActionGroup group = new DefaultActionGroup();
+        final List<AnAction> group = new ArrayList<>();
         group.add(showChartAction);
 
         final ChartDataProvider columns = ChartDataProvider.columns(table);
@@ -57,14 +58,13 @@ public class ChartActionGroup extends PopupActionGroup {
                 .map(t -> new ShowChartAction(t.getName(), t.getDescription(), t.getIcon(), () -> ChartDataProvider.copy(table), t))
                 .collect(Collectors.toList());
         if (!items.isEmpty()) {
-            group.addSeparator();
+            group.add(Separator.create());
             group.addAll(items);
         }
 
-        group.addSeparator();
+        group.add(Separator.create());
         group.add(showTemplatesManager);
 
-        return group.getChildren(e);
-
+        return group.toArray(AnAction[]::new);
     }
 }

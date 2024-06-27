@@ -1,9 +1,6 @@
 package org.kdb.inside.brains.view.treeview.tree;
 
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.LoadingNode;
-import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.*;
 import com.intellij.ui.speedSearch.SpeedSearchUtil;
 import com.intellij.util.text.DateFormatUtil;
 import icons.KdbIcons;
@@ -45,7 +42,7 @@ public class InstancesTreeRenderer extends ColoredTreeCellRenderer {
             instanceRenderer(inst, cutting);
             searchSession.customizeSearchItem(inst, this, selected);
         }
-        SpeedSearchUtil.applySpeedSearchHighlightingFiltered(tree, value, this, false, selected);
+        SpeedSearchUtil.applySpeedSearchHighlightingFiltered(tree, value, (SimpleColoredComponent) this, false, selected);
     }
 
     private void scopeRenderer(KdbScope scope) {
