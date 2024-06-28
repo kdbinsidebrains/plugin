@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.8.1]
+
+### Fixed
+
+- Masking underscore in 'Exceute file' action name.
+
 ## [5.8.0]
 
 ### Added

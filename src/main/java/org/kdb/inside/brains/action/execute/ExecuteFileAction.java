@@ -20,7 +20,7 @@ public class ExecuteFileAction extends ExecuteAction {
         presentation.setEnabled(c != null && c.isConnected());
 
         if (file != null) {
-            presentation.setText("Execute '" + file.getName() + "'");
+            presentation.setText("Execute '" + file.getName().replace("_", "__") + "'");
         }
     }
 
