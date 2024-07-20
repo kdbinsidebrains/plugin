@@ -1,5 +1,15 @@
 # KdbInsideBrains Changelog
 
+## [5.8.2]
+
+### Fixed
+
+- Issue 99: The Inspector fails if a namespace contains inner namespace with a dot in the name
+
+### Changed
+
+- The Inspector query and navigation performance improved
+
 ## [5.8.1]
 
 ### Fixed

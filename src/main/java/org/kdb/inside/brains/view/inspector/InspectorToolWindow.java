@@ -18,6 +18,7 @@ import com.intellij.ide.util.treeView.smartTree.TreeElementWrapper;
 import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -443,10 +444,13 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
     }
 
     private void scrollPathToSource(@Nullable TreePath path, boolean requestFocus) {
-        final QVarDeclaration declaration = getDeclaration(path);
-        if (declaration != null) {
-            declaration.navigate(requestFocus);
-        }
+        final Application application = ApplicationManager.getApplication();
+        application.executeOnPooledThread(() -> {
+            final QVarDeclaration declaration = getDeclaration(path);
+            if (declaration != null) {
+                application.invokeLater(() -> declaration.navigate(requestFocus));
+            }
+        });
     }
 
     private void refreshInstance() {
