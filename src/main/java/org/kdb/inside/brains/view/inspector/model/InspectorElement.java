@@ -25,7 +25,7 @@ public abstract class InspectorElement implements CanonicalElement, StructureVie
         this.name = name;
         this.namespace = namespace;
         this.icon = icon;
-        this.canonicalName = namespace == null ? name : namespace + "." + name;
+        this.canonicalName = namespace == null ? name : name.indexOf('.') >= 0 ? namespace + "[`" + name + "]" : namespace + "." + name;
     }
 
     public static Optional<InspectorElement> unwrap(TreePath path) {
