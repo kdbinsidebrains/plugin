@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.8.3]
+
+### Fixed
+
+- Issues 101: mode highlighting is used for a variable at the end of line sometimes
+
 ## [5.8.2]
 
 ### Fixed
