@@ -2,13 +2,12 @@ package org.kdb.inside.brains;
 
 import com.intellij.psi.tree.IElementType;
 
-import java.util.Deque;
 import java.util.ArrayDeque;
-
-import static org.kdb.inside.brains.psi.QTypes.*;
+import java.util.Deque;
 
 import static com.intellij.psi.TokenType.BAD_CHARACTER;
 import static com.intellij.psi.TokenType.WHITE_SPACE;
+import static org.kdb.inside.brains.psi.QTypes.*;
 
 %%
 
@@ -318,7 +317,7 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   ^{CommandName}/{NewLine}                   { return COMMAND_SYSTEM; }
   ^{CommandName}/{WhiteSpace}                { return COMMAND_SYSTEM; }
 
-  ^{ModePrefix}                              { return MODE_PATTERN; }
+  ^{ModePrefix}                              { if (zzCurrentPos == 0 || zzBuffer.charAt(zzCurrentPos - 1) == '\n') {return MODE_PATTERN; } else {yypushback(1); return VARIABLE_PATTERN;} }
 
   {TypeCast}                                 { return TYPE_CAST_PATTERN; }
 
