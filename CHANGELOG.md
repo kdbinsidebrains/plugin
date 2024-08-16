@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.9.0]
+
+### Changed
+
+- Idea 2024.2 added into the supporting list
+
 ## [5.8.3]
 
 ### Fixed
