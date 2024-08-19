@@ -18,7 +18,6 @@ import com.intellij.ui.awt.RelativeRectangle;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.docking.DockContainer;
 import com.intellij.ui.docking.DockableContent;
-import com.intellij.ui.docking.DragSession;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
@@ -49,7 +48,7 @@ final class TabsDockingManager implements Disposable {
     private final Set<DockContainer> myContainers = new HashSet<>();
     private final Map<DockContainer, DockWindow> containerToWindow = new HashMap<>();
     private int myWindowIdCounter = 1;
-    private MyDragSession myCurrentDragSession;
+    private MyTabsDragSession myCurrentDragSession;
     private final BusyObject.Impl myBusyObject = new BusyObject.Impl() {
         @Override
         public boolean isReady() {
@@ -70,7 +69,7 @@ final class TabsDockingManager implements Disposable {
         Disposer.register(parentDisposable, () -> myContainers.remove(container));
     }
 
-    public DragSession createDragSession(MouseEvent mouseEvent, @NotNull DockableContent<?> content) {
+    public TabsDragSession createDragSession(MouseEvent mouseEvent, @NotNull DockableContent<?> content) {
         stopCurrentDragSession();
 
         for (DockContainer each : getContainers()) {
@@ -82,7 +81,7 @@ final class TabsDockingManager implements Disposable {
             }
         }
 
-        myCurrentDragSession = new MyDragSession(mouseEvent, content);
+        myCurrentDragSession = new MyTabsDragSession(mouseEvent, content);
         return myCurrentDragSession;
     }
 
@@ -207,7 +206,7 @@ final class TabsDockingManager implements Disposable {
         containerToWindow.clear();
     }
 
-    private final class MyDragSession implements DragSession {
+    private final class MyTabsDragSession implements TabsDragSession {
         private final JDialog myWindow;
         private final Image myDefaultDragImage;
         private final DockableContent<?> myContent;
@@ -216,7 +215,7 @@ final class TabsDockingManager implements Disposable {
         private Image myDragImage;
         private DockContainer myCurrentOverContainer;
 
-        private MyDragSession(MouseEvent me, @NotNull DockableContent<?> content) {
+        private MyTabsDragSession(MouseEvent me, @NotNull DockableContent<?> content) {
             myWindow = new JDialog(UIUtil.getWindow(me.getComponent()));
             myWindow.setUndecorated(true);
             myContent = content;

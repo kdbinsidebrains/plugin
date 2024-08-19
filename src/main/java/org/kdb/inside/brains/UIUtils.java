@@ -17,12 +17,15 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.ui.ImageUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -116,6 +119,19 @@ public final class UIUtils {
             if (new_package != null) {
                 action.accept(new_package);
             }
+        }
+    }
+
+    public static Image getTabInfoImage(TabInfo info) {
+        final JComponent component = info.getComponent();
+        if (component.isShowing()) {
+            var width = component.getWidth();
+            var height = component.getHeight();
+            var image = ImageUtil.createImage(component.getGraphicsConfiguration(), width > 0 ? width : 500, height > 0 ? height : 500, BufferedImage.TYPE_INT_ARGB);
+            component.paint(image.createGraphics());
+            return image;
+        } else {
+            return ImageUtil.createImage(component.getGraphicsConfiguration(), 500, 500, BufferedImage.TYPE_INT_ARGB);
         }
     }
 

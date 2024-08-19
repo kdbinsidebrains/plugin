@@ -101,6 +101,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     private final KdbSettingsService settingsService;
     private boolean scrollToTheEnd = true;
 
+    private boolean changeSplittingEvent = false;
     public static final DataKey<TabInfo> TAB_INFO_DATA_KEY = DataKey.create("KdbConsole.TabInfo");
 
     public KdbConsolePanel(Project project, InstanceConnection connection, ConsoleSplitType splitType, Consumer<KdbConsolePanel> panelKillerConsumer) {
@@ -125,15 +126,11 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
         connectionManager = KdbConnectionManager.getManager(project);
         connectionManager.addConnectionListener(connectionListener);
 
-        consoleTabs = JBTabsFactory.createTabs(project, this);
-
         watchesSplitter = createWatchesSplitter();
 
-        mainSplitter = createTabsSplitter();
-        setContent(mainSplitter);
-//        mainSplitter.setFirstComponent(consoleTabs.getComponent());
-
         consoleTab = createConsoleTab();
+        consoleTabs = JBTabsFactory.createTabs(project, this);
+
         resultTabs = new TabsTableResult(project, this);
         resultTabs.addListener(new DockContainer.Listener() {
             @Override
@@ -147,8 +144,10 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
             }
         }, this);
 
-        resultTabs.showConsole(consoleTab);
-        mainSplitter.setSecondComponent(resultTabs);
+        mainSplitter = createTabsSplitter();
+//        mainSplitter.setSecondComponent(resultTabs);
+//        mainSplitter.setFirstComponent(consoleTabs.getComponent());
+        setContent(mainSplitter);
 
         changeSplitting(splitType);
 
@@ -406,27 +405,48 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     }
 
     private void changeSplitting(ConsoleSplitType type) {
-        if (type == ConsoleSplitType.NO) {
-            if (mainSplitter.getFirstComponent() != null) {
-                consoleTabs.removeTab(consoleTab);
-                resultTabs.showConsole(consoleTab);
-                mainSplitter.setFirstComponent(null);
-            }
-        } else {
-            if (mainSplitter.getFirstComponent() == null) {
-                resultTabs.hideConsole();
-                consoleTabs.addTab(consoleTab);
-                mainSplitter.setFirstComponent(consoleTabs.getComponent());
-            }
-
-            mainSplitter.setSecondComponent(resultTabs.getTabCount() == 0 ? null : resultTabs);
-
-            final boolean verticalSplit = type == ConsoleSplitType.DOWN;
-            if (mainSplitter.getOrientation() != verticalSplit) {
-                mainSplitter.setOrientation(verticalSplit);
-            }
+        if (changeSplittingEvent) {
+            return;
         }
-        activeSplitType = type;
+
+        changeSplittingEvent = true;
+        try {
+            if (type == ConsoleSplitType.NO) {
+                if (activeSplitType != ConsoleSplitType.NO) {
+                    consoleTabs.removeTab(consoleTab);
+                    resultTabs.showConsole(consoleTab);
+
+                    // remove first, when add to the new one
+                    mainSplitter.setFirstComponent(null);
+                    mainSplitter.setSecondComponent(resultTabs);
+                }
+            } else {
+                if (activeSplitType != type) {
+                    resultTabs.hideConsole();
+                    consoleTabs.addTab(consoleTab);
+
+                    final JComponent consoleComponent = consoleTabs.getComponent();
+                    mainSplitter.setFirstComponent(consoleComponent);
+                    mainSplitter.setSecondComponent(resultTabs.isEmpty() ? null : resultTabs);
+
+                    final boolean verticalSplit = type == ConsoleSplitType.DOWN;
+                    if (mainSplitter.getOrientation() != verticalSplit) {
+                        mainSplitter.setOrientation(verticalSplit);
+                    }
+                }
+
+                final boolean empty = resultTabs.isEmpty();
+                final JComponent secondComponent = mainSplitter.getSecondComponent();
+                if (empty && secondComponent != null) {
+                    mainSplitter.setSecondComponent(null);
+                } else if (!empty && secondComponent == null) {
+                    mainSplitter.setSecondComponent(resultTabs);
+                }
+            }
+            activeSplitType = type;
+        } finally {
+            changeSplittingEvent = false;
+        }
     }
 
     private void loadBinaryFile() {

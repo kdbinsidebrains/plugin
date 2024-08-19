@@ -14,9 +14,7 @@ import com.intellij.ui.awt.RelativeRectangle;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.docking.DockContainer;
 import com.intellij.ui.docking.DockableContent;
-import com.intellij.ui.docking.DragSession;
 import com.intellij.ui.tabs.*;
-import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
@@ -59,7 +57,7 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
 
         tabs = (JBTabsEx) JBTabsFactory.createTabs(project, this);
         // We can't use Supplier here as it's been Getter before and some versions are not compatiable anymore.
-        tabs.setPopupGroup(createTabsPopup(), "KdbConsoleTabsMenu", true);
+        tabs.setPopupGroup(this::createTabsPopup, "KdbConsoleTabsMenu", true);
 
         renameAction = new RenameTabAction();
 
@@ -368,6 +366,7 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
         return createResultTabInfo(name, tableResultView);
     }
 
+
     public static class TableResultContent implements DockableContent<TabInfo> {
         private final Image myImg;
         private final TabInfo tabInfo;
@@ -375,14 +374,15 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
         private final Dimension myPreferredSize;
 
         TableResultContent(TabInfo info) {
-            myImg = JBTabsImpl.getComponentImage(info);
             tabInfo = info;
+            myImg = UIUtils.getTabInfoImage(info);
 
             myPresentation = new Presentation(info.getText());
             myPresentation.setIcon(info.getIcon());
 
             myPreferredSize = info.getComponent().getSize();
         }
+
 
         @NotNull
         @Override
@@ -422,8 +422,13 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
         }
 
         @Override
+        public void update(@NotNull AnActionEvent e) {
+            e.getPresentation().setVisible(tabs.getTargetInfo() != null);
+        }
+
+        @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
-            final TabInfo info = tabs.getTargetInfo();
+            final TabInfo info = isEnabled();
             if (info == null) {
                 return;
             }
@@ -435,6 +440,14 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
                     tableTab = null;
                 }
             });
+        }
+
+        private @Nullable TabInfo isEnabled() {
+            final TabInfo info = tabs.getTargetInfo();
+            if (info == null || info == consoleTab) {
+                return null;
+            }
+            return info;
         }
     }
 
@@ -495,7 +508,7 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
     }
 
     private class MyDragOutDelegate implements TabInfo.DragOutDelegate {
-        private DragSession mySession;
+        private TabsDragSession mySession;
 
         @Override
         public void dragOutStarted(@NotNull MouseEvent mouseEvent, @NotNull TabInfo info) {

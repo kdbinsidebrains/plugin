@@ -4,7 +4,11 @@
 
 ### Changed
 
-- Idea 2024.2 added into the supporting list
+- Idea 2024.2 added into the supporting list with deprecated code refactoring
+
+### Fixed
+
+- Context menu for TableResult is visible now
 
 ## [5.8.3]
 
