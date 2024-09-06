@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.9.1]
+
+### Fixed
+
+- Width of "Port" field in "Instance Editor" dialog fixed to show five numbers.
+
 ## [5.9.0]
 
 ### Changed

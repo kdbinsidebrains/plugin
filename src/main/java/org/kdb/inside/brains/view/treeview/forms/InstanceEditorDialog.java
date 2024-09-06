@@ -404,7 +404,8 @@ public class InstanceEditorDialog extends DialogWrapper {
         final JPanel p2 = new JPanel(new BorderLayout(3, 0));
         p2.add(new JLabel("Port:"), BorderLayout.LINE_START);
 
-        portField.setPreferredSize(new Dimension(50, 0));
+        portField.setColumns(6);
+        portField.setCanBeEmpty(false);
         p2.add(portField, BorderLayout.LINE_END);
 
         p.add(p2, BorderLayout.LINE_END);
