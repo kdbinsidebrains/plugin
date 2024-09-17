@@ -56,7 +56,7 @@ public class TabsTableResult extends NonOpaquePanel implements DockContainer, Di
         this.project = project;
 
         tabs = (JBTabsEx) JBTabsFactory.createTabs(project, this);
-        // We can't use Supplier here as it's been Getter before and some versions are not compatiable anymore.
+        // We can't use Supplier here as it's been Getter before and some versions are not compatible anymore.
         tabs.setPopupGroup(this::createTabsPopup, "KdbConsoleTabsMenu", true);
 
         renameAction = new RenameTabAction();

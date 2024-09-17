@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.9.2]
+
+### Fixed
+
+- Various typos fixed
+
 ## [5.9.1]
 
 ### Fixed
@@ -36,13 +42,13 @@
 
 ### Fixed
 
-- Masking underscore in 'Exceute file' action name.
+- Masking underscore in 'Execute file' action name.
 
 ## [5.8.0]
 
 ### Added
 
-- Execute Q File action added (mapped to Ctrl + Alt + F10 by default) that sends and executes content of whole file
+- Execute Q File action added (mapped to Ctrl + Alt + F10 by default) that sends and executes content of a whole file
   till 'exit the script' command (\).
 
 ### Changed
@@ -85,7 +91,7 @@
 
 ### Fixed
 
-- Floating point precision sessions lost at unclear conditions (precision settings will be lost if you are updateding
+- Floating point precision sessions lost at unclear conditions (precision settings will be lost if you are updated
   from any version before 5.4)
 - Tabs binding doesn't work in NewUI
 
@@ -107,7 +113,7 @@
 
 ### Fixed
 
-- _Structure View_ doesn't display loading file for import system function.
+- _Structure View_ doesn't display a loading file for import system function.
 
 ## [5.4.0]
 
@@ -139,7 +145,7 @@
 ### Fixed
 
 - Create new connection from Quick Search actions causes NullPointerException (issue #89)
-- KdbInspector doesn't allow to execute unexecutable items, like historical tables.
+- KdbInspector doesn't allow to execute executable items, like historical tables.
 
 ### Changed
 
@@ -163,7 +169,7 @@
 ### Changed
 
 - Base testing version is 2023.3.1
-- Updating KdbInstance name update the tab name in KdbConsole
+- Updating KdbInstance name updates the tab name in KdbConsole
 - Updating KdbInstance connection details forces reconnection in KdbConsole
 
 ### Fixed
@@ -175,7 +181,7 @@
 ### Changed
 
 - Line/Inline comments processing has been changed to support code style formatting (issue #82). New formatting option
-  added: "Trim spaces before inline comment" - enabled by default.
+  added: "Trim spaces before inline comment"—enabled by default.
 
 ### Fixed
 
@@ -186,7 +192,7 @@
 ### Added
 
 - PyCharm as well as other Platforms supporting has been added. All ToolWindows are always enabled and no additional
-  IDEA features, like external source code, run KDB instance and so on are available in these platforms.
+  IDEA features, like external source code, run KDB instance, and so on, are available on these platforms.
 - EAP 2023.3 added into supported platforms
 
 ### Fixed
@@ -236,14 +242,15 @@
 ### Fixed
 
 - IDEA Save dialog is used to save a chart as PNG or SVG
-- Charting takes into account local timezone for drawing correct scale
+- Charting takes into account local timezone for drawing the correct scale
 - Measure charting tool shows temporal values for domain
 
 ## [4.3.0]
 
 ### Added
 
-- Inactive console tab with running query marked with an execution icon as well as finished query with notificaion icon
+- Inactive console tab with a running query
+  marked with an execution icon as well as finished query with notification icon
   that allows track state of simultaneously running queries.
 
 ### Fixed
@@ -272,21 +279,22 @@
 
 ### Changed
 
-- Expanding a value of a dictionary uses the key name (if it's a string) for new tab name instead of default "Expanded
+- Expanding the value of a dictionary uses the key name (if it's a string) for new tab name instead of default "Expanded
   Result"
 
 ## [4.1.1]
 
 ### Added
 
-- 2023.2 EAP version checked and added to supported list
+- 2023.2 EAP version checked and added to a supported list
 
 ## [4.1.0]
 
 ### Added
 
-- Show Thousands Separator functionality added to a Table Result View. It allows to show thousands comma separator for
-  any number. Thousands separators only shown in the Table Result View and copied to clipboard but not added to any
+- Show "Thousands Separator" functionality added to a Table Result View. It allows showing thousands' comma separator
+  for
+  any number. "Thousands separators" only shown in the Table Result View and copied to clipboard but not added to any
   exporting data, like Excel or CSV: https://www.kdbinsidebrains.dev/features/tables#thousands-separator
 
 ### Changed
@@ -296,13 +304,13 @@
 
 ### Fixed
 
-- Move an Instance Tree item to wrong position causes an exception.
+- Moving an Instance Tree item to a wrong position causes an exception.
 
 ## [4.0.0]
 
 ### Changed
 
-- Lowest IDEA version is 2022.3 to support latest changes and get rid of some errors.
+- The lowest IDEA version is 2022.3 to support the latest changes and get rid of some errors.
 - Libs upgrade to required versions
 
 ### Added
@@ -331,10 +339,10 @@
 
 ### Added
 
-- 2023.1 EAP version checked and added to supported list
+- 2023.1 EAP version checked and added to a supported list
 - Asynchronous connection has been added: a message sent with messageType=0 (asynchronous) and asynchronous response is
-  expected as result.
-- Active Instance is underlined in Instances View
+  expected as a result.
+- Active Instance is underlined in the Instances View
 - Changing active connection in the toolbar or via Kdb Console selects the instance in KDB Instances View (configuration
   option. Enabled by default).
 - If a query returns not a table, 'Table Result' view is cleaned (configuration option. Enabled by default)
@@ -349,7 +357,7 @@
 
 ### Fixed
 
-- KDB SDK supporting for MacOS added
+- KDB SDK supporting for macOS added
 
 ## [3.6.1]
 
@@ -402,11 +410,11 @@
 ### Added
 
 - Dedicated Live Templates context (KDB+ Q) added with a few templates:
-  - sel - create simple select query: select ... from ... where
+  - sel - create a simple select query: select ... from ... where
   - td - today: .z.d
   - yd - yesterday: .z.d-1
-  - l10s - time within last 10 seconds by time column
-  - l5m - time within last 5 minutes by time column
+  - l10s - time within the last 10 seconds by time column
+  - l5m - time within the last 5 minutes by time column
 - Code Completion improved for queries:
   - suggest a table name after 'from' keyword
   - the selection from a table, when columns are extracted and suggested in 'select', 'be' and 'where' sections
@@ -425,7 +433,7 @@
 
 - Copy formatted/rich text from history console (was plain only before)
 - Index Column in a Table View enabled by default.
-- Inspector scan on connected option enabled by default.
+- Inspector scan on a connected option enabled by default.
 
 ## [3.2.1]
 
@@ -439,7 +447,7 @@
 
 - Inspector has been improved and more functionality added:
   - Scroll to source
-  - Diff with source for a function
+  - Diff with the source for a function
   - Restore expanded/selected item between connection change/refresh
 
 ### Fixed
@@ -462,12 +470,13 @@
 ### Added
 
 - IDEA 2022.3 supported now but without 'New UI': the toolbar isn't shown in the mode somehow
-- Finally new website with all the features and uses has been launched:  https://www.kdbinsidebrains.dev
-- The version increased to 3.0.0 just to synchronize new site with current state as there are a lot of small changes in
+- Finally, a new website with all the features and uses has been launched: https://www.kdbinsidebrains.dev
+- The version increased to 3.0.0 just to synchronize new site with the current state as there are a lot of small changes
+  in
   the
   plugin:
   - Split logs by months introduced: https://www.kdbinsidebrains.dev/settings/options#log-queries
-  - Ability to change background of the console for colored
+  - Ability to change the background of the console for colored
     instances: https://www.kdbinsidebrains.dev/features/instances#highlighting-severity
 - IDEA 2022.3 supporting added
 
@@ -479,13 +488,13 @@
 
 ### Added
 
-- Ability to run a *.q file from the project tree has been added.
+- An ability to run a *.q file from the project tree has been added.
 
 ## [2.0.0]
 
 ### Added
 
-- All major features have been finally implemented so the version changed to major 2.x.x from now.
+- All major features have been finally implemented, so the version changed to major 2.x.x from now.
 
 - Library and Module dependencies have been added. Please select 'KDB+ Q Source' library type to add external source
   code to a project (like core files) for navigation and indexing.
@@ -493,7 +502,7 @@
 ### Fixed
 
 - InstanceTreeView memory leak fixed and the structure is correctly disposed now
-- Some names in usages dialog fixed
+- Some names in usages' dialog fixed
 
 ## [1.15.0]
 
@@ -515,7 +524,7 @@
 
 ### Added
 
-- Code completion takes Inspector result into account: if the KdbInspector is active when code completion takes
+- Code completion takes the Inspector result into account: if the KdbInspector is active when code completion takes
   variables. function and tables from loaded structure with 'inspector' location.
 
 ## [1.13.0]
@@ -523,10 +532,11 @@
 ### Added
 
 - New KdbInspector tool windows has been added that discovers dynamic structure of an instance.
-  The function still experimental so please use carefully. Auto-discovery (discovery after connection) can be enabled
+  The function is still experimental, so please use carefully. Auto-discovery (discovery after connection) can be
+  enabled
   in options but disabled by default.
   <br><br>
-  Related Q query for discovery can be found in
+  the Related Q query for discovery can be found in
   Git: https://github.com/kdbinsidebrains/plugin/blob/main/src/main/resources/org/kdb/inside/brains/inspector.q
 
 ### Changed
@@ -535,7 +545,7 @@
 
 ### Fixed
 
-- Unary primitive functions formatting incorrect. All added into grammar logic as UnaryFunction. They are inner
+- Unary primitive functions formatting incorrect. All added into grammar logic as UnaryFunction. They are an inner
   implementation of some functions
 
 ## [1.12.0]
@@ -558,12 +568,12 @@
 ### Added
 
 - Expand a list/dict/table by double-click in TableResult (can be disabled in options)
-- Columns fileter added to TableResult view on the right side: particular columns can be hidden/shown based on the
+- Columns filter added to TableResult view on the right side: particular columns can be hidden/shown based on the
   filter.
 
 ### Fixed
 
-- TableResult takes almost all space in right spit
+- TableResult takes almost all space in right spit.
 
 ### Changed
 
@@ -575,7 +585,7 @@
 ### Added
 
 - "Open TableResultView in separate frame" action has been removed and replaced by DragAndDrop/Docking. You can now
-  just drag out a Table Result tab anywhere to detach it or drag it back, if required.
+  drag out a Table Result tab anywhere to detach it or drag it back, if required.
 
 ### Deprecated
 
@@ -586,7 +596,7 @@
 ### Added
 
 - Average/Count/Sum in TableResult for selected cells: for all numerical cells in selection average and sum
-  is calculated as well as number of total selected cells
+  is calculated as well as the number of total selected cells
 
 ## [1.8.1]
 
@@ -600,7 +610,7 @@
 
 - The plugin icon has been changed to resolve conflict with another plugin
 - Show row indexes column in a TableResult has been added. Can be individually enabled per TableResult and
-  enable/disabled on KDB+Q Settings panel. Disabled by default.
+  enable/disabled on the KDB+Q Settings panel. Disabled by default.
 
 ### Fixed
 
@@ -614,15 +624,17 @@
 - Symbol references introduced
 - Open TableResultView in separate frame actin added
 - Flip selected rows in separate table view action added
-- Open In Editor action added to TableResultView. You can open content of any cell in separate editor tab
-  by Alt+Enter or Alt+double left click. Can be used to open JSON, XML or any text content for quick view or edit.
+- Open In Editor action added to TableResultView.
+  You can open the content of any cell in a separate editor tab
+  by Alt+Enter or Alt+double left click.
+  It can be used to open JSON, XML or any text content for quick view or edit.
 - Import/Export Scopes and instances added
 - Context naming convention checks added: leading dot, one level depth and spaces are checking
 
 ### Fixed
 
 - Clipboard XML exporting fixed for XML text in a cell
-- Removing items from instances tree requires additional approval
+- Removing items from the Instances Tree requires additional approval
 
 ## [1.6.2]
 
@@ -635,8 +647,8 @@
 ### Fixed
 
 - Items are auto-expanded at search in InstanceTree
-- Max decimal precisions is 16 digits now and size is limited by the spinner in the settings
-- Export to Excel and CSV ignores symbol and string wrapping options and export only raw data
+- Max decimal precisions are 16 digits now, and size is limited by the spinner in the settings
+- Export to Excel and CSV ignores symbol and string wrapping options and exports only raw data
 - Nulls in Excel exported as empty value
 - Copy/Paste takes into account symbol and string wrapping options
 
@@ -646,19 +658,20 @@
 
 - CredentialsPlugin functionality redesigned:
   - plugins copied into Idea System folder (current approach will be auto-migrated)
-  - duplicate plugins are not allowed and adding new version replaces exist one
-  - plugion version and description added (plugins must be recomplited)
+  - duplicate plugins are not allowed and adding a new version replaces exist one
+  - plugin version and description added (plugins must be recompiled)
 
 ## [1.5.0]
 
 ### Added
 
-- Credentials plugin structure has been improved and redesigned a bit but backward compatible: plugin version has been
+- Credential plugin structure has been improved and redesigned a bit but backward compatible: the plugin version has
+  been
   added with "undefined" default value for now.
 
 ### Fixed
 
-- Global and Scope credential changes show appropriate error if something is wrong
+- Global and Scope credential changes show the appropriate error if something is wrong
 - Credentials plugin completely destroyed when removed and releases all resources
 
 ## [1.4.0]
@@ -667,26 +680,26 @@
 
 - Idea 2022.2 supporting added
 - Show public and private assignments in the StrictureView
-- Show current element in the NavigationBar, base on the StructureView
+- Show the current element in the NavigationBar, based on the StructureView
 
 ## [1.3.1]
 
 ### Fixed
 
 - Only console settings are restored: #36
-- Not all iterators shown in console result: #37
+- Not all iterators shown in the console result: #37
 
 ## [1.3.0]
 
 ### Added
 
 - Ability to split Console and TableResults views in Instance Console View: vertically or horizontally. You can set
-  default split type in configuration (by default - no split) or set required for each Instance Console View.
+  the default split type in configuration (by default - no split) or set required for each Instance Console View.
 
 ### Fixed
 
 - Tooltip for a TableResult has been removed - was added for debug and contains irrelevant information
-- Closing last Instance Console View doesn't close Kdb Console tool window
+- Closing last Instance Console View doesn't close the Kdb Console tool window
 
 ## [1.2.0]
 
@@ -704,21 +717,20 @@
 
 ### Fixed
 
-- Key columns shown wrong after moving around in TableResult
+- Key columns showed wrong after moving around in TableResult
 
 ## [1.1.0]
 
 ### Added
 
-- New 'Execute Global Assignment' action has been added: by pressing 'Ctrl + Shift + Enter' or from context menu you
-  can send whole global definition for current context into an instance.
-
-  For example, if you have a function definition then 'Execute Global Assignment' will execute the definition wherever
+- New 'Execute Global Assignment' action has been added: by pressing 'Ctrl + Shift + Enter' or from the context menu,
+  you can send the whole global definition for current context into an instance.
+  For example, if you have a function definition, then 'Execute Global Assignment' will execute the definition wherever
   the cursor is inside the function. It also works for global multiline expressions.
 
 ### Fixed
 
-- Long query overlays query time and rows count in a table result view. The query truncated to available size now.
+- Long query overlays query time and rows count in a table result view. The query is truncated to available size now.
 
 ## [1.0.1]
 
@@ -777,22 +789,22 @@
 
 - Dark icons set added with IntelliJ Idea colors
 - Charting is ready now:
-  - New Magnet/Snap tool has been added with ability to snap to line, vertex or disable the tool (default)
-  - Values Tool shows only series values and no range values anymore
-  - Measure Tool has context menu with remove/clear ability
+  - A New Magnet/Snap tool has been added with the ability to snap to line, vertex or disable the tool (default)
+  - The Values Tool shows only series values and no range values anymore
+  - Measure Tool has a context menu with remove/clear ability
 
 ## [0.20.0]
 
 ### Added
 
 - If a TableResult has more than 200K rows*cols - a 300ms timeout for filtering update has been added after the search
-  field change. That allows to write the full search text before do the real search work to reduce freezes for huge
+  field change. That allows writing the full search text before do the real search work to reduce freezes for a huge
   table result. Can be disabled in the search toolbar for the current search session.
 
 ### Changed
 
 - Console behaviours changed:
-  - Closing a console tab also closes the connection as well now
+  - Closing a console tab closes the connection as well now
   - Changing active console tab changes active connection, so it's the same as select active connection from the
     toolbar
 
@@ -806,12 +818,13 @@
 
 - EPA 2021.1 supporting added
 - Table Result supports search by words and regex with or without case match
-- Right side toolbar in charts view has been added instead of context menu
+- Right side toolbar in charts view has been added instead of the context menu
 - Charting tools have been introduced:
   - **Crosshair tool** - to show current values for the mouse position
   - **Measure tool** - draw measuring rectangles on the chart with values diff: left mouse click to start, move, left
-    mouse click to finish. Esc to cancel current drawing.
-  - **Points collector** - save any chart clicked values into the points collector table with ability to export or
+    mouse click to finish.
+    Esc to cancel current drawing.
+  - **Points collector** - save any chart clicked values into the points' collector table with the ability to export or
     send
     into another KDB instance.
 
@@ -837,7 +850,7 @@
 ### Fixed
 
 - KdbInstances color selection doesn't work in 2021.3.x versions
-- Connection state notifications are not shown after the plugin update without restart
+- Connection state notifications are not shown after the plugin update without a restart
 - Line Chart can't draw not double numbers
 
 ## [0.17.0]
@@ -893,19 +906,20 @@
 
 - Auto-Reconnection option has been added: when a query is executed and connection's been lost, it's auto-restoring
   first and notification is raised is it can't be restored. Enabled by default.
-- 'Reconnect Instance' options has been added in connection lost notification. The notification is moved to Warning from
+- 'Reconnect Instance' options have been added in connection lost notification. The notification is moved to Warning
+  from
   Error.
 
 ### Fixed
 
 - Linux 'Run Configuration' fixed (thanks to zvenczel-kx)
-- Latest IDE version is supported now (2021.2.2). Many compatibility issues have been fixed as well.
+- The latest IDE version is supported now (2021.2.2). Many compatibility issues have been fixed as well.
 
 ## [0.12.2]
 
 ### Added
 
-- Local variables added into completion list
+- Local variables added into the completion list
 
 ## [0.12.1]
 
@@ -929,7 +943,7 @@
 
 ### Added
 
-- Documentations for all keywords and system (.Q, .h, .j and .z namespaces) functions have been added. Press Ctrl+Q on a
+- Documentation for all keywords and system (.Q, .h, .j and .z namespaces) functions have been added. Press Ctrl+Q on a
   function.
 - Dynamic documentation based on comments with qdoc-tags
   supporting: https://code.kx.com/developer/libraries/documentation-generator/#qdoc-tags. Press Ctrl+Q on a variable.
@@ -938,7 +952,7 @@
 ### Fixed
 
 - Issue with files renaming/moving (files refactoring) has been fixed.
-- Global/Local variables inside a lamba defined in a namespace are detected correctly now.
+- Global/Local variables inside a lambda defined in a namespace are detected correctly now.
 - Variable references work inside a table definition
 
 ## [0.10.1]
@@ -961,7 +975,7 @@
 
 ### Changed
 
-- Correct variable type is shown in the completion popup
+- The correct variable type is shown in the completion popup
 - Lambda parameters are shown in the completion popup
 
 ## [0.9.0]
@@ -975,7 +989,7 @@
 
 ### Added
 
-- Variable references have been updated and works fine inside global/local and query contexts.
+- Variable references have been updated and work fine inside global/local and query contexts.
 - MixinLambdaVarDeclaration added - minix local and global scope of a variable is shown as an error with quick fix (
   changing scope into initial one).
 
@@ -985,7 +999,7 @@
 - Psi tree elements slightly redesigned to reduce complexity
 - Export rows/columns fixed
 - Nulls are exported into Excel instead of wrong Q values
-- Export re-uses current TableResultView formatting options (string escaping and so on) instead of default one.
+- Export re-uses current TableResultView formatting options (string escaping and so on) instead of the default one.
 
 ### Removed
 
@@ -995,7 +1009,7 @@
 
 ### Added
 
-- system "l " added to import pattern
+- system "l " added to an import pattern
 
 ### Changed
 
@@ -1009,13 +1023,13 @@
 
 ### Changed
 
-- Grammar has been redesigned to remove lags and issues. Complexity of q.flex was reduced and partly moved to q.bnf
-- All KdbInstance related staff (toolwindow, services) are DumbAware now.
+- Grammar has been redesigned to remove lags and issues. The complexity of q.flex was reduced and partly moved to q.bnf
+- All KdbInstance related stuff (toolwindow, services) are DumbAware now.
 - Gradle plugin has been updated to get changelogs from this file and release with publishPlugin
 
 ### Removed
 
-- Dicts processing were removed from flex/bnf - too complex and takes ages for parsing
+- Dicts processing was removed from flex/bnf - too complex and takes ages for parsing
 
 ## [0.6.2] - DOESN'T WORK WITH BIG FILES
 

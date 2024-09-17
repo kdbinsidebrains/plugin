@@ -54,7 +54,7 @@ public class KdbModuleBuilder extends ModuleBuilder implements ModuleBuilderList
 
     @Override
     public String getDescription() {
-        return "Module for Q language sources. Add your root folders as content enties to be able to search and complete your code.";
+        return "Module for Q language sources. Add your root folders as content entries to be able to search and complete your code.";
     }
 
     @Override

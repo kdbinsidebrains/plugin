@@ -40,7 +40,7 @@ public interface CredentialProvider {
     }
 
     /**
-     * Short description of the provider that shown in the plugins configuration panel as well as in Scopy/Instance
+     * Short description of the provider that shown in the plugins configuration panel as well as in Scope/Instance
      * configuration if the provider is chosen.
      *
      * @return the description
@@ -94,7 +94,7 @@ public interface CredentialProvider {
      * <p>
      * This method can query external systems to get new authentication token.
      * <p>
-     * Result of the method must in KDB {@code username:password} format as it's defined in your KDB instnace.
+     * Result of the method must in KDB {@code username:password} format as it's defined in your KDB instance.
      *
      * @param host        original instance hostname that the credentials should be issue for
      * @param port        original instance port that the credentials should be issue for

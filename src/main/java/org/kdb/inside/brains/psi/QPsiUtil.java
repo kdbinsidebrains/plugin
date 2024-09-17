@@ -79,7 +79,7 @@ public final class QPsiUtil {
      * Checks is the specified element colon or not.
      *
      * @param el the element to be checked
-     * @return <code>true</code> if the elemtn is colon; <code>false</code> - otherwise.
+     * @return <code>true</code> if the element is colon; <code>false</code> - otherwise.
      */
     public static boolean isColon(PsiElement el) {
         return isLeafText(el, ":");

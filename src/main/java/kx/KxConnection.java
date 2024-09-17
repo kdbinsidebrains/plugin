@@ -22,7 +22,7 @@ public class KxConnection extends c implements Closeable {
         this.msgType = async ? 0 : 1;
         this.encoding = encoding != null ? encoding : "UTF-8";
 
-        // We have to split the original constructor into socket creating and authentification to be able to cancel
+        // We have to split the original constructor into socket creating and authentication to be able to cancel
         // authentication - it could take too long if the instance is busy.
         s = new Socket(host.isBlank() ? "localhost" : host, port);
         if (tls) {

@@ -42,7 +42,7 @@ public class ExcelExportAction extends AnExportAction<File> {
             final VirtualFileWrapper vfw = saveFileDialog.save(dataProvider.getExportName());
             return vfw == null ? null : vfw.getFile();
         } else {
-            return File.createTempFile("kdbinsidebrains_exel_export_", ".xlsx");
+            return File.createTempFile("kdbinsidebrains_excel_export_", ".xlsx");
         }
     }
 
