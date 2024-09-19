@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.10.0]
+
+### Changed
+
+- Idea 2024.3 added into the supporting list with deprecated code refactoring
+
 ## [5.9.2]
 
 ### Fixed
@@ -824,7 +830,8 @@
   - **Measure tool** - draw measuring rectangles on the chart with values diff: left mouse click to start, move, left
     mouse click to finish.
     Esc to cancel current drawing.
-  - **Points collector** - save any chart clicked values into the points' collector table with the ability to export or
+  - **Points collector** - save any chart clicked values into the points' collector table with the ability to export
+    or
     send
     into another KDB instance.
 

@@ -2,7 +2,6 @@ package org.kdb.inside.brains.action.toolbar;
 
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.actionSystem.impl.IdeaActionButtonLook;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
@@ -32,13 +31,12 @@ public class NewUIToolbarComponent extends EdtAction implements CustomComponentA
         toolbar.setReservePlaceAutoPopupIcon(false);
         toolbar.setMinimumButtonSize(JBUI.size(36, 30));
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
-        if (toolbar instanceof ActionToolbarImpl t) {
-            t.setOpaque(false);
-            t.setBorder(JBUI.Borders.empty());
-            t.setActionButtonBorder(JBUI.Borders.empty());
-//            t.setCustomButtonLook(new RunWidgetButtonLook());
-        }
-/*
+
+        final JComponent c = toolbar.getComponent();
+        c.setOpaque(false);
+        c.setBorder(JBUI.Borders.empty());
+
+        /*
         toolbar.addListener(new ActionToolbarListener() {
             @Override
             public void actionsUpdated() {

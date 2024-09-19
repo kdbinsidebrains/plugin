@@ -9,7 +9,6 @@ import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.CompositeDisposable;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
@@ -267,12 +266,13 @@ public class WatchesView extends JPanel implements DnDNativeTarget, DataProvider
             }
         };
 
-        final ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
-                .createActionToolbar("KdbWatchPanelComboBox", new DefaultActionGroup(addToWatchesAction), true);
-        toolbar.setOpaque(false);
+        final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("KdbWatchPanelComboBox", new DefaultActionGroup(addToWatchesAction), true);
         toolbar.setReservePlaceAutoPopupIcon(false);
         toolbar.setTargetComponent(getTree());
-        box.setExtension(toolbar);
+
+        final JComponent component = toolbar.getComponent();
+        component.setOpaque(false);
+        box.setExtension(component);
 
         return box;
     }
