@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.view.console;
 
 import com.intellij.execution.actions.ClearConsoleAction;
-import com.intellij.execution.console.BaseConsoleExecuteActionHandler;
 import com.intellij.execution.console.GutterContentProvider;
 import com.intellij.execution.console.LanguageConsoleBuilder;
 import com.intellij.execution.console.LanguageConsoleView;
@@ -173,23 +172,24 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     }
 
     private TabInfo createConsoleTab() {
+        final String historyName = "KdbConsolePanel-" + connection.getName();
+
         final LanguageConsoleBuilder b = new LanguageConsoleBuilder();
-        b.executionEnabled(view -> connection != null && connection.isConnected());
-
-        b.initActions(new BaseConsoleExecuteActionHandler(true) {
-            @Override
-            protected void execute(@NotNull String text, @NotNull LanguageConsoleView console) {
-                if (!showHistory) {
-                    clearHistory();
-                    gutterProvider.beforeEvaluate(console.getHistoryViewer());
-                }
-                processQuery(new KdbQuery(text));
-            }
-        }, "KdbConsolePanel-" + connection.getName());
-
         b.gutterContentProvider(gutterProvider);
-
         console = b.build(project, QLanguage.INSTANCE);
+
+        LanguageConsoleBuilder.registerExecuteAction(console,
+                text -> {
+                    if (!showHistory) {
+                        clearHistory();
+                        gutterProvider.beforeEvaluate(console.getHistoryViewer());
+                    }
+                    processQuery(new KdbQuery(text));
+                },
+                historyName,
+                historyName,
+                view -> connection.isConnected()
+        );
 
         printToConsole("Kdb console for instance: " + connection.getName() + ".\n", ConsoleViewContentType.SYSTEM_OUTPUT);
 
@@ -597,8 +597,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
         if (scope != null) {
             scope.removeScopeListener(scopeListener);
         }
-//        Disposer.dispose(console);
-//        Disposer.dispose(resultTabs);
+        Disposer.dispose(console);
     }
 
     private void printInstanceError(Exception ex) {
