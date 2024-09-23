@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.10.1]
+
+### Fixed
+
+- Issue #104: In 2024.2, instances do not split console history
+
 ## [5.10.0]
 
 ### Changed
