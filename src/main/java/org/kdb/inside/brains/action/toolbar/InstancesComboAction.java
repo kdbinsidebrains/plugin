@@ -165,11 +165,10 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
 
                 layout.show(panel, PANEL_EDITOR);
 
-                IdeFocusManager.getGlobalInstance()
-                        .doWhenFocusSettlesDown(() -> {
-                            IdeFocusManager.getGlobalInstance().requestFocus(editor, true);
-                            popup.showUnderneathOf(editor);
-                        });
+                IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+                    IdeFocusManager.getGlobalInstance().requestFocus(editor, true);
+                    popup.showUnderneathOf(editor);
+                });
             }
         };
 //        button.setUI(new MainToolbarComboBoxButtonUI());
@@ -400,9 +399,13 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
             }
         }
 
+        void performSelection() {
+            manager.activate(instance);
+        }
+
         @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
-            manager.activate(instance);
+            performSelection();
         }
     }
 
@@ -558,15 +561,12 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         }
 
         private boolean handleSelection() {
-            final AnAction selectedValue = getSelectedValue();
-            if (selectedValue == null) {
-                return false;
+            if (getSelectedValue() instanceof SelectInstanceAction sia) {
+                sia.performSelection();
+                selectionCallback.accept(DataManager.getInstance().getDataContext(this));
+                return true;
             }
-
-            final DataContext dataContext = DataManager.getInstance().getDataContext(this);
-            selectedValue.actionPerformed(AnActionEvent.createFromAnAction(selectedValue, null, "KdbInstancesPopup", dataContext));
-            selectionCallback.accept(dataContext);
-            return true;
+            return false;
         }
 
         protected boolean isActionClick(MouseEvent e) {

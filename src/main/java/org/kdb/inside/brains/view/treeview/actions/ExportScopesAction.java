@@ -45,6 +45,10 @@ public class ExportScopesAction extends BgtAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
+        performExport(e);
+    }
+
+    public void performExport(@NotNull AnActionEvent e) {
         final List<KdbScope> scopes = scopesConsumer.get();
         if (scopes == null || scopes.isEmpty()) {
             return;

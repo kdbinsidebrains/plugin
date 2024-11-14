@@ -26,6 +26,6 @@ public class ImportInstancesAction extends SingleItemAction {
             for (InstanceItem instanceItem : scope) {
                 structuralItem.copyItem(instanceItem);
             }
-        }, manager::getNames).actionPerformed(e);
+        }, manager::getNames).performImport(e);
     }
 }

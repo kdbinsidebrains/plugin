@@ -40,7 +40,7 @@ public class ExportInstancesAction extends SingleItemAction {
         }
 
         final List<KdbScope> scopes = List.of(scope);
-        new ExportScopesAction("", "", () -> scopes).actionPerformed(e);
+        new ExportScopesAction("", "", () -> scopes).performExport(e);
     }
 
     @Override

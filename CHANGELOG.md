@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.11.0]
+
+### Changed
+
+- IDEA 2024.3 Internal API dependency usage resolved
+
 ## [5.10.1]
 
 ### Fixed

@@ -5,7 +5,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDNativeTarget;
-import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.CompositeDisposable;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -15,7 +14,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Alarm;
-import com.intellij.xdebugger.impl.actions.XDebuggerActions;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,10 +90,6 @@ public class WatchesView extends JPanel implements DnDNativeTarget, DataProvider
             log.error("Scan query can't be loaded", ex);
         }
         return null;
-    }
-
-    public JComponent getPreferredFocusableComponent() {
-        return getTree();
     }
 
     public void addVariable() {
@@ -254,7 +248,7 @@ public class WatchesView extends JPanel implements DnDNativeTarget, DataProvider
             }
         });
 
-        final AnAction addToWatchesAction = new BgtAction(ActionsBundle.actionText(XDebuggerActions.ADD_TO_WATCH), null, AllIcons.Debugger.AddToWatch) {
+        final AnAction addToWatchesAction = new BgtAction("Add To Watches", null, AllIcons.Debugger.AddToWatch) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 insertVariable.run();

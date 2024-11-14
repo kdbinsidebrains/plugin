@@ -40,6 +40,10 @@ public class ImportScopesAction extends DumbAwareAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
+        performImport(e);
+    }
+
+    public void performImport(AnActionEvent e) {
         final Project project = e.getProject();
 
         final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, true)

@@ -3,14 +3,15 @@ package org.kdb.inside.brains.view.console.watch;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
-import com.intellij.xdebugger.impl.ui.tree.TreeInplaceEditor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.ComboPopup;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 
-class WatchInplaceEditor extends TreeInplaceEditor {
+class WatchInplaceEditor extends BaseInplaceEditor {
     private final Project project;
     private final WatchesTree tree;
     private final VariableNode node;
@@ -28,6 +29,16 @@ class WatchInplaceEditor extends TreeInplaceEditor {
 
         this.defaultValue = node.getExpression();
         this.comboBox.getComboBoxEditor().setItem(defaultValue);
+    }
+
+    @Override
+    protected void beforeShow() {
+        tree.scrollPathToVisible(this.getNodePath());
+    }
+
+    @Override
+    protected JComponent getHostComponent() {
+        return tree;
     }
 
     @Override
@@ -64,16 +75,10 @@ class WatchInplaceEditor extends TreeInplaceEditor {
     }
 
     @Override
-    protected JTree getTree() {
-        return tree;
-    }
-
-    @Override
     protected Project getProject() {
         return project;
     }
 
-    @Override
     protected TreePath getNodePath() {
         return node.getPath();
     }
@@ -97,5 +102,26 @@ class WatchInplaceEditor extends TreeInplaceEditor {
     @Override
     protected JComponent getPreferredFocusedComponent() {
         return comboBox;
+    }
+
+    protected @Nullable Rectangle getEditorBounds() {
+        Rectangle bounds = tree.getVisibleRect();
+        Rectangle nodeBounds = tree.getPathBounds(getNodePath());
+        if (bounds != null && nodeBounds != null) {
+            if (bounds.y <= nodeBounds.y && bounds.y + bounds.height >= nodeBounds.y + nodeBounds.height) {
+                bounds.y = nodeBounds.y;
+                bounds.height = nodeBounds.height;
+                if (nodeBounds.x > bounds.x) {
+                    bounds.width = bounds.width - nodeBounds.x + bounds.x;
+                    bounds.x = nodeBounds.x;
+                }
+
+                return bounds;
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
 }

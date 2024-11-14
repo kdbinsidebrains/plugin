@@ -5,10 +5,12 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.console.watch.VariableNode;
+import org.kdb.inside.brains.view.console.watch.VariableValue;
 import org.kdb.inside.brains.view.console.watch.WatchesView;
 
 import java.awt.datatransfer.StringSelection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CopyValueAction extends AnWatchesTreeAction {
     @Override
@@ -19,16 +21,8 @@ public class CopyValueAction extends AnWatchesTreeAction {
         }
 
         final KdbOutputFormatter outputFormatter = watchesView.getOutputFormatter();
-
-        final StringBuilder b = new StringBuilder();
-        for (VariableNode variable : variables) {
-            final String s = outputFormatter.objectToString(variable.getValue().value());
-            b.append(variable.getExpression()).append(" = ").append(s).append(System.lineSeparator());
-        }
-        if (!b.isEmpty()) {
-            b.setLength(b.length() - System.lineSeparator().length());
-        }
-        CopyPasteManager.getInstance().setContents(new StringSelection(b.toString()));
+        final String content = variables.stream().map(VariableNode::getValue).map(VariableValue::value).map(outputFormatter::objectToString).collect(Collectors.joining(System.lineSeparator()));
+        CopyPasteManager.getInstance().setContents(new StringSelection(content));
     }
 
     @Override
