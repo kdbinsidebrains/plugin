@@ -1,10 +1,9 @@
 package org.kdb.inside.brains.core;
 
-import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 
-@Ignore
-public class KdbScopeHolderTest extends BasePlatformTestCase {
+@Disabled
+public class KdbScopeHolderTest { //extends BasePlatformTestCase {
 /*    private KdbScopeHolder holder;
     private PasswordSafe passwordSafe;
 

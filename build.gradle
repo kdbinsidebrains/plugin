@@ -4,8 +4,8 @@ plugins {
     id 'java'
     id 'signing'
     id 'maven-publish'
-    id 'org.jetbrains.intellij' version '1.17.1'
-    id 'org.jetbrains.changelog' version '2.2.0'
+    id 'org.jetbrains.intellij' version '1.17.4'
+    id 'org.jetbrains.changelog' version '2.2.1'
     id "org.jetbrains.grammarkit" version "2022.3.2.2"
 }
 
@@ -67,15 +67,16 @@ generateParser {
 }
 
 dependencies {
-    implementation 'org.jfree:jfreechart:1.5.4'
-    implementation 'org.jfree:org.jfree.svg:5.0.5'
+    implementation 'org.jfree:jfreechart:1.5.5'
+    implementation 'org.jfree:org.jfree.svg:5.0.6'
 
-    implementation 'org.apache.poi:poi:5.2.5'
-    implementation 'org.apache.poi:poi-ooxml:5.2.5'
+    implementation 'org.apache.poi:poi:5.3.0'
+    implementation 'org.apache.poi:poi-ooxml:5.3.0'
 
-    testImplementation 'org.mockito:mockito-core:5.10.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+    testImplementation 'org.junit.vintage:junit-vintage-engine:5.11.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.11.3'
 }
 
 sourceSets {
