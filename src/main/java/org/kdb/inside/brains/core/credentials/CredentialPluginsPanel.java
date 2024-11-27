@@ -1,8 +1,8 @@
 package org.kdb.inside.brains.core.credentials;
 
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileTypeDescriptor;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -129,7 +129,11 @@ public class CredentialPluginsPanel extends JPanel implements ComponentWithEmpty
     }
 
     private void importPlugin() {
-        final FileChooserDialog fileChooser = FileChooserFactory.getInstance().createFileChooser(new FileTypeDescriptor("Plugin Jar File", "jar"), null, this);
+        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, true, true, false, false)
+                .withDescription("Plugin jar file")
+                .withFileFilter(f -> "jar".equals(f.getExtension()));
+
+        final FileChooserDialog fileChooser = FileChooserFactory.getInstance().createFileChooser(descriptor, null, this);
         final VirtualFile[] choose = fileChooser.choose(null, VirtualFile.EMPTY_ARRAY);
         if (choose.length == 0) {
             return;

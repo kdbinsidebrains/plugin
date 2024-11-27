@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.11.1]
+
+### Fixed
+
+- Loading Authentication plugin restored
+
 ## [5.11.0]
 
 ### Changed
