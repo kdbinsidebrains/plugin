@@ -3,7 +3,6 @@ package icons;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.IconManager;
-import com.intellij.ui.LayeredIcon;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -13,11 +12,16 @@ public final class KdbIcons {
         return IconLoader.getIcon(path, KdbIcons.class);
     }
 
-    private static @NotNull LayeredIcon lineIcons(@NotNull Icon icon1, @NotNull Icon icon2) {
-        LayeredIcon icon = new LayeredIcon(2);
-        icon.setIcon(icon1, 0, 0, 0);
-        icon.setIcon(icon2, 1, icon1.getIconWidth(), 0);
-        return icon;
+    private static @NotNull Icon row(@NotNull Icon icon1, @NotNull Icon icon2) {
+        return IconManager.getInstance().createRowIcon(icon1, icon2);
+//        LayeredIcon icon = new LayeredIcon(2);
+//        icon.setIcon(icon1, 0, 0, 0);
+//        icon.setIcon(icon2, 1, icon1.getIconWidth(), 0);
+//        return icon;
+    }
+
+    private static @NotNull Icon layer(@NotNull Icon icon1, @NotNull Icon icon2) {
+        return IconManager.getInstance().createLayered(icon1, icon2);
     }
 
     public static final class Main {
@@ -35,7 +39,7 @@ public final class KdbIcons {
     public static final class Scope {
         public static final @NotNull Icon Icon = AllIcons.Ide.LocalScope;
         public static final @NotNull Icon Local = AllIcons.Ide.LocalScope;
-        public static final @NotNull Icon Shared = IconManager.getInstance().createLayered(AllIcons.Ide.LocalScope, AllIcons.Nodes.Shared);
+        public static final @NotNull Icon Shared = layer(AllIcons.Ide.LocalScope, AllIcons.Nodes.Shared);
     }
 
     public static final class Chart {
@@ -108,11 +112,14 @@ public final class KdbIcons {
     }
 
     public static final class Node {
+        public static final @NotNull Icon PublicItem = AllIcons.Nodes.C_public;
+        public static final @NotNull Icon PrivateItem = AllIcons.Nodes.C_private;
+
         public static final @NotNull Icon Package = AllIcons.Nodes.Folder;
         public static final @NotNull Icon Instance = load("/org/kdb/inside/brains/icons/instance.svg");
 
-        public static final @NotNull Icon InstanceQueryRunning = lineIcons(Instance, AllIcons.Actions.Execute);
-        public static final @NotNull Icon InstanceQueryCancelled = lineIcons(Instance, AllIcons.Actions.Suspend);
+        public static final @NotNull Icon InstanceQueryRunning = row(Instance, AllIcons.Actions.Execute);
+        public static final @NotNull Icon InstanceQueryCancelled = row(Instance, AllIcons.Actions.Suspend);
 
         public static final @NotNull Icon NewPackage = AllIcons.Actions.NewFolder;
         public static final @NotNull Icon NewInstance = load("/org/kdb/inside/brains/icons/newInstance.svg");
@@ -123,21 +130,24 @@ public final class KdbIcons {
         public static final @NotNull Icon Context = load("/org/kdb/inside/brains/icons/nodes/context.svg");
         public static final @NotNull Icon Symbol = AllIcons.Nodes.Static;
         public static final @NotNull Icon Lambda = AllIcons.Nodes.Lambda;
+        public static final @NotNull Icon LambdaPublic = row(Lambda, Node.PublicItem);
+        public static final @NotNull Icon LambdaPrivate = row(Lambda, Node.PrivateItem);
         public static final @NotNull Icon Variable = AllIcons.Nodes.Variable;
+        public static final @NotNull Icon VariablePublic = row(Variable, Node.PublicItem);
+        public static final @NotNull Icon VariablePrivate = row(Variable, Node.PrivateItem);
         public static final @NotNull Icon Parameter = AllIcons.Nodes.Parameter;
         public static final @NotNull Icon Function = AllIcons.Nodes.Function;
         public static final @NotNull Icon Keyword = AllIcons.Nodes.Constant;
         public static final @NotNull Icon Namespace = AllIcons.Nodes.Package;
 
         public static final @NotNull Icon Table = AllIcons.Nodes.DataTables;
+        public static final @NotNull Icon TablePublic = row(Table, Node.PublicItem);
+        public static final @NotNull Icon TablePrivate = row(Table, Node.PrivateItem);
         public static final @NotNull Icon TableKeyColumn = load("/org/kdb/inside/brains/icons/nodes/keyColumn.svg");
         public static final @NotNull Icon TableValueColumn = load("/org/kdb/inside/brains/icons/nodes/valueColumn.svg");
 
         public static final @NotNull Icon ChangeColor = AllIcons.Actions.Colors;
         public static final @NotNull Icon ShowConnectionFilter = AllIcons.Actions.Show;
-
-        public static final @NotNull Icon PublicItem = AllIcons.Nodes.C_public;
-        public static final @NotNull Icon PrivateItem = AllIcons.Nodes.C_private;
 
         public static final @NotNull Icon SystemNamespaces = AllIcons.Nodes.Private;
 

@@ -8,6 +8,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.*;
+import org.kdb.inside.brains.psi.index.DeclarationRef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,7 +100,7 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
                     .toList();
 
             final String qualifiedName = var.getQualifiedName();
-            List<QVarDeclaration> res = new ArrayList<>();
+            List<DeclarationRef> res = new ArrayList<>();
             for (QTableExpr table : tables) {
                 Stream.of(table.getKeys(), table.getValues())
                         .filter(Objects::nonNull)
@@ -107,6 +108,7 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
                         .map(QTableColumn::getVarDeclaration)
                         .filter(Objects::nonNull)
                         .filter(v -> v.getQualifiedName().equals(qualifiedName))
+                        .map(DeclarationRef::of)
                         .forEach(res::add);
             }
 
@@ -128,7 +130,7 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
                 if (QPsiUtil.isGlobalDeclaration(el)) {
                     return resolveElement(var);
                 } else {
-                    return single(el);
+                    return single(DeclarationRef.of(el));
                 }
             }
             return resolveElement(var);

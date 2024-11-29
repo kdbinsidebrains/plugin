@@ -23,7 +23,7 @@ public class QSymbolReferenceProvider extends QBaseReferenceProvider<QSymbol> {
 
         @Override
         protected String getQualifiedName(QSymbol element) {
-            return element.getText().substring(1);
+            return element.getQualifiedName();
         }
     }
 }

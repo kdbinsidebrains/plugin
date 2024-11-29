@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.*;
@@ -45,8 +46,9 @@ public class QVariableBase extends QPsiElementImpl implements QVariable {
             return name;
         }
 
-        // It's namespace name itself - ignore
-        if (getParent() instanceof QContext) {
+        // It's namespace name itself or table column - ignore
+        final PsiElement parent = getParent();
+        if (parent instanceof QContext || parent instanceof QTableColumn) {
             return name;
         }
 

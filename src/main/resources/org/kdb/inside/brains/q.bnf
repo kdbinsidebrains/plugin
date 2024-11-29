@@ -122,7 +122,10 @@ private mode_content ::= statement+ { recoverWhile = end_of_line_recover }
 mode ::= MODE_PATTERN mode_content? { pin = 1 methods=[modeName="MODE_PATTERN"] } // Mode: [a-Z]) .....
 
 // ============ Custom types ====================
-symbol ::= SYMBOL_PATTERN
+symbol ::= SYMBOL_PATTERN {
+ implements=["org.kdb.inside.brains.psi.QPsiElement" "com.intellij.psi.PsiNameIdentifierOwner" "com.intellij.psi.PsiQualifiedNamedElement" "com.intellij.psi.NavigatablePsiElement"]
+ mixin="org.kdb.inside.brains.psi.impl.QSymbolElementImpl"
+}
 symbols ::= symbol symbol+
 
 var_reference ::= VARIABLE_PATTERN {
