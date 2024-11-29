@@ -4,7 +4,10 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.*;
+import org.kdb.inside.brains.psi.QPsiElement;
+import org.kdb.inside.brains.psi.QSymbol;
+import org.kdb.inside.brains.psi.QVariable;
+import org.kdb.inside.brains.psi.index.DeclarationRef;
 import org.kdb.inside.brains.psi.index.QIndexService;
 
 import java.util.Collection;
@@ -83,25 +86,25 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
         }
 
         final QIndexService index = QIndexService.getInstance(element);
-        final QVarDeclaration initial = index.getFirstInFile(name, file);
+        final DeclarationRef initial = index.getFirstInFile(name, file);
         if (initial == null) {
             final GlobalSearchScope scope = GlobalSearchScope.allScope(element.getProject());
-            final Collection<QVarDeclaration> declarations = QIndexService.getInstance(element).getDeclarations(name, scope);
-            return multi(declarations.stream().filter(QPsiUtil::isGlobalDeclaration));
+            final Collection<DeclarationRef> declarations = QIndexService.getInstance(element).getDeclarations(name, scope);
+            return multi(declarations.stream().filter(DeclarationRef::isGlobalDeclaration));
         }
         return single(initial);
     }
 
     @NotNull
-    protected ResolveResult[] single(QVarDeclaration el) {
-        return new ResolveResult[]{new PsiElementResolveResult(el)};
+    protected ResolveResult[] single(DeclarationRef el) {
+        return new ResolveResult[]{new PsiElementResolveResult(el.getElement())};
     }
 
-    protected ResolveResult[] multi(Stream<QVarDeclaration> variables) {
-        return variables.map(PsiElementResolveResult::new).toArray(ResolveResult[]::new);
+    protected ResolveResult[] multi(Stream<DeclarationRef> variables) {
+        return variables.map(DeclarationRef::getElement).map(PsiElementResolveResult::new).toArray(ResolveResult[]::new);
     }
 
-    protected ResolveResult[] multi(Collection<QVarDeclaration> variables) {
+    protected ResolveResult[] multi(Collection<DeclarationRef> variables) {
         return multi(variables.stream());
     }
 

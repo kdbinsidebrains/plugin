@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 14;
+    protected static final int VERSION = 15;
 
     private static final Logger log = Logger.getInstance(QDataIndexer.class);
 
@@ -92,6 +92,41 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         return indexes.toIntArray();
     }
 
+    static boolean containsSetBackward(CharSequence text, int startPosition) {
+        int i = startPosition - 1; // ignore symbol char `
+
+        // find bracket ignoring spaces
+        for (; i >= 0; i--) {
+            final char ch = text.charAt(i);
+            if (Character.isWhitespace(ch)) {
+                continue;
+            }
+            if (ch == '[') {
+                i--;
+                break;
+            } else {
+                // no bracket found
+                return false;
+            }
+        }
+
+        // ignore spaces
+        while (i >= 0 && Character.isWhitespace(text.charAt(i))) {
+            i--;
+        }
+        // inverted 'set' and one space before or beginning of the text
+        return i >= 2 && text.charAt(i) == 't' && text.charAt(i - 1) == 'e' && text.charAt(i - 2) == 's' && (i == 2 || Character.isWhitespace(text.charAt(i - 3)));
+    }
+
+    static boolean containsSetForward(CharSequence text, int startPosition) {
+        int i = startPosition;
+        final int length = text.length();
+        while (i < length && Character.isWhitespace(text.charAt(i))) {
+            i++;
+        }
+        return i + 3 <= length && text.charAt(i) == 's' && text.charAt(i + 1) == 'e' && text.charAt(i + 2) == 't' && (i + 3 == length || Character.isWhitespace(text.charAt(i + 3)));
+    }
+
     private Map.Entry<String, IdentifierDescriptor> processSymbol(LighterASTNode node, CharSequence text) {
         final TextRange range = new TextRange(node.getStartOffset() + 1, node.getEndOffset());
         final String symbolValue = range.subSequence(text).toString();
@@ -106,6 +141,13 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
             return null;
         }
 
+        // If it's set - a variable definition
+        if (containsSetForward(text, range.getEndOffset() + 1)) {
+            return new AbstractMap.SimpleEntry<>(symbolValue, new IdentifierDescriptor(IdentifierType.VARIABLE, List.of(), range));
+        }
+        if (containsSetBackward(text, range.getStartOffset() - 1)) {
+            return new AbstractMap.SimpleEntry<>(symbolValue, new IdentifierDescriptor(IdentifierType.VARIABLE, List.of(), range));
+        }
         return new AbstractMap.SimpleEntry<>(symbolValue, new IdentifierDescriptor(IdentifierType.SYMBOL, List.of(), range));
     }
 

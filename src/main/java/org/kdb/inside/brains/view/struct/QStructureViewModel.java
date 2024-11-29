@@ -43,12 +43,13 @@ final class QStructureViewModel extends StructureViewModelBase implements Struct
     @Override
     public Filter @NotNull [] getFilters() {
         return new Filter[]{
-                new TheElementFilter("SHOW_TABLES", "Show Tables", StructureElementType.TABLE),
-                new TheElementFilter("SHOW_COLUMNS", "Show Columns", EnumSet.of(StructureElementType.TABLE_VALUE_COLUMN, StructureElementType.TABLE_KEY_COLUMN)),
-                new TheElementFilter("SHOW_IMPORTS", "Show Imports", StructureElementType.IMPORT),
-                new TheElementFilter("SHOW_COMMANDS", "Show Commands", StructureElementType.COMMAND),
-                new TheElementFilter("SHOW_LAMBDAS", "Show Lambdas", StructureElementType.LAMBDA),
-                new TheElementFilter("SHOW_VARIABLES", "Show Variables", StructureElementType.VARIABLE),
+                new SingleElementFilter("SHOW_TABLES", "Show Tables", StructureElementType.TABLE),
+                new MultiElementFilter("SHOW_COLUMNS", "Show Columns", EnumSet.of(StructureElementType.TABLE_VALUE_COLUMN, StructureElementType.TABLE_KEY_COLUMN)),
+                new SingleElementFilter("SHOW_IMPORTS", "Show Imports", StructureElementType.IMPORT),
+                new SingleElementFilter("SHOW_COMMANDS", "Show Commands", StructureElementType.COMMAND),
+                new SingleElementFilter("SHOW_LAMBDAS", "Show Lambdas", StructureElementType.LAMBDA),
+                new SingleElementFilter("SHOW_VARIABLES", "Show Variables", StructureElementType.VARIABLE),
+                new SingleElementFilter("SHOW_SYMBOLS", "Show Symbols", StructureElementType.SYMBOL),
                 new TheVisibilityFilter(),
         };
     }
@@ -94,42 +95,62 @@ final class QStructureViewModel extends StructureViewModelBase implements Struct
         }
     }
 
-    private static class TheElementFilter implements Filter {
+    private static abstract class BaseElementFilter implements Filter {
         private final String name;
-        private final String text;
-        private final Icon icon;
-        private final EnumSet<StructureElementType> types;
+        private final ActionPresentationData presentation;
 
-        private TheElementFilter(String name, String text, StructureElementType type) {
-            this(name, text, EnumSet.of(type));
-        }
-
-        private TheElementFilter(String name, String text, EnumSet<StructureElementType> types) {
+        public BaseElementFilter(String name, String text, Icon icon) {
             this.name = name;
-            this.text = text;
-            this.icon = types.stream().findFirst().map(StructureElementType::getIcon).orElse(null);
-            this.types = types;
+            this.presentation = new ActionPresentationData(text, null, icon);
         }
 
         @Override
-        public @NonNls
-        @NotNull String getName() {
+        public final @NonNls @NotNull String getName() {
             return name;
         }
 
         @Override
-        public @NotNull ActionPresentation getPresentation() {
-            return new ActionPresentationData(text, null, icon);
+        public final @NotNull ActionPresentation getPresentation() {
+            return presentation;
         }
 
         @Override
-        public boolean isVisible(TreeElement treeNode) {
-            return !types.contains(((QStructureViewElement) treeNode).getType());
-        }
-
-        @Override
-        public boolean isReverted() {
+        public final boolean isReverted() {
             return true;
+        }
+
+        public final boolean isVisible(TreeElement treeNode) {
+            return !containsType(((QStructureViewElement) treeNode).getType());
+        }
+
+        abstract boolean containsType(StructureElementType type);
+    }
+
+    private static class SingleElementFilter extends BaseElementFilter {
+        private final StructureElementType type;
+
+        public SingleElementFilter(String name, String text, StructureElementType type) {
+            super(name, text, type.getIcon());
+            this.type = type;
+        }
+
+        @Override
+        boolean containsType(StructureElementType type) {
+            return this.type == type;
+        }
+    }
+
+    private static class MultiElementFilter extends BaseElementFilter {
+        private final EnumSet<StructureElementType> types;
+
+        private MultiElementFilter(String name, String text, EnumSet<StructureElementType> types) {
+            super(name, text, types.stream().findFirst().map(StructureElementType::getIcon).orElse(null));
+            this.types = types;
+        }
+
+        @Override
+        boolean containsType(StructureElementType type) {
+            return types.contains(type);
         }
     }
 }

@@ -37,7 +37,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.*;
 import com.intellij.ui.content.Content;
@@ -61,9 +60,8 @@ import org.jetbrains.concurrency.Promise;
 import org.kdb.inside.brains.action.BgtAction;
 import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.core.*;
-import org.kdb.inside.brains.psi.QAssignmentExpr;
 import org.kdb.inside.brains.psi.QExpression;
-import org.kdb.inside.brains.psi.QVarDeclaration;
+import org.kdb.inside.brains.psi.index.DeclarationRef;
 import org.kdb.inside.brains.psi.index.QIndexService;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.KdbToolWindowPanel;
@@ -294,21 +292,13 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
 
     @NotNull
     private String getSourceContent(String canonicalName) {
-        final QVarDeclaration declaration = findVarDeclaration(canonicalName);
+        final DeclarationRef declaration = findVarDeclaration(canonicalName);
         if (declaration == null) {
             return "";
         }
 
-        final PsiElement parent = declaration.getParent();
-        if (!(parent instanceof QAssignmentExpr assignment)) {
-            return "";
-        }
-
-        final QExpression expression = assignment.getExpression();
-        if (expression == null) {
-            return "";
-        }
-        return expression.getText();
+        final QExpression exp = declaration.getExpression();
+        return exp == null ? "" : exp.getText();
     }
 
     private void showDiffResult(Project project, String canonicalName, String instSource) {
@@ -422,7 +412,7 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
     }
 
     @Nullable
-    private QVarDeclaration getDeclaration(@Nullable TreePath path) {
+    private DeclarationRef getDeclaration(@Nullable TreePath path) {
         if (path == null) {
             return null;
         }
@@ -434,7 +424,7 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
     }
 
     @Nullable
-    private QVarDeclaration findVarDeclaration(String canonicalName) {
+    private DeclarationRef findVarDeclaration(String canonicalName) {
         final QIndexService instance = QIndexService.getInstance(project);
         try {
             return instance.getFirstGlobalDeclarations(canonicalName, GlobalSearchScope.allScope(project));
@@ -446,7 +436,7 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
     private void scrollPathToSource(@Nullable TreePath path, boolean requestFocus) {
         final Application application = ApplicationManager.getApplication();
         application.executeOnPooledThread(() -> {
-            final QVarDeclaration declaration = getDeclaration(path);
+            final DeclarationRef declaration = getDeclaration(path);
             if (declaration != null) {
                 application.invokeLater(() -> declaration.navigate(requestFocus));
             }

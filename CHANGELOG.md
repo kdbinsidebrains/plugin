@@ -1,5 +1,13 @@
 # KdbInsideBrains Changelog
 
+## [5.12.0]
+
+### Added
+
+- Symbol is parsed as a variable if used in any 'set' expression, like: _`myvariable set ..._ or _set[`myvariable;...]_
+- Symbols declared as a variable in any form support cross-links to/from the declaration and can be renamed
+- Structure view performance improved
+
 ## [5.11.1]
 
 ### Fixed

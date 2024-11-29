@@ -10,7 +10,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.psi.QPsiUtil;
+import org.kdb.inside.brains.psi.QSymbol;
 import org.kdb.inside.brains.psi.QVarDeclaration;
 
 import java.util.*;
@@ -37,11 +37,11 @@ public class QIndexService {
         return result.value;
     }
 
-    public QVarDeclaration getFirstInFile(@NotNull String qualifiedName, @NotNull PsiFile file) {
+    public DeclarationRef getFirstInFile(@NotNull String qualifiedName, @NotNull PsiFile file) {
         final List<List<IdentifierDescriptor>> values = index.getValues(QIdentifiersIndex.INDEX_ID, qualifiedName, GlobalSearchScope.fileScope(file));
         for (List<IdentifierDescriptor> value : values) {
             for (IdentifierDescriptor descriptor : value) {
-                final QVarDeclaration declaration = resolveDeclaration(descriptor, file.getVirtualFile());
+                final DeclarationRef declaration = resolveDeclaration(descriptor, file.getVirtualFile());
                 if (declaration != null) {
                     return declaration;
                 }
@@ -50,10 +50,10 @@ public class QIndexService {
         return null;
     }
 
-    public @Nullable QVarDeclaration getFirstGlobalDeclarations(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-        final Result<QVarDeclaration> r = new Result<>();
+    public @Nullable DeclarationRef getFirstGlobalDeclarations(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
+        final Result<DeclarationRef> r = new Result<>();
         processValues(s -> s.equals(qualifiedName), scope, (key, file, descriptor) -> {
-            final QVarDeclaration var = resolveGlobalDeclaration(descriptor, file);
+            final DeclarationRef var = resolveGlobalDeclaration(descriptor, file);
             if (var != null) {
                 r.value = var;
                 return false;
@@ -63,10 +63,10 @@ public class QIndexService {
         return r.value;
     }
 
-    public @NotNull Collection<QVarDeclaration> getDeclarations(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-        final Set<QVarDeclaration> declarations = new HashSet<>();
+    public @NotNull Collection<DeclarationRef> getDeclarations(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
+        final Set<DeclarationRef> declarations = new HashSet<>();
         processValues(s -> s.equals(qualifiedName), scope, (key, file, descriptor) -> {
-            final QVarDeclaration var = resolveDeclaration(descriptor, file);
+            final DeclarationRef var = resolveDeclaration(descriptor, file);
             if (var != null) {
                 declarations.add(var);
             }
@@ -76,16 +76,16 @@ public class QIndexService {
     }
 
     @Nullable
-    private QVarDeclaration resolveGlobalDeclaration(IdentifierDescriptor descriptor, VirtualFile file) {
-        final QVarDeclaration var = resolveDeclaration(descriptor, file);
-        if (var != null && QPsiUtil.isGlobalDeclaration(var)) {
+    private DeclarationRef resolveGlobalDeclaration(IdentifierDescriptor descriptor, VirtualFile file) {
+        final DeclarationRef var = resolveDeclaration(descriptor, file);
+        if (var != null && var.isGlobalDeclaration()) {
             return var;
         }
         return null;
     }
 
     public void processValues(@NotNull Predicate<String> keyPredicate, @NotNull GlobalSearchScope scope, @NotNull QIndexService.ValuesProcessor processor) {
-        // We can't process all in the same thread so we collect value values firstly and then process each
+        // We can't process all in the same thread, so we collect value values firstly and then process each
         // See https://github.com/kdbinsidebrains/plugin/issues/76
         final List<String> keys = new ArrayList<>();
         processAllKeys(key -> {
@@ -112,7 +112,7 @@ public class QIndexService {
     }
 
     @Nullable
-    private QVarDeclaration resolveDeclaration(IdentifierDescriptor descriptor, VirtualFile file) {
+    private DeclarationRef resolveDeclaration(IdentifierDescriptor descriptor, VirtualFile file) {
         if (descriptor.isSymbol()) {
             return null;
         }
@@ -128,13 +128,17 @@ public class QIndexService {
             return null;
         }
 
-        if (el instanceof QVarDeclaration) {
-            return (QVarDeclaration) el;
+        if (el instanceof QVarDeclaration d) {
+            return DeclarationRef.of(d);
         }
 
         final PsiElement parent = el.getParent();
-        if (parent instanceof QVarDeclaration) {
-            return (QVarDeclaration) parent;
+        if (parent instanceof QSymbol s) {
+            return DeclarationRef.of(s);
+        }
+
+        if (parent instanceof QVarDeclaration d) {
+            return DeclarationRef.of(d);
         }
         return null;
     }

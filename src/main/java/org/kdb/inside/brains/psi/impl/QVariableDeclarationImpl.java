@@ -3,7 +3,6 @@ package org.kdb.inside.brains.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +10,6 @@ import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QVarDeclaration;
 import org.kdb.inside.brains.psi.QVariable;
 
-import javax.swing.*;
 import java.util.Optional;
 
 public abstract class QVariableDeclarationImpl extends QVariableBase implements QVarDeclaration {
@@ -38,26 +36,6 @@ public abstract class QVariableDeclarationImpl extends QVariableBase implements 
 
     @Override
     public ItemPresentation getPresentation() {
-        return new ItemPresentation() {
-            @NotNull
-            @Override
-            public String getPresentableText() {
-                return getQualifiedName();
-            }
-
-            @NotNull
-            @Override
-            public String getLocationString() {
-                final PsiFile containingFile = getContainingFile();
-                return containingFile == null ? "" : containingFile.getName();
-            }
-
-            @NotNull
-            @Override
-            public Icon getIcon(boolean unused) {
-                // TODO: Not implemented yet. Icon should depends on the variable type and visibility
-                return KdbIcons.Node.Variable;
-            }
-        };
+        return new VariablePresentation(this, KdbIcons.Node.Variable);
     }
 }

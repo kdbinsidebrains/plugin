@@ -9,6 +9,7 @@ public enum StructureElementType {
     IMPORT(KdbIcons.Node.Import, true, false),
     COMMAND(KdbIcons.Node.Command, true, false),
     CONTEXT(KdbIcons.Node.Context, false, true),
+    SYMBOL(KdbIcons.Node.Symbol, true, false),
     VARIABLE(KdbIcons.Node.Variable, true, false),
     LAMBDA(KdbIcons.Node.Lambda, false, true),
     TABLE(KdbIcons.Node.Table, false, false),

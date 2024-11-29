@@ -6,11 +6,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.indexing.FindSymbolParameters;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.psi.index.DeclarationRef;
 import org.kdb.inside.brains.psi.index.QIndexService;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public final class QChooseByNameContributor implements ChooseByNameContributor {
     @Override
@@ -26,7 +28,7 @@ public final class QChooseByNameContributor implements ChooseByNameContributor {
     @Override
     public NavigationItem @NotNull [] getItemsByName(String name, String pattern, Project project, boolean includeNonProjectItems) {
         final FindSymbolParameters simple = FindSymbolParameters.simple(project, includeNonProjectItems);
-        final Collection<? extends NavigationItem> result = QIndexService.getInstance(project).getDeclarations(name, simple.getSearchScope());
-        return result.isEmpty() ? NavigationItem.EMPTY_NAVIGATION_ITEM_ARRAY : result.toArray(NavigationItem.EMPTY_NAVIGATION_ITEM_ARRAY);
+        final Collection<DeclarationRef> declarations = QIndexService.getInstance(project).getDeclarations(name, simple.getSearchScope());
+        return declarations.isEmpty() ? NavigationItem.EMPTY_NAVIGATION_ITEM_ARRAY : declarations.stream().map(DeclarationRef::getNavigationItem).filter(Objects::nonNull).toArray(NavigationItem[]::new);
     }
 }

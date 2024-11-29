@@ -3,8 +3,6 @@ package org.kdb.inside.brains.psi;
 import com.intellij.ide.IconProvider;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.psi.PsiElement;
-import com.intellij.ui.IconManager;
-import com.intellij.ui.icons.RowIcon;
 import com.intellij.util.BitUtil;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
@@ -21,9 +19,9 @@ public class QIconProvider extends IconProvider implements DumbAware {
 
     @Override
     public @Nullable Icon getIcon(@NotNull PsiElement element, int flags) {
-        final boolean visibility = BitUtil.isSet(flags, ICON_FLAG_VISIBILITY);
-
-        if (element instanceof QImport) {
+        if (element instanceof QFile) {
+            return KdbIcons.Node.File;
+        } else if (element instanceof QImport) {
             return KdbIcons.Node.Import;
         } else if (element instanceof QCommand) {
             return KdbIcons.Node.Command;
@@ -36,7 +34,7 @@ public class QIconProvider extends IconProvider implements DumbAware {
         } else if (element instanceof QLambdaExpr) {
             return KdbIcons.Node.Lambda;
         } else if (element instanceof QAssignmentExpr assignment) {
-            return getAssignmentIcon(assignment, visibility);
+            return getAssignmentIcon(assignment, BitUtil.isSet(flags, ICON_FLAG_VISIBILITY));
         } else if (element instanceof QVarDeclaration declaration) {
             return getIcon(declaration.getParent(), flags);
         }
@@ -49,17 +47,12 @@ public class QIconProvider extends IconProvider implements DumbAware {
             return null;
         }
 
-        Icon i = getExpressionIcon(expression);
         if (visibility) {
-            final RowIcon icon = IconManager.getInstance().createLayeredIcon(assignment, i, 0);
-            icon.setIcon(getVisibilityIcon(assignment), 1);
-            return icon;
+            final boolean global = QPsiUtil.isGlobalDeclaration(assignment);
+            return getExpressionIcon(expression, global);
+        } else {
+            return getExpressionIcon(expression);
         }
-        return i;
-    }
-
-    private Icon getVisibilityIcon(QAssignmentExpr assignment) {
-        return QPsiUtil.isGlobalDeclaration(assignment) ? KdbIcons.Node.PublicItem : KdbIcons.Node.PrivateItem;
     }
 
     private Icon getExpressionIcon(QExpression expression) {
@@ -69,5 +62,14 @@ public class QIconProvider extends IconProvider implements DumbAware {
             return KdbIcons.Node.Table;
         }
         return KdbIcons.Node.Variable;
+    }
+
+    private Icon getExpressionIcon(QExpression expression, boolean global) {
+        if (expression instanceof QLambdaExpr) {
+            return global ? KdbIcons.Node.LambdaPublic : KdbIcons.Node.LambdaPrivate;
+        } else if (expression instanceof QTableExpr) {
+            return global ? KdbIcons.Node.TablePublic : KdbIcons.Node.TablePrivate;
+        }
+        return global ? KdbIcons.Node.VariablePublic : KdbIcons.Node.VariablePrivate;
     }
 }
