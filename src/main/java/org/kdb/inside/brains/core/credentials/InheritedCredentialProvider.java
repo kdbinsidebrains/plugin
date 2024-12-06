@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.core.credentials;
 
 import org.kdb.inside.brains.core.KdbScope;
-import org.kdb.inside.brains.settings.KdbSettingsService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,7 +30,7 @@ public final class InheritedCredentialProvider implements CredentialProvider {
         final String credentials;
         if (scope == null || scope.getCredentials() == null) {
             name = "global settings";
-            credentials = KdbSettingsService.getInstance().getDefaultCredentials();
+            credentials = CredentialService.getInstance().getDefaultCredentials();
         } else {
             name = "scope " + scope.getName();
             credentials = scope.getCredentials();

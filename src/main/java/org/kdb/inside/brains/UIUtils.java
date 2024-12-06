@@ -19,6 +19,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.ImageUtil;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -31,6 +32,10 @@ import java.util.function.Predicate;
 
 public final class UIUtils {
     private UIUtils() {
+    }
+
+    public static String replaceSystemProperties(String string) {
+        return StrSubstitutor.replaceSystemProperties(string);
     }
 
     public static Content createContent(JComponent component, String displayName, boolean isLockable) {

@@ -1,7 +1,5 @@
 package org.kdb.inside.brains.settings;
 
-import com.intellij.credentialStore.CredentialAttributes;
-import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -17,7 +15,6 @@ import org.kdb.inside.brains.view.inspector.InspectorOptions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @State(name = "KdbSettings", storages = {@Storage(value = "kdb-settings.xml")})
@@ -27,9 +24,6 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
     private final List<KdbSettingsListener> listeners = new CopyOnWriteArrayList<>();
 
     private static KdbSettingsService instance;
-
-    private static final String DEFAULT_CREDENTIALS = "${user.name}";
-    private static final String CREDENTIAL_ATTRIBUTE = "KdbInsideBrainsGlobalCredentials";
 
     public KdbSettingsService() {
     }
@@ -43,19 +37,6 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
     public void removeSettingsListener(KdbSettingsListener listener) {
         if (listener != null) {
             listeners.remove(listener);
-        }
-    }
-
-    public String getDefaultCredentials() {
-        final String res = PasswordSafe.getInstance().getPassword(new CredentialAttributes(CREDENTIAL_ATTRIBUTE));
-        return res == null ? DEFAULT_CREDENTIALS : res;
-    }
-
-    public void setDefaultCredentials(String credentials) {
-        Objects.requireNonNull(credentials, "Default credentials can't be null");
-
-        if (!credentials.equals(getDefaultCredentials())) {
-            PasswordSafe.getInstance().setPassword(new CredentialAttributes(CREDENTIAL_ATTRIBUTE), credentials);
         }
     }
 

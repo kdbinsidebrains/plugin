@@ -32,7 +32,7 @@ public final class UsernameCredentialProvider implements CredentialProvider {
     }
 
     private static class UsernameCredentialsEditor extends CredentialEditor {
-        final JBTextField usernameField = new JBTextField();
+        final JBTextField usernameField = new JBTextField(CredentialService.DEFAULT_CREDENTIALS);
         final JBPasswordField passwordField = new JBPasswordField();
 
         public UsernameCredentialsEditor() {

@@ -1,57 +1,59 @@
 package org.kdb.inside.brains.core.credentials;
 
+import com.intellij.credentialStore.CredentialAttributes;
+import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.xmlb.annotations.Property;
+import com.intellij.util.xmlb.annotations.XCollection;
 import icons.KdbIcons;
-import org.apache.commons.lang.text.StrSubstitutor;
-import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.core.KdbInstance;
 import org.kdb.inside.brains.settings.KdbSettingsConfigurable;
-import org.kdb.inside.brains.settings.KdbSettingsService;
 
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@com.intellij.openapi.components.State(name = "ConnectionProviders", storages = {@Storage("kdb-settings.xml")})
-public class CredentialService implements PersistentStateComponent<Element> {
-    private final File credentialsDir;
-    private final List<CredentialPlugin> my_plugins = new ArrayList<>();
+import static org.kdb.inside.brains.UIUtils.replaceSystemProperties;
 
+@com.intellij.openapi.components.State(name = "CredentialService", storages = {@Storage("kdb-settings.xml")})
+public class CredentialService implements PersistentStateComponent<CredentialService.State> {
+    public static final String DEFAULT_CREDENTIALS = "${user.name}";
+    private static final String CREDENTIAL_ATTRIBUTE = "KdbInsideBrainsGlobalCredentials";
     private static final Logger log = Logger.getInstance(CredentialService.class);
+    private final Path rootDir;
+    private final State state = new State();
+    private final List<CredentialPlugin> plugins = new ArrayList<>();
+
     private static CredentialService instance = null;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Lock readLock = lock.readLock();
+    private final Lock writeLock = lock.writeLock();
 
     private CredentialService() {
-        credentialsDir = new File(PathManager.getSystemPath(), "KdbInsideBrains");
-        if (!credentialsDir.exists() && !credentialsDir.mkdirs()) {
-            log.error("System folder for KdbInsideBrains can't be created");
-        }
+        rootDir = Path.of(System.getProperty("user.home"), ".kdbinb");
     }
 
-    public static CredentialService getInstance() {
-        if (instance == null) {
-            instance = ApplicationManager.getApplication().getService(CredentialService.class);
-        }
-        return instance;
-    }
-
-    public static CredentialProvider findProvider(String credentials) {
-        return findProvider(getInstance().getProviders(), credentials);
+    public static CredentialProvider findProvider(Collection<CredentialProvider> providers, String credentials) {
+        return providers.stream().filter(p -> p.isSupported(credentials)).findFirst().orElse(UsernameCredentialProvider.INSTANCE);
     }
 
     public static String resolveCredentials(KdbInstance instance) throws CredentialsResolvingException {
@@ -62,7 +64,7 @@ public class CredentialService implements PersistentStateComponent<Element> {
         }
         // Or take default if no luck
         if (credentials == null) {
-            credentials = KdbSettingsService.getInstance().getDefaultCredentials();
+            credentials = getInstance().getDefaultCredentials();
         }
 
         // Get provider
@@ -78,133 +80,325 @@ public class CredentialService implements PersistentStateComponent<Element> {
         credentials = resolved != null ? resolved : credentials;
 
         // resolve system vars
-        return StrSubstitutor.replaceSystemProperties(credentials);
+        return replaceSystemProperties(credentials);
     }
 
-    public List<CredentialProvider> getProviders() {
-        return Stream.concat(my_plugins.stream().map(CredentialPlugin::getProvider), Stream.of(UsernameCredentialProvider.INSTANCE)).collect(Collectors.toList());
+    public static boolean isPlugin(Path resource) {
+        if (resource == null || !resource.toString().endsWith(".jar")) {
+            return false;
+        }
+        try {
+            verifyPlugin(resource);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    public static PluginDescriptor verifyPlugin(Path resource) throws CredentialPluginException, IOException {
+        if (!Files.exists(resource)) {
+            throw new IOException("File doesn't exist: " + resource.toAbsolutePath());
+        }
+
+        try (CredentialPlugin plugin = new CredentialPlugin(resource)) {
+            return plugin.getDescriptor();
+        }
+    }
+
+    private static Path createPluginFile(Path root, String id) {
+        return root.resolve("credentials-" + id + ".jar").toAbsolutePath();
+    }
+
+    public List<Path> getPluginResources() {
+        return plugins.stream().map(CredentialPlugin::getResource).toList();
     }
 
     public List<CredentialPlugin> getPlugins() {
-        return Collections.unmodifiableList(my_plugins);
+        readLock.lock();
+        try {
+            return Collections.unmodifiableList(plugins);
+        } finally {
+            readLock.unlock();
+        }
     }
 
-    public void setPlugins(List<CredentialPlugin> plugins) throws IOException, CredentialPluginException {
-        if (my_plugins.equals(plugins)) {
+    public List<CredentialProvider> getProviders() {
+        readLock.lock();
+        try {
+            return Stream.concat(plugins.stream().map(CredentialPlugin::getProvider), Stream.of(UsernameCredentialProvider.INSTANCE)).collect(Collectors.toList());
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    public void changePlugins(List<Path> sources) throws CredentialPluginException {
+        final List<PluginError> errors = reloadPlugins(sources, true);
+        if (!errors.isEmpty()) {
+            throw new CredentialPluginException("Some plugins can't be loaded");
+        }
+    }
+
+    public static CredentialService getInstance() {
+        if (instance == null) {
+            instance = ApplicationManager.getApplication().getService(CredentialService.class);
+        }
+        return instance;
+    }
+
+    public static CredentialProvider findProvider(String credentials) {
+        return findProvider(getInstance().getProviders(), credentials);
+    }
+
+    public String getDefaultCredentials() {
+        return state.defaultCredential;
+    }
+
+    public void setDefaultCredentials(String credentials) {
+        Objects.requireNonNull(credentials, "Default credentials can't be null");
+        state.defaultCredential = credentials;
+    }
+
+    @Override
+    public @Nullable State getState() {
+        readLock.lock();
+        try {
+            return state;
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public void loadState(@NotNull State state) {
+        this.state.defaultCredential = state.defaultCredential;
+
+        initializeLoadedState(state.pluginIds.stream().map(id -> createPluginFile(rootDir, id)).toList());
+    }
+
+    // Migration from previous versions
+    @Override
+    public void noStateLoaded() {
+        final String res = PasswordSafe.getInstance().getPassword(new CredentialAttributes(CREDENTIAL_ATTRIBUTE));
+        state.defaultCredential = res == null ? DEFAULT_CREDENTIALS : res;
+
+        final List<Path> plugins = ApplicationManager.getApplication()
+                .getService(DeprecatedConnectionProviders.class)
+                .getPlugins();
+        initializeLoadedState(plugins);
+    }
+
+    private void initializeLoadedState(List<Path> sources) {
+        final List<Path> completeList = new ArrayList<>(sources);
+        // load all files for the folder
+        try (final Stream<Path> list = Files.list(rootDir)) {
+            list.filter(CredentialService::isPlugin).map(Path::toAbsolutePath).forEach(p -> {
+                if (!completeList.contains(p)) {
+                    completeList.add(p);
+                }
+            });
+        } catch (Exception ignore) {
+        }
+
+        if (completeList.isEmpty()) {
             return;
         }
 
-        log.info("Updating plugins list from " + my_plugins.stream().map(CredentialPlugin::getName) + " to " + plugins.stream().map(CredentialPlugin::getName));
+        final List<PluginError> pluginErrors = reloadPlugins(completeList, false);
+        for (PluginError error : pluginErrors) {
+            notifyPluginFailedPlugin(error.path, error.ex);
+        }
+    }
 
-        my_plugins.forEach(p -> {
+    private List<PluginError> reloadPlugins(List<Path> sources, boolean allOrNothing) {
+        writeLock.lock();
+        try {
+            return reloadPluginsImpl(sources, allOrNothing);
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    private List<PluginError> reloadPluginsImpl(List<Path> sources, boolean allOrNothing) {
+        final List<Path> currentPlugins = new ArrayList<>(plugins.stream().map(CredentialPlugin::getResource).toList());
+        if (currentPlugins.equals(sources)) {
+            return List.of();
+        }
+
+        log.info("Updating plugins list from " + currentPlugins + " to " + sources);
+        // Remove exist plugins if any and exit
+        if (sources.isEmpty() && currentPlugins.isEmpty()) {
+            return List.of();
+        }
+
+        final Path root = getOrCreateRoot();
+
+        // Verify all reloading plugins
+        final Verifier verify = Verifier.verify(root, sources);
+        if (!verify.errors.isEmpty() && allOrNothing) {
+            return verify.errors;
+        }
+
+        // close exist plugins
+        final List<Path> closedPlugins = closeAndClearPlugins();
+        try {
+            state.pluginIds.clear();
+            for (PluginMapping mapping : verify.mapping) {
+                try {
+                    if (!mapping.source.equals(mapping.target)) {
+                        // if source in the same root folder - move it!
+                        if (mapping.source.startsWith(rootDir)) {
+                            Files.move(mapping.source, mapping.target, StandardCopyOption.REPLACE_EXISTING);
+                        } else {
+                            Files.copy(mapping.source, mapping.target, StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    }
+                    final CredentialPlugin p = new CredentialPlugin(mapping.target);
+                    plugins.add(p);
+                    state.pluginIds.add(p.getId());
+                    closedPlugins.remove(mapping.target);
+                } catch (Exception ex) {
+                    verify.errors.add(new PluginError(mapping.source, ex));
+                }
+            }
+            log.info("Plugins updated with errors: " + verify.errors);
+            return verify.errors;
+        } finally {
+            updateReadme();
+            cleanupPluginFiles(closedPlugins);
+        }
+    }
+
+    private void updateReadme() {
+        try {
+            final List<String> lines = new ArrayList<>();
+            // header
+            lines.add("This directory contains list of credential providers for KdbInsideBrains JetBrains IDEA plugin: https://www.kdbinsidebrains.dev");
+            for (CredentialPlugin plugin : plugins) {
+                lines.add("");
+                final Path resource = plugin.getResource();
+                final PluginDescriptor d = plugin.getDescriptor();
+                lines.add(resource.getFileName().toString());
+                lines.add("\tName: " + d.name());
+                lines.add("\tVersion: " + d.version());
+                lines.add("\tDescription: " + d.description());
+            }
+            Files.writeString(rootDir.resolve("readme.txt"), String.join(System.lineSeparator(), lines), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+        } catch (Exception ex) {
+            log.warn("Readme file can't be updated: " + ex.getMessage());
+        }
+    }
+
+    private void cleanupPluginFiles(List<Path> closedPlugins) {
+        if (closedPlugins.isEmpty()) {
+            return;
+        }
+
+        log.info("Remove unused plugins: " + closedPlugins);
+        for (Path closedPlugin : closedPlugins) {
             try {
-                log.info("Destroying plugin " + p.getName());
+                Files.deleteIfExists(closedPlugin);
+            } catch (Exception ex) {
+                log.warn("Credential plugin can't be removed: " + closedPlugin);
+            }
+        }
+    }
+
+    /**
+     * Closes and clears the plugins' list returning list of closed resources.
+     */
+    private List<Path> closeAndClearPlugins() {
+        final List<Path> paths = new ArrayList<>();
+        for (CredentialPlugin p : plugins) {
+            paths.add(p.getResource());
+            try {
+                log.info("Destroying plugin " + p.getDescriptor());
                 p.close();
             } catch (IOException e) {
                 log.warn("Plugin can't be closed correctly: " + p, e);
             }
-        });
-        my_plugins.clear();
-
-        final Set<CredentialPlugin> added = new HashSet<>();
-        for (CredentialPlugin plugin : plugins) {
-            final URL origResource = plugin.getResource();
-            final CredentialPlugin p = grabPlugin(plugin.getId(), origResource);
-            if (added.add(p)) {
-                my_plugins.add(p);
-            }
         }
-
-        log.info("Plugins updated");
+        plugins.clear();
+        return paths;
     }
 
-    private File createLocalFile(String id) {
-        return new File(credentialsDir, id + ".jar");
-    }
-
-    private URL createLocalResource(String id) throws MalformedURLException {
-        return createLocalFile(id).toURI().toURL();
-    }
-
-    private CredentialPlugin grabPlugin(String id, URL from) throws IOException, CredentialPluginException {
-        final URL localResource = createLocalResource(id);
-        if (localResource.equals(from)) {
-            return new CredentialPlugin(localResource);
-        }
-
-        try (final InputStream in = from.openStream(); final OutputStream out = new FileOutputStream(localResource.getFile())) {
-            FileUtil.copy(in, out);
-        }
-        return new CredentialPlugin(localResource);
-    }
-
-    public CredentialPlugin verifyPlugin(URL url) throws CredentialPluginException, IOException {
-        // It closes the plugin just after loading
-        try (CredentialPlugin plugin = new CredentialPlugin(url)) {
-            return plugin;
-        }
-    }
-
-    @Override
-    public @Nullable Element getState() {
-        final Element e = new Element("plugins");
-        for (CredentialPlugin plugin : my_plugins) {
-            e.addContent(new Element("plugin").setAttribute("id", plugin.getId()));
-        }
-        return e;
-    }
-
-    @Override
-    public void loadState(@NotNull Element state) {
-        final List<CredentialPlugin> plugins = new ArrayList<>();
-        for (Element element : state.getChildren("plugin")) {
-            final CredentialPlugin plugin;
-            final String id = element.getAttributeValue("id");
-            try {
-                if (id != null) {
-                    plugin = new CredentialPlugin(createLocalResource(id));
-                } else {
-                    final String oldUrl = element.getAttributeValue("url");
-                    if (oldUrl == null) {
-                        throw new IllegalStateException("Plugin element has nor id nor url attributes");
-                    }
-
-                    final CredentialPlugin remotePlugin = verifyPlugin(new URL(oldUrl));
-                    plugin = grabPlugin(remotePlugin.getId(), remotePlugin.getResource());
-                }
-                plugins.add(plugin);
-            } catch (Exception ex) {
-                log.error("Plugin can't be for element: " + element.getText(), ex);
-                notifyPluginFailedPlugin(ex);
-            }
+    private Path getOrCreateRoot() {
+        if (Files.exists(rootDir)) {
+            return rootDir;
         }
 
         try {
-            setPlugins(plugins);
-        } catch (Exception ex) {
-            log.error("Plugin can't be updated", ex);
-            notifyPluginFailedPlugin(ex);
+            Files.createDirectories(rootDir);
+        } catch (IOException e) {
+            log.error("System folder for KdbInsideBrains can't be created: " + e.getMessage(), e);
+        }
+        return rootDir;
+    }
+
+    private void notifyPluginFailedPlugin(Path path, Throwable ex) {
+        final String content = "Credentials plugin can't be loaded from " + path.toAbsolutePath() + ": " + ex.getMessage();
+
+        NotificationGroupManager.getInstance().getNotificationGroup("Kdb.CredentialsService").createNotification(content, NotificationType.ERROR).setIcon(KdbIcons.Main.Notification).addAction(new DumbAwareAction("Change Settings") {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                final Project project = e.getProject();
+                if (project != null) {
+                    ShowSettingsUtil.getInstance().showSettingsDialog(project, KdbSettingsConfigurable.class);
+                }
+            }
+        }).notify(null);
+    }
+
+    private record PluginError(Path path, Exception ex) {
+    }
+
+    private record PluginMapping(String id, Path source, Path target) {
+    }
+
+    private record Verifier(List<PluginMapping> mapping, List<PluginError> errors) {
+        static Verifier verify(Path root, List<Path> sources) {
+            final List<PluginError> errors = new ArrayList<>();
+
+            final Map<String, PluginDescriptor> conflicts = new HashMap<>();
+            final List<PluginMapping> mappings = new ArrayList<>(sources.size());
+            for (Path source : sources) {
+                try {
+                    final PluginDescriptor d = verifyPlugin(source);
+                    final String id = d.id();
+                    final PluginDescriptor existD = conflicts.get(id);
+                    if (existD == null || d.version().compareTo(existD.version()) > 0) {
+                        conflicts.put(id, d);
+
+                        final PluginMapping plugin = new PluginMapping(id, source, createPluginFile(root, id));
+                        final int i = indexOf(id, mappings);
+                        if (i < 0) {
+                            mappings.add(plugin);
+                        } else {
+                            mappings.set(i, plugin);
+                        }
+                    }
+                } catch (Exception ex) {
+                    errors.add(new PluginError(source, ex));
+                }
+            }
+            return new Verifier(mappings, errors);
+        }
+
+        private static int indexOf(String id, List<PluginMapping> mappings) {
+            int i = 0;
+            for (PluginMapping p : mappings) {
+                if (id.equals(p.id)) {
+                    return i;
+                }
+                i++;
+            }
+            return -1;
         }
     }
 
-    public static CredentialProvider findProvider(Collection<CredentialProvider> providers, String credentials) {
-        return providers.stream().filter(p -> p.isSupported(credentials)).findFirst().orElse(UsernameCredentialProvider.INSTANCE);
-    }
-
-    private void notifyPluginFailedPlugin(Throwable ex) {
-        final String content = "Credentials plugin can't be loaded: " + ex.getMessage();
-
-        NotificationGroupManager.getInstance().getNotificationGroup("Kdb.CredentialsService")
-                .createNotification(content, NotificationType.ERROR)
-                .setIcon(KdbIcons.Main.Notification)
-                .addAction(new DumbAwareAction("Change Settings") {
-                    @Override
-                    public void actionPerformed(@NotNull AnActionEvent e) {
-                        final Project project = e.getProject();
-                        if (project != null) {
-                            ShowSettingsUtil.getInstance().showSettingsDialog(project, KdbSettingsConfigurable.class);
-                        }
-                    }
-                }).notify(null);
+    public static class State {
+        @XCollection(propertyElementName = "plugins", elementName = "plugin")
+        private final List<String> pluginIds = new ArrayList<>();
+        @Property
+        private String defaultCredential;
     }
 }

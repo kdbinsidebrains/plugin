@@ -17,21 +17,29 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CredentialsEditorPanel extends CredentialEditor implements Disposable {
-    private ComboBox<Object> editorsBox;
     private CredentialEditor activeEditor;
+
+    private final CardLayout cardLayout = new CardLayout();
+    private final JPanel cardPanel = new JPanel(cardLayout);
+
+    private final InheritedCredentialProvider inherited;
+    private final ComboBox<Object> editorsBox = new ComboBox<>();
+    private final Map<String, CredentialEditor> editors = new HashMap<>();
 
     private List<ValidationInfo> myInfo = new ArrayList<>();
     private final List<CredentialProvider> providers = new ArrayList<>();
+
 
     private final TheCredentialChangeListener changeListener = new TheCredentialChangeListener();
 
     /**
      * Creates new global or a scope editor.
      * <p>
-     * Depends on the flag an inherited editor will be added (for a scope) or removed (for global settings) from the editor.
+     * Depends on the flag, an inherited editor will be added (for a scope) or removed (for global settings) from the editor.
      */
     public CredentialsEditorPanel(boolean scopeEditor) {
-        initPanel(null, scopeEditor);
+        inherited = scopeEditor ? new InheritedCredentialProvider(null) : null;
+        initPanel();
     }
 
     /**
@@ -40,38 +48,11 @@ public class CredentialsEditorPanel extends CredentialEditor implements Disposab
      * @param scope the parent scope for inherited settings
      */
     public CredentialsEditorPanel(KdbScope scope) {
-        initPanel(scope, true);
+        inherited = new InheritedCredentialProvider(scope);
+        initPanel();
     }
 
-    private void initPanel(KdbScope scope, boolean inherit) {
-        final CardLayout cardLayout = new CardLayout();
-        final JPanel cardPanel = new JPanel(cardLayout);
-
-        if (inherit) {
-            providers.add(new InheritedCredentialProvider(scope));
-        }
-        providers.addAll(CredentialService.getInstance().getProviders());
-
-        int i = 0;
-        final String[] names = new String[providers.size()];
-        final Map<String, CredentialEditor> editors = new HashMap<>(providers.size());
-        for (CredentialProvider provider : providers) {
-            names[i] = provider.getName();
-
-            final CredentialEditor editor = provider.createEditor();
-            if (activeEditor == null) {
-                activeEditor = editor;
-            }
-            editor.addCredentialChangeListener(changeListener);
-
-            final JPanel p = new JPanel(new BorderLayout());
-            p.add(editor, BorderLayout.NORTH);
-            cardPanel.add(p, names[i]);
-            editors.put(names[i], editor);
-            i++;
-        }
-
-        editorsBox = new ComboBox<>(names);
+    private void initPanel() {
         editorsBox.setEditable(false);
         editorsBox.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -82,6 +63,8 @@ public class CredentialsEditorPanel extends CredentialEditor implements Disposab
                 processCredentialChanged(activeEditor.getCredentials());
             }
         });
+
+        updateCredentialProvider(CredentialService.getInstance().getProviders());
 
         final BoxLayout layout = new BoxLayout(this, BoxLayout.Y_AXIS);
         setLayout(layout);
@@ -97,7 +80,7 @@ public class CredentialsEditorPanel extends CredentialEditor implements Disposab
 
     @Override
     public String getCredentials() {
-        return activeEditor.getCredentials();
+        return activeEditor == null ? null : activeEditor.getCredentials();
     }
 
     @Override
@@ -155,6 +138,48 @@ public class CredentialsEditorPanel extends CredentialEditor implements Disposab
             }
             ComponentValidator.getInstance(component).orElseGet(() -> new ComponentValidator(this).installOn(component)).updateInfo(vi);
         }
+    }
+
+    public void updateCredentialProvider(List<CredentialProvider> prov) {
+        if (providers.equals(prov)) {
+            return;
+        }
+
+        // remember
+        final String credentials = getCredentials();
+
+        editors.clear();
+        providers.clear();
+        cardPanel.removeAll();
+        activeEditor = null;
+
+        if (inherited != null) {
+            providers.add(inherited);
+        }
+        providers.addAll(prov);
+
+        int i = 0;
+        final String[] names = new String[providers.size()];
+        for (CredentialProvider provider : providers) {
+            names[i] = provider.getName();
+
+            final CredentialEditor editor = provider.createEditor();
+            if (activeEditor == null) {
+                activeEditor = editor;
+            }
+            editor.addCredentialChangeListener(changeListener);
+
+            final JPanel p = new JPanel(new BorderLayout());
+            p.add(editor, BorderLayout.NORTH);
+            editors.put(names[i], editor);
+            cardPanel.add(p, names[i]);
+            i++;
+        }
+
+        editorsBox.setModel(new DefaultComboBoxModel<>(names));
+
+        // and restore after
+        setCredentials(credentials);
     }
 
     private class TheCredentialChangeListener implements CredentialChangeListener {

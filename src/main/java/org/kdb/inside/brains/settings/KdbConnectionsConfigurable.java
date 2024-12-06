@@ -56,13 +56,13 @@ public class KdbConnectionsConfigurable extends KdbConfigurable {
 
     @Override
     public boolean isModified() {
-        if (!Comparing.strEqual(settingsService.getDefaultCredentials(), credentialsPanel.getCredentials())) {
+        if (!Comparing.strEqual(credentialService.getDefaultCredentials(), credentialsPanel.getCredentials())) {
             return true;
         }
         if (!Comparing.equal(settingsService.getInstanceOptions(), instanceOptionsPanel.getInstanceOptions())) {
             return true;
         }
-        return !credentialService.getPlugins().equals(pluginsPanel.getCredentialPlugins());
+        return !credentialService.getPluginResources().equals(pluginsPanel.getPluginResources());
     }
 
     @Override
@@ -73,20 +73,21 @@ public class KdbConnectionsConfigurable extends KdbConfigurable {
         }
 
         try {
-            credentialService.setPlugins(pluginsPanel.getCredentialPlugins());
-            pluginsPanel.setCredentialPlugins(credentialService.getPlugins());
+            credentialService.changePlugins(pluginsPanel.getPluginResources());
+            pluginsPanel.updateCredentialPlugins(credentialService.getPlugins());
+            credentialsPanel.updateCredentialProvider(credentialService.getProviders());
         } catch (Exception ex) {
             throw new ConfigurationException("Some credentials plugins can't be installed", ex, "Credentials Plugin Error");
         }
 
-        settingsService.setDefaultCredentials(credentialsPanel.getCredentials());
         settingsService.setInstanceOptions(instanceOptionsPanel.getInstanceOptions());
+        credentialService.setDefaultCredentials(credentialsPanel.getCredentials());
     }
 
     @Override
     public void reset() {
-        pluginsPanel.setCredentialPlugins(credentialService.getPlugins());
+        pluginsPanel.updateCredentialPlugins(credentialService.getPlugins());
+        credentialsPanel.setCredentials(credentialService.getDefaultCredentials());
         instanceOptionsPanel.setInstanceOptions(settingsService.getInstanceOptions());
-        credentialsPanel.setCredentials(settingsService.getDefaultCredentials());
     }
 }

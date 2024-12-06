@@ -1,5 +1,14 @@
 # KdbInsideBrains Changelog
 
+## [5.13.0]
+
+### Changed
+
+- Credential functionality was redesigned to support easier IDEA versions migration:
+  - the plugins folder changed from <IdeaSystem>/KdbInsideBrains to <user.home>/.kdbinb
+  - the plugin file can be copied to <user.home>/.kdbinb for auto-installation alongside UI settings
+  - Connection Settings dialog supports dynamic plugins reloading (by "Apply" button) now
+
 ## [5.12.0]
 
 ### Added

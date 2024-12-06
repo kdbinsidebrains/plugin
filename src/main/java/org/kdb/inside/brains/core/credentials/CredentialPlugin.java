@@ -1,37 +1,28 @@
 package org.kdb.inside.brains.core.credentials;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
 public final class CredentialPlugin implements Closeable {
-    private final String id;
-    private final String name;
-    private final String version;
-    private final String description;
-
-    private final URL resource;
+    private final Path resource;
+    private final PluginDescriptor descriptor;
 
     private URLClassLoader classLoader;
     private CredentialProvider provider;
 
-    CredentialPlugin(File file) throws IOException, CredentialPluginException {
-        this(file.toURI().toURL());
-    }
+    CredentialPlugin(Path resource) throws IOException, CredentialPluginException {
+        this.resource = Objects.requireNonNull(resource);
 
-    CredentialPlugin(URL url) throws IOException, CredentialPluginException {
-        this.resource = url;
-
-        try (JarInputStream i = new JarInputStream(url.openStream())) {
+        try (JarInputStream i = new JarInputStream(Files.newInputStream(resource))) {
             final Manifest manifest = i.getManifest();
             if (manifest == null) {
                 throw new CredentialPluginException("Resource doesn't have Manifest file");
@@ -42,7 +33,7 @@ public final class CredentialPlugin implements Closeable {
                 throw new CredentialPluginException("Manifest doesn't have mandatory CredentialsProvider attribute");
             }
 
-            classLoader = new URLClassLoader(new URL[]{url}, CredentialProvider.class.getClassLoader());
+            classLoader = new URLClassLoader(new URL[]{resource.toUri().toURL()}, CredentialProvider.class.getClassLoader());
             final Class<?> aClass = classLoader.loadClass(credentialsProvider);
             if (!(CredentialProvider.class.isAssignableFrom(aClass))) {
                 throw new CredentialPluginException("CredentialProvider class doesn't implement CredentialProvider interface: " + aClass);
@@ -51,11 +42,7 @@ public final class CredentialPlugin implements Closeable {
             final Constructor<?> declaredConstructor = aClass.getDeclaredConstructor();
 
             this.provider = (CredentialProvider) declaredConstructor.newInstance();
-
-            this.id = Base64.getEncoder().encodeToString(provider.getName().getBytes(StandardCharsets.UTF_8)).toLowerCase();
-            this.name = provider.getName();
-            this.version = provider.getVersion();
-            this.description = provider.getDescription();
+            this.descriptor = PluginDescriptor.from(provider);
         } catch (ClassNotFoundException ex) {
             throw new CredentialPluginException("Resource doesn't have CredentialProvider class", ex);
         } catch (NoSuchMethodException ex) {
@@ -65,28 +52,12 @@ public final class CredentialPlugin implements Closeable {
         }
     }
 
-    String getId() {
-        return id;
+    public String getId() {
+        return descriptor.id();
     }
 
-    String getName() {
-        return name;
-    }
-
-    String getVersion() {
-        return version;
-    }
-
-    String getDescription() {
-        return description;
-    }
-
-    URL getResource() {
-        return resource;
-    }
-
-    CredentialProvider getProvider() {
-        return provider;
+    public PluginDescriptor getDescriptor() {
+        return descriptor;
     }
 
     @Override
@@ -97,21 +68,16 @@ public final class CredentialPlugin implements Closeable {
         classLoader = null;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CredentialPlugin plugin = (CredentialPlugin) o;
-        return id.equals(plugin.id) && resource.equals(plugin.resource);
+    Path getResource() {
+        return resource;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, resource);
+    CredentialProvider getProvider() {
+        return provider;
     }
 
     @Override
     public String toString() {
-        return "CredentialPlugin{" + "id=" + id + ", name=" + getName() + ", version=" + getVersion() + '}';
+        return "CredentialPlugin{" + descriptor + '}';
     }
 }
