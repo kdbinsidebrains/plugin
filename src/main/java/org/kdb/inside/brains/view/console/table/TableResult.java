@@ -19,13 +19,13 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.Comparator;
 
+import static org.kdb.inside.brains.UIUtils.KEY_COLUMN_PREFIX;
+import static org.kdb.inside.brains.UIUtils.KEY_COLUMN_PREFIX_XMAS;
+
 public class TableResult {
     private final KdbQuery query;
     private final KdbResult result;
     private final QTableModel tableModel;
-
-    private static final String KEY_COLUMN_PREFIX = "\u00A1 ";
-    private static final String KEY_COLUMN_PREFIX_XMAS = "\uD83C\uDF84 ";
 
     public static final QTableModel EMPTY_MODEL = new EmptyTableModel();
 
@@ -279,21 +279,16 @@ public class TableResult {
 
     @NotNull
     private static String createColumnName(String name, boolean key) {
-        return getColumnPrefix(key) + name;
-    }
-
-    @NotNull
-    private static String getColumnPrefix(boolean key) {
         if (key) {
             if (KdbSettingsService.getInstance().getTableOptions().isXmasKeyColumn()) {
                 final LocalDate now = LocalDate.now();
                 if (now.getMonth() == Month.DECEMBER && now.getDayOfMonth() >= 14) {
-                    return KEY_COLUMN_PREFIX_XMAS;
+                    return KEY_COLUMN_PREFIX_XMAS + " " + name;
                 }
             }
-            return KEY_COLUMN_PREFIX;
+            return KEY_COLUMN_PREFIX + " " + name;
         }
-        return "";
+        return name;
     }
 
     public static class QColumnInfo extends ColumnInfo<Object, Object> {

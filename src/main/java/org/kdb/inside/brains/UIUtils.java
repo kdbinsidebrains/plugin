@@ -13,6 +13,7 @@ import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.content.Content;
@@ -31,11 +32,24 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public final class UIUtils {
+    public static final String KEY_COLUMN_PREFIX = "\u00A1";
+
+    public static final String KEY_COLUMN_PREFIX_XMAS = "\uD83C\uDF84";
+
     private UIUtils() {
     }
 
     public static String replaceSystemProperties(String string) {
         return StrSubstitutor.replaceSystemProperties(string);
+    }
+
+    public static JComponent wrapWithHelpLabel(JComponent component, String text) {
+        final ContextHelpLabel infoLabel = ContextHelpLabel.create(text);
+        final JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        p.add(component);
+        p.add(Box.createHorizontalStrut(5));
+        p.add(infoLabel);
+        return p;
     }
 
     public static Content createContent(JComponent component, String displayName, boolean isLockable) {

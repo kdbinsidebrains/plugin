@@ -7,6 +7,8 @@ import com.intellij.util.ui.FormBuilder;
 import javax.swing.*;
 import java.awt.*;
 
+import static org.kdb.inside.brains.UIUtils.*;
+
 public class TableOptionsPanel extends JPanel {
     private final JBCheckBox showGrid = new JBCheckBox("Show table grid");
     private final JBCheckBox striped = new JBCheckBox("Stripe table rows");
@@ -15,7 +17,7 @@ public class TableOptionsPanel extends JPanel {
     private final JBCheckBox expandList = new JBCheckBox("Vector");
     private final JBCheckBox expandDict = new JBCheckBox("Dictionary");
     private final JBCheckBox expandFlip = new JBCheckBox("Table");
-    private final JBCheckBox xmasKeyColumn = new JBCheckBox("Show XMas key column");
+    private final JBCheckBox xmasKeyColumn = new JBCheckBox("Show XMas Tree for key columns");
 
     public TableOptionsPanel() {
         super(new BorderLayout());
@@ -26,6 +28,7 @@ public class TableOptionsPanel extends JPanel {
         formBuilder.addComponent(striped);
         formBuilder.addComponent(indexColumn);
         formBuilder.addComponent(thousandsColumn);
+        formBuilder.addComponent(wrapWithHelpLabel(xmasKeyColumn, "From 14th December to 31st December, any key column is marked with a Christmas Tree icon (" + KEY_COLUMN_PREFIX_XMAS + ") rather than an inverted exclamation mark (" + KEY_COLUMN_PREFIX + ")."));
         addExpandPanel(formBuilder);
 
         add(formBuilder.getPanel());

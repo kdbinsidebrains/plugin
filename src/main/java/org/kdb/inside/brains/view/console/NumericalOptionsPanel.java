@@ -1,15 +1,15 @@
 package org.kdb.inside.brains.view.console;
 
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.components.JBCheckBox;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.FormBuilder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.math.RoundingMode;
+
+import static org.kdb.inside.brains.UIUtils.wrapWithHelpLabel;
 
 public class NumericalOptionsPanel extends JPanel {
     private final ComboBox<RoundingItem> roungingComboBox = new ComboBox<>();
@@ -79,22 +79,13 @@ public class NumericalOptionsPanel extends JPanel {
         }
         b.append("</html>");
 
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        p.add(new JBLabel("Rounding mode: "));
-        p.add(roungingComboBox);
-        p.add(Box.createHorizontalStrut(5));
-        p.add(ContextHelpLabel.create(b.toString()));
-        formBuilder.addComponent(p);
+        formBuilder.addComponent(wrapWithHelpLabel(roungingComboBox, b.toString()));
     }
 
     private void addScientificNotation(FormBuilder formBuilder) {
-        final ContextHelpLabel infoLabel = ContextHelpLabel.create("<html>Display decimal numbers less or equal 10<sup>-5</sup> or more or equal 10<sup>7</sup></html> in scientific notation (like 1.2345e-003)");
-
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        p.add(scientificNotation);
-        p.add(Box.createHorizontalStrut(5));
-        p.add(infoLabel);
-        formBuilder.addComponent(p);
+        formBuilder.addComponent(wrapWithHelpLabel(scientificNotation,
+                "<html>Display decimal numbers less or equal 10<sup>-5</sup> or more or equal 10<sup>7</sup> in scientific notation (like 1.2345e-003)</html>"
+        ));
     }
 
     record RoundingItem(RoundingMode mode, String name, String desc) {

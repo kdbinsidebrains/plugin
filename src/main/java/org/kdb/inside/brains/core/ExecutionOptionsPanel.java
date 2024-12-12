@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.core;
 
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
@@ -10,6 +9,8 @@ import org.kdb.inside.brains.lang.binding.EditorsBindingStrategy;
 
 import javax.swing.*;
 import java.awt.*;
+
+import static org.kdb.inside.brains.UIUtils.wrapWithHelpLabel;
 
 public class ExecutionOptionsPanel extends JPanel {
     private JBCheckBox logQueries;
@@ -59,42 +60,24 @@ public class ExecutionOptionsPanel extends JPanel {
     }
 
     private void addLogQueries(FormBuilder formBuilder) {
-        final ContextHelpLabel infoLabel = ContextHelpLabel.create("Each executed query will be logged in daily file inside .kdbinb folder.");
-
         logQueries = new JBCheckBox("Log queries");
         splitLogsByMonths = new JBCheckBox("Split logs by months (yyyy.mm/*.log)");
 
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        p.add(logQueries);
-        p.add(Box.createHorizontalStrut(5));
-        p.add(infoLabel);
+        JComponent p = wrapWithHelpLabel(logQueries, "Each executed query will be logged in daily file inside .kdbinb folder.");
         p.add(Box.createHorizontalStrut(15));
         p.add(splitLogsByMonths);
+
         formBuilder.addComponent(p);
     }
 
     private void addAutoReconnect(FormBuilder formBuilder) {
-        final ContextHelpLabel infoLabel = ContextHelpLabel.create("Try to auto-reconnect if a connection has been lost.");
-
         autoReconnect = new JBCheckBox("Auto-reconnect");
-
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        p.add(autoReconnect);
-        p.add(Box.createHorizontalStrut(5));
-        p.add(infoLabel);
-        formBuilder.addComponent(p);
+        formBuilder.addComponent(wrapWithHelpLabel(autoReconnect, "Try to auto-reconnect if a connection has been lost."));
     }
 
     private void addNormalizeQuery(FormBuilder formBuilder) {
-        final ContextHelpLabel infoLabel = ContextHelpLabel.create("A ';' letter will be added to the end of the current line if the next not empty starts from the begging.\n All system '\\l' call will be converted into system[\"...\"] calls.");
-
         normalizeQuery = new JBCheckBox("Normalize a query");
-
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        p.add(normalizeQuery);
-        p.add(Box.createHorizontalStrut(5));
-        p.add(infoLabel);
-        formBuilder.addComponent(p);
+        formBuilder.addComponent(wrapWithHelpLabel(normalizeQuery, "A ';' letter will be added to the end of the current line if the next not empty starts from the begging.\n All system '\\l' call will be converted into system[\"...\"] calls."));
     }
 
     private void addStrategies(FormBuilder formBuilder) {
@@ -109,17 +92,9 @@ public class ExecutionOptionsPanel extends JPanel {
             b.append("<br><br>");
         }
         b.append("</html>");
-        final ContextHelpLabel infoLabel = ContextHelpLabel.create(b.toString());
 
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        p.add(new JBLabel("Connection binding strategy: "));
-        p.add(strategies);
-        p.add(Box.createHorizontalStrut(5));
-        p.add(infoLabel);
-
-        formBuilder.addComponent(p);
+        formBuilder.addComponent(wrapWithHelpLabel(strategies, b.toString()));
     }
-
 
     public ExecutionOptions getOptions() {
         ExecutionOptions o = new ExecutionOptions();

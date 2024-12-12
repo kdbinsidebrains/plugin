@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.13.1]
+
+### Fixed
+
+- XMas key column option added to the Settings panel
+
 ## [5.13.0]
 
 ### Changed
