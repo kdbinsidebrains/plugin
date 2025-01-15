@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public interface ChartDataProvider {
     LocalDate KDB_FIRST_DATE = LocalDate.of(2000, 1, 1);
@@ -22,23 +23,23 @@ public interface ChartDataProvider {
         final int rowsCount = table.getRowCount();
         final int columnCount = table.getColumnCount();
 
-        final ColumnConfig[] configs = new ColumnConfig[columnCount];
+        final ColumnDefinition[] configs = new ColumnDefinition[columnCount];
         final Map<String, Object[]> dataMap = new HashMap<>();
 
         for (int col = 0; col < columnCount; col++) {
-            final ColumnConfig column = new ColumnConfig(table.getColumnName(col), table.getColumnClass(col));
+            final ColumnDefinition column = new ColumnDefinition(table.getColumnName(col), table.getColumnClass(col));
             configs[col] = column;
 
             final Object[] rData = new Object[rowsCount];
             for (int row = 0; row < rowsCount; row++) {
                 rData[row] = table.getValueAt(row, col);
             }
-            dataMap.put(column.getName(), rData);
+            dataMap.put(column.name(), rData);
         }
 
         return new ChartDataProvider() {
             @Override
-            public ColumnConfig[] getColumns() {
+            public ColumnDefinition[] getColumns() {
                 return configs;
             }
 
@@ -48,8 +49,8 @@ public interface ChartDataProvider {
             }
 
             @Override
-            public Object[] getRows(ColumnConfig column) {
-                return dataMap.get(column.getName());
+            public Object[] getRows(ColumnDefinition column) {
+                return dataMap.get(column.name());
             }
         };
     }
@@ -58,14 +59,14 @@ public interface ChartDataProvider {
         final int rowsCount = table.getRowCount();
         final int columnCount = table.getColumnCount();
 
-        final ColumnConfig[] configs = new ColumnConfig[columnCount];
+        final ColumnDefinition[] configs = new ColumnDefinition[columnCount];
         for (int col = 0; col < columnCount; col++) {
-            configs[col] = new ColumnConfig(table.getColumnName(col), table.getColumnClass(col));
+            configs[col] = new ColumnDefinition(table.getColumnName(col), table.getColumnClass(col));
         }
 
         return new ChartDataProvider() {
             @Override
-            public ColumnConfig[] getColumns() {
+            public ColumnDefinition[] getColumns() {
                 return configs;
             }
 
@@ -75,7 +76,7 @@ public interface ChartDataProvider {
             }
 
             @Override
-            public Object[] getRows(ColumnConfig column) {
+            public Object[] getRows(ColumnDefinition column) {
                 throw new UnsupportedOperationException("Not implemented");
             }
         };
@@ -116,7 +117,7 @@ public interface ChartDataProvider {
         } else if (value instanceof c.Timespan v) {
             res = new Date(v.j / 1_000_000L);
         } else {
-            throw new IllegalArgumentException("Invalid value type: " + value.getClass());
+            throw new IllegalArgumentException("Invalid value style: " + value.getClass());
         }
         final ZonedDateTime f = Instant.ofEpochMilli(res.getTime()).atZone(ZoneId.systemDefault()).withZoneSameLocal(ZoneId.systemDefault());
         final ZonedDateTime t = f.withZoneSameInstant(ZoneOffset.UTC).withZoneSameLocal(ZoneId.systemDefault());
@@ -140,14 +141,32 @@ public interface ChartDataProvider {
         } else if (value instanceof c.Timespan v) {
             return new Millisecond(new Date(v.j / 1_000_000L), KxConnection.UTC_TIMEZONE, Locale.getDefault());
         }
-        throw new IllegalArgumentException("Invalid value type: " + value.getClass());
+        throw new IllegalArgumentException("Invalid value style: " + value.getClass());
     }
 
-    ColumnConfig[] getColumns();
+    ColumnDefinition[] getColumns();
 
-    Object[] getRows(ColumnConfig column);
+    Object[] getRows(ColumnDefinition column);
 
-    default double[] getDoubles(ColumnConfig column) {
+    default long getDistinctCount(ColumnDefinition column) {
+        return Stream.of(getRows(column)).distinct().count();
+    }
+
+    default String[] getSymbols(ColumnDefinition column) {
+        final Object[] row = getRows(column);
+        final String[] res = new String[row.length];
+        for (int i = 0; i < res.length; i++) {
+            final Object o = row[i];
+            if (o instanceof char[] ch) {
+                res[i] = new String(ch);
+            } else {
+                res[i] = String.valueOf(o);
+            }
+        }
+        return res;
+    }
+
+    default double[] getDoubles(ColumnDefinition column) {
         final Object[] row = getRows(column);
         final double[] res = new double[row.length];
         for (int i = 0; i < res.length; i++) {
@@ -156,16 +175,7 @@ public interface ChartDataProvider {
         return res;
     }
 
-    default Number[] getNumbers(ColumnConfig column) {
-        final Object[] row = getRows(column);
-        final Number[] res = new Number[row.length];
-        for (int i = 0; i < res.length; i++) {
-            res[i] = ((Number) row[i]);
-        }
-        return res;
-    }
-
-    default Date[] getDates(ColumnConfig column) {
+    default Date[] getDates(ColumnDefinition column) {
         final Object[] row = getRows(column);
         final Date[] res = new Date[row.length];
         for (int i = 0; i < res.length; i++) {
@@ -174,7 +184,17 @@ public interface ChartDataProvider {
         return res;
     }
 
-    default RegularTimePeriod[] getPeriods(ColumnConfig column) {
+
+    default Number[] getNumbers(ColumnDefinition column) {
+        final Object[] row = getRows(column);
+        final Number[] res = new Number[row.length];
+        for (int i = 0; i < res.length; i++) {
+            res[i] = ((Number) row[i]);
+        }
+        return res;
+    }
+
+    default RegularTimePeriod[] getPeriods(ColumnDefinition column) {
         final Object[] row = getRows(column);
         final RegularTimePeriod[] res = new RegularTimePeriod[row.length];
         for (int i = 0; i < res.length; i++) {

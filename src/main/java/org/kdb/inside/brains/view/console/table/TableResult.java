@@ -333,9 +333,26 @@ public class TableResult {
             final int length = flip.x.length;
             QColumnInfo[] res = new QColumnInfo[length];
             for (int i = 0; i < length; i++) {
-                res[i] = new QColumnInfo(flip.x[i], flip.y[i].getClass().getComponentType(), key);
+                res[i] = new QColumnInfo(flip.x[i], guessColumnType(flip.y[i]), key);
             }
             return res;
+        }
+
+        private static Class<?> guessColumnType(Object column) {
+            // list of lists
+            if (column.getClass().equals(Object[].class)) {
+                Object[] obj = (Object[]) column;
+                if (obj.length != 0) {
+                    Class<?> c = obj[0].getClass();
+                    for (int i = 1; i < obj.length; i++) {
+                        if (c.equals(obj[i])) {
+                            return Object.class;
+                        }
+                    }
+                    return c;
+                }
+            }
+            return column.getClass().getComponentType();
         }
     }
 }

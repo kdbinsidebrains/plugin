@@ -1,22 +1,22 @@
 package org.kdb.inside.brains.view.chart.types.line;
 
+import com.intellij.ui.JBColor;
 import icons.KdbIcons;
 import org.jfree.chart.renderer.xy.*;
 
 import javax.swing.*;
-import java.util.List;
 
-public enum SeriesType {
+public enum SeriesStyle {
     LINE("Line", KdbIcons.Chart.TypeLine) {
         @Override
-        public XYItemRenderer createRenderer(LineChartConfig config, List<RangeConfig> axes) {
+        public XYItemRenderer createRenderer(LineChartConfig config) {
             return new XYLineAndShapeRenderer(true, config.isDrawShapes());
         }
     },
 
     SPLINE("Spline", KdbIcons.Chart.TypeSpline) {
         @Override
-        public XYItemRenderer createRenderer(LineChartConfig config, List<RangeConfig> axes) {
+        public XYItemRenderer createRenderer(LineChartConfig config) {
             final XYSplineRenderer renderer = new XYSplineRenderer();
             renderer.setDefaultShapesVisible(config.isDrawShapes());
             return renderer;
@@ -25,7 +25,7 @@ public enum SeriesType {
 
     STEPS("Steps", KdbIcons.Chart.TypeSteps) {
         @Override
-        public XYItemRenderer createRenderer(LineChartConfig config, List<RangeConfig> axes) {
+        public XYItemRenderer createRenderer(LineChartConfig config) {
             final XYStepRenderer xyStepRenderer = new XYStepRenderer();
             xyStepRenderer.setDefaultShapesVisible(config.isDrawShapes());
             return xyStepRenderer;
@@ -34,7 +34,7 @@ public enum SeriesType {
 
     BAR("Bar", KdbIcons.Chart.TypeBar) {
         @Override
-        public XYItemRenderer createRenderer(LineChartConfig config, List<RangeConfig> axes) {
+        public XYItemRenderer createRenderer(LineChartConfig config) {
             final XYBarRenderer renderer = new XYBarRenderer();
             renderer.setShadowVisible(false);
             renderer.setBarPainter(new StandardXYBarPainter());
@@ -44,22 +44,17 @@ public enum SeriesType {
 
     AREA("Area", KdbIcons.Chart.TypeArea) {
         @Override
-        public XYItemRenderer createRenderer(LineChartConfig config, List<RangeConfig> axes) {
+        public XYItemRenderer createRenderer(LineChartConfig config) {
             return new XYAreaRenderer2();
         }
     },
 
     DIFF("Diff", KdbIcons.Chart.TypeDiff) {
         @Override
-        public XYItemRenderer createRenderer(LineChartConfig config, List<RangeConfig> axes) {
+        public XYItemRenderer createRenderer(LineChartConfig config) {
             final XYDifferenceRenderer renderer = new XYDifferenceRenderer();
-            final int size = axes.size();
-            if (size > 0) {
-                renderer.setPositivePaint(axes.get(0).getColor());
-            }
-            if (size > 1) {
-                renderer.setNegativePaint(axes.get(1).getColor());
-            }
+            renderer.setPositivePaint(JBColor.GREEN);
+            renderer.setNegativePaint(JBColor.RED);
             renderer.setShapesVisible(config.isDrawShapes());
             return renderer;
         }
@@ -67,7 +62,7 @@ public enum SeriesType {
 
     SCATTER("Scatter", KdbIcons.Chart.TypeScatter) {
         @Override
-        public XYItemRenderer createRenderer(LineChartConfig config, List<RangeConfig> axes) {
+        public XYItemRenderer createRenderer(LineChartConfig config) {
             final XYDotRenderer renderer = new XYDotRenderer();
             renderer.setDotWidth(5);
             renderer.setDotHeight(5);
@@ -78,7 +73,7 @@ public enum SeriesType {
     private final Icon icon;
     private final String label;
 
-    SeriesType(String label, Icon icon) {
+    SeriesStyle(String label, Icon icon) {
         this.label = label;
         this.icon = icon;
     }
@@ -91,5 +86,5 @@ public enum SeriesType {
         return label;
     }
 
-    public abstract XYItemRenderer createRenderer(LineChartConfig config, List<RangeConfig> axes);
+    public abstract XYItemRenderer createRenderer(LineChartConfig config);
 }

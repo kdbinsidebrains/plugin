@@ -11,23 +11,25 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface ChartConfig {
-    Element store();
+    ChartType getChartType();
 
-    boolean isInvalid();
-
-    ChartType getType();
-
-    ChartConfig copy();
-
-    String toHumanString();
 
     KdbType getDomainType();
 
-    List<ColumnConfig> getColumns();
+    List<ColumnDefinition> getRequiredColumns();
+
+
+    boolean isInvalid();
+
+
+    Element store();
+
+    String toHumanString();
 
     default boolean isApplicable(ChartDataProvider dataProvider) {
-        final Set<ColumnKey> required = getColumns().stream().filter(Objects::nonNull).map(ColumnKey::new).collect(Collectors.toSet());
-        final Set<ColumnKey> exist = Stream.of(dataProvider.getColumns()).filter(Objects::nonNull).map(ColumnKey::new).collect(Collectors.toSet());
+        // We create a copy to compare only name and style.
+        final Set<ColumnDefinition> required = getRequiredColumns().stream().filter(Objects::nonNull).collect(Collectors.toSet());
+        final Set<ColumnDefinition> exist = Stream.of(dataProvider.getColumns()).filter(Objects::nonNull).collect(Collectors.toSet());
         return exist.containsAll(required);
     }
 }
