@@ -23,12 +23,12 @@ public class ChartTemplate {
     public ChartTemplate(String name, String description, ChartConfig config, boolean quickAction) {
         this.name = name;
         this.description = description;
-        this.config = config.copy();
+        this.config = config;
         this.quickAction = quickAction;
     }
 
     public Icon getIcon() {
-        return config.getType().getIcon();
+        return config.getChartType().getIcon();
     }
 
     public String getName() {
@@ -44,7 +44,7 @@ public class ChartTemplate {
     }
 
     public void setConfig(ChartConfig config) {
-        this.config = config.copy();
+        this.config = config;
     }
 
     public String getDescription() {

@@ -4,6 +4,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -24,9 +25,11 @@ import com.intellij.util.ui.JBUI;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.ChartUtils;
-import org.jfree.chart.JFreeChart;
+import org.jfree.chart.*;
+import org.jfree.chart.entity.LegendItemEntity;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.svg.SVGGraphics2D;
 import org.kdb.inside.brains.action.ActionPlaces;
 import org.kdb.inside.brains.action.EdtAction;
@@ -53,12 +56,15 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,15 +86,35 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
     private final JButton templateButton = new JButton("Create Template");
     private final ComboBox<ChartTemplate> templatesComboBox = new ComboBox<>();
 
+    private final JPanel rootPanel = new JPanel(new BorderLayout());
+
+    private final Map<Comparable<?>, RendererConfig> rendererConfigMap = new HashMap<>();
+
     protected ChartingDialog(@NotNull Project project, String title, ChartDataProvider dataProvider, ChartTemplate template) {
         super(project, "KdbInsideBrains-Charting", false, title);
 
-        final JPanel rootPanel = new JPanel(new BorderLayout());
         setComponent(rootPanel);
 
         final ChartOptions chartOptions = KdbSettingsService.getInstance().getChartOptions();
 
         chartPanel = new BaseChartPanel(chartOptions, this::createPopupMenu);
+        chartPanel.addChartMouseListener(new ChartMouseListener() {
+            @Override
+            public void chartMouseClicked(ChartMouseEvent event) {
+                final MouseEvent trigger = event.getTrigger();
+                if (trigger.getButton() != MouseEvent.BUTTON1) {
+                    return;
+                }
+
+                if (event.getEntity() instanceof LegendItemEntity item) {
+                    changeItemStyle(event.getChart(), item);
+                }
+            }
+
+            @Override
+            public void chartMouseMoved(ChartMouseEvent event) {
+            }
+        });
 
         valuesTool = new ValuesTool(project, chartPanel, chartOptions);
         measureTool = new MeasureTool(chartPanel, chartOptions);
@@ -140,13 +166,50 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         updateChartByTemplate(template);
     }
 
+    private static JPanel createEmptyPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(JBColor.WHITE);
+        panel.add(new JLabel("<html><center><h1>There is no data to show.</h1><br><br>Please select the chart style and appropriate configuration.<center></html>"));
+        return panel;
+    }
+
+    private void changeItemStyle(JFreeChart chart, LegendItemEntity item) {
+        final XYPlot xyPlot = chart.getXYPlot();
+        final XYDataset dataset = (XYDataset) item.getDataset();
+
+        final Comparable<?> seriesKey = item.getSeriesKey();
+
+        final int datasetIndex = xyPlot.indexOf(dataset);
+        final int series = dataset.indexOf(seriesKey);
+
+        final XYItemRenderer renderer = xyPlot.getRenderer(datasetIndex);
+        ApplicationManager.getApplication().invokeLater(() -> {
+            final RendererConfig config = new RendererConfigDialog(rootPanel, new RendererConfig(renderer, series)).showAndApply();
+            if (config != null) {
+                config.update(renderer, series);
+                rendererConfigMap.put(seriesKey, config);
+            }
+        });
+    }
+
+    private void invalidateTemplatesList(@NotNull Project project, ChartDataProvider dataProvider) {
+        final ChartTemplatesService service = ChartTemplatesService.getService(project);
+
+        final List<ChartTemplate> templates = service.getTemplates().stream().filter(t -> t.getConfig().isApplicable(dataProvider)).collect(Collectors.toList());
+        templates.add(0, null); // No template element. Selected by default
+
+        final Object selectedItem = templatesComboBox.getSelectedItem();
+        templatesComboBox.setModel(new DefaultComboBoxModel<>(templates.toArray(ChartTemplate[]::new)));
+        templatesComboBox.setSelectedItem(selectedItem);
+    }
+
     private void upsertTemplate(@NotNull Project project, ChartDataProvider dataProvider) {
         final ChartViewProvider<JPanel, ChartConfig> provider = getSelectedProvider();
         if (provider == null) {
             return;
         }
 
-        final ChartConfig config = provider.getChartConfig();
+        final ChartConfig config = provider.createChartConfig();
         ChartTemplate template = templatesComboBox.getItem();
         if (template != null) {
             template.setConfig(config);
@@ -161,38 +224,6 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
                 templatesComboBox.setSelectedItem(template);
             }
         }
-    }
-
-    private void invalidateTemplatesList(@NotNull Project project, ChartDataProvider dataProvider) {
-        final ChartTemplatesService service = ChartTemplatesService.getService(project);
-
-        final List<ChartTemplate> templates = service.getTemplates().stream().filter(t -> t.getConfig().isApplicable(dataProvider)).collect(Collectors.toList());
-        templates.add(0, null); // No template element. Selected by default
-
-        final Object selectedItem = templatesComboBox.getSelectedItem();
-        templatesComboBox.setModel(new DefaultComboBoxModel<>(templates.toArray(ChartTemplate[]::new)));
-        templatesComboBox.setSelectedItem(selectedItem);
-    }
-
-    private void updateChartByTemplate(ChartTemplate template) {
-        if (templatesComboBox.getItem() != template) {
-            templatesComboBox.setSelectedItem(template);
-        }
-        templateButton.setText(template == null ? "Create Template" : "Update Template");
-        if (template == null) {
-            templateButton.setEnabled(!getSelectedProvider().getChartConfig().isInvalid());
-            return;
-        }
-
-        final ChartConfig config = template.getConfig();
-
-        final ChartType type = config.getType();
-        final TabInfo tab = findTabInfo(type);
-        if (tab == null) {
-            return;
-        }
-        chartTabs.select(tab, false);
-        getProvider(tab).setChartConfig(config.copy());
     }
 
     private JPanel createTemplatePanel(@NotNull Project project, @NotNull ChartDataProvider dataProvider) {
@@ -272,6 +303,27 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         return tabs;
     }
 
+    private void updateChartByTemplate(ChartTemplate template) {
+        if (templatesComboBox.getItem() != template) {
+            templatesComboBox.setSelectedItem(template);
+        }
+        templateButton.setText(template == null ? "Create Template" : "Update Template");
+        if (template == null) {
+            templateButton.setEnabled(!getSelectedProvider().createChartConfig().isInvalid());
+            return;
+        }
+
+        final ChartConfig config = template.getConfig();
+
+        final ChartType type = config.getChartType();
+        final TabInfo tab = findTabInfo(type);
+        if (tab == null) {
+            return;
+        }
+        chartTabs.select(tab, false);
+        getProvider(tab).updateChartConfig(config);
+    }
+
     private void configChanged() {
         final ChartViewProvider<JPanel, ChartConfig> provider = getSelectedProvider();
         if (provider == null) {
@@ -280,8 +332,11 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
             return;
         }
 
-        final ChartConfig config = provider.getChartConfig();
+        final ChartConfig config = provider.createChartConfig();
         final JFreeChart chart = config.isInvalid() ? null : provider.getJFreeChart(config);
+        if (chart != null && chart.getPlot() instanceof XYPlot xy) {
+            updateChartRenderer(config, xy);
+        }
         chartPanel.setChart(chart);
 
         final ChartTemplate template = templatesComboBox.getItem();
@@ -316,11 +371,19 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         return (ChartViewProvider<JPanel, ChartConfig>) info.getObject();
     }
 
-    private static JPanel createEmptyPanel() {
-        final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(JBColor.WHITE);
-        panel.add(new JLabel("<html><center><h1>There is no data to show.</h1><br><br>Please select the chart type and appropriate configuration.<center></html>"));
-        return panel;
+    private void updateChartRenderer(ChartConfig config, XYPlot xyPlot) {
+        final Map<Integer, XYDataset> datasets = xyPlot.getDatasets();
+        for (Map.Entry<Integer, XYDataset> entry : datasets.entrySet()) {
+            final XYDataset value = entry.getValue();
+            final int seriesCount = value.getSeriesCount();
+            for (int i = 0; i < seriesCount; i++) {
+                final Comparable<?> seriesKey = value.getSeriesKey(i);
+                final RendererConfig rendererConfig = rendererConfigMap.get(seriesKey);
+                if (rendererConfig != null) {
+                    rendererConfig.update(xyPlot.getRenderer(entry.getKey()), i);
+                }
+            }
+        }
     }
 
     private void measureSelected(boolean state) {

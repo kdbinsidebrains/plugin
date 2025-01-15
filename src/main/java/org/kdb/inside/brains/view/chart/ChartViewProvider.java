@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class ChartViewProvider<Panel extends JComponent, Config extends ChartConfig> {
+    protected final ChartDataProvider dataProvider;
+    protected Panel configPanel;
+
     private final String name;
     private final ChartType type;
     private final List<ChartViewListener> chartViewListeners = new CopyOnWriteArrayList<>();
-    protected final ChartDataProvider dataProvider;
-    protected Panel configPanel;
 
     public ChartViewProvider(String name, ChartType type, ChartDataProvider dataProvider) {
         this.name = name;
@@ -51,9 +52,10 @@ public abstract class ChartViewProvider<Panel extends JComponent, Config extends
         return configPanel;
     }
 
-    public abstract Config getChartConfig();
+    public abstract Config createChartConfig();
 
-    public abstract void setChartConfig(Config config);
+    public abstract void updateChartConfig(Config config);
+
 
     public abstract JFreeChart getJFreeChart(Config config);
 

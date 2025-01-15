@@ -15,31 +15,39 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ChartTemplatesServiceTest {
-    public static final String MESSAGE = "<templates>\n" +
-            "  <template name=\"t1\" quickAction=\"false\">\n" +
-            "    <description>my template 1</description>\n" +
-            "    <line-chart drawShapes=\"true\">\n" +
-            "      <domain name=\"domain\" type=\"p\" />\n" +
-            "      <series name=\"Series1\" type=\"LINE\" lowerMargin=\"5\" upperMargin=\"5\">\n" +
-            "        <column name=\"r1\" type=\"f\" color=\"000000\" width=\"2.0\" />\n" +
-            "        <column name=\"r2\" type=\"f\" color=\"000000\" width=\"4.5\" />\n" +
-            "      </series>\n" +
-            "      <series name=\"Series2\" type=\"AREA\" lowerMargin=\"5\" upperMargin=\"5\">\n" +
-            "        <column name=\"r3\" type=\"i\" color=\"00ff00\" width=\"2.0\" />\n" +
-            "      </series>\n" +
-            "    </line-chart>\n" +
-            "  </template>\n" +
-            "  <template name=\"t2\" quickAction=\"true\">\n" +
-            "    <ohlc-chart>\n" +
-            "      <domain name=\"date\" type=\"p\" />\n" +
-            "      <open name=\"open\" type=\"f\" />\n" +
-            "      <high name=\"high\" type=\"f\" />\n" +
-            "      <low name=\"low\" type=\"f\" />\n" +
-            "      <close name=\"close\" type=\"f\" />\n" +
-            "      <volume name=\"volume\" type=\"f\" />\n" +
-            "    </ohlc-chart>\n" +
-            "  </template>\n" +
-            "</templates>";
+    public static final String MESSAGE = """
+            <templates>
+              <template name="t1" quickAction="false">
+                <description>my template 1</description>
+                <line-chart drawShapes="true">
+                  <domain name="domain" type="p" />
+                  <series>
+                    <series name="Series1" style="LINE" lowerMargin="5" upperMargin="5">
+                      <column name="r1" type="f" operation="MAX" />
+                      <column name="r2" type="f" operation="SUM" />
+                    </series>
+                    <series name="Series2" style="AREA" lowerMargin="5" upperMargin="5">
+                      <column name="r3" type="i" operation="COUNT" />
+                    </series>
+                  </series>
+                  <expansions>
+                    <column name="e1" type="s" />
+                    <column name="e2" type="c" />
+                  </expansions>
+                </line-chart>
+              </template>
+              <template name="t2" quickAction="true">
+                <ohlc-chart>
+                  <domain name="date" type="p" />
+                  <open name="open" type="f" />
+                  <high name="high" type="f" />
+                  <low name="low" type="f" />
+                  <close name="close" type="f" />
+                  <volume name="volume" type="f" />
+                </ohlc-chart>
+              </template>
+            </templates>
+            """.trim();
 
     @Test
     void getState() {
@@ -71,6 +79,6 @@ class ChartTemplatesServiceTest {
     void assertTemplate(ChartTemplate t, String name, String description, ChartType type) {
         assertEquals(name, t.getName());
         assertEquals(description, t.getDescription());
-        assertEquals(type, t.getConfig().getType());
+        assertEquals(type, t.getConfig().getChartType());
     }
 }
