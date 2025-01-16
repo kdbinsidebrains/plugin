@@ -1,5 +1,23 @@
 # KdbInsideBrains Changelog
 
+## [5.14.1]
+
+### Added
+
+- IDEA 2025.1 added to the supporting list
+
+## [5.14.0]
+
+### Changed
+
+- Charting is fully redesigned (https://www.kdbinsidebrains.dev/features/charting):
+  - Issue with dropping grouped data is fixed: new Operation term (_sum, count, avg, min, max_) was introduced
+  - Added an ability to ungroup data by any symbol/text field and show as a separate line
+  - Line style can be changed (color, width and so on) by clicking on the legend title now: settings are not stored
+    over restarts yet
+
+- Charting templates are not backward compatible and will be removed after the upgrade due to significant changes
+
 ## [5.13.1]
 
 ### Fixed
