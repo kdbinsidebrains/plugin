@@ -4,7 +4,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.chart.ChartConfig;
-import org.kdb.inside.brains.view.chart.ColumnConfig;
+import org.kdb.inside.brains.view.chart.ColumnDefinition;
 import org.kdb.inside.brains.view.chart.types.ChartType;
 
 import java.util.List;
@@ -12,22 +12,22 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record OHLCChartConfig(ColumnConfig domain, ColumnConfig openColumn, ColumnConfig highColumn,
-                              ColumnConfig lowColumn, ColumnConfig closeColumn,
-                              ColumnConfig volumeColumn) implements ChartConfig {
+public record OHLCChartConfig(ColumnDefinition domain, ColumnDefinition openColumn, ColumnDefinition highColumn,
+                              ColumnDefinition lowColumn, ColumnDefinition closeColumn,
+                              ColumnDefinition volumeColumn) implements ChartConfig {
 
     public static @NotNull OHLCChartConfig restore(Element element) {
-        final ColumnConfig date = ColumnConfig.restore(element.getChild("domain"));
-        final ColumnConfig open = ColumnConfig.restore(element.getChild("open"));
-        final ColumnConfig high = ColumnConfig.restore(element.getChild("high"));
-        final ColumnConfig low = ColumnConfig.restore(element.getChild("low"));
-        final ColumnConfig close = ColumnConfig.restore(element.getChild("close"));
-        final ColumnConfig volume = ColumnConfig.restore(element.getChild("volume"));
+        final ColumnDefinition date = ColumnDefinition.restore(element.getChild("domain"));
+        final ColumnDefinition open = ColumnDefinition.restore(element.getChild("open"));
+        final ColumnDefinition high = ColumnDefinition.restore(element.getChild("high"));
+        final ColumnDefinition low = ColumnDefinition.restore(element.getChild("low"));
+        final ColumnDefinition close = ColumnDefinition.restore(element.getChild("close"));
+        final ColumnDefinition volume = ColumnDefinition.restore(element.getChild("volume"));
         return new OHLCChartConfig(date, open, high, low, close, volume);
     }
 
     @Override
-    public ChartType getType() {
+    public ChartType getChartType() {
         return ChartType.OHLC;
     }
 
@@ -37,7 +37,7 @@ public record OHLCChartConfig(ColumnConfig domain, ColumnConfig openColumn, Colu
     }
 
     @Override
-    public List<ColumnConfig> getColumns() {
+    public List<ColumnDefinition> getRequiredColumns() {
         return Stream.of(domain, openColumn, highColumn, lowColumn, closeColumn, volumeColumn).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
@@ -61,13 +61,13 @@ public record OHLCChartConfig(ColumnConfig domain, ColumnConfig openColumn, Colu
         builder.append("<html>");
         builder.append("<h2>Candlestick chart</h2>");
         builder.append("<table>");
-        builder.append("<tr><th align=\"left\">Domain:</th><td>").append(domain.getName()).append("</td>");
-        builder.append("<tr><th align=\"left\">Open:</th><td>").append(openColumn.getName()).append("</td>");
-        builder.append("<tr><th align=\"left\">High:</th><td>").append(highColumn.getName()).append("</td>");
-        builder.append("<tr><th align=\"left\">Low:</th><td>").append(lowColumn.getName()).append("</td>");
-        builder.append("<tr><th align=\"left\">Close:</th><td>").append(closeColumn.getName()).append("</td>");
+        builder.append("<tr><th align=\"left\">Domain:</th><td>").append(domain.name()).append("</td>");
+        builder.append("<tr><th align=\"left\">Open:</th><td>").append(openColumn.name()).append("</td>");
+        builder.append("<tr><th align=\"left\">High:</th><td>").append(highColumn.name()).append("</td>");
+        builder.append("<tr><th align=\"left\">Low:</th><td>").append(lowColumn.name()).append("</td>");
+        builder.append("<tr><th align=\"left\">Close:</th><td>").append(closeColumn.name()).append("</td>");
         if (volumeColumn != null) {
-            builder.append("<tr><th align=\"left\">Volume:</th><td>").append(volumeColumn.getName()).append("</td>");
+            builder.append("<tr><th align=\"left\">Volume:</th><td>").append(volumeColumn.name()).append("</td>");
         }
         builder.append("</table>");
         builder.append("</html>");
@@ -76,11 +76,6 @@ public record OHLCChartConfig(ColumnConfig domain, ColumnConfig openColumn, Colu
 
     @Override
     public KdbType getDomainType() {
-        return domain.getType();
-    }
-
-    @Override
-    public OHLCChartConfig copy() {
-        return new OHLCChartConfig(ColumnConfig.copy(domain), ColumnConfig.copy(openColumn), ColumnConfig.copy(highColumn), ColumnConfig.copy(lowColumn), ColumnConfig.copy(closeColumn), ColumnConfig.copy(volumeColumn));
+        return domain.type();
     }
 }

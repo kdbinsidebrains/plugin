@@ -12,11 +12,11 @@ import static org.mockito.Mockito.*;
 class ChartConfigTest {
     @Test
     void applicable() {
-        final ColumnConfig[] exist = new ColumnConfig[]{
-                new ColumnConfig("col1", KdbType.FLOAT),
-                new ColumnConfig("col2", KdbType.INT),
-                new ColumnConfig("col3", KdbType.BOOLEAN),
-                new ColumnConfig("col4", KdbType.SYMBOL)
+        final ColumnDefinition[] exist = new ColumnDefinition[]{
+                new ColumnDefinition("col1", KdbType.FLOAT),
+                new ColumnDefinition("col2", KdbType.INT),
+                new ColumnDefinition("col3", KdbType.BOOLEAN),
+                new ColumnDefinition("col4", KdbType.SYMBOL)
         };
         final ChartDataProvider provider = mock(ChartDataProvider.class);
         when(provider.getColumns()).thenReturn(exist);
@@ -24,21 +24,21 @@ class ChartConfigTest {
         final ChartConfig config = mock(ChartConfig.class);
         doCallRealMethod().when(config).isApplicable(provider);
 
-        when(config.getColumns()).thenReturn(List.of(
-                new ColumnConfig("col4", KdbType.SYMBOL),
-                new ColumnConfig("col1", KdbType.FLOAT)
+        when(config.getRequiredColumns()).thenReturn(List.of(
+                new ColumnDefinition("col4", KdbType.SYMBOL),
+                new ColumnDefinition("col1", KdbType.FLOAT)
         ));
         assertTrue(config.isApplicable(provider));
 
-        when(config.getColumns()).thenReturn(List.of(
-                new ColumnConfig("col4", KdbType.BOOLEAN),
-                new ColumnConfig("col1", KdbType.FLOAT)
+        when(config.getRequiredColumns()).thenReturn(List.of(
+                new ColumnDefinition("col4", KdbType.BOOLEAN),
+                new ColumnDefinition("col1", KdbType.FLOAT)
         ));
         assertFalse(config.isApplicable(provider));
 
-        when(config.getColumns()).thenReturn(List.of(
-                new ColumnConfig("col4", KdbType.SYMBOL),
-                new ColumnConfig("col12", KdbType.FLOAT)
+        when(config.getRequiredColumns()).thenReturn(List.of(
+                new ColumnDefinition("col4", KdbType.SYMBOL),
+                new ColumnDefinition("col12", KdbType.FLOAT)
         ));
         assertFalse(config.isApplicable(provider));
     }

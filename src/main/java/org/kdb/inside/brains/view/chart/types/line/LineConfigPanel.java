@@ -1,30 +1,33 @@
 package org.kdb.inside.brains.view.chart.types.line;
 
-import com.intellij.ide.IdeBundle;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComboBoxTableRenderer;
-import com.intellij.ui.ColorChooser;
-import com.intellij.ui.JBIntSpinner;
-import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.ToolbarDecorator;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBViewport;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.AbstractTableCellEditor;
+import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.view.chart.ChartColors;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
-import org.kdb.inside.brains.view.chart.ColumnConfig;
+import org.kdb.inside.brains.view.chart.ColumnDefinition;
 
 import javax.swing.*;
-import javax.swing.table.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.kdb.inside.brains.view.chart.types.line.SeriesDefinition.DEFAULT_LOWER_MARGIN;
+import static org.kdb.inside.brains.view.chart.types.line.SeriesDefinition.DEFAULT_UPPER_MARGIN;
 
 public class LineConfigPanel extends JPanel {
     private boolean ignoreUpdate = false;
@@ -32,10 +35,13 @@ public class LineConfigPanel extends JPanel {
     private final Runnable callback;
     private final ChartDataProvider dataProvider;
 
-    private final ComboBox<ColumnConfig> domainComponent = new ComboBox<>();
-    private final TableView<RangeConfig> rangesComponent = new TableView<>();
-    private final TableView<SeriesConfig> seriesComponent = new TableView<>();
+    private static final int LEFT_INDENT = 10;
+    private static final int VERTICAL_GAP = 5;
+    private final ComboBox<ColumnDefinition> domainComponent = new ComboBox<>();
+    private final TableView<SeriesItem> seriesTable = new TableView<>();
     private final JCheckBox shapesCheckbox = new JCheckBox("Draw shapes where possible", false);
+    private final TableView<ValuesItem> valuesTable = new TableView<>();
+    private final TableView<ExpansionItem> expansionTable = new TableView<>();
 
     public LineConfigPanel(ChartDataProvider dataProvider, Runnable callback) {
         super(new BorderLayout());
@@ -44,109 +50,64 @@ public class LineConfigPanel extends JPanel {
         this.dataProvider = dataProvider;
 
         initOptions();
-        initializeSeriesComponent();
         initializeDomainComponent();
-        initializeRangeValuesTable();
+        initializeSeriesComponent();
+        initializeValuesComponent();
+        initializeExpansionComponent();
 
         final FormBuilder formBuilder = FormBuilder.createFormBuilder();
         formBuilder.setFormLeftIndent(0);
-        formBuilder.addComponent(new JLabel("Domain axis: "));
-        formBuilder.setFormLeftIndent(10);
+        formBuilder.addComponent(new TitledSeparator("Domain Axis"));
+        formBuilder.setFormLeftIndent(LEFT_INDENT);
         formBuilder.addComponent(domainComponent);
+        formBuilder.addVerticalGap(VERTICAL_GAP);
 
         formBuilder.setFormLeftIndent(0);
-        formBuilder.addComponent(new JLabel("Series definition: "));
-        formBuilder.setFormLeftIndent(10);
-        formBuilder.addComponent(ScrollPaneFactory.createScrollPane(seriesComponent));
+        formBuilder.addComponent(new TitledSeparator("Series Definition"));
+        formBuilder.setFormLeftIndent(LEFT_INDENT);
+        formBuilder.addComponent(ScrollPaneFactory.createScrollPane(seriesTable));
+        formBuilder.addVerticalGap(VERTICAL_GAP);
 
         formBuilder.setFormLeftIndent(0);
-        formBuilder.addComponent(new JLabel("Range axes: "));
-        formBuilder.setFormLeftIndent(10);
-        formBuilder.addComponent(ToolbarDecorator.createDecorator(rangesComponent).disableAddAction().disableRemoveAction().createPanel());
+        formBuilder.addComponent(new TitledSeparator("Values Axes"));
+        formBuilder.setFormLeftIndent(LEFT_INDENT);
+        formBuilder.addComponent(ToolbarDecorator.createDecorator(valuesTable).disableAddAction().disableRemoveAction().createPanel());
+        formBuilder.addVerticalGap(VERTICAL_GAP);
 
         formBuilder.setFormLeftIndent(0);
-        formBuilder.addComponent(new JLabel("Options: "));
-        formBuilder.setFormLeftIndent(10);
+        formBuilder.addComponent(new TitledSeparator("Values Expansion"));
+        formBuilder.setFormLeftIndent(LEFT_INDENT);
+        formBuilder.addComponent(ToolbarDecorator.createDecorator(expansionTable).disableAddAction().disableRemoveAction().createPanel());
+        formBuilder.addVerticalGap(VERTICAL_GAP);
+
+        formBuilder.setFormLeftIndent(0);
+        formBuilder.addComponent(new TitledSeparator("Options"));
+        formBuilder.setFormLeftIndent(LEFT_INDENT);
         formBuilder.addComponent(shapesCheckbox);
 
         add(formBuilder.getPanel(), BorderLayout.PAGE_START);
     }
 
-    public LineChartConfig getChartConfig() {
-        final java.util.List<RangeConfig> list = rangesComponent.getItems().stream().filter(c -> c.getSeries() != null && !c.getSeries().getName().isBlank()).collect(Collectors.toList());
-        return new LineChartConfig(domainComponent.getItem(), list, shapesCheckbox.isSelected());
-    }
-
-    public void setChartConfig(LineChartConfig config) {
-        ignoreUpdate = true;
-        try {
-            domainComponent.setItem(config.getDomain());
-            shapesCheckbox.setSelected(config.isDrawShapes());
-
-            final Map<SeriesConfig, List<RangeConfig>> dataset = config.dataset();
-
-            @SuppressWarnings("unchecked") final ListTableModel<SeriesConfig> model = (ListTableModel<SeriesConfig>) seriesComponent.getModel();
-            model.setItems(new ArrayList<>(dataset.keySet()));
-            model.addRow(new SeriesConfig("", SeriesType.LINE));
-
-            // Copy for sorting
-            final List<RangeConfig> existItem = new ArrayList<>(rangesComponent.getItems());
-
-            final Map<String, RangeConfig> newItems = dataset.values().stream().flatMap(Collection::stream).collect(Collectors.toMap(ColumnConfig::getName, i -> i));
-            for (RangeConfig range : existItem) {
-                final RangeConfig newRange = newItems.get(range.getName());
-                if (newRange != null) {
-                    range.copyFrom(newRange);
-                } else {
-                    range.setSeries(null);
-                }
-            }
-
-            sortRanges(config.getRanges(), existItem);
-        } finally {
-            ignoreUpdate = false;
-        }
-        processConfigChanged();
-    }
-
-    private void sortRanges(List<RangeConfig> requiredRanges, List<RangeConfig> items) {
-        final List<String> requiredOrder = requiredRanges.stream().map(ColumnConfig::getName).toList();
-
-        final List<RangeConfig> currentRanges = items.stream().filter(r -> requiredOrder.contains(r.getName())).toList();
-        final List<String> currentOrder = currentRanges.stream().map(ColumnConfig::getName).toList();
-        if (requiredOrder.equals(currentOrder)) {
-            return;
-        }
-
-        int i = 0;
-        final ListTableModel<RangeConfig> model = rangesComponent.getListTableModel();
-        final Map<String, RangeConfig> cache = currentRanges.stream().collect(Collectors.toMap(ColumnConfig::getName, r -> r));
-        for (String s : requiredOrder) {
-            final RangeConfig item = cache.get(s);
-            final int index = model.indexOf(item);
-            if (index < 0) {
-                continue;
-            }
-            model.exchangeRows(i++, index);
-        }
-    }
-
-
     private void initOptions() {
         shapesCheckbox.addActionListener(l -> processConfigChanged());
     }
 
-    private void processConfigChanged() {
-        if (ignoreUpdate) {
-            return;
-        }
-        callback.run();
+    private void initializeDomainComponent() {
+        Stream.of(dataProvider.getColumns()).filter(c -> c.isTemporal() || c.isNumber()).forEach(domainComponent::addItem);
+
+        domainComponent.addActionListener(e -> processConfigChanged());
+        domainComponent.setRenderer(ColumnDefinition.createListCellRenderer());
     }
 
     private void initializeSeriesComponent() {
-        final ListTableModel<SeriesConfig> model = new ListTableModel<>(new RangeColumnInfo<>("Name", SeriesConfig::getName, SeriesConfig::setName), new RangeColumnInfo<>("Style", SeriesConfig::getType, SeriesConfig::setType), new RangeColumnInfo<>("Low. Margin", SeriesConfig::getLowerMargin, SeriesConfig::setLowerMargin), new RangeColumnInfo<>("Upp. Margin", SeriesConfig::getUpperMargin, SeriesConfig::setUpperMargin));
-        model.addRow(new SeriesConfig("Value", SeriesType.LINE));
-        model.addRow(new SeriesConfig("", SeriesType.LINE));
+        final ListTableModel<SeriesItem> model = new ListTableModel<>(
+                new TheColumnInfo<>("Name", SeriesItem::getName, SeriesItem::setName),
+                new TheColumnInfo<>("Style", SeriesItem::getStyle, SeriesItem::setStyle),
+                new TheColumnInfo<>("Low. Margin", SeriesItem::getLowerMargin, SeriesItem::setLowerMargin),
+                new TheColumnInfo<>("Upp. Margin", SeriesItem::getUpperMargin, SeriesItem::setUpperMargin)
+        );
+        model.addRow(new SeriesItem("Value", SeriesStyle.LINE));
+        model.addRow(new SeriesItem("", SeriesStyle.LINE));
         model.addTableModelListener(e -> {
             if (ignoreUpdate) {
                 return;
@@ -156,29 +117,29 @@ public class LineConfigPanel extends JPanel {
             if (model.getItem(firstRow).getName().isEmpty() && firstRow != lastRowIndex) {
                 model.removeRow(e.getFirstRow());
             } else if (!model.getItem(lastRowIndex).getName().isEmpty()) {
-                model.addRow(new SeriesConfig("", SeriesType.LINE));
+                model.addRow(new SeriesItem("", SeriesStyle.LINE));
             }
-            rangesComponent.repaint();
+            valuesTable.repaint();
             processConfigChanged();
         });
 
-        seriesComponent.setVisibleRowCount(5);
-        seriesComponent.putClientProperty(JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
+        seriesTable.setVisibleRowCount(VERTICAL_GAP);
+        seriesTable.putClientProperty(JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
 
-        seriesComponent.setModelAndUpdateColumns(model);
-        seriesComponent.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        seriesTable.setModelAndUpdateColumns(model);
+        seriesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        final TableColumnModel columnModel = seriesComponent.getColumnModel();
+        final TableColumnModel columnModel = seriesTable.getColumnModel();
 
         final TableColumn style = columnModel.getColumn(1);
-        final ComboBoxTableRenderer<SeriesType> cellEditor = new ComboBoxTableRenderer<>(SeriesType.values()) {
+        final ComboBoxTableRenderer<SeriesStyle> cellEditor = new ComboBoxTableRenderer<>(SeriesStyle.values()) {
             @Override
-            protected String getTextFor(@NotNull SeriesType value) {
+            protected String getTextFor(@NotNull SeriesStyle value) {
                 return value.getLabel();
             }
 
             @Override
-            protected Icon getIconFor(@NotNull SeriesType value) {
+            protected Icon getIconFor(@NotNull SeriesStyle value) {
                 return value.getIcon();
             }
         }.withClickCount(1);
@@ -189,91 +150,178 @@ public class LineConfigPanel extends JPanel {
         columnModel.getColumn(3).setCellEditor(new IntSpinnerCellEditor());
     }
 
-    private void initializeDomainComponent() {
-        Stream.of(dataProvider.getColumns()).filter(c -> c.isTemporal() || c.isNumber()).forEach(domainComponent::addItem);
+    private void initializeValuesComponent() {
+        final List<ValuesItem> values = Stream.of(dataProvider.getColumns())
+                .filter(ColumnDefinition::isNumber)
+                .map(ValuesItem::new)
+                .toList();
 
-        domainComponent.addActionListener(e -> processConfigChanged());
-        domainComponent.setRenderer(ColumnConfig.createListCellRenderer());
-    }
-
-    private void initializeRangeValuesTable() {
-        final java.util.List<RangeConfig> ranges = createRangeConfigs();
-        final Optional<String> maxLabelName = ranges.stream().map(RangeConfig::getLabelWidth).reduce((s, s2) -> s.length() > s2.length() ? s : s2);
-        final ListTableModel<RangeConfig> model = new ListTableModel<>(new RangeColumnInfo<>("Series", RangeConfig::getSeries, RangeConfig::setSeries, "Range Series Name"), new RangeColumnInfo<>("Column", RangeConfig::getLabel, null, maxLabelName.orElse("")), new RangeColumnInfo<>("Color", RangeConfig::getColor, RangeConfig::setColor), new RangeColumnInfo<>("Width", RangeConfig::getWidth, RangeConfig::setWidth));
-        model.addRows(ranges);
+        final Optional<String> maxLabelName = values.stream().map(ValuesItem::getLabelWidthTemplate).reduce((s, s2) -> s.length() > s2.length() ? s : s2);
+        final ListTableModel<ValuesItem> model = new ListTableModel<>(
+                new TheColumnInfo<>("Series", ValuesItem::getSeries, ValuesItem::setSeries, "Series Name"),
+                new TheColumnInfo<>("Column", ValuesItem::getLabel, null, maxLabelName.orElse("")),
+                new TheColumnInfo<>("Operation", ValuesItem::getOperation, ValuesItem::setOperation)
+        );
+        model.addRows(values);
         model.addTableModelListener(e -> processConfigChanged());
 
-        rangesComponent.setModelAndUpdateColumns(model);
-        rangesComponent.setVisibleRowCount(model.getRowCount());
-        rangesComponent.putClientProperty(JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
+        valuesTable.setModelAndUpdateColumns(model);
+        valuesTable.setVisibleRowCount(model.getRowCount());
+        valuesTable.putClientProperty(JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
 
-        final TableColumnModel columnModel = rangesComponent.getColumnModel();
+        final TableColumnModel columnModel = valuesTable.getColumnModel();
 
-        final ComboBox<SeriesConfig> seriesBox = new ComboBox<>(new SeriesComboboxModel(seriesComponent));
+        final ComboBox<SeriesItem> seriesBox = new ComboBox<>(new SeriesComboboxModel(seriesTable));
         seriesBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                final SeriesConfig sc = (SeriesConfig) value;
-                return super.getListCellRendererComponent(list, sc == null ? "" : sc.getLabel(), index, isSelected, cellHasFocus);
+                final SeriesItem sc = (SeriesItem) value;
+                return super.getListCellRendererComponent(list, sc == null ? "" : sc.name, index, isSelected, cellHasFocus);
             }
         });
 
-        final TableColumn groupCol = columnModel.getColumn(0);
-        groupCol.setCellEditor(new DefaultCellEditor(seriesBox));
-        groupCol.setCellRenderer(new DefaultTableCellRenderer() {
+        final TableColumn seriesCol = columnModel.getColumn(0);
+        seriesCol.setCellEditor(new DefaultCellEditor(seriesBox));
+        seriesCol.setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                final SeriesConfig sc = (SeriesConfig) value;
-                return super.getTableCellRendererComponent(table, sc == null ? "" : sc.getLabel(), isSelected, hasFocus, row, column);
+                final SeriesItem sc = (SeriesItem) value;
+                return super.getTableCellRendererComponent(table, sc == null ? "" : sc.name, isSelected, hasFocus, row, column);
             }
         });
 
-        final TableColumn colorCol = columnModel.getColumn(2);
-        colorCol.setCellEditor(new ColorTableCellEditor());
-        colorCol.setCellRenderer(new ColorTableCellEditor());
-
-        final TableColumn width = columnModel.getColumn(3);
-        final DefaultCellEditor widthEditor = new DefaultCellEditor(new JFormattedTextField(0.0f)) {
+        final TableColumn operationCol = columnModel.getColumn(2);
+        final ComboBox<Operation> operationComboBox = new ComboBox<>(new DefaultComboBoxModel<>(Operation.values()));
+        operationComboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Object getCellEditorValue() {
-                return textField().getValue();
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                final Operation operation = (Operation) value;
+                return super.getListCellRendererComponent(list, operation.getLabel(), index, isSelected, cellHasFocus);
+            }
+        });
+
+        operationCol.setCellEditor(new DefaultCellEditor(operationComboBox));
+        operationCol.setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                final Operation operation = (Operation) value;
+                return super.getTableCellRendererComponent(table, operation.getLabel(), isSelected, hasFocus, row, column);
+            }
+        });
+    }
+
+    private void initializeExpansionComponent() {
+        final List<ExpansionItem> expansions = Stream.of(dataProvider.getColumns())
+                .filter(ColumnDefinition::isSymbol)
+                .map(cc -> new ExpansionItem(cc, false, dataProvider.getDistinctCount(cc)))
+                .toList();
+
+        final ListTableModel<ExpansionItem> model = new ListTableModel<>(
+                new TheColumnInfo<>("Enable", ExpansionItem::isEnabled, ExpansionItem::setEnabled),
+                new TheColumnInfo<>("Column", ExpansionItem::getColumn, null),
+                new TheColumnInfo<>("Distinct values", ExpansionItem::getValuesCount, null)
+        );
+        model.addRows(expansions);
+        model.addTableModelListener(e -> processConfigChanged());
+
+        expansionTable.setVisibleRowCount(3);
+        expansionTable.putClientProperty(JBViewport.FORCE_VISIBLE_ROW_COUNT_KEY, true);
+
+        expansionTable.setModelAndUpdateColumns(model);
+        expansionTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        final TableColumnModel columnModel = expansionTable.getColumnModel();
+        final TableColumn column = columnModel.getColumn(0);
+        column.setCellEditor(new BooleanTableCellEditor());
+        column.setCellRenderer(new BooleanTableCellRenderer());
+
+        columnModel.getColumn(1).setCellRenderer(ColumnDefinition.createTableCellRenderer());
+    }
+
+    public LineChartConfig createChartConfig() {
+        final Map<SeriesItem, SeriesDefinition> series = new HashMap<>();
+
+        final List<ValuesDefinition> values = valuesTable.getItems().stream().filter(i -> i.series != null && !i.series.name.isBlank()).map(i -> {
+            final SeriesDefinition def = series.computeIfAbsent(i.series, SeriesItem::createDefinition);
+            return new ValuesDefinition(i.column, def, i.operation);
+        }).toList();
+
+        final List<ColumnDefinition> expansions = expansionTable.getItems().stream().filter(ExpansionItem::isEnabled).map(ExpansionItem::getColumn).toList();
+        return new LineChartConfig(domainComponent.getItem(), values, expansions, shapesCheckbox.isSelected());
+    }
+
+    public void updateChartConfig(LineChartConfig config) {
+        ignoreUpdate = true;
+        try {
+            domainComponent.setItem(config.domain());
+            shapesCheckbox.setSelected(config.isDrawShapes());
+
+            final List<SeriesItem> seriesItems = new ArrayList<>();
+            final List<ValuesItem> valuesItems = new ArrayList<>();
+            final Map<SeriesDefinition, SeriesItem> seriesMap = new HashMap<>();
+
+            for (ValuesDefinition value : config.values()) {
+                final SeriesDefinition series = value.series();
+
+                SeriesItem item = seriesMap.get(series);
+                if (item == null) {
+                    item = new SeriesItem(series);
+                    seriesItems.add(item);
+                    seriesMap.put(series, item);
+                }
+
+                final ValuesItem e = new ValuesItem(value.column());
+                e.setSeries(item);
+                e.setOperation(value.operation());
+
+                valuesItems.add(e);
             }
 
-            @Override
-            public boolean stopCellEditing() {
-                try {
-                    textField().commitEdit();
-                    return super.stopCellEditing();
-                } catch (Exception ex) {
-                    return false;
+            final ListTableModel<SeriesItem> seriesModel = seriesTable.getListTableModel();
+            seriesModel.setItems(seriesItems);
+            seriesModel.addRow(new SeriesItem("", SeriesStyle.LINE));
+
+            final ListTableModel<ValuesItem> valuesModel = valuesTable.getListTableModel();
+            final List<ValuesItem> values = new ArrayList<>(valuesModel.getItems());
+            final Set<ColumnDefinition> valuesCols = valuesItems.stream().map(v -> v.column).collect(Collectors.toSet());
+            values.removeIf(v -> valuesCols.contains(v.column));
+            valuesItems.addAll(values);
+            valuesModel.setItems(valuesItems);
+
+            final List<ExpansionItem> expansions = new ArrayList<>();
+            final ListTableModel<ExpansionItem> expansionModel = expansionTable.getListTableModel();
+            final Map<ColumnDefinition, ExpansionItem> collect = expansionModel.getItems().stream().collect(Collectors.toMap(i -> i.column, i -> i));
+            for (ColumnDefinition column : config.expansions()) {
+                final ExpansionItem remove = collect.remove(column);
+                if (remove != null) {
+                    remove.setEnabled(true);
+                    expansions.add(remove);
                 }
             }
-
-            private JFormattedTextField textField() {
-                return (JFormattedTextField) editorComponent;
-            }
-        };
-        widthEditor.setClickCountToStart(1);
-        width.setCellEditor(widthEditor);
-    }
-
-    private java.util.List<RangeConfig> createRangeConfigs() {
-        final ColumnConfig[] columns = dataProvider.getColumns();
-        final List<RangeConfig> res = new ArrayList<>(columns.length);
-        for (int i = 0, c = 0; i < columns.length; i++) {
-            final ColumnConfig column = columns[i];
-            if (column.isNumber()) {
-                res.add(new RangeConfig(column.getName(), column.getType(), ChartColors.getDefaultColor(c++)));
-            }
+            expansions.addAll(collect.values());
+            expansionModel.setItems(expansions);
+        } finally {
+            ignoreUpdate = false;
         }
-        return res;
+        processConfigChanged();
     }
 
-    private static class SeriesComboboxModel extends AbstractListModel<SeriesConfig> implements ComboBoxModel<SeriesConfig> {
-        private final TableView<SeriesConfig> table;
+    private void processConfigChanged() {
+        if (ignoreUpdate) {
+            return;
+        }
+        callback.run();
+    }
+
+    private interface Item {
+        String getName();
+    }
+
+    private static class SeriesComboboxModel extends AbstractListModel<SeriesItem> implements ComboBoxModel<SeriesItem> {
+        private final TableView<SeriesItem> table;
         private Object selected;
 
-        public SeriesComboboxModel(TableView<SeriesConfig> table) {
+        public SeriesComboboxModel(TableView<SeriesItem> table) {
             this.table = table;
         }
 
@@ -293,13 +341,13 @@ public class LineConfigPanel extends JPanel {
         }
 
         @Override
-        public SeriesConfig getElementAt(int index) {
+        public SeriesItem getElementAt(int index) {
             return table.getRow(index);
         }
     }
 
     private static class IntSpinnerCellEditor extends AbstractTableCellEditor {
-        private final JBIntSpinner intSpinner = new JBIntSpinner(5, 0, 1000, 5);
+        private final JBIntSpinner intSpinner = new JBIntSpinner(VERTICAL_GAP, 0, 1000, VERTICAL_GAP);
 
         public IntSpinnerCellEditor() {
             final JSpinner.NumberEditor editor = (JSpinner.NumberEditor) intSpinner.getEditor();
@@ -328,37 +376,166 @@ public class LineConfigPanel extends JPanel {
         }
     }
 
-    private static class ColorTableCellEditor extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
-        private final DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
-        private Color editingColor;
+    private static class TheColumnInfo<T, V> extends ColumnInfo<T, V> {
+        private final String maxStringValue;
+        private final Function<T, V> getter;
+        private final BiConsumer<T, V> setter;
 
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            final JLabel label = (JLabel) renderer.getTableCellRendererComponent(table, null, isSelected, hasFocus, row, column);
-            label.setIcon(RangeConfig.createIcon((Color) value));
-            return label;
+        public TheColumnInfo(String name, Function<T, V> getter, BiConsumer<T, V> setter) {
+            this(name, getter, setter, null);
+        }
+
+        public TheColumnInfo(String name, Function<T, V> getter, BiConsumer<T, V> setter, String maxStringValue) {
+            super(name);
+            this.getter = getter;
+            this.setter = setter;
+            this.maxStringValue = maxStringValue;
         }
 
         @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            final JLabel res = (JLabel) getTableCellRendererComponent(table, value, true, false, row, column);
-
-            editingColor = (Color) value;
-            ApplicationManager.getApplication().invokeLater(() -> {
-                final Color c = ColorChooser.chooseColor(table, IdeBundle.message("dialog.title.choose.color"), editingColor, true);
-                if (c == null) {
-                    cancelCellEditing();
-                } else {
-                    editingColor = c;
-                    stopCellEditing();
-                }
-            });
-            return res;
+        public @Nullable V valueOf(T cc) {
+            return getter.apply(cc);
         }
 
         @Override
-        public Object getCellEditorValue() {
-            return editingColor;
+        public void setValue(T config, V value) {
+            if (setter != null) {
+                setter.accept(config, value);
+            }
+        }
+
+        @Override
+        public boolean isCellEditable(T cc) {
+            return setter != null;
+        }
+
+        @Override
+        public @Nullable String getMaxStringValue() {
+            return maxStringValue;
+        }
+    }
+
+    private static class SeriesItem implements Item {
+        String name;
+        SeriesStyle style;
+        int lowerMargin = DEFAULT_LOWER_MARGIN;
+        int upperMargin = DEFAULT_UPPER_MARGIN;
+
+        public SeriesItem(SeriesDefinition s) {
+            this(s.name(), s.style());
+        }
+
+        public SeriesItem(String name, SeriesStyle style) {
+            this.name = name;
+            this.style = style;
+        }
+
+        public int getLowerMargin() {
+            return lowerMargin;
+        }
+
+        public void setLowerMargin(int lowerMargin) {
+            this.lowerMargin = lowerMargin;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public SeriesStyle getStyle() {
+            return style;
+        }
+
+        public void setStyle(SeriesStyle style) {
+            this.style = style;
+        }
+
+        public int getUpperMargin() {
+            return upperMargin;
+        }
+
+        public void setUpperMargin(int upperMargin) {
+            this.upperMargin = upperMargin;
+        }
+
+        public SeriesDefinition createDefinition() {
+            return new SeriesDefinition(name, style, lowerMargin, upperMargin);
+        }
+    }
+
+    private static class ValuesItem implements Item {
+        private final ColumnDefinition column;
+        private SeriesItem series;
+        private Operation operation = Operation.SUM;
+
+        public ValuesItem(ColumnDefinition column) {
+            this.column = column;
+        }
+
+        @Override
+        public String getName() {
+            return column.name();
+        }
+
+        public String getLabel() {
+            return column.getLabel();
+        }
+
+        public String getLabelWidthTemplate() {
+            return column.getLabelWidthTemplate();
+        }
+
+        public Operation getOperation() {
+            return operation;
+        }
+
+        public void setOperation(Operation operation) {
+            this.operation = operation;
+        }
+
+        public SeriesItem getSeries() {
+            return series;
+        }
+
+        public void setSeries(SeriesItem series) {
+            this.series = series;
+        }
+    }
+
+    private static class ExpansionItem implements Item {
+        final ColumnDefinition column;
+        final long valuesCount;
+        boolean enabled;
+
+        public ExpansionItem(ColumnDefinition column, boolean enabled, long valuesCount) {
+            this.column = column;
+            this.enabled = enabled;
+            this.valuesCount = valuesCount;
+        }
+
+        public String getName() {
+            return column.name();
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public ColumnDefinition getColumn() {
+            return column;
+        }
+
+        public long getValuesCount() {
+            return valuesCount;
         }
     }
 }

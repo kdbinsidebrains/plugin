@@ -7,7 +7,7 @@ public abstract class KdbConfigurable implements SearchableConfigurable {
     private final String id;
     private final String name;
 
-    protected static final int FORM_LEFT_INDENT = 15;
+    public static final int FORM_LEFT_INDENT = 15;
 
     protected KdbConfigurable(String id, String name) {
         this.id = id;
