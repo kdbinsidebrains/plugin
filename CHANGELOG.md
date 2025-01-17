@@ -1,6 +1,6 @@
 # KdbInsideBrains Changelog
 
-## [5.14.1]
+## [5.14.2]
 
 ### Added
 
