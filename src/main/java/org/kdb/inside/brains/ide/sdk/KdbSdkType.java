@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.ide.sdk;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -12,15 +13,49 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class KdbSdkType extends SdkType {
+    private static final Logger log = Logger.getInstance(KdbSdkType.class);
+
     public KdbSdkType() {
         super("KDB SDK");
     }
 
-    private static File findExecutable(@NotNull File path) {
+    private static boolean isUnix() {
+        return SystemUtils.IS_OS_UNIX || SystemUtils.IS_OS_MAC;
+    }
+
+    @Override
+    public Icon getIcon() {
+        return KdbIcons.Main.Application;
+    }
+
+
+    @Override
+    public @NotNull String suggestSdkName(@Nullable String currentSdkName, @NotNull String sdkHome) {
+        final String kdbVersion = getKdbVersion(sdkHome);
+        if (kdbVersion == null) {
+            return "Unknown KDB";
+        }
+        return "KDB " + kdbVersion.substring(0, kdbVersion.indexOf(' '));
+    }
+
+    public boolean isRootTypeApplicable(@NotNull OrderRootType type) {
+        return false;
+    }
+
+    @Override
+    public @NotNull @Nls(capitalization = Nls.Capitalization.Title) String getPresentableName() {
+        return "KDB SDK";
+    }
+
+    protected static File findExecutable(@NotNull File path) {
         final File[] folders = path.listFiles(File::isDirectory);
         if (folders == null) {
             return null;
@@ -40,33 +75,6 @@ public class KdbSdkType extends SdkType {
             }
         }
         return null;
-    }
-
-    private static boolean isUnix() {
-        return SystemUtils.IS_OS_UNIX || SystemUtils.IS_OS_MAC;
-    }
-
-    @Override
-    public Icon getIcon() {
-        return KdbIcons.Main.Application;
-    }
-
-    @Override
-    public @NotNull String suggestSdkName(@Nullable String currentSdkName, @NotNull String sdkHome) {
-        final String kdbVersion = getKdbVersion(sdkHome);
-        if (kdbVersion == null) {
-            return "Unknown KDB";
-        }
-        return "KDB " + kdbVersion.substring(0, kdbVersion.indexOf(' '));
-    }
-
-    public boolean isRootTypeApplicable(@NotNull OrderRootType type) {
-        return false;
-    }
-
-    @Override
-    public @NotNull @Nls(capitalization = Nls.Capitalization.Title) String getPresentableName() {
-        return "KDB SDK";
     }
 
     public File getExecutableFile(@NotNull Sdk sdk) {
@@ -89,6 +97,48 @@ public class KdbSdkType extends SdkType {
         return super.setupSdkPaths(sdk, sdkModel);
     }
 
+    @Nullable
+    protected static String getKdbVersion(String path) {
+        final File root = new File(path);
+        final File executable = findExecutable(root);
+        if (executable == null) {
+            return null;
+        }
+
+        try {
+            final Runtime runtime = Runtime.getRuntime();
+            final String[] args = {"QHOME=" + root.getAbsolutePath()};
+            final Process exec = runtime.exec(executable.getAbsolutePath(), args, root);
+
+            try (BufferedWriter out = exec.outputWriter()) {
+                out.write("string[.z.K],\" \",string[.z.k]");
+                out.newLine();
+                out.write("exit 0");
+                out.flush();
+            } catch (Exception ex) {
+                final String errorMsg = read(exec.errorReader());
+                log.warn("Q Version can't be detected from " + path + ":\n" + errorMsg);
+                return null;
+            }
+
+            try (BufferedReader r = exec.inputReader()) {
+                final Optional<String> version = r.lines().reduce((a, b) -> b);
+                return version.map(s -> s.substring(1, s.length() - 1)).orElse(null);
+            } catch (Exception ex) {
+                final String errorMsg = read(exec.errorReader());
+                log.warn("Response can't be read from Q process in " + path + ":\n" + errorMsg);
+                return null;
+            }
+        } catch (Exception ex) {
+            log.warn("Q Version can't be detected from " + path, ex);
+            return null;
+        }
+    }
+
+    private static String read(BufferedReader reader) {
+        return reader.lines().collect(Collectors.joining("\n"));
+    }
+
     @Override
     @Nullable
     public String getVersionString(Sdk sdk) {
@@ -96,45 +146,12 @@ public class KdbSdkType extends SdkType {
         if (path == null) {
             return null;
         }
-        final String kdbVersion = getKdbVersion(path);
-        return kdbVersion == null ? "Undefined" : kdbVersion;
+        return getVersionString(path);
     }
 
-    @Nullable
-    private String getKdbVersion(String path) {
-        final File executable = findExecutable(new File(path));
-        if (executable == null) {
-            return null;
-        }
-
-        try {
-            final Runtime runtime = Runtime.getRuntime();
-            final Process exec = runtime.exec(executable.getAbsolutePath());
-
-            final InputStream in = exec.getInputStream();
-            final OutputStream out = exec.getOutputStream();
-
-            out.write("string[.z.K],\" \",string[.z.k]\n".getBytes());
-            out.write("`the_end_of_the_command\n".getBytes());
-            out.flush();
-
-            BufferedReader r = new BufferedReader(new InputStreamReader(in));
-
-            String lastLine = null;
-            String s = r.readLine();
-            while (s != null && !"`the_end_of_the_command".equals(s)) {
-                lastLine = s;
-                s = r.readLine();
-            }
-            exec.destroy();
-            if (lastLine == null) {
-                return null;
-            }
-            // cut quotes
-            return lastLine.substring(1, lastLine.length() - 1);
-        } catch (Exception ex) {
-            return null;
-        }
+    @Override
+    public @Nullable String getVersionString(@NotNull String sdkHome) {
+        return getKdbVersion(sdkHome);
     }
 
     @Override

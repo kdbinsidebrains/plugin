@@ -7,7 +7,6 @@ import com.intellij.ide.ui.laf.darcula.DarculaUIUtil;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentValidator;
@@ -30,6 +29,7 @@ import com.intellij.util.ui.UIUtil;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.action.connection.CreateConnectionAction;
 import org.kdb.inside.brains.core.*;
 
@@ -65,6 +65,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
+        System.out.println("sdfasdf");
     }
 
     @Override
@@ -199,7 +200,7 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
                 final Project project = CommonDataKeys.PROJECT.getData(dataContext);
                 if (project != null) {
                     final KdbConnectionManager manager = KdbConnectionManager.getManager(project);
-                    new CreateTemporalAction(instance, manager).createInstance();
+                    new CreateTemporalAction(instance, manager).performSelection();
                 }
                 selectionCallback.accept(dataContext);
             }
@@ -349,7 +350,11 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         return "<html>" + (b ? "<b>" : "<font color=\"dark-grey\">") + instance.getName() + (b ? "</b>" : "</font>") + " [" + instance.toSymbol() + "] " + path + "</html>";
     }
 
-    private static class CreateTemporalAction extends DumbAwareAction {
+    private interface ItemSelectionAction {
+        void performSelection();
+    }
+
+    private static class CreateTemporalAction extends EdtAction implements ItemSelectionAction {
         private final KdbScope scope;
         private final KdbInstance instance;
         private final KdbConnectionManager manager;
@@ -368,16 +373,22 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         }
 
         @Override
-        public void actionPerformed(@NotNull AnActionEvent e) {
-            createInstance();
+        public void update(@NotNull AnActionEvent e) {
+            e.getPresentation().setEnabled(true);
         }
 
-        public void createInstance() {
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+            performSelection();
+        }
+
+        @Override
+        public void performSelection() {
             manager.activate(manager.createTempInstance(instance, scope));
         }
     }
 
-    private static class SelectInstanceAction extends DumbAwareAction {
+    private static class SelectInstanceAction extends EdtAction implements ItemSelectionAction {
         private final KdbInstance instance;
         private final KdbConnectionManager manager;
 
@@ -399,7 +410,8 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
             }
         }
 
-        void performSelection() {
+        @Override
+        public void performSelection() {
             manager.activate(instance);
         }
 
@@ -407,6 +419,11 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         public void actionPerformed(@NotNull AnActionEvent e) {
             performSelection();
         }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.EDT;
     }
 
     private static class InstancesList extends JBList<AnAction> implements ListItemDescriptor<AnAction> {
@@ -561,8 +578,9 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         }
 
         private boolean handleSelection() {
-            if (getSelectedValue() instanceof SelectInstanceAction sia) {
-                sia.performSelection();
+            final AnAction selectedValue = getSelectedValue();
+            if (selectedValue instanceof ItemSelectionAction action) {
+                action.performSelection();
                 selectionCallback.accept(DataManager.getInstance().getDataContext(this));
                 return true;
             }
@@ -572,10 +590,5 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
         protected boolean isActionClick(MouseEvent e) {
             return UIUtil.isActionClick(e, MouseEvent.MOUSE_RELEASED, true);
         }
-    }
-
-    @Override
-    public @NotNull ActionUpdateThread getActionUpdateThread() {
-        return ActionUpdateThread.EDT;
     }
 }

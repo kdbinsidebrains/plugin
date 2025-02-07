@@ -1,5 +1,12 @@
 # KdbInsideBrains Changelog
 
+## [5.14.3]
+
+### Fixed
+
+- KDB SDK functionality works in IDEA >= 2023.2
+- Connect with specified scope restored in Instances Toolbar
+
 ## [5.14.2]
 
 ### Added
