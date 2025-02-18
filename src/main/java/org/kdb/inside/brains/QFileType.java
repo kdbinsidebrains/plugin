@@ -13,6 +13,7 @@ import org.kdb.inside.brains.psi.QFile;
 
 import javax.swing.*;
 import java.io.File;
+import java.nio.file.Path;
 
 public final class QFileType extends LanguageFileType {
     public static final QFileType INSTANCE = new QFileType();
@@ -41,6 +42,10 @@ public final class QFileType extends LanguageFileType {
         return "q";
     }
 
+    public static boolean hasExtension(Path file) {
+        return hasExtension(file.getFileName().toString());
+    }
+
     public static boolean hasExtension(File file) {
         return hasExtension(file.getName());
     }
@@ -58,6 +63,10 @@ public final class QFileType extends LanguageFileType {
      */
     public static QFile createFactoryFile(Project project, String text) {
         return (QFile) PsiFileFactory.getInstance(project).createFileFromText("QElementFactory.q", QFileType.INSTANCE, text);
+    }
+
+    public static boolean is(@Nullable Path file) {
+        return file != null && hasExtension(file.toFile());
     }
 
     public static boolean is(@Nullable PsiFile file) {

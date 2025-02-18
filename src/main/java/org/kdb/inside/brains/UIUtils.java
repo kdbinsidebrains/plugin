@@ -5,16 +5,17 @@ import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Experiments;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.InputValidator;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.*;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.TextFieldWithHistoryWithBrowseButton;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -22,14 +23,19 @@ import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.ImageUtil;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public final class UIUtils {
     public static final String KEY_COLUMN_PREFIX = "\u00A1";
@@ -191,5 +197,49 @@ public final class UIUtils {
             }
         }.registerCustomShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0)), textField);
         return popup;
+    }
+
+    public static ComponentValidator initializerTextBrowseValidator(@NotNull TextFieldWithBrowseButton field, @NotNull Supplier<String> emptySupplier, @Nullable Supplier<String> nonExistSupplier) {
+        return initializerTextBrowseValidator(field, emptySupplier, nonExistSupplier, (Function<String, String>[]) null);
+    }
+
+    @SafeVarargs
+    public static ComponentValidator initializerTextBrowseValidator(@NotNull TextFieldWithBrowseButton field, @NotNull Supplier<String> emptySupplier, @Nullable Supplier<String> nonExistSupplier, Function<String, String>... customValidator) {
+        final JTextField textField = field.getTextField();
+
+        final ComponentValidator componentValidator = new ComponentValidator(field);
+        componentValidator.withValidator(() -> {
+            final String text = textField.getText().trim();
+            if (text.isEmpty()) {
+                return new ValidationInfo(emptySupplier.get(), textField);
+            }
+            if (nonExistSupplier != null && !Files.exists(Path.of(text))) {
+                return new ValidationInfo(nonExistSupplier.get(), textField);
+            }
+            if (customValidator != null) {
+                for (Function<String, String> validator : customValidator) {
+                    final String apply = validator.apply(text);
+                    if (apply != null) {
+                        return new ValidationInfo(apply, textField);
+                    }
+                }
+            }
+            return null;
+        }).andRegisterOnDocumentListener(textField).installOn(textField);
+        return componentValidator;
+    }
+
+    public static void initializeFileChooser(@Nullable Project project, @NotNull ComponentWithBrowseButton<?> field, @NotNull FileChooserDescriptor descriptor) {
+        if (descriptor.getRoots().isEmpty() && project != null) {
+            descriptor.withRoots(project.getBaseDir());
+        }
+
+        if (field instanceof TextFieldWithBrowseButton button) {
+            button.addBrowseFolderListener(new TextBrowseFolderListener(descriptor, project));
+        } else if (field instanceof TextFieldWithHistoryWithBrowseButton hist) {
+            hist.addBrowseFolderListener(project, descriptor, TextComponentAccessors.TEXT_FIELD_WITH_HISTORY_WHOLE_TEXT);
+        } else {
+            throw new UnsupportedOperationException("Unsupported field type: " + field.getClass());
+        }
     }
 }

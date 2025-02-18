@@ -16,7 +16,7 @@ public class KdbQuery {
         this.args = args;
     }
 
-    Object toQueryObject(boolean normalize) {
+    public Object toQueryObject(boolean normalize) {
         final char[] q = (normalize ? normalizeQuery(expr) : expr).toCharArray();
         if (args == null) {
             return q;

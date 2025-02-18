@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.ide.sdk;
 
+import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.*;
@@ -161,6 +162,18 @@ public class KdbSdkType extends SdkType {
 
     @Override
     public void saveAdditionalData(@NotNull SdkAdditionalData additionalData, @NotNull Element additional) {
+    }
+
+    public static String getHomePath(Module module) {
+        final Sdk sdk = getModuleSdk(module);
+        if (sdk == null) {
+            return null;
+        }
+        return sdk.getHomePath();
+    }
+
+    public static String getHomePath(RunConfigurationModule module) {
+        return getHomePath(module.getModule());
     }
 
     public static Sdk getModuleSdk(Module module) {

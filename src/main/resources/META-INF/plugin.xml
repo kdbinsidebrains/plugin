@@ -433,6 +433,7 @@
         <applicationConfigurable groupId="language" displayName="KDB+ Q" id="Kdb.Settings"
                                  instance="org.kdb.inside.brains.settings.KdbSettingsConfigurable">
             <configurable instance="org.kdb.inside.brains.settings.KdbConnectionsConfigurable"/>
+            <configurable instance="org.kdb.inside.brains.settings.QSpecConfigurable"/>
         </applicationConfigurable>
         <!--
                 <applicationConfigurable groupId="language" displayName="KDB+ Q" id="Kdb.Settings"
@@ -580,5 +581,9 @@
 
         <langCodeStyleSettingsProvider
                 implementation="org.kdb.inside.brains.lang.formatting.QCodeStyleSettingsProvider"/>
+
+        <!-- Testing -->
+        <runLineMarkerContributor language="q"
+                                  implementationClass="org.kdb.inside.brains.ide.runner.qspec.QSpecRunLineMarkerContributor"/>
     </extensions>
 </idea-plugin>
