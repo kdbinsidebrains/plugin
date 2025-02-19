@@ -155,6 +155,10 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
 
     @Override
     public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+        return createRunningState(env);
+    }
+
+    public @NotNull QSpecRunningState createRunningState(@NotNull ExecutionEnvironment env) throws ExecutionException {
         return new QSpecRunningState(this, getExecutionModule(), env);
     }
 }

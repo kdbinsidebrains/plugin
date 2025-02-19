@@ -32,6 +32,18 @@ public class QSpecTestLocator implements SMTestLocator {
     private QSpecTestLocator() {
     }
 
+    @Override
+    public @NotNull List<Location> getLocation(@NotNull String protocol, @NotNull String path, @NotNull Project project, @NotNull GlobalSearchScope scope) {
+        if (PROTOCOL_SCRIPT.equals(protocol)) {
+            return getLocation(path, project, this::findPsiFile);
+        } else if (PROTOCOL_SUITE.equals(protocol)) {
+            return getLocation(path, project, this::findSpecification);
+        } else if (PROTOCOL_TEST.equals(protocol)) {
+            return getLocation(path, project, this::findExpectation);
+        }
+        return NO_LOCATION;
+    }
+
     private static @Nullable QVarReference getInvokeReference(QInvokeFunction invoke, String name, String value) {
         final QCustomFunction cf = invoke.getCustomFunction();
         if (cf == null) {
@@ -66,18 +78,6 @@ public class QSpecTestLocator implements SMTestLocator {
             return ref;
         }
         return null;
-    }
-
-    @Override
-    public @NotNull List<Location> getLocation(@NotNull String protocol, @NotNull String path, @NotNull Project project, @NotNull GlobalSearchScope scope) {
-        if (PROTOCOL_SCRIPT.equals(protocol)) {
-            return getLocation(path, project, this::findPsiFile);
-        } else if (PROTOCOL_SUITE.equals(protocol)) {
-            return getLocation(path, project, this::findSpecification);
-        } else if (PROTOCOL_TEST.equals(protocol)) {
-            return getLocation(path, project, this::findExpectation);
-        }
-        return NO_LOCATION;
     }
 
     private @NotNull List<Location> getLocation(@NotNull String path, @NotNull Project project, BiFunction<String, Project, PsiElement> finder) {

@@ -41,9 +41,21 @@
     name:expect`desc;
     id:suite[`id],"/[expect:",name,"]";
     location:ssr[suite[`locationHint]; ":suite:"; ":test:"],"/[",name,"]";
-    dict,:`name`id`nodeId`parentNodeId`locationHint`metainfo!(name;id;id;suite`nodeId;location;"asdfasdf");
+    dict,:`name`id`nodeId`parentNodeId`locationHint`metainfo!(name;id;id;suite`nodeId;location;"");
     .tst.app.msg[tag; dict];
     :dict;
+ };
+
+.tst.app.msgMatrix:{[specs]
+    .tst.app.msg["enteredTheMatrix"; ()];
+    {[spec]
+        suite:.tst.app.msgSuite["suiteTreeStarted"; spec];
+        {[suite;x]
+            .tst.app.msgTestCase["suiteTreeNode"; suite; x; ()];
+        }[suite;] each spec`expectations;
+        .tst.app.msgSuite["suiteTreeEnded"; spec];
+    } each specs;
+    .tst.app.msg["treeEnded"; ()];
  };
 
 .tst.app.msgRootName:{
@@ -62,32 +74,6 @@
 / Real callback for execute tests: https://github.com/nugend/qspec/wiki/Callbacks
 / We print result of each test here
 .tst.callbacks.expecRan:{[s;e]
- };
-
-/ this code is based on original app/qspec.q file
-.tst.app.loadSpecs:{[script;specifications;expectations]
-    .tst.app.specs:();
-
-    / .utl.FILELOADING required to set tstPath in the spec
-    .tst.loadTests hsym .utl.FILELOADING:hsym `$":",script;
-
-    if[0<>count specifications;
-       .tst.app.specs:.tst.app.specs where (or) over .tst.app.specs[; `title] like/:specifications
-      ];
-
-    if[0<>count expectations;
-       .tst.app.specs[`expectations]:{x where (or) over x[; `desc] like/:y}[; expectations] each .tst.app.specs`expectations;
-       .tst.app.specs:.tst.app.specs where 0<count each .tst.app.specs[; `expectations];
-      ];
-
-    {[spec]
-        suite:.tst.app.msgSuite["suiteTreeStarted"; spec];
-        {[suite;x]
-            .tst.app.msgTestCase["suiteTreeNode"; suite; x; ()];
-        }[suite;] each spec`expectations;
-        .tst.app.msgSuite["suiteTreeEnded"; spec];
-    } each .tst.app.specs;
-    :.tst.app.specs;
  };
 
 / This is modified version of qspec/lib/tests/spec.q
@@ -114,32 +100,51 @@
  };
 
 / We need an ability to run each text
-.tst.app.runSpecs:{[specs]
-    result:{[spec]
-        suite:.tst.app.msgSuite["testSuiteStarted"; spec];
-        res:.tst.app.runSpec[suite; spec];
-        .tst.app.msgSuite["testSuiteFinished"; spec];
-        :res;
-    } each specs;
-    :result;
+.tst.app.runSuite:{[spec]
+    suite:.tst.app.msgSuite["testSuiteStarted"; spec];
+    res:.tst.app.runSpec[suite; spec];
+    .tst.app.msgSuite["testSuiteFinished"; spec];
+    :res;
+ };
+
+/ this code is based on original app/qspec.q file but fully redesigned
+/ The idea here - additionally to each file we get a list of liters in format (specification;expectation).
+/ Each filter is compared to all loaded specs.
+/ To do that, we ugroup specs to filter each row and group back with distinct expectations
+.tst.app.loadSpecs:{[script;filters]
+    .tst.app.specs:();
+
+    / .utl.FILELOADING required to set tstPath in the spec
+    .tst.loadTests hsym .utl.FILELOADING:hsym `$":",script;
+
+    if[()~.tst.app.specs; :()];
+
+    pot:raze {[x;y]
+                 a:select from x;
+                 if[not ()~y 0; a:select from a where title like y 0];
+                 if[not ()~y 1; a:select from a where expectations[; `desc] like y 1];
+                 :a;
+             }[update string title from ungroup update `$title from .tst.app.specs;] each filters;
+    :0!?[pot; (); c!c:cols[pot] except `expectations; (enlist `expectations)!(enlist (distinct;`expectations))];
  };
 
 / As we print result per script, we iterate over each rather than collect descriptions for all
-.tst.app.runScript:{[filename;qSpecPath;scripts;specs;expects]
+.tst.app.runScript:{[qSpecPath;rootFolder;scriptsWithFilters]
     / store params for debugging
-    .tst.app.params:(filename;qSpecPath;scripts;specs;expects);
+    .tst.app.params:(qSpecPath;rootFolder;scriptsWithFilters);
 
-    @[.tst.app.init; qSpecPath; {-2 "QSpec can't be loaded:\n",x; exit -1}];
+    qSpecPath:.tst.app.params 0; rootFolder:.tst.app.params 1; scriptsWithFilters:.tst.app.params 2;
+    @[.tst.app.init; qSpecPath; {-2 "QSpec can't be loaded from ",x,":\n\t",y; exit -1}[qSpecPath;]];
 
-    .tst.app.msg["enteredTheMatrix"; ()];
     specs:raze {
-                   .[.tst.app.loadSpecs; (x;y;z); {-2 "Testing script can't be loaded:\n",x; exit -1}]
-               }[; specs; expects] each scripts;
-    .tst.app.msg["treeEnded"; ()];
+                   .[.tst.app.loadSpecs; (x 0;x 1); {-2 "Testing script '",x,"' can't be loaded:\n\t",y; exit -1}[x 0;]]
+               } each scriptsWithFilters;
 
-    .tst.app.msgRootName[filename];
+    .tst.app.msgMatrix specs;
 
-    .tst.app.result:@[.tst.app.runSpecs; specs; {-2 "Tests can't be executed:\n",x; exit -1}];
+    .tst.app.msgRootName rootFolder;
+
+    {@[.tst.app.runSuite; x; {-2 "Test ",x[`title]," can't be executed:\n\t",y; exit -1}[x;]];} each specs;
 
     exit 0;
  };

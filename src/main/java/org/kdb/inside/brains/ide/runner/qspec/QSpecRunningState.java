@@ -11,6 +11,7 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.execution.testframework.AbstractTestProxy;
 import com.intellij.execution.testframework.actions.AbstractRerunFailedTestsAction;
 import com.intellij.execution.testframework.autotest.ToggleAutoTestAction;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
@@ -28,10 +29,16 @@ import org.kdb.inside.brains.ide.qspec.QSpecLibrary;
 import org.kdb.inside.brains.ide.runner.KdbConsoleFilter;
 import org.kdb.inside.brains.ide.runner.KdbRunningStateBase;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,46 +46,10 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
     public static final String ROOT_SCRIPT_PATH = "/org/kdb/inside/brains/qspec.q";
     private static final String FRAMEWORK_NAME = "KDB QSpec Tests";
 
-    protected QSpecRunningState(QSpecRunConfiguration cfg, Module module, ExecutionEnvironment environment) {
+    private List<String> failedScripts = null;
+
+    public QSpecRunningState(QSpecRunConfiguration cfg, Module module, ExecutionEnvironment environment) {
         super(cfg, module, environment);
-    }
-
-    private static @NotNull String createPattern(String include) {
-        if (include == null || include.trim().isEmpty()) {
-            return "()";
-        }
-        final String[] split = include.split(",");
-        if (split.length == 1) {
-            return "enlist " + quote(split[0].trim());
-        } else {
-            return "(" + Stream.of(split).map(String::trim).map(QSpecRunningState::quote).collect(Collectors.joining(";")) + ")";
-        }
-    }
-
-    private static String quote(String txt) {
-        return '"' + txt.replace("\"", "\\\"") + '"';
-    }
-
-    private static String kdbPathArgument(Path path) {
-        return quote(FilenameUtils.normalize(path.toString(), true));
-    }
-
-    private static @Nullable String prepareScript(String script) {
-        if (script == null || script.isEmpty()) {
-            return null;
-        }
-
-        // remove windows new line
-        final String oneLine = Stream.of(
-                        script.replace("\r", "").split("\n"))
-                .map(String::trim)
-                .filter(s -> !s.startsWith("/"))
-                .collect(Collectors.joining(" ")
-                ).trim();
-        if (oneLine.isEmpty()) {
-            return null;
-        }
-        return oneLine;
     }
 
     @Override
@@ -151,46 +122,16 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
         consoleView.print("QSpec framework is ready.\n", ConsoleViewContentType.LOG_INFO_OUTPUT);
     }
 
-    private void executeTests(ConsoleView consoleView, KdbProcessHandler processHandler, String qSpecDir) throws IOException, ExecutionException {
-        final Path root = Path.of(cfg.getScriptName());
-        final Path workingDir = Path.of(cfg.getWorkingDirectory());
-
-        final String scripts = collectScripts(workingDir, root);
-
-        final String expectations = createPattern(cfg.getExpectationPattern());
-        final String specifications = createPattern(cfg.getSpecificationPattern());
-
-        final String rootScript = kdbPathArgument(root.toAbsolutePath());
-//        final String rootScript = kdbPathArgument(workingDir.relativize(root));
-
-        String args = String.join(";",
-                rootScript,
-                kdbPathArgument(Path.of(qSpecDir)),
-                scripts,
-                specifications,
-                expectations
-        );
-        final String command = ".tst.app.runScript[" + args + "]";
-        logAndExecuteCommand(consoleView, processHandler, command);
+    private static @NotNull String createPattern(String include) {
+        return include == null || include.trim().isEmpty() ? "()" : quote(include);
     }
 
-    private String collectScripts(Path workingDir, Path script) throws IOException, ExecutionException {
-        if (Files.isDirectory(script)) {
-            try (Stream<Path> paths = Files.walk(script)) {
-                final List<String> files = paths.filter(Files::isRegularFile).filter(QFileType::is).map(Path::toAbsolutePath).map(QSpecRunningState::kdbPathArgument).toList();
-//                final List<String> files = paths.filter(Files::isRegularFile).filter(QFileType::is).map(workingDir::relativize).map(QSpecRunningState::kdbPathArgument).toList();
-                if (files.isEmpty()) {
-                    throw new ExecutionException("Not Q files found in " + script);
-                }
-                if (files.size() == 1) {
-                    return "enlist " + files.get(0);
-                }
-                return "(" + String.join(";", files) + ")";
-            }
-        } else {
-//            return "enlist " + kdbPathArgument(workingDir.relativize(script));
-            return "enlist " + kdbPathArgument(script.toAbsolutePath());
-        }
+    private static String quote(String txt) {
+        return '"' + txt.replace("\"", "\\\"") + '"';
+    }
+
+    private static String toKdbPath(Path path) {
+        return quote(FilenameUtils.normalize(path.toAbsolutePath().toString(), true));
     }
 
     private void executeScript(KdbProcessHandler processHandler, String script) {
@@ -218,10 +159,75 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
         return commandLine;
     }
 
+    private static String toKdbDict(List<String> strings) {
+        if (strings == null || strings.isEmpty()) {
+            return "()";
+        }
+        if (strings.size() == 1) {
+            return "enlist " + strings.get(0);
+        }
+        return "(" + String.join(";", strings) + ")";
+    }
+
+    private static @Nullable String prepareScript(String script) {
+        if (script == null || script.isEmpty()) {
+            return null;
+        }
+
+        // remove windows new line
+        final String oneLine = Stream.of(
+                        script.replace("\r", "").split("\n"))
+                .map(String::trim)
+                .filter(s -> !s.startsWith("/"))
+                .collect(Collectors.joining(" ")
+                ).trim();
+        if (oneLine.isEmpty()) {
+            return null;
+        }
+        return oneLine;
+    }
+
+    private void executeTests(ConsoleView consoleView, KdbProcessHandler processHandler, String qSpecDir) throws IOException, ExecutionException {
+        final Path root = Path.of(cfg.getScriptName());
+        final Path spec = Path.of(qSpecDir);
+        final List<String> params = failedScripts != null ? failedScripts : collectExecutionScripts(root);
+
+        String args = String.join(";",
+                toKdbPath(spec),
+                toKdbPath(root),
+                toKdbDict(params)
+        );
+        final String command = ".tst.app.runScript[" + args + "]";
+        logAndExecuteCommand(consoleView, processHandler, command);
+    }
+
+    protected @NotNull List<String> collectExecutionScripts(Path root) throws IOException, ExecutionException {
+        final List<String> scripts = collectScripts(root);
+        final String expectation = createPattern(cfg.getExpectationPattern());
+        final String specification = createPattern(cfg.getSpecificationPattern());
+        final String filter = toKdbDict(List.of(specification, expectation));
+        return scripts.stream().map(s -> "(" + s + "; enlist " + filter + ")").toList();
+    }
+
+    private List<String> collectScripts(Path script) throws IOException, ExecutionException {
+        List<String> scripts;
+        if (Files.isDirectory(script)) {
+            try (Stream<Path> paths = Files.walk(script)) {
+                scripts = paths.filter(Files::isRegularFile).filter(QFileType::is).map(QSpecRunningState::toKdbPath).toList();
+            }
+        } else {
+            scripts = List.of(toKdbPath(script));
+        }
+
+        if (scripts.isEmpty()) {
+            throw new ExecutionException("Not Q files found in " + script);
+        }
+        return scripts;
+    }
+
     private String getAppScript() throws ExecutionException {
         try {
-//            try (final InputStream in = QSpecRunningState.class.getResourceAsStream(ROOT_SCRIPT_PATH)) {
-            try (final InputStream in = new FileInputStream(new File("C:\\Users\\smkli\\IdeaProjects\\kdbinsidebrains\\plugin\\src\\main\\resources\\org\\kdb\\inside\\brains\\qspec.q"))) {
+            try (final InputStream in = QSpecRunningState.class.getResourceAsStream(ROOT_SCRIPT_PATH)) {
                 if (in == null) {
                     throw new ExecutionException("Resource can't be loaded: " + ROOT_SCRIPT_PATH);
                 }
@@ -230,5 +236,49 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
         } catch (IOException ex) {
             throw new ExecutionException("Resource can't be loaded: " + ROOT_SCRIPT_PATH, ex);
         }
+    }
+
+    public @Nullable QSpecRunningState withFailedTests(List<AbstractTestProxy> failedTests) {
+        final List<String> scripts = new ArrayList<>();
+        final Map<String, List<String>> filters = new HashMap<>();
+
+        for (AbstractTestProxy test : failedTests) {
+            final String locationUrl = test.getLocationUrl();
+            if (locationUrl == null) {
+                continue;
+            }
+            if (!locationUrl.startsWith("qspec:test://")) {
+                continue;
+            }
+
+            int i = locationUrl.indexOf("?[");
+            if (i < 0) {
+                continue;
+            }
+            int j = locationUrl.indexOf("]/[", i + 2);
+            if (j < 0) {
+                continue;
+            }
+            final int length = locationUrl.length() - 1;
+            if (locationUrl.charAt(length) != ']') {
+                continue;
+            }
+            final String script = quote(locationUrl.substring(13, i));
+            final String spec = quote(locationUrl.substring(i + 2, j));
+            final String expect = quote(locationUrl.substring(j + 3, length));
+
+            final List<String> strings = filters.computeIfAbsent(script, s -> {
+                scripts.add(s);
+                return new ArrayList<>();
+            });
+
+            final String kdbDict = toKdbDict(List.of(spec, expect));
+            if (!strings.contains(kdbDict)) {
+                strings.add(kdbDict);
+            }
+        }
+
+        failedScripts = scripts.stream().map(s -> "(" + s + ";" + toKdbDict(filters.get(s)) + ")").toList();
+        return this;
     }
 }

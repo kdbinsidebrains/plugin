@@ -2,7 +2,6 @@ package org.kdb.inside.brains.ide.runner.qspec;
 
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
-import com.intellij.execution.Location;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
@@ -16,7 +15,6 @@ import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsC
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
 import com.intellij.execution.testframework.sm.runner.SMTestLocator;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentContainer;
 import com.intellij.openapi.util.Key;
@@ -48,13 +46,12 @@ public class QSpecTestConsoleProperties extends SMTRunnerConsoleProperties imple
 
     @Override
     public @Nullable AbstractRerunFailedTestsAction createRerunFailedTestsAction(ConsoleView consoleView) {
-        // TODO: not implemented yet. Too big change required
 //        final AnAction action = ActionManager.getInstance().getAction("RerunFailedTests");
 //        return action == null ? null :
-//        return new QSpecRerunFailedTestsAction(this, consoleView);
-        return null;
+        return new QSpecRerunFailedTestsAction(this, consoleView);
     }
 
+    @SuppressWarnings("RawUseOfParameterized")
     private static class QSpecRerunFailedTestsAction extends AbstractRerunFailedTestsAction {
         protected QSpecRerunFailedTestsAction(QSpecTestConsoleProperties properties, @NotNull ComponentContainer view) {
             super(view);
@@ -66,12 +63,10 @@ public class QSpecTestConsoleProperties extends SMTRunnerConsoleProperties imple
             return super.getFilter(project, searchScope).and(new Filter() {
                 @Override
                 public boolean shouldAccept(AbstractTestProxy test) {
-                    Location location = test.getLocation(project, searchScope);
-                    return true;
+                    return test.isLeaf();
                 }
             });
         }
-
 
         @Nullable
         @Override
@@ -82,17 +77,16 @@ public class QSpecTestConsoleProperties extends SMTRunnerConsoleProperties imple
                 @Override
                 public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) throws ExecutionException {
                     final RunConfigurationBase<?> peer = getPeer();
-                    if (peer instanceof QSpecRunConfiguration conf) {
-                        List<AbstractTestProxy> failedTests = getFailedTests(conf.getProject());
-                        if (failedTests.isEmpty()) {
-                            return null;
-                        }
-                        final Module module = conf.getConfigurationModule().getModule();
-//                        QSpecRunningState runningState = conf.newRunningState(environment, module);
-//                        runningState.setFailedTests(failedTests);
-                        return null;//runningState;
+                    if (!(peer instanceof QSpecRunConfiguration conf)) {
+                        return null;
                     }
-                    return null;
+
+                    final List<AbstractTestProxy> failedTests = getFailedTests(conf.getProject());
+                    if (failedTests.isEmpty()) {
+                        return null;
+                    }
+
+                    return conf.createRunningState(environment).withFailedTests(failedTests);
                 }
             };
         }
