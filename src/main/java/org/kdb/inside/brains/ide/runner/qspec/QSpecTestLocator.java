@@ -21,13 +21,15 @@ import java.util.function.BiFunction;
 
 @SuppressWarnings("RawUseOfParameterized")
 public class QSpecTestLocator implements SMTestLocator {
-    public static final String QSPEC_EXPECTATION_FUNCTION = "should";
-    public static final String QSPEC_SPECIFICATION_FUNCTION = ".tst.desc";
-    public static final QSpecTestLocator INSTANCE = new QSpecTestLocator();
     private static final String PROTOCOL_SCRIPT = "qspec:script";
     private static final String PROTOCOL_SUITE = "qspec:suite";
     private static final String PROTOCOL_TEST = "qspec:test";
     private static final List<@NotNull Location> NO_LOCATION = List.of();
+
+    public static final QSpecTestLocator INSTANCE = new QSpecTestLocator();
+
+    public static final String QSPEC_EXPECTATION_FUNCTION = "should";
+    public static final String QSPEC_SPECIFICATION_FUNCTION = ".tst.desc";
 
     private QSpecTestLocator() {
     }
@@ -42,42 +44,6 @@ public class QSpecTestLocator implements SMTestLocator {
             return getLocation(path, project, this::findExpectation);
         }
         return NO_LOCATION;
-    }
-
-    private static @Nullable QVarReference getInvokeReference(QInvokeFunction invoke, String name, String value) {
-        final QCustomFunction cf = invoke.getCustomFunction();
-        if (cf == null) {
-            return null;
-        }
-
-        final QExpression expression = cf.getExpression();
-        if (!(expression instanceof QVarReference ref)) {
-            return null;
-        }
-
-        if (!name.equals(ref.getQualifiedName())) {
-            return null;
-        }
-
-        final List<QArguments> arguments = invoke.getArgumentsList();
-        if (arguments.size() != 1) {
-            return null;
-        }
-
-        final List<QExpression> expressions = arguments.get(0).getExpressions();
-        if (expressions.size() != 1) {
-            return null;
-        }
-
-        final QExpression qExpression = expressions.get(0);
-        if (!(qExpression instanceof QLiteralExpr lit)) {
-            return null;
-        }
-
-        if (value.equals(lit.getText())) {
-            return ref;
-        }
-        return null;
     }
 
     private @NotNull List<Location> getLocation(@NotNull String path, @NotNull Project project, BiFunction<String, Project, PsiElement> finder) {
@@ -160,5 +126,45 @@ public class QSpecTestLocator implements SMTestLocator {
         }
         final PsiManager instance = PsiManager.getInstance(project);
         return file.isDirectory() ? instance.findDirectory(file) : instance.findFile(file);
+    }
+
+    public static boolean isQSpecVariable(@Nullable String qualifiedName) {
+        return qualifiedName != null && qualifiedName.startsWith(".tst.");
+    }
+
+    private static @Nullable QVarReference getInvokeReference(QInvokeFunction invoke, String name, String value) {
+        final QCustomFunction cf = invoke.getCustomFunction();
+        if (cf == null) {
+            return null;
+        }
+
+        final QExpression expression = cf.getExpression();
+        if (!(expression instanceof QVarReference ref)) {
+            return null;
+        }
+
+        if (!name.equals(ref.getQualifiedName())) {
+            return null;
+        }
+
+        final List<QArguments> arguments = invoke.getArgumentsList();
+        if (arguments.size() != 1) {
+            return null;
+        }
+
+        final List<QExpression> expressions = arguments.get(0).getExpressions();
+        if (expressions.size() != 1) {
+            return null;
+        }
+
+        final QExpression qExpression = expressions.get(0);
+        if (!(qExpression instanceof QLiteralExpr lit)) {
+            return null;
+        }
+
+        if (value.equals(lit.getText())) {
+            return ref;
+        }
+        return null;
     }
 }

@@ -14,6 +14,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiEditorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
+import org.kdb.inside.brains.ide.runner.qspec.QSpecTestLocator;
 import org.kdb.inside.brains.psi.*;
 import org.kdb.inside.brains.psi.index.QIndexService;
 import org.kdb.inside.brains.view.inspector.InspectorToolWindow;
@@ -35,6 +36,10 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
         }
 
         if (QPsiUtil.isImplicitVariable(variable)) {
+            return;
+        }
+
+        if (QSpecTestLocator.isQSpecVariable(qualifiedName)) {
             return;
         }
 
@@ -71,14 +76,9 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
 
             final QExpressions expressions = variable.getContext(QExpressions.class);
             if (expressions != null) {
-                localQuickFix = new LocalQuickFix[]{
-                        createInvokeFix(variable, expressions),
-                        createInvokeFix(variable)
-                };
+                localQuickFix = new LocalQuickFix[]{createInvokeFix(variable, expressions), createInvokeFix(variable)};
             } else {
-                localQuickFix = new LocalQuickFix[]{
-                        createInvokeFix(variable)
-                };
+                localQuickFix = new LocalQuickFix[]{createInvokeFix(variable)};
             }
         }
         holder.registerProblem(variable, "`" + qualifiedName + "` might not have been defined", ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, localQuickFix);
@@ -145,10 +145,7 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
                 final List<QExpression> expressions = invoke.getExpressionList();
 
                 final AtomicInteger var = new AtomicInteger(0);
-                return Stream.concat(
-                        arguments.stream().flatMap(a -> a.getExpressions().stream()),
-                        expressions.stream()
-                ).map(expression -> {
+                return Stream.concat(arguments.stream().flatMap(a -> a.getExpressions().stream()), expressions.stream()).map(expression -> {
                     if (expression instanceof QVarReference) {
                         return ((QVarReference) expression).getSimpleName();
                     } else {

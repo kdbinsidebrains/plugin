@@ -21,7 +21,7 @@ public class QSpecConfigurationProducer extends KdbConfigurationProducerBase<QSp
             return null;
         }
 
-        if (!(element instanceof QVarReference ref)) {
+        if (!(element.getParent() instanceof QVarReference ref)) {
             return null;
         }
 
