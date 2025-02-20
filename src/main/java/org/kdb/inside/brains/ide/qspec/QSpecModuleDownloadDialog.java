@@ -52,7 +52,7 @@ public class QSpecModuleDownloadDialog extends DialogWrapper {
                         .withDescription("Select folder where GitHub Nugend QSpec and QUtil files libs will be downloaded")
         );
         UIUtils.initializerTextBrowseValidator(qSpecFolderField, () -> "Folder can't be empty", () -> "Folder must exist");
-        qSpecFolderField.addDocumentListener(new DocumentAdapter() {
+        qSpecFolderField.getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
             @Override
             protected void textChanged(@NotNull DocumentEvent e) {
                 downloadButton.setEnabled(!qSpecFolderField.getText().trim().isEmpty());

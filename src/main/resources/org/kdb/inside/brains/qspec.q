@@ -4,13 +4,24 @@
 / Required for QSpec somewhere inside. No ideas what's that.
 .tst.halt:0b;
 
-.tst.app.params:();
+/ Empty namespace
+.tst.app.wrap:enlist[`]!(enlist (::));
 
 / Workaround for .utl package - we need only two things but many pain with downloading
 .utl.require:{x:$[-11h=type x; string x; x]; system "l ",x;};
 
 .tst.app.init:{[qspecPath]
     .utl.require (.utl.PKGLOADING:qspecPath,"/lib"),"/init.q";
+
+    if[not `runSpec in .tst.app.wrap;
+       .tst.app.wrap.runSpec:.tst.runSpec;
+       .tst.runSpec:{.tst.app.runSpec x};
+      ];
+
+    if[not `runExpec in .tst.app.wrap;
+       .tst.app.wrap.runExpec:.tst.runExpec;
+       .tst.runExpec:{.tst.app.runExpec[x; y]};
+      ];
  };
 
 / https://www.jetbrains.com/help/teamcity/service-messages.html#Escaped+Values
@@ -29,19 +40,17 @@
 .tst.app.msgSuite:{[tag;spec]
     name:spec`title;
     path:$[":"=first s:string spec`tstPath; 1_s; s];
-    id:"[engine:qspec]/[file:",path,"]/[suite:",name,"]";
-    parentId:"[engine:qspec]/[file:",path,"]";
-    location:"qspec:suite://",path,"?[",name,"]";
-    dict:`name`id`nodeId`parentNodeId`locationHint!(name;id;id;parentId;location);
+    id:"qspec:suite://",path,"?[",name,"]";
+    parentId:"qspec:script://",path;
+    dict:`name`id`nodeId`parentNodeId`locationHint!(name;id;id;parentId;id);
     .tst.app.msg[tag; dict];
     :dict;
  };
 
-.tst.app.msgTestCase:{[tag;suite;expect;dict]
+.tst.app.msgTestCase:{[tag;spec;expect;dict]
     name:expect`desc;
-    id:suite[`id],"/[expect:",name,"]";
-    location:ssr[suite[`locationHint]; ":suite:"; ":test:"],"/[",name,"]";
-    dict,:`name`id`nodeId`parentNodeId`locationHint`metainfo!(name;id;id;suite`nodeId;location;"");
+    id:ssr[spec[`id]; ":suite:"; ":test:"],"/[",name,"]";
+    dict,:`name`id`nodeId`parentNodeId`locationHint`metainfo!(name;id;id;spec`nodeId;id;"");
     .tst.app.msg[tag; dict];
     :dict;
  };
@@ -76,37 +85,6 @@
 .tst.callbacks.expecRan:{[s;e]
  };
 
-/ This is modified version of qspec/lib/tests/spec.q
-.tst.app.runSpec:{[suite;spec]
-    oldContext:.tst.context;
-    .tst.context:spec[`context];
-    .tst.tstPath:spec[`tstPath];
-    {[suite;spec;e]
-        .tst.app.msgTestCase["testStarted"; suite; e; ()];
-        res:.tst.runExpec[spec; e];
-        dict:enlist[`duration]!(enlist string `long$(`long$res`time)%1000000);
-        if[not `pass~res`result;
-           errMsg:$[not ()~m:res`errorText; m; ()~m:res`failures; ""; "\n" sv m];
-           .tst.app.msgTestCase["testFailed"; suite; e; dict,`error`message!("true";errMsg)];
-          ];
-        .tst.app.msgTestCase["testFinished"; suite; e; dict];
-        :res;
-    }[suite; spec;] each spec`expectations;
-    .tst.restoreDir[];
-    .tst.context:oldContext;
-    .tst.tstPath:`;
-    spec[`result]:$[all `pass=spec[`expectations; ; `result]; `pass; `fail];
-    :spec;
- };
-
-/ We need an ability to run each text
-.tst.app.runSuite:{[spec]
-    suite:.tst.app.msgSuite["testSuiteStarted"; spec];
-    res:.tst.app.runSpec[suite; spec];
-    .tst.app.msgSuite["testSuiteFinished"; spec];
-    :res;
- };
-
 / this code is based on original app/qspec.q file but fully redesigned
 / The idea here - additionally to each file we get a list of liters in format (specification;expectation).
 / Each filter is compared to all loaded specs.
@@ -128,23 +106,63 @@
     :0!?[pot; (); c!c:cols[pot] except `expectations; (enlist `expectations)!(enlist (distinct;`expectations))];
  };
 
-/ As we print result per script, we iterate over each rather than collect descriptions for all
-.tst.app.runScript:{[qSpecPath;rootFolder;scriptsWithFilters]
-    / store params for debugging
-    .tst.app.params:(qSpecPath;rootFolder;scriptsWithFilters);
+.tst.app.runSpec:{[spec]
+    suite:.tst.app.msgSuite["testSuiteStarted"; spec];
+    res:.tst.app.wrap.runSpec spec,suite;
+    .tst.app.msgSuite["testSuiteFinished"; spec];
+    :res;
+ };
 
-    qSpecPath:.tst.app.params 0; rootFolder:.tst.app.params 1; scriptsWithFilters:.tst.app.params 2;
-    @[.tst.app.init; qSpecPath; {-2 "QSpec can't be loaded from ",x,":\n\t",y; exit -1}[qSpecPath;]];
+.tst.app.runExpec:{[spec;expec]
+    .tst.app.msgTestCase["testStarted"; spec; expec; ()];
+    / run original code
+    res:.tst.app.wrap.runExpec[spec; expec];
+    / process result
+    dict:enlist[`duration]!(enlist string `long$(`long$res`time)%1000000);
+    if[not `pass~res`result;
+       errMsg:$[not ()~m:res`errorText; m; ()~m:res`failures; ""; "\n" sv m];
+       .tst.app.msgTestCase["testFailed"; spec; expec; dict,`error`message!("true";errMsg)];
+      ];
+    .tst.app.msgTestCase["testFinished"; spec; expec; dict];
+    :res;
+ };
+
+/ As we print result per script, we iterate over each rather than collect descriptions for all
+.tst.app.runScript:{[qSpecPath;rootFolder;keepAlive;scriptsWithFilters]
+    / store params for debugging
+    .tst.app.params:(qSpecPath;rootFolder;keepAlive;scriptsWithFilters);
+    qSpecPath:.tst.app.params 0; rootFolder:.tst.app.params 1; keepAlive:.tst.app.params 2; scriptsWithFilters:.tst.app.params 3;
+
+    res:.tst.app.runScriptSafe[qSpecPath; rootFolder; scriptsWithFilters];
+
+    if[not keepAlive;
+       exit $[res<0; -1; 0];
+      ];
+    if[res=0; exit 0];
+ };
+
+.tst.app.runScriptSafe:{[qSpecPath;rootFolder;scriptsWithFilters]
+    .tst.app.failed:0b;
+
+    @[.tst.app.init; qSpecPath; {-2 "QSpec can't be loaded from '",x,"':\n\t",y; .tst.app.failed:1b;}[qSpecPath;]];
+
+    if[.tst.app.failed; :-1];
 
     specs:raze {
-                   .[.tst.app.loadSpecs; (x 0;x 1); {-2 "Testing script '",x,"' can't be loaded:\n\t",y; exit -1}[x 0;]]
+                   .[.tst.app.loadSpecs; (x 0;x 1); {-2 "Testing script '",x,"' can't be loaded:\n\t",y; .tst.app.failed:1b;}[x 0;]]
                } each scriptsWithFilters;
+
+    if[.tst.app.failed; :-1];
 
     .tst.app.msgMatrix specs;
 
     .tst.app.msgRootName rootFolder;
 
-    {@[.tst.app.runSuite; x; {-2 "Test ",x[`title]," can't be executed:\n\t",y; exit -1}[x;]];} each specs;
+    res:{
+        @[.tst.runSpec; x; {-2 "Test ",x[`title]," can't be executed:\n\t",y; .tst.app.failed:1b;}[x;]]
+    } each specs;
 
-    exit 0;
+    if[.tst.app.failed; :-1];
+
+    :sum not `pass=res`result;
  };

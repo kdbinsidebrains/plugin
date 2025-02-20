@@ -27,7 +27,8 @@ public abstract class KdbRunningStateBase<C extends KdbRunConfigurationBase> ext
 
     @Override
     protected @NotNull KdbProcessHandler startProcess() throws ExecutionException {
-        final KdbProcessHandler handler = new KdbProcessHandler(createCommandLine());
+        final GeneralCommandLine commandLine = createCommandLine();
+        final KdbProcessHandler handler = new KdbProcessHandler(commandLine);
         ProcessTerminatedListener.attach(handler);
         return handler;
     }

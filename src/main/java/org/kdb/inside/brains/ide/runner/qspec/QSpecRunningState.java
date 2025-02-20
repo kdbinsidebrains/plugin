@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -159,6 +160,10 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
         return commandLine;
     }
 
+    private static String toKdbBool(boolean val) {
+        return val ? "1b" : "0b";
+    }
+
     private static String toKdbDict(List<String> strings) {
         if (strings == null || strings.isEmpty()) {
             return "()";
@@ -195,6 +200,7 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
         String args = String.join(";",
                 toKdbPath(spec),
                 toKdbPath(root),
+                toKdbBool(cfg.isKeepFailedInstance()),
                 toKdbDict(params)
         );
         final String command = ".tst.app.runScript[" + args + "]";
@@ -227,7 +233,12 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
 
     private String getAppScript() throws ExecutionException {
         try {
-            try (final InputStream in = QSpecRunningState.class.getResourceAsStream(ROOT_SCRIPT_PATH)) {
+            final URL resource = QSpecRunningState.class.getResource(ROOT_SCRIPT_PATH);
+            if (resource == null) {
+                throw new ExecutionException("QSpec App Script not found: " + ROOT_SCRIPT_PATH);
+            }
+
+            try (final InputStream in = resource.openStream()) {
                 if (in == null) {
                     throw new ExecutionException("Resource can't be loaded: " + ROOT_SCRIPT_PATH);
                 }

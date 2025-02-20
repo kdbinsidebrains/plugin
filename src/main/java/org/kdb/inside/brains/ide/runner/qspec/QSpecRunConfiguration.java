@@ -25,13 +25,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class QSpecRunConfiguration extends KdbRunConfigurationBase {
-    private static final String EXPECTATION_PATTERN = "expectation";
-    private static final String SPECIFICATION_PATTERN = "specification";
-    private static final String INHERIT_LIBRARY = "inherit_library";
     private String expectationPattern;
     private String specificationPattern;
     private QSpecLibrary library;
-    private boolean inheritLibrary = true;
+    private static final boolean DEFAULT_INHERIT_LIBRARY = true;
+    private static final boolean DEFAULT_KEEP_FAILED_INSTANCE = false;
+    private static final String EXPECTATION_PATTERN = "expectation";
+    private static final String SPECIFICATION_PATTERN = "specification";
+    private static final String INHERIT_LIBRARY = "inherit_library";
+    private static final String KEEP_FAILED_INSTANCE = "keep_failed_instance";
+    private boolean inheritLibrary = DEFAULT_INHERIT_LIBRARY;
+    private boolean keepFailedInstance = DEFAULT_KEEP_FAILED_INSTANCE;
 
     public QSpecRunConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory) {
         super("KDB QSpec Test Run Configuration", project, factory);
@@ -48,7 +52,12 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
         super.readExternal(element);
         expectationPattern = JDOMExternalizerUtil.readCustomField(element, EXPECTATION_PATTERN);
         specificationPattern = JDOMExternalizerUtil.readCustomField(element, SPECIFICATION_PATTERN);
-        inheritLibrary = Boolean.parseBoolean(JDOMExternalizerUtil.readCustomField(element, INHERIT_LIBRARY));
+
+        final String il = JDOMExternalizerUtil.readCustomField(element, INHERIT_LIBRARY);
+        inheritLibrary = il == null ? DEFAULT_INHERIT_LIBRARY : Boolean.parseBoolean(il);
+
+        final String kfi = JDOMExternalizerUtil.readCustomField(element, KEEP_FAILED_INSTANCE);
+        keepFailedInstance = kfi == null ? DEFAULT_KEEP_FAILED_INSTANCE : Boolean.parseBoolean(kfi);
         library = QSpecLibrary.read(element);
     }
 
@@ -58,6 +67,7 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
         addNonEmptyElement(element, EXPECTATION_PATTERN, expectationPattern);
         addNonEmptyElement(element, SPECIFICATION_PATTERN, specificationPattern);
         addNonEmptyElement(element, INHERIT_LIBRARY, String.valueOf(inheritLibrary));
+        addNonEmptyElement(element, KEEP_FAILED_INSTANCE, String.valueOf(keepFailedInstance));
         if (library != null) {
             library.write(element);
         }
@@ -127,7 +137,6 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
         this.specificationPattern = specificationPattern;
     }
 
-
     public QSpecLibrary getLibrary() {
         return library;
     }
@@ -142,6 +151,14 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
 
     public void setInheritLibrary(boolean inheritLibrary) {
         this.inheritLibrary = inheritLibrary;
+    }
+
+    public boolean isKeepFailedInstance() {
+        return keepFailedInstance;
+    }
+
+    public void setKeepFailedInstance(boolean keepFailedInstance) {
+        this.keepFailedInstance = keepFailedInstance;
     }
 
     /**

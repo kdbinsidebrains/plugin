@@ -1,8 +1,6 @@
 package org.kdb.inside.brains.ide.runner.qspec;
 
-import com.intellij.ide.DataManager;
 import com.intellij.openapi.options.SettingsEditor;
-import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +21,7 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
     private KdbCommonSettingsPanel commonSettingsPanel;
     private JCheckBox inheritFromCheckBox;
     private HyperlinkLabel settingsActionLink;
+    private JCheckBox keepInstanceCheckbox;
 
     public QSpecRunSettingsEditor(Project project) {
         qSpecLibraryPanel.init(project, libraryService.getLibrary());
@@ -43,15 +42,7 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
         settingsActionLink.setHyperlinkText("settings");
         settingsActionLink.addHyperlinkListener(e -> {
             if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                DataManager.getInstance().getDataContextFromFocusAsync().onSuccess(ctx -> {
-                    if (ctx == null) {
-                        return;
-                    }
-                    Settings settings = Settings.KEY.getData(ctx);
-                    if (settings != null) {
-                        settings.select(settings.find(QSpecConfigurable.class));
-                    }
-                });
+                QSpecConfigurable.openSetting();
             }
         });
     }
@@ -67,6 +58,7 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
         commonSettingsPanel.resetEditorFrom(configuration);
         expectationField.setText(configuration.getExpectationPattern());
         specificationField.setText(configuration.getSpecificationPattern());
+        keepInstanceCheckbox.setSelected(configuration.isKeepFailedInstance());
 
         final boolean inheritLibrary = configuration.isInheritLibrary();
         qSpecLibraryPanel.setEnabled(!inheritLibrary);
@@ -83,6 +75,7 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
         commonSettingsPanel.applyEditorTo(configuration);
         configuration.setExpectationPattern(expectationField.getText());
         configuration.setSpecificationPattern(specificationField.getText());
+        configuration.setKeepFailedInstance(keepInstanceCheckbox.isSelected());
 
         final boolean inherit = inheritFromCheckBox.isSelected();
         configuration.setInheritLibrary(inherit);

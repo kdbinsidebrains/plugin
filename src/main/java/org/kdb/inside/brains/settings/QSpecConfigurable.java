@@ -1,6 +1,8 @@
 package org.kdb.inside.brains.settings;
 
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.WindowManager;
@@ -50,5 +52,17 @@ public class QSpecConfigurable extends KdbConfigurable {
             }
         }
         return null;
+    }
+
+    public static void openSetting() {
+        DataManager.getInstance().getDataContextFromFocusAsync().onSuccess(ctx -> {
+            if (ctx == null) {
+                return;
+            }
+            Settings settings = Settings.KEY.getData(ctx);
+            if (settings != null) {
+                settings.select(settings.find(QSpecConfigurable.class));
+            }
+        });
     }
 }

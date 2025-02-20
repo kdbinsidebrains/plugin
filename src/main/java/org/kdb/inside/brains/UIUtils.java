@@ -199,12 +199,12 @@ public final class UIUtils {
         return popup;
     }
 
-    public static ComponentValidator initializerTextBrowseValidator(@NotNull TextFieldWithBrowseButton field, @NotNull Supplier<String> emptySupplier, @Nullable Supplier<String> nonExistSupplier) {
-        return initializerTextBrowseValidator(field, emptySupplier, nonExistSupplier, (Function<String, String>[]) null);
+    public static void initializerTextBrowseValidator(@NotNull TextFieldWithBrowseButton field, @NotNull Supplier<String> emptySupplier, @Nullable Supplier<String> nonExistSupplier) {
+        initializerTextBrowseValidator(field, emptySupplier, nonExistSupplier, (Function<String, String>[]) null);
     }
 
     @SafeVarargs
-    public static ComponentValidator initializerTextBrowseValidator(@NotNull TextFieldWithBrowseButton field, @NotNull Supplier<String> emptySupplier, @Nullable Supplier<String> nonExistSupplier, Function<String, String>... customValidator) {
+    public static void initializerTextBrowseValidator(@NotNull TextFieldWithBrowseButton field, @NotNull Supplier<String> emptySupplier, @Nullable Supplier<String> nonExistSupplier, Function<String, String>... customValidator) {
         final JTextField textField = field.getTextField();
 
         final ComponentValidator componentValidator = new ComponentValidator(field);
@@ -226,7 +226,6 @@ public final class UIUtils {
             }
             return null;
         }).andRegisterOnDocumentListener(textField).installOn(textField);
-        return componentValidator;
     }
 
     public static void initializeFileChooser(@Nullable Project project, @NotNull ComponentWithBrowseButton<?> field, @NotNull FileChooserDescriptor descriptor) {
@@ -236,8 +235,8 @@ public final class UIUtils {
 
         if (field instanceof TextFieldWithBrowseButton button) {
             button.addBrowseFolderListener(new TextBrowseFolderListener(descriptor, project));
-        } else if (field instanceof TextFieldWithHistoryWithBrowseButton hist) {
-            hist.addBrowseFolderListener(project, descriptor, TextComponentAccessors.TEXT_FIELD_WITH_HISTORY_WHOLE_TEXT);
+        } else if (field instanceof TextFieldWithHistoryWithBrowseButton button) {
+            button.addBrowseFolderListener(descriptor.getTitle(), descriptor.getDescription(), project, descriptor, TextComponentAccessors.TEXT_FIELD_WITH_HISTORY_WHOLE_TEXT);
         } else {
             throw new UnsupportedOperationException("Unsupported field type: " + field.getClass());
         }
