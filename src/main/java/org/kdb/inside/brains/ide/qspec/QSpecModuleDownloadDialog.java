@@ -136,7 +136,10 @@ public class QSpecModuleDownloadDialog extends DialogWrapper {
                 if (!entry.isDirectory()) {
                     String name = entry.getName();
                     name = name.substring(name.indexOf('/') + 1);
-                    final Path outFile = dest.resolve(name);
+                    final Path outFile = dest.resolve(name).normalize();
+                    if (!outFile.startsWith(dest.normalize())) {
+                        throw new IOException("Bad zip entry: " + name);
+                    }
                     print("Extracting '" + name + "' to " + outFile.toAbsolutePath());
                     copyEntryContent(zipIn, outFile);
                 }
