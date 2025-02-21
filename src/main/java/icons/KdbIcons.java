@@ -14,10 +14,6 @@ public final class KdbIcons {
 
     private static @NotNull Icon row(@NotNull Icon icon1, @NotNull Icon icon2) {
         return IconManager.getInstance().createRowIcon(icon1, icon2);
-//        LayeredIcon icon = new LayeredIcon(2);
-//        icon.setIcon(icon1, 0, 0, 0);
-//        icon.setIcon(icon2, 1, icon1.getIconWidth(), 0);
-//        return icon;
     }
 
     private static @NotNull Icon layer(@NotNull Icon icon1, @NotNull Icon icon2) {
@@ -27,13 +23,16 @@ public final class KdbIcons {
     public static final class Main {
         public static final @NotNull Icon File = load("/org/kdb/inside/brains/icons/qFile.svg");
         public static final @NotNull Icon Module = load("/org/kdb/inside/brains/icons/q.svg");
-        public static final @NotNull Icon Library = load("/org/kdb/inside/brains/icons/q.svg");
-        public static final @NotNull Icon Application = load("/org/kdb/inside/brains/icons/q.svg");
-        public static final @NotNull Icon Notification = load("/org/kdb/inside/brains/icons/q.svg");
+        public static final @NotNull Icon Library = Module;
+        public static final @NotNull Icon Application = Module;
+        public static final @NotNull Icon Notification = Module;
 
         public static final @NotNull Icon ToolWindow = load("/org/kdb/inside/brains/icons/windows/instances.svg");
         public static final @NotNull Icon ConsoleWindow = load("/org/kdb/inside/brains/icons/windows/console.svg");
         public static final @NotNull Icon InspectorWindow = load("/org/kdb/inside/brains/icons/windows/inspector.svg");
+
+        public static final @NotNull Icon RunFile = Application;
+        public static final @NotNull Icon RunQSpec = layer(RunFile, AllIcons.RunConfigurations.TestMark);
     }
 
     public static final class Scope {

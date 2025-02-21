@@ -23,6 +23,8 @@ import org.kdb.inside.brains.view.KdbToolWindowPanel;
 import org.kdb.inside.brains.view.treeview.tree.InstancesTree;
 
 import javax.swing.*;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,6 +44,17 @@ public class InstancesScopeView extends KdbToolWindowPanel implements Disposable
 
         this.scope = scope;
         this.tree = new InstancesTree(project, scope, connectionManager);
+        this.tree.addTreeExpansionListener(new TreeExpansionListener() {
+            @Override
+            public void treeExpanded(TreeExpansionEvent event) {
+                updateTreeSelectionState();
+            }
+
+            @Override
+            public void treeCollapsed(TreeExpansionEvent event) {
+                updateTreeSelectionState();
+            }
+        });
 
         final JPanel panel = new JPanel(new BorderLayout());
         panel.add(tree.getSearchComponent(), BorderLayout.NORTH);
@@ -55,6 +68,15 @@ public class InstancesScopeView extends KdbToolWindowPanel implements Disposable
 
     public KdbScope getScope() {
         return scope;
+    }
+
+    private void updateTreeSelectionState() {
+        TreeState treeState = TreeState.createOn(tree);
+        if (!treeState.isEmpty()) {
+            readTreeState = treeState;
+        } else {
+            readTreeState = null;
+        }
     }
 
     private JComponent createToolbar() {
@@ -137,40 +159,25 @@ public class InstancesScopeView extends KdbToolWindowPanel implements Disposable
             readTreeState = treeState;
         }
         tree.showConnectionDetails(Boolean.parseBoolean(element.getAttributeValue("ShowConnectionDetails", "true")));
-        restoreExpandedPaths();
+
+        if (treeStateRestored.getAndSet(true)) {
+            return;
+        }
+
+        if (readTreeState != null && !readTreeState.isEmpty()) {
+            readTreeState.applyTo(tree);
+        } else if (tree.isSelectionEmpty()) {
+            TreeUtil.promiseSelectFirst(tree);
+        }
     }
 
     public void writeExternal(Element element) {
         element.setAttribute("ShowConnectionDetails", String.valueOf(tree.isShownConnectionDetails()));
 
-        // TreeUI should be accessed only from EDT
-        UIUtil.invokeAndWaitIfNeeded((Runnable) this::saveExpandedPaths);
+        treeStateRestored.set(false);
 
         if (readTreeState != null) {
             readTreeState.writeExternal(element);
-        }
-    }
-
-    private void saveExpandedPaths() {
-        treeStateRestored.set(false);
-        if (tree != null) {
-            TreeState treeState = TreeState.createOn(tree);
-            if (!treeState.isEmpty()) {
-                readTreeState = treeState;
-            } else {
-                readTreeState = null;
-            }
-        }
-    }
-
-    private void restoreExpandedPaths() {
-        if (tree == null || treeStateRestored.getAndSet(true)) {
-            return;
-        }
-        if (readTreeState != null && !readTreeState.isEmpty()) {
-            readTreeState.applyTo(tree);
-        } else if (tree.isSelectionEmpty()) {
-            TreeUtil.promiseSelectFirst(tree);
         }
     }
 }

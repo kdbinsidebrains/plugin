@@ -18,10 +18,15 @@
         <projectFacetListener facet-type="KDB_FACET_TYPE"
                               implementation="org.kdb.inside.brains.ide.facet.KdbFacetStateListener"/>
 
-        <configurationType implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationType"/>
-        <runConfigurationProducer implementation="org.kdb.inside.brains.ide.runner.KdbProcessConfigurationProducer"
-                                  order="last"/>
+        <configurationType implementation="org.kdb.inside.brains.ide.runner.instance.KdbInstanceConfigurationType"/>
+        <runConfigurationProducer
+                implementation="org.kdb.inside.brains.ide.runner.instance.KdbInstanceConfigurationProducer"/>
 
         <library.type implementation="org.kdb.inside.brains.ide.library.KdbLibraryType"/>
+
+        <!-- QSpec configuration -->
+        <configurationType implementation="org.kdb.inside.brains.ide.runner.qspec.QSpecConfigurationType"/>
+        <runConfigurationProducer implementation="org.kdb.inside.brains.ide.runner.qspec.QSpecConfigurationProducer"/>
+        <applicationService serviceImplementation="org.kdb.inside.brains.ide.qspec.QSpecLibraryService"/>
     </extensions>
 </idea-plugin>

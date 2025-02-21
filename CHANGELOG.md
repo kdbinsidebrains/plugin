@@ -1,5 +1,16 @@
 # KdbInsideBrains Changelog
 
+## [5.15.0]
+
+### Added
+
+- QSpec Testing Framework added: https://www.kdbinsidebrains.dev/testing)
+- Run local KDB Instance redesigned
+
+### Fixed
+
+- InstancesTree freezes in 2025.x version
+
 ## [5.14.3]
 
 ### Fixed

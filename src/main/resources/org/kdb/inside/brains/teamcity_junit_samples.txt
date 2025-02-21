@@ -1,0 +1,72 @@
+========= Sample 1 =============
+##teamcity[enteredTheMatrix]
+
+##teamcity[suiteTreeNode  id='|[engine:junit-jupiter|]/|[class:org.example.ASdwqeqwe|]/|[method:main()|]' name='main()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.ASdwqeqwe|]/|[method:main()|]' parentNodeId='0' locationHint='java:test://org.example.ASdwqeqwe/main' metainfo='']
+##teamcity[treeEnded]
+
+##teamcity[rootName name = 'ASdwqeqwe' comment = 'org.example' location = 'java:suite://org.example.ASdwqeqwe']
+##teamcity[testStarted id='|[engine:junit-jupiter|]/|[class:org.example.ASdwqeqwe|]/|[method:main()|]' name='main()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.ASdwqeqwe|]/|[method:main()|]' parentNodeId='0' locationHint='java:test://org.example.ASdwqeqwe/main' metainfo='']
+dsfasdf
+##teamcity[testFinished id='|[engine:junit-jupiter|]/|[class:org.example.ASdwqeqwe|]/|[method:main()|]' name='main()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.ASdwqeqwe|]/|[method:main()|]' parentNodeId='0' duration='22']
+
+Process finished with exit code 0
+
+
+========= Sample 2 =============
+##teamcity[enteredTheMatrix]
+
+##teamcity[suiteTreeStarted id='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' name='Qwe' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' parentNodeId='0' locationHint='java:suite://org.example.Qwe']
+
+##teamcity[suiteTreeNode  id='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe1()|]' name='qwe1()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe1()|]' parentNodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' locationHint='java:test://org.example.Qwe/qwe1' metainfo='']
+
+##teamcity[suiteTreeNode  id='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe2()|]' name='qwe2()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe2()|]' parentNodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' locationHint='java:test://org.example.Qwe/qwe2' metainfo='']
+
+##teamcity[suiteTreeEnded id='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' name='Qwe' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' parentNodeId='0']
+
+##teamcity[suiteTreeStarted id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]' name='Asd' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]' parentNodeId='0' locationHint='java:suite://org.example.Asd']
+
+##teamcity[suiteTreeNode  id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd1()|]' name='asd1()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd1()|]' parentNodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]' locationHint='java:test://org.example.Asd/asd1' metainfo='']
+
+##teamcity[suiteTreeNode  id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd2()|]' name='asd2()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd2()|]' parentNodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]' locationHint='java:test://org.example.Asd/asd2' metainfo='']
+
+##teamcity[suiteTreeEnded id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]' name='Asd' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]' parentNodeId='0']
+
+##teamcity[treeEnded]
+
+##teamcity[rootName name = 'example' comment = 'org' location = 'java:suite://org.example']
+
+##teamcity[testSuiteStarted id='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' name='Qwe' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' parentNodeId='0'locationHint='java:suite://org.example.Qwe']
+
+##teamcity[testStarted id='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe1()|]' name='qwe1()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe1()|]' parentNodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' locationHint='java:test://org.example.Qwe/qwe1' metainfo='']
+
+##teamcity[testFinished id='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe1()|]' name='qwe1()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe1()|]' parentNodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' duration='15']
+
+##teamcity[testStarted id='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe2()|]' name='qwe2()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe2()|]' parentNodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' locationHint='java:test://org.example.Qwe/qwe2' metainfo='']
+
+##teamcity[testFinished id='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe2()|]' name='qwe2()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]/|[method:qwe2()|]' parentNodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]']
+
+##teamcity[testSuiteFinished id='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' name='Qwe' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Qwe|]' parentNodeId='0']
+
+Process finished with exit code 0
+
+
+========= Sample 3 =============
+##teamcity[enteredTheMatrix]
+
+##teamcity[suiteTreeNode  id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd1()|]' name='asd1()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd1()|]' parentNodeId='0' locationHint='java:test://org.example.Asd/asd1' metainfo='']
+
+##teamcity[suiteTreeNode  id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd2()|]' name='asd2()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd2()|]' parentNodeId='0' locationHint='java:test://org.example.Asd/asd2' metainfo='']
+
+##teamcity[treeEnded]
+
+##teamcity[rootName name = 'Asd' comment = 'org.example' location = 'java:suite://org.example.Asd']
+
+##teamcity[testStarted id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd1()|]' name='asd1()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd1()|]' parentNodeId='0' locationHint='java:test://org.example.Asd/asd1' metainfo='']
+
+##teamcity[testFinished id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd1()|]' name='asd1()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd1()|]' parentNodeId='0' duration='29']
+
+##teamcity[testStarted id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd2()|]' name='asd2()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd2()|]' parentNodeId='0' locationHint='java:test://org.example.Asd/asd2' metainfo='']
+
+##teamcity[testFailed name='asd2()' id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd2()|]' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd2()|]' parentNodeId='0' duration='3' error='true' message='java.lang.UnsupportedOperationException: Not implemented' details='|r|n	at org.example.Asd.asd2(Asd.java:14)|r|n	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)|r|n	at java.base/java.lang.reflect.Method.invoke(Method.java:580)|r|n	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:725)|r|n	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)|r|n	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)|r|n	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:149)|r|n	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:140)|r|n	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:84)|r|n	at org.junit.jupiter.engine.execution.ExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(ExecutableInvoker.java:115)|r|n	at org.junit.jupiter.engine.execution.ExecutableInvoker.lambda$invoke$0(ExecutableInvoker.java:105)|r|n	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)|r|n	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)|r|n	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)|r|n	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)|r|n	at org.junit.jupiter.engine.execution.ExecutableInvoker.invoke(ExecutableInvoker.java:104)|r|n	at org.junit.jupiter.engine.execution.ExecutableInvoker.invoke(ExecutableInvoker.java:98)|r|n	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:214)|r|n	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)|r|n	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:210)|r|n	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:135)|r|n	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:66)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)|r|n	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)|r|n	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)|r|n	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)|r|n	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)|r|n	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)|r|n	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)|r|n	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)|r|n	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)|r|n	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)|r|n	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)|r|n	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)|r|n	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)|r|n	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)|r|n	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)|r|n	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)|r|n	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)|r|n	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)|r|n	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:107)|r|n	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:88)|r|n	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:54)|r|n	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:67)|r|n	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:52)|r|n	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)|r|n	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:86)|r|n	at org.junit.platform.launcher.core.DefaultLauncherSession$DelegatingLauncher.execute(DefaultLauncherSession.java:86)|r|n	at org.junit.platform.launcher.core.SessionPerRequestLauncher.execute(SessionPerRequestLauncher.java:53)|r|n	at com.intellij.junit5.JUnit5IdeaTestRunner.startRunnerWithArgs(JUnit5IdeaTestRunner.java:57)|r|n	at com.intellij.rt.junit.IdeaTestRunner$Repeater$1.execute(IdeaTestRunner.java:38)|r|n	at com.intellij.rt.execution.junit.TestsRepeater.repeat(TestsRepeater.java:11)|r|n	at com.intellij.rt.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:35)|r|n	at com.intellij.rt.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:232)|r|n	at com.intellij.rt.junit.JUnitStarter.main(JUnitStarter.java:55)|r|n']
+
+##teamcity[testFinished id='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd2()|]' name='asd2()' nodeId='|[engine:junit-jupiter|]/|[class:org.example.Asd|]/|[method:asd2()|]' parentNodeId='0' duration='3']
