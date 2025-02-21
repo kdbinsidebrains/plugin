@@ -4,8 +4,8 @@
 
 ### Added
 
-- QSpec Testing added as Unit-Tests framework
-- Run local KDB Instance reredesigned
+- QSpec Testing Framework added: https://www.kdbinsidebrains.dev/testing)
+- Run local KDB Instance redesigned
 
 ### Fixed
 

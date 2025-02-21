@@ -51,6 +51,9 @@ public class QSpecTestLocator implements SMTestLocator {
         if (element == null) {
             return NO_LOCATION;
         }
+        if (element instanceof QVarReference ref) {
+            return List.of(PsiLocation.fromPsiElement(ref.getFirstChild()));
+        }
         return List.of(PsiLocation.fromPsiElement(element));
     }
 
