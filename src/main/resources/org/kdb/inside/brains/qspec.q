@@ -154,6 +154,12 @@
 
     if[.tst.app.failed; :-1];
 
+    if[()~specs;
+       .tst.app.msg["enteredTheMatrix"; ()];
+       .tst.app.msg["treeEnded"; ()];
+       exit 0;
+      ];
+
     .tst.app.msgMatrix specs;
 
     .tst.app.msgRootName rootFolder;
