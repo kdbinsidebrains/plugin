@@ -131,10 +131,6 @@ public class QSpecTestLocator implements SMTestLocator {
         return file.isDirectory() ? instance.findDirectory(file) : instance.findFile(file);
     }
 
-    public static boolean isQSpecVariable(@Nullable String qualifiedName) {
-        return qualifiedName != null && qualifiedName.startsWith(".tst.");
-    }
-
     private static @Nullable QVarReference getInvokeReference(QInvokeFunction invoke, String name, String value) {
         final QCustomFunction cf = invoke.getCustomFunction();
         if (cf == null) {

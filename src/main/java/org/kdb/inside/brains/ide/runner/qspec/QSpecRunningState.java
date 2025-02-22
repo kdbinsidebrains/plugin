@@ -25,7 +25,6 @@ import org.codehaus.plexus.util.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
-import org.kdb.inside.brains.ide.qspec.QSpecLibrary;
 import org.kdb.inside.brains.ide.runner.KdbConsoleFilter;
 import org.kdb.inside.brains.ide.runner.KdbRunningStateBase;
 

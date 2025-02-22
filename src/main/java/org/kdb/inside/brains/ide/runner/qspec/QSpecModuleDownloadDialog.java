@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.ide.qspec;
+package org.kdb.inside.brains.ide.runner.qspec;
 
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;

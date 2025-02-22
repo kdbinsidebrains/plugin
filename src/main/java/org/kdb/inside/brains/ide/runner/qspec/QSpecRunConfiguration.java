@@ -17,8 +17,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.ide.qspec.QSpecLibrary;
-import org.kdb.inside.brains.ide.qspec.QSpecLibraryService;
 import org.kdb.inside.brains.ide.runner.KdbRunConfigurationBase;
 
 import java.nio.file.Files;

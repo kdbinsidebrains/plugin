@@ -430,11 +430,15 @@
         <applicationService serviceImplementation="org.kdb.inside.brains.settings.KdbSettingsService"/>
         <colorSettingsPage implementation="org.kdb.inside.brains.settings.KdbColorSettingsPage"/>
 
-        <applicationConfigurable groupId="language" displayName="KDB+ Q" id="Kdb.Settings"
+        <applicationConfigurable id="Kdb.Settings"
+                                 groupId="language"
+                                 displayName="KDB+ Q"
                                  instance="org.kdb.inside.brains.settings.KdbSettingsConfigurable">
             <configurable instance="org.kdb.inside.brains.settings.KdbConnectionsConfigurable"/>
             <configurable instance="org.kdb.inside.brains.settings.QSpecConfigurable"/>
+            <configurable instance="org.kdb.inside.brains.lang.inspection.exclusions.UndefinedExclusionsConfigurable"/>
         </applicationConfigurable>
+
         <!--
                 <applicationConfigurable groupId="language" displayName="KDB+ Q" id="Kdb.Settings"
                                          instance="org.kdb.inside.brains.settings.KdbSettingsConfigurable"/>
@@ -508,6 +512,9 @@
                                       implementationClass="org.kdb.inside.brains.view.struct.QStructureViewFactory"/>
 
         <!-- Inspections -->
+        <applicationService
+                serviceImplementation="org.kdb.inside.brains.lang.inspection.exclusions.UndefinedExclusionsService"/>
+
         <localInspection language="q" id="UndefinedVariable" shortName="UndefinedVariable"
                          displayName="Undefined variable"
                          groupName="KDB+Q" enabledByDefault="true" level="ERROR"
@@ -581,9 +588,5 @@
 
         <langCodeStyleSettingsProvider
                 implementation="org.kdb.inside.brains.lang.formatting.QCodeStyleSettingsProvider"/>
-
-        <!-- Testing -->
-        <runLineMarkerContributor language="q"
-                                  implementationClass="org.kdb.inside.brains.ide.runner.qspec.QSpecRunLineMarkerContributor"/>
     </extensions>
 </idea-plugin>

@@ -7,8 +7,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.WindowManager;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.ide.qspec.QSpecLibraryPanel;
-import org.kdb.inside.brains.ide.qspec.QSpecLibraryService;
+import org.kdb.inside.brains.ide.runner.qspec.QSpecLibraryPanel;
+import org.kdb.inside.brains.ide.runner.qspec.QSpecLibraryService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,6 +16,7 @@ import java.util.Objects;
 
 public class QSpecConfigurable extends KdbConfigurable {
     public static final String SETTINGS_PAGE_ID = "Kdb.Settings.QSpec";
+
     private final QSpecLibraryPanel specLibraryPanel = new QSpecLibraryPanel();
     private final QSpecLibraryService libraryService = QSpecLibraryService.getInstance();
 

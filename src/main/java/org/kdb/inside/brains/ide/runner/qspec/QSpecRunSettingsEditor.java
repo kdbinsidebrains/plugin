@@ -4,8 +4,6 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.ide.qspec.QSpecLibraryPanel;
-import org.kdb.inside.brains.ide.qspec.QSpecLibraryService;
 import org.kdb.inside.brains.ide.runner.KdbCommonSettingsPanel;
 import org.kdb.inside.brains.settings.QSpecConfigurable;
 

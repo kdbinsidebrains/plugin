@@ -14,11 +14,13 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiEditorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
-import org.kdb.inside.brains.ide.runner.qspec.QSpecTestLocator;
+import org.kdb.inside.brains.lang.inspection.exclusions.UndefinedExclusion;
+import org.kdb.inside.brains.lang.inspection.exclusions.UndefinedExclusionsService;
 import org.kdb.inside.brains.psi.*;
 import org.kdb.inside.brains.psi.index.QIndexService;
 import org.kdb.inside.brains.view.inspector.InspectorToolWindow;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -39,14 +41,15 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
             return;
         }
 
-        if (QSpecTestLocator.isQSpecVariable(qualifiedName)) {
+        if (UndefinedExclusion.isExcluded(qualifiedName)) {
             return;
         }
 
         final ElementContext context = ElementContext.of(variable);
         final ElementScope scope = context.getScope();
+        // ignore every non-resolved variable as it may be referencing a column name
         if (scope == ElementScope.TABLE) {
-            return; // ignore every non-resolved variable as it may be referencing a column name
+            return;
         }
 
         // ignore every non-resolved variable as it may be referencing a column name
@@ -67,21 +70,47 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
             return;
         }
 
-        LocalQuickFix[] localQuickFix = LocalQuickFix.EMPTY_ARRAY;
+        final List<LocalQuickFix> localQuickFix = new ArrayList<>();
+        localQuickFix.add(createExcludeFix(variable));
+
         final PsiElement parent = variable.getParent();
-        if (parent instanceof QCustomFunction && parent.getParent() instanceof QInvokeFunction) {
-            if (isItNamespace(variable, holder.getProject())) {
-                return;
+        if (parent instanceof QCustomFunction customFunction && parent.getParent() instanceof QInvokeFunction invokeFunction) {
+            processInvokeFunction(invokeFunction, customFunction, variable, localQuickFix);
+        }
+        holder.registerProblem(variable, "`" + qualifiedName + "` might not have been defined", ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, localQuickFix.toArray(LocalQuickFix[]::new));
+    }
+
+    private void processInvokeFunction(QInvokeFunction invoke, QCustomFunction function, @NotNull QVarReference variable, List<LocalQuickFix> localQuickFix) {
+        //            if (isItNamespace(variable, holder.getProject())) {
+//                return;
+//            }
+
+        final QExpressions expressions = variable.getContext(QExpressions.class);
+        if (expressions != null) {
+            localQuickFix.add(createInvokeFix(variable, expressions));
+        }
+        localQuickFix.add(createInvokeFix(variable));
+    }
+
+    private LocalQuickFix createExcludeFix(@NotNull QVarReference variable) {
+        final String variableName = variable.getQualifiedName();
+
+        return new LocalQuickFixOnPsiElement(variable) {
+            @Override
+            public @IntentionFamilyName @NotNull String getFamilyName() {
+                return "Exclude variable";
             }
 
-            final QExpressions expressions = variable.getContext(QExpressions.class);
-            if (expressions != null) {
-                localQuickFix = new LocalQuickFix[]{createInvokeFix(variable, expressions), createInvokeFix(variable)};
-            } else {
-                localQuickFix = new LocalQuickFix[]{createInvokeFix(variable)};
+            @Override
+            public @IntentionName @NotNull String getText() {
+                return "Add " + variableName + " to exclusions set";
             }
-        }
-        holder.registerProblem(variable, "`" + qualifiedName + "` might not have been defined", ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, localQuickFix);
+
+            @Override
+            public void invoke(@NotNull Project project, @NotNull PsiFile file, @NotNull PsiElement startElement, @NotNull PsiElement endElement) {
+                UndefinedExclusionsService.getInstance().addExclusion(new UndefinedExclusion(variableName, false));
+            }
+        };
     }
 
     private boolean isItNamespace(@NotNull QVarReference variable, Project project) {

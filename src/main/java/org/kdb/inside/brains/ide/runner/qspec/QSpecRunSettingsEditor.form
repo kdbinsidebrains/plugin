@@ -32,7 +32,7 @@
           <text value=""/>
         </properties>
       </component>
-      <nested-form id="4cf52" form-file="org/kdb/inside/brains/ide/qspec/QSpecLibraryPanel.form" binding="qSpecLibraryPanel">
+      <nested-form id="4cf52" form-file="org/kdb/inside/brains/ide/runner/qspec/QSpecLibraryPanel.form" binding="qSpecLibraryPanel">
         <constraints>
           <grid row="8" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
         </constraints>

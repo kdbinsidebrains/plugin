@@ -4,8 +4,10 @@
 
 ### Added
 
-- QSpec Testing Framework added: https://www.kdbinsidebrains.dev/testing)
-- Run local KDB Instance redesigned
+- QSpec Testing Framework added for Unit-Testing: https://www.kdbinsidebrains.dev/testing
+- Run local KDB Instance functionality was redesigned to support QSpec Testing Framework
+- Exclusion list of undefined variables has been added: any undefined variable can be added to the list, and will be
+  undefined inspection will be disabled for the variable.
 
 ### Fixed
 

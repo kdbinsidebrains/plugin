@@ -27,6 +27,8 @@
         <!-- QSpec configuration -->
         <configurationType implementation="org.kdb.inside.brains.ide.runner.qspec.QSpecConfigurationType"/>
         <runConfigurationProducer implementation="org.kdb.inside.brains.ide.runner.qspec.QSpecConfigurationProducer"/>
-        <applicationService serviceImplementation="org.kdb.inside.brains.ide.qspec.QSpecLibraryService"/>
+        <applicationService serviceImplementation="org.kdb.inside.brains.ide.runner.qspec.QSpecLibraryService"/>
+        <runLineMarkerContributor language="q"
+                                  implementationClass="org.kdb.inside.brains.ide.runner.qspec.QSpecRunLineMarkerContributor"/>
     </extensions>
 </idea-plugin>
