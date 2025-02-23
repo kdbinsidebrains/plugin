@@ -101,7 +101,7 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
             qSpecPath.setToolTipText("");
         } catch (RuntimeConfigurationException e) {
             qSpecPath.setForeground(JBColor.RED);
-            qSpecPath.setToolTipText(e.getMessageHtml().toString());
+            qSpecPath.setToolTipText(e.getLocalizedMessage());
         }
     }
 }
