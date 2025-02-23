@@ -3,6 +3,7 @@ package org.kdb.inside.brains.ide.runner.qspec;
 import com.intellij.execution.lineMarker.ExecutorAction;
 import com.intellij.execution.lineMarker.RunLineMarkerContributor;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiElement;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,10 @@ public class QSpecRunLineMarkerContributor extends RunLineMarkerContributor {
     public @Nullable Info getInfo(@NotNull PsiElement element) {
         final QSpecConfigurationProducer.TestPattern testPattern = QSpecConfigurationProducer.getTestPattern(element);
         if (testPattern == null) {
+            return null;
+        }
+
+        if (ModuleUtilCore.findModuleForPsiElement(element) == null) {
             return null;
         }
 

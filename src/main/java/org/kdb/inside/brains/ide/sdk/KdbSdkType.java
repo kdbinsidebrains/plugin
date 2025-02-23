@@ -173,7 +173,7 @@ public class KdbSdkType extends SdkType {
     }
 
     public static String getHomePath(RunConfigurationModule module) {
-        return getHomePath(module.getModule());
+        return module == null ? null : getHomePath(module.getModule());
     }
 
     public static Sdk getModuleSdk(Module module) {

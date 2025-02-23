@@ -74,7 +74,7 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
     public void checkConfiguration() throws RuntimeConfigurationException {
         super.checkConfiguration();
 
-        // Result is not important
+        // The result is not important
         QSpecLibraryService.getInstance().getValidLibrary();
     }
 
