@@ -1,10 +1,13 @@
 package org.kdb.inside.brains.ide.facet;
 
 import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetType;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.project.Project;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,5 +46,15 @@ public class KdbFacetType extends FacetType<KdbFacet, KdbFacetConfiguration> {
 
     public static KdbFacetType getInstance() {
         return findInstance(KdbFacetType.class);
+    }
+
+    public static boolean isEnabled(@NotNull Project project) {
+        final Module[] modules = ModuleManager.getInstance(project).getModules();
+        for (Module module : modules) {
+            if (FacetManager.getInstance(module).getFacetByType(TYPE_ID) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 }

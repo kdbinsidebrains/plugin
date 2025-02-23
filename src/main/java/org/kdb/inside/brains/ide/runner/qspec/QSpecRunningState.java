@@ -5,6 +5,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessEvent;
@@ -54,61 +55,55 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
 
     @Override
     public @NotNull ExecutionResult execute(@NotNull Executor executor, @NotNull ProgramRunner<?> runner) throws ExecutionException {
-        final QSpecLibrary lib = cfg.getActiveLibrary();
-        if (lib == null) {
-            throw new ExecutionException("QSpec library is not defined");
-        }
-
         try {
-            lib.validate();
-        } catch (Exception ex) {
-            throw new ExecutionException("QSpec library is not valid: " + ex.getMessage(), ex);
-        }
+            final QSpecLibrary lib = QSpecLibraryService.getInstance().getValidLibrary();
 
-        final KdbProcessHandler processHandler = startProcess();
+            final KdbProcessHandler processHandler = startProcess();
 
-        final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(cfg.getProject());
-        setConsoleBuilder(consoleBuilder);
+            final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(cfg.getProject());
+            setConsoleBuilder(consoleBuilder);
 
-        QSpecTestConsoleProperties consoleProperties = new QSpecTestConsoleProperties(cfg, FRAMEWORK_NAME, executor);
+            QSpecTestConsoleProperties consoleProperties = new QSpecTestConsoleProperties(cfg, FRAMEWORK_NAME, executor);
 
-        ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole(FRAMEWORK_NAME, processHandler, consoleProperties);
-        consoleView.addMessageFilter(new KdbConsoleFilter(cfg.getProject(), module, cfg.getWorkingDirectory()));
+            ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole(FRAMEWORK_NAME, processHandler, consoleProperties);
+            consoleView.addMessageFilter(new KdbConsoleFilter(cfg.getProject(), module, cfg.getWorkingDirectory()));
 
-        DefaultExecutionResult executionResult = new DefaultExecutionResult(consoleView, processHandler);
-        final AbstractRerunFailedTestsAction rerunFailedTestsAction = consoleProperties.createRerunFailedTestsAction(consoleView);
-        if (rerunFailedTestsAction != null) {
-            rerunFailedTestsAction.setModelProvider(((SMTRunnerConsoleView) consoleView)::getResultsViewer);
-            executionResult.setRestartActions(rerunFailedTestsAction, new ToggleAutoTestAction());
-        } else {
-            executionResult.setRestartActions(new ToggleAutoTestAction());
-        }
-
-        processHandler.addProcessListener(new ProcessListener() {
-            @Override
-            public void startNotified(@NotNull ProcessEvent event) {
-                processIsReady(consoleView, processHandler, lib);
+            DefaultExecutionResult executionResult = new DefaultExecutionResult(consoleView, processHandler);
+            final AbstractRerunFailedTestsAction rerunFailedTestsAction = consoleProperties.createRerunFailedTestsAction(consoleView);
+            if (rerunFailedTestsAction != null) {
+                rerunFailedTestsAction.setModelProvider(((SMTRunnerConsoleView) consoleView)::getResultsViewer);
+                executionResult.setRestartActions(rerunFailedTestsAction, new ToggleAutoTestAction());
+            } else {
+                executionResult.setRestartActions(new ToggleAutoTestAction());
             }
-        });
 
-        return executionResult;
+            processHandler.addProcessListener(new ProcessListener() {
+                @Override
+                public void startNotified(@NotNull ProcessEvent event) {
+                    processIsReady(consoleView, processHandler, lib);
+                }
+            });
+
+            return executionResult;
+        } catch (RuntimeConfigurationException e) {
+            throw new ExecutionException(e.getLocalizedMessage());
+        }
     }
 
     private void processIsReady(ConsoleView consoleView, KdbProcessHandler processHandler, QSpecLibrary lib) {
         try {
-            initializeTests(consoleView, processHandler, lib);
-
-            executeTests(consoleView, processHandler, lib.specFolder());
+            initializeTests(consoleView, processHandler);
+            executeTests(consoleView, processHandler, lib);
         } catch (Exception ex) {
             consoleView.print(ExceptionUtils.getStackTrace(ex), ConsoleViewContentType.ERROR_OUTPUT);
             processHandler.killProcess();
         }
     }
 
-    private void initializeTests(ConsoleView consoleView, KdbProcessHandler processHandler, QSpecLibrary lib) throws ExecutionException {
+    private void initializeTests(ConsoleView consoleView, KdbProcessHandler processHandler) throws ExecutionException {
         consoleView.print("Initializing QSpec testing framework...\n", ConsoleViewContentType.LOG_INFO_OUTPUT);
 
-        final String userScript = prepareScript(lib.script());
+        final String userScript = prepareScript(cfg.getActiveCustomScript());
         if (userScript != null) {
             consoleView.print("Loading custom script...\n", ConsoleViewContentType.LOG_INFO_OUTPUT);
             executeScript(processHandler, userScript);
@@ -191,9 +186,9 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
         return oneLine;
     }
 
-    private void executeTests(ConsoleView consoleView, KdbProcessHandler processHandler, String qSpecDir) throws IOException, ExecutionException {
+    private void executeTests(ConsoleView consoleView, KdbProcessHandler processHandler, QSpecLibrary lib) throws IOException, ExecutionException {
         final Path root = Path.of(cfg.getScriptName());
-        final Path spec = Path.of(qSpecDir);
+        final Path spec = lib.getRootFile().toNioPath();
         final List<String> params = failedScripts != null ? failedScripts : collectExecutionScripts(root);
 
         String args = String.join(";",

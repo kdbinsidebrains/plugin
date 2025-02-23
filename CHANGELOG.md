@@ -12,6 +12,7 @@
 ### Fixed
 
 - InstancesTree freezes in 2025.x version
+- Creating global undefined function works as expected now
 
 ## [5.14.3]
 
