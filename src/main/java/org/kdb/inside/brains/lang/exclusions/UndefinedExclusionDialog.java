@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.lang.inspection.exclusions;
+package org.kdb.inside.brains.lang.exclusions;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentValidator;

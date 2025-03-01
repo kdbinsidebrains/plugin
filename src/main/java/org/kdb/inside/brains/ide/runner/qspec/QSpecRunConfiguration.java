@@ -13,25 +13,27 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.NlsActions;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.util.text.StringUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.ide.runner.KdbRunConfigurationBase;
+import org.kdb.inside.brains.lang.qspec.QSpecLibraryService;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class QSpecRunConfiguration extends KdbRunConfigurationBase {
     private static final String SCRIPT = "script";
-    private String expectationPattern;
-    private String specificationPattern;
-    private static final boolean DEFAULT_KEEP_FAILED_INSTANCE = false;
+    private static final String SUITE_PATTERN = "suite";
+    private static final String TEST_PATTERN = "test";
     private String customScript;
-    private static final String EXPECTATION_PATTERN = "expectation";
-    private static final String SPECIFICATION_PATTERN = "specification";
-    private static final String KEEP_FAILED_INSTANCE = "keep_failed_instance";
-    private boolean keepFailedInstance = DEFAULT_KEEP_FAILED_INSTANCE;
+    private static final String KEEP_FAILED_INSTANCE = "keep_failed";
+    private static final boolean DEFAULT_KEEP_FAILED = false;
+    private String suitePattern;
+    private String testPattern;
+    private boolean keepFailed = DEFAULT_KEEP_FAILED;
 
     public QSpecRunConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory) {
         super("KDB QSpec Test Run Configuration", project, factory);
@@ -46,11 +48,11 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
     @Override
     public void readExternal(@NotNull Element element) throws InvalidDataException {
         super.readExternal(element);
-        expectationPattern = JDOMExternalizerUtil.readCustomField(element, EXPECTATION_PATTERN);
-        specificationPattern = JDOMExternalizerUtil.readCustomField(element, SPECIFICATION_PATTERN);
+        suitePattern = JDOMExternalizerUtil.readCustomField(element, SUITE_PATTERN);
+        testPattern = JDOMExternalizerUtil.readCustomField(element, TEST_PATTERN);
 
         final String kfi = JDOMExternalizerUtil.readCustomField(element, KEEP_FAILED_INSTANCE);
-        keepFailedInstance = kfi == null ? DEFAULT_KEEP_FAILED_INSTANCE : Boolean.parseBoolean(kfi);
+        keepFailed = kfi == null ? DEFAULT_KEEP_FAILED : Boolean.parseBoolean(kfi);
 
         final Element child = element.getChild(SCRIPT);
         if (child != null) {
@@ -61,10 +63,9 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
     @Override
     public void writeExternal(@NotNull Element element) throws WriteExternalException {
         super.writeExternal(element);
-        addNonEmptyElement(element, EXPECTATION_PATTERN, expectationPattern);
-        addNonEmptyElement(element, SPECIFICATION_PATTERN, specificationPattern);
-        addNonEmptyElement(element, KEEP_FAILED_INSTANCE, String.valueOf(keepFailedInstance));
-        addNonEmptyElement(element, KEEP_FAILED_INSTANCE, String.valueOf(keepFailedInstance));
+        addNonEmptyElement(element, TEST_PATTERN, testPattern);
+        addNonEmptyElement(element, SUITE_PATTERN, suitePattern);
+        addNonEmptyElement(element, KEEP_FAILED_INSTANCE, String.valueOf(keepFailed));
         if (customScript != null) {
             element.addContent(new Element(SCRIPT).setText(customScript));
         }
@@ -81,15 +82,23 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
     @Override
     public @Nullable @NlsActions.ActionText String suggestedName() {
         final String scriptName = getScriptName();
-        if (scriptName == null || scriptName.isEmpty()) {
+        if (StringUtil.isEmpty(scriptName)) {
             return null;
         }
-        String name = FilenameUtils.getBaseName(scriptName);
-        if (specificationPattern != null && !specificationPattern.isEmpty()) {
-            name += "." + specificationPattern;
+
+        final boolean hasTest = StringUtil.isNotEmpty(testPattern);
+        final boolean hasSuite = StringUtil.isNotEmpty(suitePattern);
+
+        if (!hasSuite && !hasTest) {
+            return "Tests in '" + FilenameUtils.getName(scriptName) + "'";
         }
-        if (expectationPattern != null && !expectationPattern.isEmpty()) {
-            name += "/" + expectationPattern;
+
+        String name = FilenameUtils.getBaseName(scriptName);
+        if (hasSuite) {
+            name += "." + suitePattern;
+        }
+        if (hasTest) {
+            name += "/" + testPattern;
         }
         return name;
     }
@@ -101,37 +110,37 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
             return ProgramRunnerUtil.shortenName("Tests in '" + FilenameUtils.getBaseName(scriptName) + "'", 0);
         }
 
-        if (expectationPattern != null && !expectationPattern.isEmpty()) {
-            return ProgramRunnerUtil.shortenName(expectationPattern, 0);
+        if (StringUtil.isNotEmpty(testPattern)) {
+            return ProgramRunnerUtil.shortenName(testPattern, 0);
         }
-        if (specificationPattern != null && !specificationPattern.isEmpty()) {
-            return ProgramRunnerUtil.shortenName(specificationPattern, 0);
+        if (StringUtil.isNotEmpty(suitePattern)) {
+            return ProgramRunnerUtil.shortenName(suitePattern, 0);
         }
         return ProgramRunnerUtil.shortenName(getName(), 0);
     }
 
-    public String getExpectationPattern() {
-        return expectationPattern;
+    public String getTestPattern() {
+        return testPattern;
     }
 
-    public void setExpectationPattern(String expectationPattern) {
-        this.expectationPattern = expectationPattern;
+    public void setTestPattern(String testPattern) {
+        this.testPattern = testPattern;
     }
 
-    public String getSpecificationPattern() {
-        return specificationPattern;
+    public String getSuitePattern() {
+        return suitePattern;
     }
 
-    public void setSpecificationPattern(String specificationPattern) {
-        this.specificationPattern = specificationPattern;
+    public void setSuitePattern(String suitePattern) {
+        this.suitePattern = suitePattern;
     }
 
-    public boolean isKeepFailedInstance() {
-        return keepFailedInstance;
+    public boolean isKeepFailed() {
+        return keepFailed;
     }
 
-    public void setKeepFailedInstance(boolean keepFailedInstance) {
-        this.keepFailedInstance = keepFailedInstance;
+    public void setKeepFailed(boolean keepFailed) {
+        this.keepFailed = keepFailed;
     }
 
     public String getCustomScript() {

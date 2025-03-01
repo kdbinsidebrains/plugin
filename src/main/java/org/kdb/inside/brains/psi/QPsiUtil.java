@@ -1,8 +1,12 @@
 package org.kdb.inside.brains.psi;
 
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.util.PsiEditorUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,7 +139,7 @@ public final class QPsiUtil {
     }
 
     public static String createQualifiedName(String namespace, String identifier) {
-        if (namespace == null || namespace.isEmpty()) {
+        if (StringUtil.isEmpty(namespace)) {
             return identifier;
         }
         return namespace + "." + identifier;
@@ -154,22 +158,77 @@ public final class QPsiUtil {
     }
 
     public static PsiElement createSemicolon(Project project) {
-        return QFileType.createFactoryFile(project, ";").getFirstChild();
+        return createCustomCode(project, ";");
     }
 
     public static QVarReference createVarReference(Project project, String name) {
         return PsiTreeUtil.findChildOfType(QFileType.createFactoryFile(project, name), QVarReference.class);
     }
 
-    public static PsiElement createLambdaDeclaration(Project project, boolean global, String name, String... params) {
-        final StringBuilder b = new StringBuilder(name);
-        b.append(":{");
-        if (params != null && params.length != 0) {
-            b.append('[').append(String.join("; ", params)).append(']');
+    public static PsiElement clear(PsiElement element) {
+        element.deleteChildRange(element.getFirstChild(), element.getLastChild());
+        return element;
+    }
+
+    public static void moveCaret(PsiElement element, int offset) {
+        final Editor editor = PsiEditorUtil.findEditor(element);
+        if (editor != null) {
+            moveCaret(editor, element, offset);
         }
-        b.append(global ? '\n' : "  ");
-        b.append('}');
-        return QFileType.createFactoryFile(project, b.toString()).getFirstChild();
+    }
+
+    public static void moveCaret(Editor editor, PsiElement element, int offset) {
+        int pos = element.getTextOffset() + offset + (offset < 0 ? element.getTextLength() : 0);
+        editor.getCaretModel().moveToOffset(pos);
+        editor.getScrollingModel().scrollToCaret(ScrollType.RELATIVE);
+    }
+
+    public static PsiElement insert(Project project, PsiElement el, PsiElement parent, boolean blankLineBefore, boolean blankLineAfter) {
+        PsiElement res = parent.add(el);
+        parent.addAfter(QPsiUtil.createSemicolon(project), res);
+        parent.addAfter(QPsiUtil.createWhitespace(project, "\n"), res);
+        if (blankLineAfter) {
+            parent.addAfter(QPsiUtil.createWhitespace(project, "\n"), res);
+        }
+        if (blankLineBefore) {
+            parent.addBefore(QPsiUtil.createWhitespace(project, "\n"), res);
+        }
+        return res;
+    }
+
+    public static PsiElement insertAfter(Project project, PsiElement el, PsiElement anchor, boolean blankLine) {
+        final PsiElement parent = anchor.getParent();
+        PsiElement res = parent.addAfter(el, anchor);
+        parent.addBefore(QPsiUtil.createWhitespace(project, "\n" + (blankLine ? '\n' : "")), res);
+        parent.addAfter(QPsiUtil.createSemicolon(project), res);
+        return res;
+    }
+
+    public static PsiElement insertBefore(Project project, PsiElement el, PsiElement anchor, boolean blankLine) {
+        final PsiElement parent = anchor.getParent();
+        PsiElement res = parent.addBefore(el, anchor);
+        parent.addAfter(QPsiUtil.createSemicolon(project), res);
+        parent.addBefore(QPsiUtil.createWhitespace(project, "\n" + (blankLine ? '\n' : "")), anchor);
+        return res;
+    }
+
+    public static PsiElement createLambda(Project project, String name, boolean emptyBody, String... params) {
+        final StringBuilder b = new StringBuilder(name);
+        b.append('{');
+        if (params != null && params.length > 0) {
+            b.append('[');
+            for (String param : params) {
+                b.append(param).append("; ");
+            }
+            b.setLength(b.length() - 2);
+            b.append(']');
+        }
+        b.append(emptyBody ? " " : '\n').append('}');
+        return createCustomCode(project, b.toString());
+    }
+
+    public static PsiElement createCustomCode(Project project, String code) {
+        return QFileType.createFactoryFile(project, code).getFirstChild();
     }
 
     public static String getImportContent(QImport qImport) {

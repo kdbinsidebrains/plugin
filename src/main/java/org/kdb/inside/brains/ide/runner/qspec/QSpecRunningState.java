@@ -1,9 +1,6 @@
 package org.kdb.inside.brains.ide.runner.qspec;
 
-import com.intellij.execution.DefaultExecutionResult;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.ExecutionResult;
-import com.intellij.execution.Executor;
+import com.intellij.execution.*;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.filters.TextConsoleBuilder;
@@ -21,13 +18,20 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.StreamUtil;
-import org.apache.commons.io.FilenameUtils;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
 import org.kdb.inside.brains.ide.runner.KdbConsoleFilter;
 import org.kdb.inside.brains.ide.runner.KdbRunningStateBase;
+import org.kdb.inside.brains.lang.qspec.QSpecLibrary;
+import org.kdb.inside.brains.lang.qspec.QSpecLibraryService;
+import org.kdb.inside.brains.lang.qspec.TestDescriptor;
+import org.kdb.inside.brains.psi.QFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,8 +49,8 @@ import java.util.stream.Stream;
 
 public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration> {
     public static final String ROOT_SCRIPT_PATH = "/org/kdb/inside/brains/qspec.q";
-    private static final String FRAMEWORK_NAME = "KDB QSpec Tests";
 
+    private static final String FRAMEWORK_NAME = "KDB QSpec Tests";
     private List<String> failedScripts = null;
 
     public QSpecRunningState(QSpecRunConfiguration cfg, Module module, ExecutionEnvironment environment) {
@@ -90,14 +94,8 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
         }
     }
 
-    private void processIsReady(ConsoleView consoleView, KdbProcessHandler processHandler, QSpecLibrary lib) {
-        try {
-            initializeTests(consoleView, processHandler);
-            executeTests(consoleView, processHandler, lib);
-        } catch (Exception ex) {
-            consoleView.print(ExceptionUtils.getStackTrace(ex), ConsoleViewContentType.ERROR_OUTPUT);
-            processHandler.killProcess();
-        }
+    private static String toKdbPath(Path path) {
+        return quote(TestDescriptor.testPath(path));
     }
 
     private void initializeTests(ConsoleView consoleView, KdbProcessHandler processHandler) throws ExecutionException {
@@ -125,8 +123,17 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
         return '"' + txt.replace("\"", "\\\"") + '"';
     }
 
-    private static String toKdbPath(Path path) {
-        return quote(FilenameUtils.normalize(path.toAbsolutePath().toString(), true));
+    private void processIsReady(ConsoleView consoleView, KdbProcessHandler processHandler, QSpecLibrary lib) {
+        try {
+            initializeTests(consoleView, processHandler);
+            executeTests(consoleView, processHandler, lib);
+        } catch (CantRunException ex) {
+            consoleView.print(ex.getMessage(), ConsoleViewContentType.ERROR_OUTPUT);
+            processHandler.killProcess();
+        } catch (Exception ex) {
+            consoleView.print(ExceptionUtils.getStackTrace(ex), ConsoleViewContentType.ERROR_OUTPUT);
+            processHandler.killProcess();
+        }
     }
 
     private void executeScript(KdbProcessHandler processHandler, String script) {
@@ -194,7 +201,7 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
         String args = String.join(";",
                 toKdbPath(spec),
                 toKdbPath(root),
-                toKdbBool(cfg.isKeepFailedInstance()),
+                toKdbBool(cfg.isKeepFailed()),
                 toKdbDict(params)
         );
         final String command = ".tst.app.runScript[" + args + "]";
@@ -203,8 +210,8 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
 
     protected @NotNull List<String> collectExecutionScripts(Path root) throws IOException, ExecutionException {
         final List<String> scripts = collectScripts(root);
-        final String expectation = createPattern(cfg.getExpectationPattern());
-        final String specification = createPattern(cfg.getSpecificationPattern());
+        final String expectation = createPattern(cfg.getTestPattern());
+        final String specification = createPattern(cfg.getSuitePattern());
         final String filter = toKdbDict(List.of(specification, expectation));
         return scripts.stream().map(s -> "(" + s + "; enlist " + filter + ")").toList();
     }
@@ -212,15 +219,30 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
     private List<String> collectScripts(Path script) throws IOException, ExecutionException {
         List<String> scripts;
         if (Files.isDirectory(script)) {
+            final PsiManager instance = PsiManager.getInstance(cfg.getProject());
+            final VirtualFileManager fileManager = VirtualFileManager.getInstance();
+
             try (Stream<Path> paths = Files.walk(script)) {
-                scripts = paths.filter(Files::isRegularFile).filter(QFileType::is).map(QSpecRunningState::toKdbPath).toList();
+                scripts = paths.filter(Files::isRegularFile).filter(QFileType::is).filter(p -> {
+                    try {
+                        final VirtualFile vf = fileManager.findFileByNioPath(p);
+                        if (vf != null) {
+                            final PsiFile file = instance.findFile(vf);
+                            if (file instanceof QFile qf) {
+                                return TestDescriptor.hasTestCases(qf);
+                            }
+                        }
+                    } catch (Exception ignore) {
+                    }
+                    return false;
+                }).map(QSpecRunningState::toKdbPath).toList();
             }
         } else {
             scripts = List.of(toKdbPath(script));
         }
 
         if (scripts.isEmpty()) {
-            throw new ExecutionException("Not Q files found in " + script);
+            throw new CantRunException("No QSpec files found in '" + script + "'");
         }
         return scripts;
     }
@@ -252,7 +274,7 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
             if (locationUrl == null) {
                 continue;
             }
-            if (!locationUrl.startsWith("qspec:test://")) {
+            if (!locationUrl.startsWith(TestDescriptor.TEST_URI_SPEC)) {
                 continue;
             }
 
@@ -268,7 +290,7 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
             if (locationUrl.charAt(length) != ']') {
                 continue;
             }
-            final String script = quote(locationUrl.substring(13, i));
+            final String script = quote(locationUrl.substring(TestDescriptor.TEST_URI_SPEC.length(), i));
             final String spec = quote(locationUrl.substring(i + 2, j));
             final String expect = quote(locationUrl.substring(j + 3, length));
 

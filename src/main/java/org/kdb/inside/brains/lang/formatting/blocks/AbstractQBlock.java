@@ -120,7 +120,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new InvokeBlock(node, formatter, wrap, alignment, indent);
         }
 
-        // One value wrapper type which should be expanded
+        // One value wrapper type which testCase be expanded
         if (isWrapperType(type)) {
             return createBlock(getFirstNotEmptyChild(node), formatter, wrap, alignment, indent);
         }

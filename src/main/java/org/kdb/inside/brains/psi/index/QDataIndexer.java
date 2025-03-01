@@ -21,13 +21,29 @@ import java.util.stream.Collectors;
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 15;
+    protected static final int VERSION = 16;
 
     private static final Logger log = Logger.getInstance(QDataIndexer.class);
 
     private static final TokenSet CONTEXT_SCOPE = TokenSet.create(CONTEXT);
     private static final TokenSet COLUMNS_TOKEN = TokenSet.create(TABLE_KEYS, TABLE_VALUES);
     private static final TokenSet LOCAL_VARIABLE_SCOPE = TokenSet.create(LAMBDA_EXPR, TABLE_EXPR);
+
+    static int[] findAllOffsets(CharSequence text) {
+        // we have only chars - no reason for complex logic, just iterating all chars
+        final int count = text.length();
+        final IntList indexes = new IntArrayList();
+        for (int i = 0; i < count; i++) {
+            final char c = text.charAt(i);
+            if (c == '`') { // symbols
+                indexes.add(i);
+            } else if (c == ':' && (i > 0 && text.charAt(i - 1) != ':')) { // assignments
+                // Ignore double colons - it's the same type, by the fact
+                indexes.add(i);
+            }
+        }
+        return indexes.toIntArray();
+    }
 
     @Override
     public @NotNull Map<String, List<IdentifierDescriptor>> map(@NotNull FileContent content) {
@@ -57,39 +73,22 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
                 return;
             }
 
-            Map.Entry<String, IdentifierDescriptor> item = null;
+            IndexEntry item = null;
             final IElementType tokenType = node.getTokenType();
             if (tokenType == SYMBOL) {
-                item = processSymbol(node, text);
+                item = processSymbol(tree, node, text);
             } else if (tokenType == COLUMN_ASSIGNMENT_TYPE || tokenType == VAR_ASSIGNMENT_TYPE || tokenType == VAR_ACCUMULATOR_TYPE) {
                 item = processAssignment(tree, node, text, offset);
             }
 
             if (item != null) {
                 log.info(fileName + ": index item generated - " + item);
-                res.computeIfAbsent(item.getKey(), i -> new ArrayList<>()).add(item.getValue());
+                res.computeIfAbsent(item.name, i -> new ArrayList<>()).add(item.descriptor);
             }
         });
         final long finishedNanos = System.nanoTime();
         log.info("Indexing finished with " + res.size() + " keywords at " + (finishedNanos - startedNanos) + "ns");
         return res;
-    }
-
-    private int[] findAllOffsets(CharSequence text) {
-        // we have only chars - no reason for complex logic, just iterating all chars
-        final int count = text.length();
-        final IntList indexes = new IntArrayList();
-        for (int i = 0; i < count; i++) {
-            final char c = text.charAt(i);
-            if (c == '`') {
-                indexes.add(i);
-            }
-            // Ignore double colons - it's the same type, by the fact
-            if (c == ':' && (i > 0 && text.charAt(i - 1) != ':')) {
-                indexes.add(i);
-            }
-        }
-        return indexes.toIntArray();
     }
 
     static boolean containsSetBackward(CharSequence text, int startPosition) {
@@ -127,9 +126,9 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         return i + 3 <= length && text.charAt(i) == 's' && text.charAt(i + 1) == 'e' && text.charAt(i + 2) == 't' && (i + 3 == length || Character.isWhitespace(text.charAt(i + 3)));
     }
 
-    private Map.Entry<String, IdentifierDescriptor> processSymbol(LighterASTNode node, CharSequence text) {
+    private IndexEntry processSymbol(LighterAST tree, LighterASTNode node, CharSequence text) {
         final TextRange range = new TextRange(node.getStartOffset() + 1, node.getEndOffset());
-        final String symbolValue = range.subSequence(text).toString();
+        String symbolValue = String.valueOf(range.subSequence(text));
 
         // We ignore root namespace
         if (symbolValue.isEmpty() || symbolValue.equals(".")) {
@@ -142,16 +141,13 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         }
 
         // If it's set - a variable definition
-        if (containsSetForward(text, range.getEndOffset() + 1)) {
-            return new AbstractMap.SimpleEntry<>(symbolValue, new IdentifierDescriptor(IdentifierType.VARIABLE, List.of(), range));
+        if (containsSetForward(text, range.getEndOffset() + 1) || containsSetBackward(text, range.getStartOffset() - 1)) {
+            return new IndexEntry(symbolValue, new IdentifierDescriptor(IdentifierType.VARIABLE, range));
         }
-        if (containsSetBackward(text, range.getStartOffset() - 1)) {
-            return new AbstractMap.SimpleEntry<>(symbolValue, new IdentifierDescriptor(IdentifierType.VARIABLE, List.of(), range));
-        }
-        return new AbstractMap.SimpleEntry<>(symbolValue, new IdentifierDescriptor(IdentifierType.SYMBOL, List.of(), range));
+        return new IndexEntry(symbolValue, new IdentifierDescriptor(IdentifierType.SYMBOL, range));
     }
 
-    private Map.Entry<String, IdentifierDescriptor> processAssignment(LighterAST tree, LighterASTNode node, CharSequence text, Integer offset) {
+    private IndexEntry processAssignment(LighterAST tree, LighterASTNode node, CharSequence text, Integer offset) {
         final LighterASTNode parent = tree.getParent(node);
         if (parent == null) {
             return null;
@@ -164,7 +160,7 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
 
         final LighterASTNode var = children.get(0);
         final IElementType varType = var.getTokenType();
-        if (varType != VAR_DECLARATION) {
+        if (varType != VAR_DECLARATION && varType != VAR_INDEXING) {
             return null;
         }
 
@@ -173,13 +169,67 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
             return null;
         }
 
+        if (varType == VAR_INDEXING) {
+            return processIndexingAssignment(tree, var, text);
+        }
+        return processDeclarationAssignment(tree, var, children, text);
+    }
+
+    /**
+     * <pre>
+     * QAssignmentExprImpl(ASSIGNMENT_EXPR)
+     *      QVarIndexingImpl(VAR_INDEXING)
+     *          QVarReferenceImpl(VAR_REFERENCE) - namespace
+     *          QArgumentsImpl(ARGUMENTS)
+     *              QLiteralExprImpl(LITERAL_EXPR)
+     *                  QSymbolImpl(SYMBOL) - variable name
+     * </pre>
+     */
+    private IndexEntry processIndexingAssignment(LighterAST tree, LighterASTNode var, CharSequence text) {
+        final List<LighterASTNode> children = tree.getChildren(var);
+        if (children.size() != 2) {
+            return null;
+        }
+
+        final LighterASTNode namespaceNode = children.get(0);
+        if (isNotOfType(namespaceNode, VAR_REFERENCE)) {
+            return null;
+        }
+
+        final LighterASTNode argumentsNode = children.get(1);
+        if (isNotOfType(argumentsNode, ARGUMENTS)) {
+            return null;
+        }
+
+        final List<LighterASTNode> argNodes = tree.getChildren(argumentsNode);
+        if (argNodes.size() != 3) {
+            return null;
+        }
+
+        final LighterASTNode literalNode = argNodes.get(1);
+        if (isNotOfType(literalNode, LITERAL_EXPR)) {
+            return null;
+        }
+
+        final LighterASTNode symbol = LightTreeUtil.firstChildOfType(tree, literalNode, SYMBOL);
+        if (symbol == null) {
+            return null;
+        }
+
+        final TextRange range = new TextRange(symbol.getStartOffset() + 1, symbol.getEndOffset());
+        CharSequence namespace = getQualifiedName(tree, namespaceNode, text);
+        CharSequence varName = text.subSequence(range.getStartOffset(), range.getEndOffset());
+        return new IndexEntry(namespace + "." + varName, new IdentifierDescriptor(IdentifierType.VARIABLE, range));
+    }
+
+    private @NotNull IndexEntry processDeclarationAssignment(LighterAST tree, LighterASTNode var, List<LighterASTNode> children, CharSequence text) {
         final Token token = extractToken(tree, children);
         final List<String> params = token.parameters.stream().map(n -> getVariableName(text, n)).collect(Collectors.toList());
 
         final String qualifiedName = getQualifiedName(tree, var, text);
         final TextRange range = new TextRange(var.getStartOffset(), var.getEndOffset());
 
-        return new AbstractMap.SimpleEntry<>(qualifiedName, new IdentifierDescriptor(token.type, params, range));
+        return new IndexEntry(qualifiedName, new IdentifierDescriptor(token.type, range, params));
     }
 
     @NotNull
@@ -250,6 +300,13 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
             node = tree.getParent(node);
         }
         return null;
+    }
+
+    private boolean isNotOfType(LighterASTNode node, IElementType type) {
+        return node == null || node.getTokenType() != type;
+    }
+
+    private record IndexEntry(String name, IdentifierDescriptor descriptor) {
     }
 
     static class Token {

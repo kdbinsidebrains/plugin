@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.lang.inspection.exclusions;
+package org.kdb.inside.brains.lang.exclusions;
 
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.options.ConfigurationException;

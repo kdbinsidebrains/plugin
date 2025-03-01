@@ -8,6 +8,7 @@
 - Run local KDB Instance functionality was redesigned to support QSpec Testing Framework
 - Exclusion list of undefined variables has been added: any undefined variable can be added to the list, and will be
   undefined inspection will be disabled for the variable.
+- indexed symbol assignment is parsed as a variable: .asd.qwe[`zxc]:10; → .asd.qwe.zxc:10;
 
 ### Fixed
 

@@ -2,19 +2,21 @@ package org.kdb.inside.brains.ide.runner.qspec;
 
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.ActionLink;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.ide.runner.KdbCommonSettingsPanel;
+import org.kdb.inside.brains.lang.qspec.CustomScriptPanel;
+import org.kdb.inside.brains.lang.qspec.QSpecConfigurable;
+import org.kdb.inside.brains.lang.qspec.QSpecLibraryService;
 
 import javax.swing.*;
 
 public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration> {
     private JPanel myComponent;
-    private JTextField expectationField;
-    private JTextField specificationField;
+    private JTextField shouldField;
+    private JTextField descField;
     private final QSpecLibraryService libraryService = QSpecLibraryService.getInstance();
     private KdbCommonSettingsPanel commonSettingsPanel;
     private JCheckBox inheritFromCheckBox;
@@ -53,10 +55,10 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
 
     @Override
     protected void resetEditorFrom(@NotNull QSpecRunConfiguration configuration) {
+        descField.setText(configuration.getSuitePattern());
+        shouldField.setText(configuration.getTestPattern());
         commonSettingsPanel.resetEditorFrom(configuration);
-        expectationField.setText(configuration.getExpectationPattern());
-        specificationField.setText(configuration.getSpecificationPattern());
-        keepInstanceCheckbox.setSelected(configuration.isKeepFailedInstance());
+        keepInstanceCheckbox.setSelected(configuration.isKeepFailed());
 
         final String cs = configuration.getCustomScript();
         if (cs == null) {
@@ -72,10 +74,11 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
 
     @Override
     protected void applyEditorTo(@NotNull QSpecRunConfiguration configuration) {
+        configuration.setSuitePattern(descField.getText());
+        configuration.setTestPattern(shouldField.getText());
+        configuration.setKeepFailed(keepInstanceCheckbox.isSelected());
+
         commonSettingsPanel.applyEditorTo(configuration);
-        configuration.setExpectationPattern(expectationField.getText());
-        configuration.setSpecificationPattern(specificationField.getText());
-        configuration.setKeepFailedInstance(keepInstanceCheckbox.isSelected());
 
         if (inheritFromCheckBox.isSelected()) {
             configuration.setCustomScript(null);
@@ -85,10 +88,8 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
     }
 
     private void showSettings(Project project) {
-//        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-        ShowSettingsUtil.getInstance().showSettingsDialog(project, QSpecConfigurable.class);
+        QSpecConfigurable.showConfigurable(project);
         updateLibraryDetails();
-//        }
     }
 
     private void updateLibraryDetails() {

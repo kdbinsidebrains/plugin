@@ -3,20 +3,28 @@ package org.kdb.inside.brains.ide.runner.qspec;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.ide.runner.KdbConfigurationProducerBase;
-import org.kdb.inside.brains.psi.*;
+import org.kdb.inside.brains.lang.qspec.TestDescriptor;
+import org.kdb.inside.brains.lang.qspec.TestItem;
+import org.kdb.inside.brains.psi.QFile;
+import org.kdb.inside.brains.psi.QVarReference;
 
-import java.util.List;
 import java.util.Objects;
 
 public class QSpecConfigurationProducer extends KdbConfigurationProducerBase<QSpecRunConfiguration> {
-    public static TestPattern getTestPattern(@Nullable PsiElement element) {
+    @Override
+    public @NotNull ConfigurationFactory getConfigurationFactory() {
+        return QSpecConfigurationType.getInstance().getConfigurationFactory();
+    }
+
+    static TestDescriptor getRunnableTestDescriptor(@Nullable PsiElement element) {
         if (element == null) {
             return null;
         }
@@ -25,65 +33,20 @@ public class QSpecConfigurationProducer extends KdbConfigurationProducerBase<QSp
             return null;
         }
 
-        final String qualifiedName = ref.getQualifiedName();
-        if (qualifiedName.equals(QSpecTestLocator.QSPEC_SPECIFICATION_FUNCTION)) {
-            final QInvokeFunction f = getInvokeFunction(ref);
-            if (f == null || !(f.getParent() instanceof QFile)) {
-                return null;
-            }
-            // root must be QFile
-            final String name = getTestName(f);
-            if (name != null) {
-                return new TestPattern(name, null);
-            }
-        } else if (qualifiedName.equals(QSpecTestLocator.QSPEC_EXPECTATION_FUNCTION)) {
-            final QInvokeFunction expF = getInvokeFunction(ref);
-            if (expF == null) {
-                return null;
-            }
-
-            final QInvokeFunction specF = getInvokeFunction(expF);
-            if (specF == null || !(specF.getParent() instanceof QFile)) {
-                return null;
-            }
-
-            final String expName = getTestName(expF);
-            final String specName = getTestName(specF);
-            return new TestPattern(specName, expName);
-        }
-        return null;
-    }
-
-    private static @Nullable QInvokeFunction getInvokeFunction(PsiElement element) {
-        return PsiTreeUtil.getParentOfType(element, QInvokeFunction.class);
-    }
-
-    private static String getTestName(QInvokeFunction function) {
-        if (function == null) {
+        if (!TestDescriptor.isRunnableItem(ref)) {
             return null;
         }
 
-        final List<QArguments> argumentsList = function.getArgumentsList();
-        if (argumentsList.isEmpty()) {
+        final TestDescriptor descriptor = TestDescriptor.of(ref);
+        if (descriptor == null) {
             return null;
         }
 
-        final List<QExpression> expressions = argumentsList.get(0).getExpressions();
-        if (expressions.isEmpty()) {
+        if (ModuleUtilCore.findModuleForPsiElement(element) == null) {
             return null;
         }
 
-        final QExpression qExpression = expressions.get(0);
-        if (!(qExpression instanceof QLiteralExpr lit)) {
-            return null;
-        }
-        final String text = lit.getText();
-        return text.substring(1, text.length() - 1);
-    }
-
-    @Override
-    public @NotNull ConfigurationFactory getConfigurationFactory() {
-        return QSpecConfigurationType.getInstance().getConfigurationFactory();
+        return descriptor;
     }
 
     @Override
@@ -98,17 +61,24 @@ public class QSpecConfigurationProducer extends KdbConfigurationProducerBase<QSp
         }
 
         final PsiElement element = location.getPsiElement();
-        if (element instanceof QFile || element instanceof PsiDirectory) {
+        if (element instanceof QFile f) {
+            return TestDescriptor.hasTestCases(f);
+        }
+
+        if (element instanceof PsiDirectory dir) {
             return true;
         }
 
-        final TestPattern testPattern = getTestPattern(element);
-        if (testPattern == null) {
+        final TestDescriptor descriptor = getRunnableTestDescriptor(element);
+        if (descriptor == null) {
             return false;
         }
 
-        configuration.setExpectationPattern(testPattern.expectation);
-        configuration.setSpecificationPattern(testPattern.specification);
+        configuration.setSuitePattern(descriptor.suite().getCaption());
+
+        if (descriptor.testCase() != null) {
+            configuration.setTestPattern(descriptor.testCase().getCaption());
+        }
         configuration.setGeneratedName();
         return true;
     }
@@ -123,21 +93,22 @@ public class QSpecConfigurationProducer extends KdbConfigurationProducerBase<QSp
             return false;
         }
 
+        final String descPattern = configuration.getSuitePattern();
+        final String shouldPattern = configuration.getTestPattern();
+
         final PsiElement element = location.getPsiElement();
-        if (element instanceof QFile || element instanceof PsiDirectory) {
+        if ((element instanceof QFile || element instanceof PsiDirectory) && StringUtil.isEmpty(descPattern) && StringUtil.isEmpty(shouldPattern)) {
             return true;
         }
 
-        final TestPattern testPattern = getTestPattern(context.getPsiLocation());
-        final String expectationPattern = configuration.getExpectationPattern();
-        final String specificationPattern = configuration.getSpecificationPattern();
-        if (expectationPattern == null && specificationPattern == null && testPattern == null) {
-            return true;
+        final TestDescriptor descriptor = getRunnableTestDescriptor(context.getPsiLocation());
+        if (descriptor == null) {
+            return StringUtil.isEmpty(descPattern) && StringUtil.isEmpty(shouldPattern);
         }
-        final TestPattern p = new TestPattern(specificationPattern, expectationPattern);
-        return Objects.equals(p, testPattern);
+        return compareItemName(descriptor.suite(), descPattern) && compareItemName(descriptor.testCase(), shouldPattern);
     }
 
-    public record TestPattern(String specification, String expectation) {
+    private boolean compareItemName(TestItem item, String value) {
+        return (item == null && StringUtil.isEmpty(value)) || (item != null && Objects.equals(item.getCaption(), value));
     }
 }

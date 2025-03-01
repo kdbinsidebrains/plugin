@@ -1,7 +1,8 @@
-package org.kdb.inside.brains.ide.runner.qspec;
+package org.kdb.inside.brains.lang.qspec;
 
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -95,5 +96,10 @@ public class QSpecConfigurable extends KdbConfigurable {
             }
         }
         return null;
+    }
+
+    public static void showConfigurable(Project project) {
+        // Safe model change here
+        ShowSettingsUtil.getInstance().showSettingsDialog(project, QSpecConfigurable.class);
     }
 }

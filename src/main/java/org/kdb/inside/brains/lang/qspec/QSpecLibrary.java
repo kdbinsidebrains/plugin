@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.ide.runner.qspec;
+package org.kdb.inside.brains.lang.qspec;
 
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.navigation.ItemPresentation;
@@ -16,9 +16,10 @@ import java.util.List;
 import java.util.Objects;
 
 public class QSpecLibrary extends SyntheticLibrary implements ItemPresentation {
-    public static final String LIBRARY_NAME = "Nugend QSpec";
     private final VirtualFile rootFile;
     private final List<VirtualFile> sourceRoots;
+
+    public static final String LIBRARY_NAME = "Nugend QSpec";
 
     public QSpecLibrary(VirtualFile rootFile) {
         this.rootFile = rootFile;

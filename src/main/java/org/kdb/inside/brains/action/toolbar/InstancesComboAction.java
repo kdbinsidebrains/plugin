@@ -65,7 +65,6 @@ public class InstancesComboAction extends ComboBoxAction implements CustomCompon
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        System.out.println("sdfasdf");
     }
 
     @Override

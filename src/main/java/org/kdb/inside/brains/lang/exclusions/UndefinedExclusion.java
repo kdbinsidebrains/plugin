@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.lang.inspection.exclusions;
+package org.kdb.inside.brains.lang.exclusions;
 
 import org.jetbrains.annotations.NotNull;
 

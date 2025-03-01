@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.ide.runner.qspec;
+package org.kdb.inside.brains.lang.qspec;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.LanguageTextField;
@@ -16,7 +16,7 @@ public class CustomScriptPanel {
     public CustomScriptPanel() {
     }
 
-    void init(@Nullable Project project) {
+    public void init(@Nullable Project project) {
         scriptTextArea = new LanguageTextField(QLanguage.INSTANCE, project, "", false);
         scriptPanel.setViewportView(scriptTextArea);
     }

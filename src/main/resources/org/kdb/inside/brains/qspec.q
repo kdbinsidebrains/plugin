@@ -97,12 +97,19 @@
 
     if[()~.tst.app.specs; :()];
 
+    / ungroup all expectations into plain table for filtering
+    expectations:update string title from ungroup update `$title from .tst.app.specs;
+    / Filter out broken tests
+    expectations:select from expectations where 10h=abs type each expectations[; `desc];
+    / fix one char names
+    expectations:update {(),x} each title, {x[`desc]:(),x[`desc]; x} each expectations from expectations;
+
     pot:raze {[x;y]
                  a:select from x;
-                 if[not ()~y 0; a:select from a where title like y 0];
-                 if[not ()~y 1; a:select from a where expectations[; `desc] like y 1];
+                 if[not ()~y 0; a:select from a where title like ((),y 0)];
+                 if[not ()~y 1; a:select from a where expectations[; `desc] like ((),y 1)];
                  :a;
-             }[update string title from ungroup update `$title from .tst.app.specs;] each filters;
+             }[expectations;] each filters;
     :0!?[pot; (); c!c:cols[pot] except `expectations; (enlist `expectations)!(enlist (distinct;`expectations))];
  };
 

@@ -93,4 +93,9 @@ public class QVariableBase extends QPsiElementImpl implements QVariable {
     void invalidate() {
         name = null;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + '(' + name + ')';
+    }
 }

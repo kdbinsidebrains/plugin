@@ -99,7 +99,7 @@ public class c {
      */
     boolean l;
     /**
-     * Indicates whether messages should be candidates for compressing before sending.
+     * Indicates whether messages testCase be candidates for compressing before sending.
      */
     boolean zip;
 
@@ -1424,28 +1424,15 @@ public class c {
     }
 
     /**
-     * Serialises {@code x} object as {@code byte[]} array.
+     * Tests whether an object is a null object of that type.
+     * qn(NULL('j')) testCase return true
      *
-     * @param msgType type of the ipc message
-     * @param x       object to serialise
-     * @param zip     true if to attempt compress serialised output
-     * @return {@code B} containing serialised representation
-     * @throws IOException should not throw
+     * @param x The object to be tested for null
+     * @return true if {@code x} is kdb+ null, false otherwise
      */
-    public byte[] serialize(int msgType, Object x, boolean zip) throws IOException {
-        int length = 8 + nx(x);
-        synchronized (o) {
-            B = new byte[length];
-            B[0] = 0;
-            B[1] = (byte) msgType;
-            J = 4;
-            w(length);
-            w(x);
-            if (zip && J > 2000 && !l) {
-                compress();
-            }
-            return B;
-        }
+    public static boolean qn(Object x) {
+        int t = -t(x);
+        return (t == 2 || t > 4) && x.equals(NULL[t]);
     }
 
     /**
@@ -1481,7 +1468,32 @@ public class c {
     }
 
     /**
-     * Sends a response message to the remote kdb+ process. This should be called only during processing of an incoming sync message.
+     * Serialises {@code x} object as {@code byte[]} array.
+     *
+     * @param msgType type of the ipc message
+     * @param x       object to serialise
+     * @param zip     true if to attempt compress serialised output
+     * @return {@code B} containing serialised representation
+     * @throws IOException testCase not throw
+     */
+    public byte[] serialize(int msgType, Object x, boolean zip) throws IOException {
+        int length = 8 + nx(x);
+        synchronized (o) {
+            B = new byte[length];
+            B[0] = 0;
+            B[1] = (byte) msgType;
+            J = 4;
+            w(length);
+            w(x);
+            if (zip && J > 2000 && !l) {
+                compress();
+            }
+            return B;
+        }
+    }
+
+    /**
+     * Sends a response message to the remote kdb+ process. This testCase be called only during processing of an incoming sync message.
      *
      * @param obj Object to send to the remote
      * @throws IOException if not expecting any response
@@ -1492,30 +1504,6 @@ public class c {
         }
         sync--;
         w(2, obj);
-    }
-
-    /**
-     * Sends an error as a response message to the remote kdb+ process. This should be called only during processing of an incoming sync message.
-     *
-     * @param text The error message text
-     * @throws IOException unexpected error message
-     */
-    public void ke(String text) throws IOException {
-        if (sync == 0) {
-            throw new IOException("Unexpected error msg");
-        }
-        sync--;
-        int n = 2 + ns(text) + 8;
-        synchronized (o) {
-            B = new byte[n];
-            B[0] = 0;
-            B[1] = 2;
-            J = 4;
-            w(n);
-            w((byte) -128);
-            w(text);
-            o.write(B);
-        }
     }
 
     /**
@@ -1782,15 +1770,27 @@ public class c {
     }
 
     /**
-     * Tests whether an object is a null object of that type.
-     * qn(NULL('j')) should return true
+     * Sends an error as a response message to the remote kdb+ process. This testCase be called only during processing of an incoming sync message.
      *
-     * @param x The object to be tested for null
-     * @return true if {@code x} is kdb+ null, false otherwise
+     * @param text The error message text
+     * @throws IOException unexpected error message
      */
-    public static boolean qn(Object x) {
-        int t = -t(x);
-        return (t == 2 || t > 4) && x.equals(NULL[t]);
+    public void ke(String text) throws IOException {
+        if (sync == 0) {
+            throw new IOException("Unexpected error msg");
+        }
+        sync--;
+        int n = 2 + ns(text) + 8;
+        synchronized (o) {
+            B = new byte[n];
+            B[0] = 0;
+            B[1] = 2;
+            J = 4;
+            w(n);
+            w((byte) -128);
+            w(text);
+            o.write(B);
+        }
     }
 
     /**
