@@ -49,12 +49,8 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
         for (TestItem item : testItems) {
             switch (item.getName()) {
                 case TestDescriptor.SHOULD, TestDescriptor.HOLDS -> validateCaseItem(item, holder);
-                case TestDescriptor.BEFORE -> {
-                    before = validateInitItem(item, before, holder);
-                }
-                case TestDescriptor.AFTER -> {
-                    after = validateInitItem(item, after, holder);
-                }
+                case TestDescriptor.BEFORE -> before = validateInitItem(item, before, holder);
+                case TestDescriptor.AFTER -> after = validateInitItem(item, after, holder);
             }
         }
     }

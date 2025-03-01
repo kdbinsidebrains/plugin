@@ -1,7 +1,9 @@
 package org.kdb.inside.brains.psi.refs;
 
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiElementResolveResult;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.ResolveResult;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.QSymbol;
@@ -24,6 +26,15 @@ public class QSymbolReferenceProvider extends QBaseReferenceProvider<QSymbol> {
         @Override
         protected String getQualifiedName(QSymbol element) {
             return element.getQualifiedName();
+        }
+
+        @Override
+        protected ResolveResult[] resolveElement(QSymbol element) {
+            final ResolveResult[] resolveResults = super.resolveElement(element);
+            // We resolve symbol on itself if nothing found.
+            // It makes life for QSpec and in some other places
+            // Downside: symbol is always resolvable and defined that by the fact is true.
+            return resolveResults.length == 0 ? new ResolveResult[]{new PsiElementResolveResult(element)} : resolveResults;
         }
     }
 }

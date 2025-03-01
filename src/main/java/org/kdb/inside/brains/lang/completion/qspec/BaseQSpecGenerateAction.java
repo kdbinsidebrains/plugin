@@ -53,7 +53,8 @@ public abstract class BaseQSpecGenerateAction extends CodeInsightAction {
                               boolean first) {
         PsiElement psiElement = null;
 
-        final QLambdaExpr lambda = descriptor.suite().getLambda();
+        final TestItem root = descriptor.getLocalRoot();
+        final QLambdaExpr lambda = root.getLambda();
         final QExpressions expressions = lambda.getExpressions();
         if (expressions == null) {
             PsiElement expr = ((QLambdaExpr) createCustomCode(project, "{`}")).getExpressions();
@@ -76,7 +77,7 @@ public abstract class BaseQSpecGenerateAction extends CodeInsightAction {
         }
     }
 
-    protected boolean isValidForTest(@NotNull Project project, @NotNull Editor editor, @NotNull TestDescriptor descriptor, @NotNull List<TestItem> items) {
+    protected boolean isValidForTest(@NotNull Project project, @NotNull Editor editor, @NotNull TestDescriptor descriptor) {
         return true;
     }
 
@@ -87,12 +88,10 @@ public abstract class BaseQSpecGenerateAction extends CodeInsightAction {
         }
 
         final TestDescriptor descriptor = getTestDescriptor(editor, file);
-        if (descriptor == null || descriptor.suite() == null) {
+        if (descriptor == null) {
             return false;
         }
-
-        final List<TestItem> items = TestDescriptor.findAllTestItems(descriptor.suite());
-        return isValidForTest(project, editor, descriptor, items);
+        return isValidForTest(project, editor, descriptor);
     }
 
     @Nullable
@@ -109,9 +108,8 @@ public abstract class BaseQSpecGenerateAction extends CodeInsightAction {
         @Override
         public void invoke(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
             final TestDescriptor descriptor = getTestDescriptor(editor, file);
-            if (descriptor != null && descriptor.suite() != null) {
-                final List<TestItem> items = TestDescriptor.findAllTestItems(descriptor.suite());
-                BaseQSpecGenerateAction.this.invoke(project, editor, descriptor, items);
+            if (descriptor != null) {
+                BaseQSpecGenerateAction.this.invoke(project, editor, descriptor, descriptor.getLocalItems());
             }
         }
     }

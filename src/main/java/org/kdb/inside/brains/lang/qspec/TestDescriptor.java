@@ -12,9 +12,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
-public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCase, TestItem altItem) {
+public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCase, @Nullable TestItem altItem) {
     public static final String SUITE = ".tst.desc";
     public static final String ALT = "alt";
     public static final String SHOULD = "should";
@@ -26,6 +27,75 @@ public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCas
     public static final String TEST_URI_SPEC = "qspec:test://";
 
     private static final Set<String> POSSIBLE_PARENTS = Set.of(SUITE, ALT, SHOULD, HOLDS, BEFORE, AFTER);
+
+    public static List<TestItem> findAllTestItems(@NotNull TestItem item) {
+        final List<TestItem> items = new ArrayList<>();
+        iterateTestItems(item, (invoke, ref) -> {
+            final String name = ref.getQualifiedName();
+            // TODO: add ALT and deal with that!
+            if (name.equals(SHOULD) || name.equals(HOLDS) || name.equals(BEFORE) || name.equals(AFTER)) {
+                items.add(TestItem.of(ref, invoke));
+            }
+            return true;
+        });
+        return items;
+    }
+
+    private static TestItem iterateTestItems(TestItem root, BiPredicate<QInvokeFunction, QVarReference> process) {
+        if (!(root.getInvoke().getExpression() instanceof QLambdaExpr lambda) || lambda.getExpressions() == null) {
+            return null;
+        }
+
+        final List<QExpression> expressions = lambda.getExpressions().getExpressionList();
+        if (expressions.isEmpty()) {
+            return null;
+        }
+
+        for (QExpression expression : expressions) {
+            if (expression instanceof QInvokeFunction invoke) {
+                final QVarReference ref = getFunctionName(invoke);
+                if (ref == null) {
+                    continue;
+                }
+
+                if (!process.test(invoke, ref)) {
+                    return TestItem.of(ref, invoke);
+                }
+            }
+        }
+        return null;
+    }
+
+    public static TestDescriptor of(@NotNull PsiElement element) {
+        TestItem should = null;
+        TestItem altBlock = null;
+        for (PsiElement el = element; el != null; el = el.getParent()) {
+            if (!(el instanceof QInvokeFunction invoke)) {
+                continue;
+            }
+
+            final QVarReference ref = getFunctionName(invoke);
+            if (ref == null) {
+                continue;
+            }
+
+            final String elementName = ref.getQualifiedName();
+            if (shouldName(elementName)) {
+                should = TestItem.of(ref, invoke);
+            } else if (ALT.equals(elementName)) {
+                altBlock = TestItem.of(ref, invoke);
+            } else if (SUITE.equals(elementName) && invoke.getParent() instanceof QFile) { // be sure suite in root namespace
+                final TestItem desc = TestItem.of(ref, invoke);
+                return new TestDescriptor(desc, should, altBlock);
+            }
+        }
+        return null;
+    }
+
+    public @NotNull TestItem getLocalRoot() {
+        return altItem != null ? altItem : suite;
+    }
+
 
     public static boolean hasTestCases(QFile file) {
         final List<QInvokeFunction> invokes = PsiTreeUtil.getChildrenOfTypeAsList(file, QInvokeFunction.class);
@@ -82,31 +152,12 @@ public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCas
         return null;
     }
 
-    public static List<TestItem> findAllTestItems(@NotNull TestItem desc) {
-        if (!(desc.getInvoke().getExpression() instanceof QLambdaExpr lambda) || lambda.getExpressions() == null) {
-            return List.of();
-        }
+    public @Nullable TestItem getLocalBefore() {
+        return iterateTestItems(getLocalRoot(), (i, v) -> !BEFORE.equals(v.getQualifiedName()));
+    }
 
-        final List<QExpression> expressions = lambda.getExpressions().getExpressionList();
-        if (expressions.isEmpty()) {
-            return List.of();
-        }
-
-        final List<TestItem> items = new ArrayList<>(expressions.size());
-        for (QExpression expression : expressions) {
-            if (expression instanceof QInvokeFunction invoke) {
-                final QVarReference ref = getFunctionName(invoke);
-                if (ref == null) {
-                    continue;
-                }
-
-                final String name = ref.getQualifiedName();
-                if (name.equals(SHOULD) || name.equals(HOLDS) || name.equals(BEFORE) || name.equals(AFTER)) {
-                    items.add(TestItem.of(ref, invoke));
-                }
-            }
-        }
-        return items;
+    public @Nullable TestItem getLocalAfter() {
+        return iterateTestItems(getLocalRoot(), (i, v) -> !AFTER.equals(v.getQualifiedName()));
     }
 
     /**
@@ -147,30 +198,8 @@ public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCas
         return isRunnableItem(ref.getQualifiedName());
     }
 
-    public static TestDescriptor of(@NotNull PsiElement element) {
-        TestItem should = null;
-        TestItem altBlock = null;
-        for (PsiElement el = element; el != null; el = el.getParent()) {
-            if (!(el instanceof QInvokeFunction invoke)) {
-                continue;
-            }
-
-            final QVarReference ref = getFunctionName(invoke);
-            if (ref == null) {
-                continue;
-            }
-
-            final String elementName = ref.getQualifiedName();
-            if (shouldName(elementName)) {
-                should = TestItem.of(ref, invoke);
-            } else if (ALT.equals(elementName)) {
-                altBlock = should != null ? TestItem.of(ref, invoke) : null;
-            } else if (SUITE.equals(elementName) && invoke.getParent() instanceof QFile) { // be sure suite in root namespace
-                final TestItem desc = TestItem.of(ref, invoke);
-                return new TestDescriptor(desc, should, altBlock);
-            }
-        }
-        return null;
+    public List<TestItem> getLocalItems() {
+        return findAllTestItems(getLocalRoot());
     }
 
     public static boolean shouldName(String s) {
