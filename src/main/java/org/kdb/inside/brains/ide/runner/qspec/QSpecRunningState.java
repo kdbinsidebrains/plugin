@@ -195,7 +195,7 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
 
     private void executeTests(ConsoleView consoleView, KdbProcessHandler processHandler, QSpecLibrary lib) throws IOException, ExecutionException {
         final Path root = Path.of(cfg.getScriptName());
-        final Path spec = lib.getRootFile().toNioPath();
+        final Path spec = lib.getLocation();
         final List<String> params = failedScripts != null ? failedScripts : collectExecutionScripts(root);
 
         String args = String.join(";",

@@ -4,6 +4,7 @@ import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.roots.SyntheticLibrary;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,14 +17,14 @@ import java.util.List;
 import java.util.Objects;
 
 public class QSpecLibrary extends SyntheticLibrary implements ItemPresentation {
-    private final VirtualFile rootFile;
-    private final List<VirtualFile> sourceRoots;
+    private final Path location;
+//    private final List<VirtualFile> sourceRoots;
 
     public static final String LIBRARY_NAME = "Nugend QSpec";
 
-    public QSpecLibrary(VirtualFile rootFile) {
-        this.rootFile = rootFile;
-        this.sourceRoots = List.of(rootFile);
+    public QSpecLibrary(Path location) {
+        this.location = location;
+//        this.sourceRoots = List.of(rootFile);
     }
 
     public static void validatePath(Path path) throws RuntimeConfigurationException {
@@ -48,33 +49,34 @@ public class QSpecLibrary extends SyntheticLibrary implements ItemPresentation {
         return KdbIcons.Main.Library;
     }
 
-    public VirtualFile getRootFile() {
-        return rootFile;
+    public Path getLocation() {
+        return location;
     }
 
     @Override
     public @Nullable String getLocationString() {
-        return rootFile.getCanonicalPath();
+        return location.toString();
     }
 
     @Override
     public @NotNull Collection<VirtualFile> getSourceRoots() {
-        return sourceRoots;
+        final VirtualFile file = VirtualFileManager.getInstance().findFileByNioPath(location);
+        return file == null ? List.of() : List.of(file);
     }
 
     public QSpecLibrary validate() throws RuntimeConfigurationException {
-        validatePath(rootFile.toNioPath());
+        validatePath(location);
         return this;
     }
 
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof QSpecLibrary that)) return false;
-        return Objects.equals(rootFile, that.rootFile);
+        return Objects.equals(location, that.location);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(rootFile);
+        return Objects.hashCode(location);
     }
 }

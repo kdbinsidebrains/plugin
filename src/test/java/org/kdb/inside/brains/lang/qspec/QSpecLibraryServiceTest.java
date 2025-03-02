@@ -8,27 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class QSpecLibraryServiceTest {
-    private static void loadState(QSpecLibraryService service, Element e) {
-        try {
-            service.loadState(e);
-        } catch (Exception ignore) {
-            // library never can be loaded in the test
-        }
-    }
-
-    private static void changePath(QSpecLibraryService service, String path) {
-        try {
-            service.setLibraryPath(path);
-        } catch (Exception ignore) {
-            // library never can be loaded in the test
-        }
-    }
-
     @Test
     void getState() {
         final QSpecLibraryService service = new QSpecLibraryService() {
             @Override
-            protected void updateLibrary() {
+            protected void forceLibraryRescan() {
             }
         };
         assertNull(service.getCustomScript());
@@ -38,13 +22,13 @@ class QSpecLibraryServiceTest {
         service.setCustomScript("script");
         assertEquals("<qspec_library>script</qspec_library>", JDOMUtil.write(service.getState()));
 
-        changePath(service, "path");
+        service.setLibraryPath("path");
         assertEquals("<qspec_library path=\"path\">script</qspec_library>", JDOMUtil.write(service.getState()));
 
         service.setCustomScript("");
         assertEquals("<qspec_library path=\"path\" />", JDOMUtil.write(service.getState()));
 
-        changePath(service, "");
+        service.setLibraryPath("");
         assertNull(service.getState());
     }
 
@@ -52,24 +36,24 @@ class QSpecLibraryServiceTest {
     void setState() {
         final QSpecLibraryService service = new QSpecLibraryService() {
             @Override
-            protected void updateLibrary() {
+            protected void forceLibraryRescan() {
             }
         };
         assertNull(service.getCustomScript());
         assertNull(service.getLibraryPath());
 
         final Element e = new Element("qspec_library");
-        loadState(service, e);
+        service.loadState(e);
         assertNull(service.getCustomScript());
         assertNull(service.getLibraryPath());
 
         e.setAttribute("path", "path");
-        loadState(service, e);
+        service.loadState(e);
         assertNull(service.getCustomScript());
         assertEquals("path", service.getLibraryPath());
 
         e.setText("script");
-        loadState(service, e);
+        service.loadState(e);
         assertEquals("path", service.getLibraryPath());
         assertEquals("script", service.getCustomScript());
     }

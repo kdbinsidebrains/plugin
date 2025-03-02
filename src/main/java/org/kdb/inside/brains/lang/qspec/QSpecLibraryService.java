@@ -11,12 +11,11 @@ import com.intellij.openapi.project.RootsChangeRescanningInfo;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -47,7 +46,7 @@ public class QSpecLibraryService implements PersistentStateComponent<Element> {
         return libraryPath;
     }
 
-    private static void forceLibraryRescan() {
+    protected void forceLibraryRescan() {
         ApplicationManager.getApplication().invokeLater(() -> {
             ApplicationManager.getApplication().runWriteAction(() -> {
                 final @NotNull Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
@@ -85,31 +84,29 @@ public class QSpecLibraryService implements PersistentStateComponent<Element> {
 
     @Override
     public void loadState(@NotNull Element state) {
-        libraryPath = state.getAttributeValue("path");
+        libraryPath = updateLibrary(state.getAttributeValue("path"));
         final String text = state.getText();
         customScript = StringUtil.isEmpty(text) ? null : text;
-        updateLibrary();
     }
 
     public void setLibraryPath(String path) {
         if (!Objects.equals(libraryPath, path)) {
-            libraryPath = path;
-            updateLibrary();
+            libraryPath = updateLibrary(path);
             forceLibraryRescan();
         }
     }
 
-    protected void updateLibrary() {
+    protected String updateLibrary(String path) {
         if (libraryPath == null) {
             library = null;
         } else {
-            final VirtualFileManager fileManager = VirtualFileManager.getInstance();
-            final VirtualFile file = fileManager.findFileByNioPath(Path.of(libraryPath));
-            if (file == null || !file.isDirectory()) {
+            final Path path1 = Path.of(libraryPath);
+            if (!Files.isDirectory(path1)) {
                 library = null;
             } else {
-                library = new QSpecLibrary(file);
+                library = new QSpecLibrary(path1);
             }
         }
+        return path;
     }
 }
