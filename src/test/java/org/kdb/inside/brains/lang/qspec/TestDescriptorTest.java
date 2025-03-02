@@ -31,9 +31,7 @@ public class TestDescriptorTest {
 
     @Test
     public void createUrl() {
-//        assertEquals("qspec:script://c:/mock/file/path", new TestDescriptor(f, null, null, false).createUrl());
-//        assertEquals("qspec:test://c:/mock/file/path?[]/[my testCase]", new TestDescriptor(f, null, item("my testCase"), false).createUrl());
-        assertEquals("qspec:suite://c:/mock/file/path?[my test]", new TestDescriptor(item("my test"), null, false).createUrl());
-        assertEquals("qspec:test://c:/mock/file/path?[my test]/[my testCase]", new TestDescriptor(item("my test"), item("my testCase"), false).createUrl());
+        assertEquals("qspec:suite://c:/mock/file/path?[my test]", new TestDescriptor(item("my test"), null, null).createUrl());
+        assertEquals("qspec:test://c:/mock/file/path?[my test]/[my testCase]", new TestDescriptor(item("my test"), item("my testCase"), null).createUrl());
     }
 }

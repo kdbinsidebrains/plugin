@@ -23,8 +23,8 @@ public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCas
     public static final String BEFORE = "before";
     public static final String AFTER = "after";
 
-    public static final String SUITE_URI_SPEC = "qspec:suite://";
     public static final String TEST_URI_SPEC = "qspec:test://";
+    public static final String SUITE_URI_SPEC = "qspec:suite://";
 
     private static final Set<String> ALLOWED_PARENTS = Set.of(SUITE, ALT, SHOULD, HOLDS, BEFORE, AFTER);
     private static final Set<String> ALLOWED_CHILDREN = Set.of(ALT, SHOULD, HOLDS, BEFORE, AFTER);
@@ -257,6 +257,6 @@ public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCas
         if (testCase == null) {
             return SUITE_URI_SPEC + script + "?[" + suite.getCaption() + "]";
         }
-        return testCase + script + "?[" + suite.getCaption() + "]/[" + testCase.getCaption() + "]";
+        return TEST_URI_SPEC + script + "?[" + suite.getCaption() + "]/[" + testCase.getCaption() + "]";
     }
 }
