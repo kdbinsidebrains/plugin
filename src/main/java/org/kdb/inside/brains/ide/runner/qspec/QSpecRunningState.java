@@ -48,10 +48,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration> {
-    public static final String ROOT_SCRIPT_PATH = "/org/kdb/inside/brains/qspec.q";
 
-    private static final String FRAMEWORK_NAME = "KDB QSpec Tests";
     private List<String> failedScripts = null;
+
+    public static final String ROOT_SCRIPT_PATH = "/org/kdb/inside/brains/qspec.q";
+    private static final String FRAMEWORK_NAME = "KDB QSpec Tests";
 
     public QSpecRunningState(QSpecRunConfiguration cfg, Module module, ExecutionEnvironment environment) {
         super(cfg, module, environment);

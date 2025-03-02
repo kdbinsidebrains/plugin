@@ -6,6 +6,7 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.wm.WindowManager;
 import org.apache.commons.io.FilenameUtils;
@@ -15,8 +16,8 @@ import org.kdb.inside.brains.settings.KdbConfigurable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.nio.file.Path;
-import java.util.Objects;
+
+import static com.intellij.openapi.util.text.StringUtil.notNullize;
 
 public class QSpecConfigurable extends KdbConfigurable {
     private JPanel myComponent;
@@ -30,7 +31,7 @@ public class QSpecConfigurable extends KdbConfigurable {
     private final QSpecLibraryService libraryService = QSpecLibraryService.getInstance();
 
     protected QSpecConfigurable() {
-        super(SETTINGS_PAGE_ID, "QSpec Testing");
+        super(SETTINGS_PAGE_ID, "QSpec Framework");
         init(guessActiveProject());
     }
 
@@ -44,7 +45,7 @@ public class QSpecConfigurable extends KdbConfigurable {
 
         UIUtils.initializerTextBrowseValidator(specFolderField, () -> "Please select directory QSpec folder", () -> "QSpec directory doesn't exist", (s) -> {
             try {
-                QSpecLibrary.validatePath(Path.of(s));
+                QSpecLibrary.validatePath(s);
                 return null;
             } catch (Exception ex) {
                 return ex.getMessage();
@@ -71,14 +72,17 @@ public class QSpecConfigurable extends KdbConfigurable {
 
     @Override
     public boolean isModified() {
-        return !Objects.equals(customScriptPanel.getText(), libraryService.getCustomScript()) ||
-                !FilenameUtils.equalsNormalizedOnSystem(specFolderField.getText(), libraryService.getLibraryPath());
+        return !StringUtil.equals(customScriptPanel.getText(), notNullize(libraryService.getCustomScript())) ||
+                !FilenameUtils.equalsNormalizedOnSystem(specFolderField.getText(), notNullize(libraryService.getLibraryPath(), ""));
     }
 
     @Override
     public void apply() throws ConfigurationException {
-        libraryService.setLibraryPath(specFolderField.getText());
-        libraryService.setCustomScript(customScriptPanel.getText());
+        final String path = specFolderField.getText();
+        libraryService.setLibraryPath(StringUtil.isEmpty(path) ? null : path);
+
+        final String script = customScriptPanel.getText();
+        libraryService.setCustomScript(StringUtil.isEmpty(script) ? null : script);
     }
 
     @Override

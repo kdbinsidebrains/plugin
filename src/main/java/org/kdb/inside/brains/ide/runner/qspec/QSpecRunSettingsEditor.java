@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.ide.runner.qspec;
 
 import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
@@ -9,9 +10,12 @@ import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.ide.runner.KdbCommonSettingsPanel;
 import org.kdb.inside.brains.lang.qspec.CustomScriptPanel;
 import org.kdb.inside.brains.lang.qspec.QSpecConfigurable;
+import org.kdb.inside.brains.lang.qspec.QSpecLibrary;
 import org.kdb.inside.brains.lang.qspec.QSpecLibraryService;
 
 import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration> {
     private JPanel myComponent;
@@ -43,6 +47,13 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
 
         qSpecLibraryLink.addActionListener(e -> showSettings(project));
         settingsActionLink.addActionListener(e -> showSettings(project));
+
+        qSpecPath.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showSettings(project);
+            }
+        });
 
         updateLibraryDetails();
     }
@@ -93,16 +104,17 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
     }
 
     private void updateLibraryDetails() {
-        qSpecPath.setText(libraryService.getLibraryPath());
         customScriptPanel.setText(libraryService.getCustomScript());
 
         try {
-            libraryService.getValidLibrary();
+            final QSpecLibrary lib = libraryService.getValidLibrary();
+            qSpecPath.setIcon(null);
             qSpecPath.setForeground(JBColor.foreground());
-            qSpecPath.setToolTipText("");
+            qSpecPath.setText(lib.getLocation().toString());
         } catch (RuntimeConfigurationException e) {
             qSpecPath.setForeground(JBColor.RED);
-            qSpecPath.setToolTipText(e.getLocalizedMessage());
+            qSpecPath.setIcon(AllIcons.General.Warning);
+            qSpecPath.setText("Warning: " + e.getLocalizedMessage());
         }
     }
 }

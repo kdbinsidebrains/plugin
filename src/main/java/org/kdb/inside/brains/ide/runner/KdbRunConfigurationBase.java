@@ -91,11 +91,11 @@ public abstract class KdbRunConfigurationBase extends AbstractRunConfiguration i
             throw new RuntimeConfigurationWarning("KDB SDK is not specified for the module");
         }
 
-        if (myScriptName == null || myScriptName.trim().isEmpty()) {
+        if (StringUtil.isEmpty(myScriptName)) {
             throw new RuntimeConfigurationError("Script name is not specified");
         }
 
-        if (myWorkingDirectory == null || myWorkingDirectory.trim().isEmpty()) {
+        if (StringUtil.isEmpty(myWorkingDirectory)) {
             throw new RuntimeConfigurationError("Working directory is not specified");
         }
     }

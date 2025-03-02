@@ -20,12 +20,15 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
     private Boolean async;
     @Attribute
     private Integer timeout;
+
     public static final int DEFAULT_TIMEOUT = 1000;
     public static final boolean DEFAULT_TLS = false;
     public static final boolean DEFAULT_ZIP = false;
     public static final boolean DEFAULT_ASYNC = false;
     public static final String DEFAULT_ENCODING = "UTF-8";
+
     public static final InstanceOptions INHERITED = new InstanceOptions();
+
     @Attribute
     private String encoding;
 
@@ -38,6 +41,10 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
         this.async = async;
         this.timeout = timeout;
         this.encoding = encoding;
+    }
+
+    public static InstanceOptions defaultOptions() {
+        return new InstanceOptions(DEFAULT_TLS, DEFAULT_ZIP, DEFAULT_ASYNC, DEFAULT_TIMEOUT, DEFAULT_ENCODING);
     }
 
     public static InstanceOptions fromParameters(String params) {

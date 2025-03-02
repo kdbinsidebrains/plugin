@@ -151,7 +151,7 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         private final ChartOptions chartOptions = new ChartOptions();
         private final TableOptions tableOptions = new TableOptions();
         private final ConsoleOptions consoleOptions = new ConsoleOptions();
-        private final InstanceOptions instanceOptions = new InstanceOptions();
+        private final InstanceOptions instanceOptions = InstanceOptions.defaultOptions();
         private final ExecutionOptions executionOptions = new ExecutionOptions();
         private final InspectorOptions inspectorOptions = new InspectorOptions();
         private final NumericalOptions numericalOptions = new NumericalOptions();

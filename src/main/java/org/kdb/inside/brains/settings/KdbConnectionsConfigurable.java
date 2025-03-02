@@ -1,7 +1,7 @@
 package org.kdb.inside.brains.settings;
 
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.util.ui.FormBuilder;
 import org.jetbrains.annotations.Nullable;
@@ -13,6 +13,7 @@ import org.kdb.inside.brains.view.treeview.forms.CredentialsEditorPanel;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.Objects;
 
 public class KdbConnectionsConfigurable extends KdbConfigurable {
     private final CredentialService credentialService;
@@ -56,13 +57,13 @@ public class KdbConnectionsConfigurable extends KdbConfigurable {
 
     @Override
     public boolean isModified() {
-        if (!Comparing.strEqual(credentialService.getDefaultCredentials(), credentialsPanel.getCredentials())) {
+        if (!StringUtil.equals(credentialService.getDefaultCredentials(), credentialsPanel.getCredentials())) {
             return true;
         }
-        if (!Comparing.equal(settingsService.getInstanceOptions(), instanceOptionsPanel.getInstanceOptions())) {
+        if (!Objects.equals(settingsService.getInstanceOptions(), instanceOptionsPanel.getInstanceOptions())) {
             return true;
         }
-        return !credentialService.getPluginResources().equals(pluginsPanel.getPluginResources());
+        return !Objects.equals(credentialService.getPluginResources(), pluginsPanel.getPluginResources());
     }
 
     @Override
