@@ -10,6 +10,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.RootsChangeRescanningInfo;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.EmptyRunnable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jdom.Element;
@@ -66,36 +67,49 @@ public class QSpecLibraryService implements PersistentStateComponent<Element> {
 
     @Override
     public @Nullable Element getState() {
-        Element e = new Element("qspec_library");
-        e.setText(customScript);
-        e.setAttribute("path", libraryPath);
-        return e;
-    }
-
-    public void setLibraryPath(String path) {
-        if (!Objects.equals(libraryPath, path)) {
-            libraryPath = updateLibrary(path);
-            forceLibraryRescan();
+        final boolean emptyScript = StringUtil.isEmpty(customScript);
+        final boolean emptyPath = StringUtil.isEmpty(libraryPath);
+        if (emptyScript && emptyPath) {
+            return null;
         }
+
+        final Element e = new Element("qspec_library");
+        if (!emptyScript) {
+            e.setText(customScript);
+        }
+        if (!emptyPath) {
+            e.setAttribute("path", libraryPath);
+        }
+        return e;
     }
 
     @Override
     public void loadState(@NotNull Element state) {
-        libraryPath = updateLibrary(state.getAttributeValue("path"));
-        customScript = state.getText();
+        libraryPath = state.getAttributeValue("path");
+        final String text = state.getText();
+        customScript = StringUtil.isEmpty(text) ? null : text;
+        updateLibrary();
     }
 
-    private String updateLibrary(String path) {
-        if (path == null) {
+    public void setLibraryPath(String path) {
+        if (!Objects.equals(libraryPath, path)) {
+            libraryPath = path;
+            updateLibrary();
+            forceLibraryRescan();
+        }
+    }
+
+    private void updateLibrary() {
+        if (libraryPath == null) {
             library = null;
         } else {
-            final VirtualFile file = VirtualFileManager.getInstance().findFileByNioPath(Path.of(path));
+            final VirtualFileManager fileManager = VirtualFileManager.getInstance();
+            final VirtualFile file = fileManager.findFileByNioPath(Path.of(libraryPath));
             if (file == null || !file.isDirectory()) {
                 library = null;
             } else {
                 library = new QSpecLibrary(file);
             }
         }
-        return path;
     }
 }
