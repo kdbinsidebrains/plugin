@@ -204,7 +204,7 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
                 toKdbBool(cfg.isKeepFailed()),
                 toKdbDict(params)
         );
-        final String command = ".tst.app.runScript[" + args + "]";
+        final String command = ".tst.app.runScript[" + args + "];";
         logAndExecuteCommand(consoleView, processHandler, command);
     }
 

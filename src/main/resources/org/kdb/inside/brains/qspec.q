@@ -30,11 +30,7 @@
  };
 
 .tst.app.msg:{[name;dict]
-    msg:$[()~dict;
-          "##teamcity[",name,"]\n";
-          "##teamcity[",name," ",(" " sv {[k;v] k,"=","'",.tst.app.teamcityMaskChars[v],"'"}'[string key dict; value dict]),"]\n"
-         ];
-    -1 msg;
+    -1 "##teamcity[",name,$[()~dict; ""; " ",(" " sv {[k;v] k,"=","'",.tst.app.teamcityMaskChars[v],"'"}'[string key dict; value dict])],"]";
  };
 
 .tst.app.msgSuite:{[tag;spec]

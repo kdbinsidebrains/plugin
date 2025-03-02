@@ -21,7 +21,9 @@ import org.kdb.inside.brains.lang.qspec.TestDescriptor;
 import org.kdb.inside.brains.lang.qspec.TestItem;
 import org.kdb.inside.brains.psi.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
@@ -37,23 +39,25 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
         }
 
         final TestItem desc = TestItem.of(ref, invoke);
-        validateCaseItem(desc, holder);
-        validateItems(desc, holder);
+        validateCaseItem(desc, holder, new HashSet<>());
+        validateItems(desc, holder, new HashSet<>());
     }
 
-    private void validateItems(@NotNull TestItem desc, @NotNull AnnotationHolder holder) {
+    private void validateItems(@NotNull TestItem desc, @NotNull AnnotationHolder holder, Set<String> testNames) {
         TestItem before = null;
         TestItem after = null;
 
-        final List<TestItem> testItems = TestDescriptor.findAllTestItems(desc);
+        final List<TestItem> testItems = TestDescriptor.getTestItems(desc);
         for (TestItem item : testItems) {
             switch (item.getName()) {
-                case TestDescriptor.SHOULD, TestDescriptor.HOLDS -> validateCaseItem(item, holder);
+                case TestDescriptor.SHOULD, TestDescriptor.HOLDS -> validateCaseItem(item, holder, testNames);
                 case TestDescriptor.BEFORE -> before = validateInitItem(item, before, holder);
                 case TestDescriptor.AFTER -> after = validateInitItem(item, after, holder);
+                case TestDescriptor.ALT -> validateItems(item, holder, testNames);
             }
         }
     }
+
 
     private TestItem validateInitItem(@NotNull TestItem item, @Null TestItem exist, @NotNull AnnotationHolder holder) {
         final QInvokeFunction invoke = item.getInvoke();
@@ -71,7 +75,7 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
         return exist;
     }
 
-    private void validateCaseItem(@NotNull TestItem item, @NotNull AnnotationHolder holder) {
+    private void validateCaseItem(@NotNull TestItem item, @NotNull AnnotationHolder holder, @NotNull Set<String> testNames) {
         try {
             final QInvokeFunction invoke = item.getInvoke();
             final int argumentsMustCount = TestDescriptor.HOLDS.equals(item.getName()) ? 2 : 1;
@@ -105,13 +109,16 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
                 } else {
                     final QExpression expression = expressions.get(0);
                     if (expression instanceof QLiteralExpr lit) {
+                        final String testName = lit.getText();
                         if (lit.getFirstChild() instanceof LeafPsiElement leaf && leaf.getElementType() != QTypes.STRING && leaf.getElementType() != QTypes.CHAR) {
                             holder.newAnnotation(HighlightSeverity.ERROR, "Test name must be string").range(expression).withFix(new ArgumentToString(expression)).create();
-                        } else if ("\"\"".equals(lit.getText())) {
+                        } else if ("\"\"".equals(testName)) {
                             holder.newAnnotation(HighlightSeverity.ERROR, "Test name can't be empty").range(expression).withFix(new GenerateTestName(lit)).create();
+                        } else if (!testNames.add(testName)) {
+                            holder.newAnnotation(HighlightSeverity.ERROR, "Test with the same name already defined").range(lit).withFix(new RenameTest(lit)).create();
                         }
                     } else {
-                        holder.newAnnotation(HighlightSeverity.ERROR, "Test name must be string").range(expression).withFix(new ArgumentToString(expression)).create();
+                        holder.newAnnotation(HighlightSeverity.ERROR, "Test name must be a string").range(expression).withFix(new ArgumentToString(expression)).create();
                     }
                 }
             }
@@ -186,7 +193,7 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
 
         @Override
         public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            if (element instanceof QArguments args) {
+            if (element instanceof QArguments) {
                 final TextRange textRange = element.getTextRange();
                 editor.getDocument().insertString(textRange.getStartOffset() + 1, "\"\"");
                 editor.getCaretModel().moveToOffset(textRange.getStartOffset() + 2);
@@ -274,6 +281,17 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
             } else {
                 invoke.delete();
             }
+        }
+    }
+
+    private static class RenameTest extends QSpecIntentionAction {
+        public RenameTest(QLiteralExpr lit) {
+            super("Rename the test case", lit);
+        }
+
+        @Override
+        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+            editor.getSelectionModel().setSelection(element.getTextOffset() + 1, element.getTextOffset() + element.getTextLength() - 1);
         }
     }
 }

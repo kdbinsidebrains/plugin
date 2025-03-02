@@ -26,14 +26,14 @@ public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCas
     public static final String SUITE_URI_SPEC = "qspec:suite://";
     public static final String TEST_URI_SPEC = "qspec:test://";
 
-    private static final Set<String> POSSIBLE_PARENTS = Set.of(SUITE, ALT, SHOULD, HOLDS, BEFORE, AFTER);
+    private static final Set<String> ALLOWED_PARENTS = Set.of(SUITE, ALT, SHOULD, HOLDS, BEFORE, AFTER);
+    private static final Set<String> ALLOWED_CHILDREN = Set.of(ALT, SHOULD, HOLDS, BEFORE, AFTER);
 
-    public static List<TestItem> findAllTestItems(@NotNull TestItem item) {
+    public static List<TestItem> getTestItems(@NotNull TestItem parent) {
         final List<TestItem> items = new ArrayList<>();
-        iterateTestItems(item, (invoke, ref) -> {
+        iterateTestItems(parent, (invoke, ref) -> {
             final String name = ref.getQualifiedName();
-            // TODO: add ALT and deal with that!
-            if (name.equals(SHOULD) || name.equals(HOLDS) || name.equals(BEFORE) || name.equals(AFTER)) {
+            if (ALLOWED_CHILDREN.contains(name)) {
                 items.add(TestItem.of(ref, invoke));
             }
             return true;
@@ -83,7 +83,9 @@ public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCas
             if (shouldName(elementName)) {
                 should = TestItem.of(ref, invoke);
             } else if (ALT.equals(elementName)) {
-                altBlock = TestItem.of(ref, invoke);
+                if (altBlock == null) {
+                    altBlock = TestItem.of(ref, invoke);
+                }
             } else if (SUITE.equals(elementName) && invoke.getParent() instanceof QFile) { // be sure suite in root namespace
                 final TestItem desc = TestItem.of(ref, invoke);
                 return new TestDescriptor(desc, should, altBlock);
@@ -173,7 +175,7 @@ public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCas
             final QVarReference ref = getFunctionName(invoke);
             if (ref != null) {
                 final String name = ref.getQualifiedName();
-                if (POSSIBLE_PARENTS.contains(name)) {
+                if (ALLOWED_PARENTS.contains(name)) {
                     return TestItem.of(ref, invoke);
                 }
             }
@@ -199,7 +201,7 @@ public record TestDescriptor(@NotNull TestItem suite, @Nullable TestItem testCas
     }
 
     public List<TestItem> getLocalItems() {
-        return findAllTestItems(getLocalRoot());
+        return getTestItems(getLocalRoot());
     }
 
     public static boolean shouldName(String s) {
