@@ -55,6 +55,9 @@ public abstract class BaseQSpecGenerateAction extends CodeInsightAction {
 
         final TestItem root = descriptor.getLocalRoot();
         final QLambdaExpr lambda = root.getLambda();
+        if (lambda == null) {
+            return;
+        }
         final QExpressions expressions = lambda.getExpressions();
         if (expressions == null) {
             PsiElement expr = ((QLambdaExpr) createCustomCode(project, "{`}")).getExpressions();
