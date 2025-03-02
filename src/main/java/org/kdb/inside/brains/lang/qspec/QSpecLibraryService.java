@@ -99,7 +99,7 @@ public class QSpecLibraryService implements PersistentStateComponent<Element> {
         }
     }
 
-    private void updateLibrary() {
+    protected void updateLibrary() {
         if (libraryPath == null) {
             library = null;
         } else {

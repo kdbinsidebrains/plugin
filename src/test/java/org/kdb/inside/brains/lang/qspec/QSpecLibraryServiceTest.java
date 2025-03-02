@@ -1,7 +1,7 @@
 package org.kdb.inside.brains.lang.qspec;
 
+import com.intellij.openapi.util.JDOMUtil;
 import org.jdom.Element;
-import org.jdom.output.XMLOutputter;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,19 +26,23 @@ class QSpecLibraryServiceTest {
 
     @Test
     void getState() {
-        final QSpecLibraryService service = new QSpecLibraryService();
+        final QSpecLibraryService service = new QSpecLibraryService() {
+            @Override
+            protected void updateLibrary() {
+            }
+        };
         assertNull(service.getCustomScript());
         assertNull(service.getLibraryPath());
         assertNull(service.getState());
 
         service.setCustomScript("script");
-        assertEquals("<qspec_library>script</qspec_library>", new XMLOutputter().outputString(service.getState()));
+        assertEquals("<qspec_library>script</qspec_library>", JDOMUtil.write(service.getState()));
 
         changePath(service, "path");
-        assertEquals("<qspec_library path=\"path\">script</qspec_library>", new XMLOutputter().outputString(service.getState()));
+        assertEquals("<qspec_library path=\"path\">script</qspec_library>", JDOMUtil.write(service.getState()));
 
         service.setCustomScript("");
-        assertEquals("<qspec_library path=\"path\" />", new XMLOutputter().outputString(service.getState()));
+        assertEquals("<qspec_library path=\"path\" />", JDOMUtil.write(service.getState()));
 
         changePath(service, "");
         assertNull(service.getState());
@@ -46,7 +50,11 @@ class QSpecLibraryServiceTest {
 
     @Test
     void setState() {
-        final QSpecLibraryService service = new QSpecLibraryService();
+        final QSpecLibraryService service = new QSpecLibraryService() {
+            @Override
+            protected void updateLibrary() {
+            }
+        };
         assertNull(service.getCustomScript());
         assertNull(service.getLibraryPath());
 
