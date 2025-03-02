@@ -56,14 +56,15 @@ public final class TestItem {
         return invoke;
     }
 
-    @NotNull
+    @Nullable
     public QLambdaExpr getLambda() {
-        return (QLambdaExpr) Objects.requireNonNull(invoke.getExpression());
+        return invoke.getExpression() instanceof QLambdaExpr lambda ? lambda : null;
     }
 
     @Nullable
     public QExpressions getExpressions() {
-        return getLambda().getExpressions();
+        final QLambdaExpr lambda = getLambda();
+        return lambda == null ? null : lambda.getExpressions();
     }
 
     public boolean is(String name) {

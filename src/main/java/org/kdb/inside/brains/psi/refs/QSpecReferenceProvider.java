@@ -7,6 +7,7 @@ import com.intellij.psi.ResolveResult;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.lang.qspec.TestDescriptor;
 import org.kdb.inside.brains.lang.qspec.TestItem;
 import org.kdb.inside.brains.psi.*;
@@ -116,7 +117,11 @@ public class QSpecReferenceProvider extends QBaseReferenceProvider<QVariable> {
             return symbols.stream().map(PsiElementResolveResult::new).toArray(ResolveResult[]::new);
         }
 
-        private void collectMockDeclarations(PsiElement el, String name, List<QSymbol> symbols) {
+        private void collectMockDeclarations(@Nullable PsiElement el, String name, List<QSymbol> symbols) {
+            if (el == null) {
+                return;
+            }
+
             final Collection<QVarReference> vars = PsiTreeUtil.findChildrenOfType(el, QVarReference.class);
             if (vars.isEmpty()) {
                 return;

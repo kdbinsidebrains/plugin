@@ -258,9 +258,11 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
                 final QExpressions existExpressions = exist.getExpressions();
                 if (existExpressions == null) {
                     final QLambdaExpr lambda = exist.getLambda();
-                    final PsiElement lastChild = lambda.getLastChild();
-                    lambda.addBefore(expressions, lastChild);
-                    lambda.addBefore(QPsiUtil.createWhitespace(project, "\n"), lastChild);
+                    if (lambda != null) {
+                        final PsiElement lastChild = lambda.getLastChild();
+                        lambda.addBefore(expressions, lastChild);
+                        lambda.addBefore(QPsiUtil.createWhitespace(project, "\n"), lastChild);
+                    }
                 } else if (expressions.getChildren().length > 0) {
                     existExpressions.add(QPsiUtil.createWhitespace(project, "\n\n"));
                     final @NotNull PsiElement[] children = expressions.getChildren();
