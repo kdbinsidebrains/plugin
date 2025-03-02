@@ -33,7 +33,7 @@ public class ExecuteFileAction extends ExecuteAction {
         try {
 
             final String text = data.getText();
-            // end of the file comment that we should exclude as it's parsed by KDB
+            // end of the file comment that we testCase exclude as it's parsed by KDB
             final int i = getEndOfFileIndex(text);
             return i < 0 ? text : text.substring(0, i);
         } catch (Exception ex) {

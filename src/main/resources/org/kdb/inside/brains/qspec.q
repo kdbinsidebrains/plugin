@@ -30,11 +30,7 @@
  };
 
 .tst.app.msg:{[name;dict]
-    msg:$[()~dict;
-          "##teamcity[",name,"]\n";
-          "##teamcity[",name," ",(" " sv {[k;v] k,"=","'",.tst.app.teamcityMaskChars[v],"'"}'[string key dict; value dict]),"]\n"
-         ];
-    -1 msg;
+    -1 "##teamcity[",name,$[()~dict; ""; " ",(" " sv {[k;v] k,"=","'",.tst.app.teamcityMaskChars[v],"'"}'[string key dict; value dict])],"]";
  };
 
 .tst.app.msgSuite:{[tag;spec]
@@ -97,12 +93,19 @@
 
     if[()~.tst.app.specs; :()];
 
+    / ungroup all expectations into plain table for filtering
+    expectations:update string title from ungroup update `$title from .tst.app.specs;
+    / Filter out broken tests
+    expectations:select from expectations where 10h=abs type each expectations[; `desc];
+    / fix one char names
+    expectations:update {(),x} each title, {x[`desc]:(),x[`desc]; x} each expectations from expectations;
+
     pot:raze {[x;y]
                  a:select from x;
-                 if[not ()~y 0; a:select from a where title like y 0];
-                 if[not ()~y 1; a:select from a where expectations[; `desc] like y 1];
+                 if[not ()~y 0; a:select from a where title like ((),y 0)];
+                 if[not ()~y 1; a:select from a where expectations[; `desc] like ((),y 1)];
                  :a;
-             }[update string title from ungroup update `$title from .tst.app.specs;] each filters;
+             }[expectations;] each filters;
     :0!?[pot; (); c!c:cols[pot] except `expectations; (enlist `expectations)!(enlist (distinct;`expectations))];
  };
 
@@ -142,17 +145,13 @@
  };
 
 .tst.app.runScriptSafe:{[qSpecPath;rootFolder;scriptsWithFilters]
+    @[.tst.app.init; qSpecPath; {-2 "QSpec can't be loaded from '",x,"':\n\t",y; exit -1}[qSpecPath;]];
+
     .tst.app.failed:0b;
 
-    @[.tst.app.init; qSpecPath; {-2 "QSpec can't be loaded from '",x,"':\n\t",y; .tst.app.failed:1b;}[qSpecPath;]];
-
-    if[.tst.app.failed; :-1];
-
     specs:raze {
-                   .[.tst.app.loadSpecs; (x 0;x 1); {-2 "Testing script '",x,"' can't be loaded:\n\t",y; .tst.app.failed:1b;}[x 0;]]
+                   .[.tst.app.loadSpecs; (x 0;x 1); {-2 "Testing script '",x,"' can't be loaded:\n\t",y; .tst.app.failed:1b; ()}[x 0;]]
                } each scriptsWithFilters;
-
-    if[.tst.app.failed; :-1];
 
     if[()~specs;
        .tst.app.msg["enteredTheMatrix"; ()];
@@ -168,6 +167,7 @@
         @[.tst.runSpec; x; {-2 "Test ",x[`title]," can't be executed:\n\t",y; .tst.app.failed:1b;}[x;]]
     } each specs;
 
+    // failed in any case
     if[.tst.app.failed; :-1];
 
     :sum not `pass=res`result;

@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.kdb.inside.brains.ide.runner.qspec.QSpecRunSettingsEditor">
-  <grid id="27dc6" binding="myComponent" layout-manager="GridLayoutManager" row-count="10" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myComponent" layout-manager="GridLayoutManager" row-count="11" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="725" height="731"/>
+      <xy x="20" y="20" width="725" height="726"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
-      <nested-form id="b9fff" form-file="org/kdb/inside/brains/ide/runner/KdbCommonSettingsPanel.form" binding="commonSettingsPanel">
-        <constraints>
-          <grid row="5" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="1" fill="1" indent="2" use-parent-layout="false"/>
-        </constraints>
-      </nested-form>
       <component id="f9f16" class="javax.swing.JLabel">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
@@ -22,7 +17,7 @@
           <text value="Specification"/>
         </properties>
       </component>
-      <component id="8d117" class="javax.swing.JTextField" binding="specificationField">
+      <component id="8d117" class="javax.swing.JTextField" binding="descField">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
@@ -32,54 +27,17 @@
           <text value=""/>
         </properties>
       </component>
-      <nested-form id="4cf52" form-file="org/kdb/inside/brains/ide/qspec/QSpecLibraryPanel.form" binding="qSpecLibraryPanel">
-        <constraints>
-          <grid row="8" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
-        </constraints>
-      </nested-form>
       <vspacer id="764e4">
         <constraints>
-          <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="10" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
-      <component id="aeff3" class="com.intellij.ui.TitledSeparator">
-        <constraints>
-          <grid row="6" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="QSpec Library"/>
-        </properties>
-      </component>
-      <component id="a021f" class="com.intellij.ui.TitledSeparator">
-        <constraints>
-          <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Test Environemnt"/>
-        </properties>
-      </component>
-      <component id="71d0d" class="javax.swing.JCheckBox" binding="inheritFromCheckBox" default-binding="true">
-        <constraints>
-          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Inherit from"/>
-        </properties>
-      </component>
       <component id="ff130" class="com.intellij.ui.TitledSeparator">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Test Name"/>
-        </properties>
-      </component>
-      <component id="e50e0" class="com.intellij.ui.HyperlinkLabel" binding="settingsActionLink">
-        <constraints>
-          <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value=""/>
         </properties>
       </component>
       <component id="9c531" class="javax.swing.JLabel">
@@ -91,7 +49,7 @@
           <text value="Expectation"/>
         </properties>
       </component>
-      <component id="e181d" class="javax.swing.JTextField" binding="expectationField">
+      <component id="e181d" class="javax.swing.JTextField" binding="shouldField">
         <constraints>
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
@@ -107,6 +65,79 @@
         </constraints>
         <properties>
           <text value="Keep the process running if any test fails"/>
+        </properties>
+      </component>
+      <component id="aeff3" class="com.intellij.ui.TitledSeparator">
+        <constraints>
+          <grid row="6" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="QSpec Library"/>
+        </properties>
+      </component>
+      <nested-form id="f2eb8" form-file="org/kdb/inside/brains/lang/qspec/CustomScriptPanel.form" binding="customScriptPanel">
+        <constraints>
+          <grid row="9" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
+        </constraints>
+      </nested-form>
+      <grid id="19a65" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints>
+          <grid row="8" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="71d0d" class="javax.swing.JCheckBox" binding="inheritFromCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Inherit custom script from"/>
+            </properties>
+          </component>
+          <hspacer id="89f80">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+          <component id="e50e0" class="com.intellij.ui.components.ActionLink" binding="settingsActionLink">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="settings"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <component id="a021f" class="com.intellij.ui.TitledSeparator">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Test Environemnt"/>
+        </properties>
+      </component>
+      <nested-form id="b9fff" form-file="org/kdb/inside/brains/ide/runner/KdbCommonSettingsPanel.form" binding="commonSettingsPanel">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="1" fill="1" indent="2" use-parent-layout="false"/>
+        </constraints>
+      </nested-form>
+      <component id="4eee3" class="com.intellij.ui.components.ActionLink" binding="qSpecLibraryLink">
+        <constraints>
+          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="QSpec path"/>
+        </properties>
+      </component>
+      <component id="e3058" class="javax.swing.JLabel" binding="qSpecPath">
+        <constraints>
+          <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value=""/>
         </properties>
       </component>
     </children>

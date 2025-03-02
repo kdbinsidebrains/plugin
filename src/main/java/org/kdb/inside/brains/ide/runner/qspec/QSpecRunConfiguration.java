@@ -13,29 +13,27 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.NlsActions;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.util.text.StringUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.ide.qspec.QSpecLibrary;
-import org.kdb.inside.brains.ide.qspec.QSpecLibraryService;
 import org.kdb.inside.brains.ide.runner.KdbRunConfigurationBase;
+import org.kdb.inside.brains.lang.qspec.QSpecLibraryService;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class QSpecRunConfiguration extends KdbRunConfigurationBase {
-    private String expectationPattern;
-    private String specificationPattern;
-    private QSpecLibrary library;
-    private static final boolean DEFAULT_INHERIT_LIBRARY = true;
-    private static final boolean DEFAULT_KEEP_FAILED_INSTANCE = false;
-    private static final String EXPECTATION_PATTERN = "expectation";
-    private static final String SPECIFICATION_PATTERN = "specification";
-    private static final String INHERIT_LIBRARY = "inherit_library";
-    private static final String KEEP_FAILED_INSTANCE = "keep_failed_instance";
-    private boolean inheritLibrary = DEFAULT_INHERIT_LIBRARY;
-    private boolean keepFailedInstance = DEFAULT_KEEP_FAILED_INSTANCE;
+    private static final String SCRIPT = "script";
+    private static final String SUITE_PATTERN = "suite";
+    private static final String TEST_PATTERN = "test";
+    private String customScript;
+    private static final String KEEP_FAILED_INSTANCE = "keep_failed";
+    private static final boolean DEFAULT_KEEP_FAILED = false;
+    private String suitePattern;
+    private String testPattern;
+    private boolean keepFailed = DEFAULT_KEEP_FAILED;
 
     public QSpecRunConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory) {
         super("KDB QSpec Test Run Configuration", project, factory);
@@ -50,26 +48,26 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
     @Override
     public void readExternal(@NotNull Element element) throws InvalidDataException {
         super.readExternal(element);
-        expectationPattern = JDOMExternalizerUtil.readCustomField(element, EXPECTATION_PATTERN);
-        specificationPattern = JDOMExternalizerUtil.readCustomField(element, SPECIFICATION_PATTERN);
-
-        final String il = JDOMExternalizerUtil.readCustomField(element, INHERIT_LIBRARY);
-        inheritLibrary = il == null ? DEFAULT_INHERIT_LIBRARY : Boolean.parseBoolean(il);
+        suitePattern = JDOMExternalizerUtil.readCustomField(element, SUITE_PATTERN);
+        testPattern = JDOMExternalizerUtil.readCustomField(element, TEST_PATTERN);
 
         final String kfi = JDOMExternalizerUtil.readCustomField(element, KEEP_FAILED_INSTANCE);
-        keepFailedInstance = kfi == null ? DEFAULT_KEEP_FAILED_INSTANCE : Boolean.parseBoolean(kfi);
-        library = QSpecLibrary.read(element);
+        keepFailed = kfi == null ? DEFAULT_KEEP_FAILED : Boolean.parseBoolean(kfi);
+
+        final Element child = element.getChild(SCRIPT);
+        if (child != null) {
+            customScript = child.getText();
+        }
     }
 
     @Override
     public void writeExternal(@NotNull Element element) throws WriteExternalException {
         super.writeExternal(element);
-        addNonEmptyElement(element, EXPECTATION_PATTERN, expectationPattern);
-        addNonEmptyElement(element, SPECIFICATION_PATTERN, specificationPattern);
-        addNonEmptyElement(element, INHERIT_LIBRARY, String.valueOf(inheritLibrary));
-        addNonEmptyElement(element, KEEP_FAILED_INSTANCE, String.valueOf(keepFailedInstance));
-        if (library != null) {
-            library.write(element);
+        addNonEmptyElement(element, TEST_PATTERN, testPattern);
+        addNonEmptyElement(element, SUITE_PATTERN, suitePattern);
+        addNonEmptyElement(element, KEEP_FAILED_INSTANCE, String.valueOf(keepFailed));
+        if (customScript != null) {
+            element.addContent(new Element(SCRIPT).setText(customScript));
         }
     }
 
@@ -77,30 +75,30 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
     public void checkConfiguration() throws RuntimeConfigurationException {
         super.checkConfiguration();
 
-        final QSpecLibrary activeLibrary = getActiveLibrary();
-        if (activeLibrary == null) {
-            throw new RuntimeConfigurationException("QSpec library is not specified");
-        } else {
-            try {
-                activeLibrary.validate();
-            } catch (Exception ex) {
-                throw new RuntimeConfigurationException(ex.getMessage(), ex);
-            }
-        }
+        // The result is not important
+        QSpecLibraryService.getInstance().getValidLibrary();
     }
 
     @Override
     public @Nullable @NlsActions.ActionText String suggestedName() {
         final String scriptName = getScriptName();
-        if (scriptName == null || scriptName.isEmpty()) {
+        if (StringUtil.isEmpty(scriptName)) {
             return null;
         }
-        String name = FilenameUtils.getBaseName(scriptName);
-        if (specificationPattern != null && !specificationPattern.isEmpty()) {
-            name += "." + specificationPattern;
+
+        final boolean hasTest = StringUtil.isNotEmpty(testPattern);
+        final boolean hasSuite = StringUtil.isNotEmpty(suitePattern);
+
+        if (!hasSuite && !hasTest) {
+            return "Tests in '" + FilenameUtils.getName(scriptName) + "'";
         }
-        if (expectationPattern != null && !expectationPattern.isEmpty()) {
-            name += "/" + expectationPattern;
+
+        String name = FilenameUtils.getBaseName(scriptName);
+        if (hasSuite) {
+            name += "." + suitePattern;
+        }
+        if (hasTest) {
+            name += "/" + testPattern;
         }
         return name;
     }
@@ -112,53 +110,45 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
             return ProgramRunnerUtil.shortenName("Tests in '" + FilenameUtils.getBaseName(scriptName) + "'", 0);
         }
 
-        if (expectationPattern != null && !expectationPattern.isEmpty()) {
-            return ProgramRunnerUtil.shortenName(expectationPattern, 0);
+        if (StringUtil.isNotEmpty(testPattern)) {
+            return ProgramRunnerUtil.shortenName(testPattern, 0);
         }
-        if (specificationPattern != null && !specificationPattern.isEmpty()) {
-            return ProgramRunnerUtil.shortenName(specificationPattern, 0);
+        if (StringUtil.isNotEmpty(suitePattern)) {
+            return ProgramRunnerUtil.shortenName(suitePattern, 0);
         }
         return ProgramRunnerUtil.shortenName(getName(), 0);
     }
 
-    public String getExpectationPattern() {
-        return expectationPattern;
+    public String getTestPattern() {
+        return testPattern;
     }
 
-    public void setExpectationPattern(String expectationPattern) {
-        this.expectationPattern = expectationPattern;
+    public void setTestPattern(String testPattern) {
+        this.testPattern = testPattern;
     }
 
-    public String getSpecificationPattern() {
-        return specificationPattern;
+    public String getSuitePattern() {
+        return suitePattern;
     }
 
-    public void setSpecificationPattern(String specificationPattern) {
-        this.specificationPattern = specificationPattern;
+    public void setSuitePattern(String suitePattern) {
+        this.suitePattern = suitePattern;
     }
 
-    public QSpecLibrary getLibrary() {
-        return library;
+    public boolean isKeepFailed() {
+        return keepFailed;
     }
 
-    public void setLibrary(QSpecLibrary library) {
-        this.library = library;
+    public void setKeepFailed(boolean keepFailed) {
+        this.keepFailed = keepFailed;
     }
 
-    public boolean isInheritLibrary() {
-        return inheritLibrary;
+    public String getCustomScript() {
+        return customScript;
     }
 
-    public void setInheritLibrary(boolean inheritLibrary) {
-        this.inheritLibrary = inheritLibrary;
-    }
-
-    public boolean isKeepFailedInstance() {
-        return keepFailedInstance;
-    }
-
-    public void setKeepFailedInstance(boolean keepFailedInstance) {
-        this.keepFailedInstance = keepFailedInstance;
+    public void setCustomScript(String customScript) {
+        this.customScript = customScript;
     }
 
     /**
@@ -166,8 +156,8 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
      *
      * @return the current library of the settings library if the configuration has no own.
      */
-    public QSpecLibrary getActiveLibrary() {
-        return inheritLibrary ? QSpecLibraryService.getInstance().getLibrary() : library;
+    public String getActiveCustomScript() {
+        return customScript != null ? customScript : QSpecLibraryService.getInstance().getCustomScript();
     }
 
     @Override

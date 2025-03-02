@@ -4,13 +4,17 @@ import com.intellij.openapi.util.TextRange;
 
 import java.util.List;
 
-public record IdentifierDescriptor(IdentifierType type, List<String> params, TextRange range) {
+public record IdentifierDescriptor(IdentifierType type, TextRange range, List<String> params) {
+    public IdentifierDescriptor(IdentifierType type, TextRange range) {
+        this(type, range, List.of());
+    }
+
     public boolean isSymbol() {
         return type == IdentifierType.SYMBOL;
     }
 
     public boolean isVariable() {
-        return !isSymbol();
+        return type != IdentifierType.SYMBOL;
     }
 
     @Override
@@ -18,6 +22,7 @@ public record IdentifierDescriptor(IdentifierType type, List<String> params, Tex
         return "IdentifierDescriptor{" +
                 "type=" + type +
                 ", range=" + range +
+                ", params=" + params +
                 '}';
     }
 }

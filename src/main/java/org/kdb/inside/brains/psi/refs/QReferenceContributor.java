@@ -13,5 +13,6 @@ public class QReferenceContributor extends PsiReferenceContributor {
         QBaseReferenceProvider.register(registrar, QImport.class, new QImportReferenceProvider());
         QBaseReferenceProvider.register(registrar, QSymbol.class, new QSymbolReferenceProvider());
         QBaseReferenceProvider.register(registrar, QVariable.class, new QVariableReferenceProvider());
+        QBaseReferenceProvider.register(registrar, QVariable.class, new QSpecReferenceProvider());
     }
 }

@@ -33,9 +33,9 @@ csv, [], CSV delimiter,ref/csv/
 cut, [x;y], Cut a list or table into a matrix of x columns or as _ Cut operator,ref/cut/
 delete, <delete ... from>, Delete rows or columns from a table; entries from a dictionary; or objects from a namespace,ref/delete/
 deltas, [x], Differences between adjacent list items,ref/deltas/
-desc, [x],  Descending sort,ref/desc/#desc
-idesc, [x], Descending grade,ref/desc/#idesc
-xdesc, [x;y], Sorts a table in descending order of specified columns.,ref/desc/#xdesc
+suite, [x],  Descending sort,ref/suite/#suite
+idesc, [x], Descending grade,ref/suite/#idesc
+xdesc, [x;y], Sorts a table in descending order of specified columns.,ref/suite/#xdesc
 dev, [x], Standard deviation,ref/dev/#dev
 mdev, [x;y], Moving deviations,ref/dev/#mdev
 sdev, [x], Sample standard deviation: {sqrt var[x]*count[x]%-1+count x},ref/dev/#sdev

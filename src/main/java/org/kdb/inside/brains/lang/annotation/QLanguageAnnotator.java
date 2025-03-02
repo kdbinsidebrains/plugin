@@ -17,7 +17,8 @@ public class QLanguageAnnotator implements Annotator {
             new QContextAnnotator(),
             new QTypeCastAnnotator(),
             new QImportAnnotator(),
-            new QTableAnnotator()
+            new QTableAnnotator(),
+            new QSpecAnnotator()
     );
 
     private final Map<Class<? extends PsiElement>, QElementAnnotator<?>> annotators = new HashMap<>();

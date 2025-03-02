@@ -15,16 +15,16 @@
         </p>
         <p>
         Full <a href="https://code.kx.com/q/">KDB+ Q/K</a> languages supporting, including code highlighting,
-        code inspection, like unused or undefined variables, search usages and refactoring.
+        code inspection, like unused or undefined variables, search usages, and refactoring.
         </p>
         <p>
-        To enable the plugin create new <a href="https://www.jetbrains.com/help/idea/creating-and-managing-modules.html">KDB+ Q</a> module or
-        add new <a href="https://www.jetbrains.com/help/idea/adding-support-for-frameworks-and-technologies.html">KDB+ Q Framework</a> into exist one.
-        Alternatively you can just <a href="https://www.jetbrains.com/help/idea/import-project-or-module-wizard.html">import your project</a> from exist
+        To enable the plugin, create new <a href="https://www.jetbrains.com/help/idea/creating-and-managing-modules.html">KDB+ Q</a> module or
+        add new <a href="https://www.jetbrains.com/help/idea/adding-support-for-frameworks-and-technologies.html">KDB+ Q Framework</a> into the existing one.
+        Alternatively, you can just <a href="https://www.jetbrains.com/help/idea/import-project-or-module-wizard.html">import your project</a> from the existing
         source and new module with the framework will be added automatically.
         </p>
         <p>
-        To get more info how to set up and use the plugin please check our docs: <a href="https://www.kdbinsidebrains.dev">https://www.kdbinsidebrains.dev</a>.
+        To get more info on how to set up and use the plugin, please check our docs: <a href="https://www.kdbinsidebrains.dev">https://www.kdbinsidebrains.dev</a>.
         </p>
         <p>
         Feel free to report <a href="https://github.com/kdbinsidebrains/plugin/issues">any issue</a> or <a href="https://github.com/kdbinsidebrains/plugin/discussions">start new discussion</a> if you need help.
@@ -430,11 +430,15 @@
         <applicationService serviceImplementation="org.kdb.inside.brains.settings.KdbSettingsService"/>
         <colorSettingsPage implementation="org.kdb.inside.brains.settings.KdbColorSettingsPage"/>
 
-        <applicationConfigurable groupId="language" displayName="KDB+ Q" id="Kdb.Settings"
+        <applicationConfigurable id="Kdb.Settings"
+                                 groupId="language"
+                                 displayName="KDB+ Q"
                                  instance="org.kdb.inside.brains.settings.KdbSettingsConfigurable">
             <configurable instance="org.kdb.inside.brains.settings.KdbConnectionsConfigurable"/>
-            <configurable instance="org.kdb.inside.brains.settings.QSpecConfigurable"/>
+            <configurable instance="org.kdb.inside.brains.lang.qspec.QSpecConfigurable"/>
+            <configurable instance="org.kdb.inside.brains.lang.exclusions.UndefinedExclusionsConfigurable"/>
         </applicationConfigurable>
+
         <!--
                 <applicationConfigurable groupId="language" displayName="KDB+ Q" id="Kdb.Settings"
                                          instance="org.kdb.inside.brains.settings.KdbSettingsConfigurable"/>
@@ -508,6 +512,9 @@
                                       implementationClass="org.kdb.inside.brains.view.struct.QStructureViewFactory"/>
 
         <!-- Inspections -->
+        <applicationService
+                serviceImplementation="org.kdb.inside.brains.lang.exclusions.UndefinedExclusionsService"/>
+
         <localInspection language="q" id="UndefinedVariable" shortName="UndefinedVariable"
                          displayName="Undefined variable"
                          groupName="KDB+Q" enabledByDefault="true" level="ERROR"
@@ -581,9 +588,5 @@
 
         <langCodeStyleSettingsProvider
                 implementation="org.kdb.inside.brains.lang.formatting.QCodeStyleSettingsProvider"/>
-
-        <!-- Testing -->
-        <runLineMarkerContributor language="q"
-                                  implementationClass="org.kdb.inside.brains.ide.runner.qspec.QSpecRunLineMarkerContributor"/>
     </extensions>
 </idea-plugin>

@@ -52,14 +52,14 @@ public interface CredentialProvider {
     /**
      * Creates new editor for this parameter.
      * <p>
-     * The method should never return
+     * The method testCase never return
      *
      * @return the credential editor.
      */
     CredentialEditor createEditor();
 
     /**
-     * Checks is this provider can process specified credentials. It should be very simple implementation that mustn't query
+     * Checks is this provider can process specified credentials. It testCase be very simple implementation that mustn't query
      * any external systems. Usually the implementation just checks that credentials starts with unique id, like: {@code credentials.startWith("jwt:")}.
      * <p>
      * If there are more than one provider supporting the same credentials, the first one in order of definition will be used.
@@ -96,8 +96,8 @@ public interface CredentialProvider {
      * <p>
      * Result of the method must in KDB {@code username:password} format as it's defined in your KDB instance.
      *
-     * @param host        original instance hostname that the credentials should be issue for
-     * @param port        original instance port that the credentials should be issue for
+     * @param host        original instance hostname that the credentials testCase be issue for
+     * @param port        original instance port that the credentials testCase be issue for
      * @param credentials credentials encoded in the {@code CredentialProvider} format.
      * @return new credentials that will be sent to KDB instance for authentication.
      * @throws CredentialsResolvingException if new credentials can't be created by any reason.

@@ -102,7 +102,7 @@ public class KdbScopesManager implements PersistentStateComponent<KdbScopesManag
     }
 
     /**
-     * Implementation is very slow so should be used very often. Implemented just to state recovery and nothing else.
+     * Implementation is very slow so testCase be used very often. Implemented just to state recovery and nothing else.
      */
     public KdbInstance lookupInstance(String canonicalName) {
         for (KdbScope scope : scopes) {

@@ -4,12 +4,20 @@
 
 ### Added
 
-- QSpec Testing Framework added: https://www.kdbinsidebrains.dev/testing)
-- Run local KDB Instance redesigned
+- QSpec Testing Framework added for Unit-Testing (https://www.kdbinsidebrains.dev/testing):
+  - Downloading the lib from GitHub that is attached a synthetic library to any project with KDB code
+  - Running an expectation, a description or even a directory
+  - Test cases code analysis, suggestions, and completion
+  - Quick generate actions for: description, before, after and expectations
+- Run local KDB Instance functionality was redesigned to support QSpec Testing Framework
+- Exclusion list of undefined variables has been added: any undefined variable can be added to the list, and will be
+  undefined inspection will be disabled for the variable.
+- indexed symbol assignment is parsed as a variable: .asd.qwe[`zxc]:10; → .asd.qwe.zxc:10;
 
 ### Fixed
 
 - InstancesTree freezes in 2025.x version
+- Creating global undefined function works as expected now
 
 ## [5.14.3]
 

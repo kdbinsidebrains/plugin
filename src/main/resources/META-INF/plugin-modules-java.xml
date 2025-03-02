@@ -1,4 +1,17 @@
 <idea-plugin require-restart="false">
+    <actions>
+        <group id="KdbGenerateGroupQSpec">
+            <action class="org.kdb.inside.brains.lang.completion.qspec.TestCaseGeneratorAction"/>
+            <separator/>
+            <action class="org.kdb.inside.brains.lang.completion.qspec.BeforeGenerateAction"/>
+            <action class="org.kdb.inside.brains.lang.completion.qspec.AfterGenerateAction"/>
+            <action class="org.kdb.inside.brains.lang.completion.qspec.ShouldGenerateAction"/>
+            <action class="org.kdb.inside.brains.lang.completion.qspec.HoldsGenerateAction"/>
+
+            <add-to-group group-id="GenerateGroup"/>
+        </group>
+    </actions>
+
     <extensions defaultExtensionNs="com.intellij">
         <!--  Project configuration -->
         <sdkType implementation="org.kdb.inside.brains.ide.sdk.KdbSdkType"/>
@@ -27,6 +40,10 @@
         <!-- QSpec configuration -->
         <configurationType implementation="org.kdb.inside.brains.ide.runner.qspec.QSpecConfigurationType"/>
         <runConfigurationProducer implementation="org.kdb.inside.brains.ide.runner.qspec.QSpecConfigurationProducer"/>
-        <applicationService serviceImplementation="org.kdb.inside.brains.ide.qspec.QSpecLibraryService"/>
+        <applicationService serviceImplementation="org.kdb.inside.brains.lang.qspec.QSpecLibraryService"/>
+        <runLineMarkerContributor language="q"
+                                  implementationClass="org.kdb.inside.brains.ide.runner.qspec.QSpecRunLineMarkerContributor"/>
+        <additionalLibraryRootsProvider
+                implementation="org.kdb.inside.brains.lang.qspec.QSpecLibraryRootsProvider"/>
     </extensions>
 </idea-plugin>

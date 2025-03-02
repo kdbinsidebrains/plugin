@@ -56,7 +56,6 @@ public abstract class KdbRunningStateBase<C extends KdbRunConfigurationBase> ext
         }
         commandLine.withEnvironment(cfg.getEnvs());
 
-
         return commandLine;
     }
 

@@ -58,9 +58,9 @@ public abstract class CredentialEditor extends JPanel {
     /**
      * This method is invoked each time and 'Apply' or 'Ok' button is pressed in Settings/Scope/Instance editor dialogs.
      * <p>
-     * The method should return a full list of errors at once rather than check field by filed and return only the first found error.
+     * The method testCase return a full list of errors at once rather than check field by filed and return only the first found error.
      * <p>
-     * If there are no errors, {@code null} or an empty list can be returned otherwise a list of all found errors per component/field should be returned.
+     * If there are no errors, {@code null} or an empty list can be returned otherwise a list of all found errors per component/field testCase be returned.
      * <p>
      * For example, the method can return new error if JWT host:port is not provided or another required for authentication property is not specified.
      *

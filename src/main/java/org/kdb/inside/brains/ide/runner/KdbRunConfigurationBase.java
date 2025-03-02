@@ -87,21 +87,15 @@ public abstract class KdbRunConfigurationBase extends AbstractRunConfiguration i
 
     @Override
     public void checkConfiguration() throws RuntimeConfigurationException {
-        final RunConfigurationModule configurationModule = getConfigurationModule();
-        Module module = configurationModule.getModule();
-        if (module != null) {
-            if (KdbSdkType.getHomePath(module) == null) {
-                throw new RuntimeConfigurationWarning("KDB SDK is not specified for module '" + module.getName() + "'");
-            }
-        } else {
-            throw new RuntimeConfigurationError("Module is not specified");
+        if (KdbSdkType.getHomePath(getConfigurationModule()) == null) {
+            throw new RuntimeConfigurationWarning("KDB SDK is not specified for the module");
         }
 
-        if (myScriptName == null || myScriptName.trim().isEmpty()) {
+        if (StringUtil.isEmpty(myScriptName)) {
             throw new RuntimeConfigurationError("Script name is not specified");
         }
 
-        if (myWorkingDirectory == null || myWorkingDirectory.trim().isEmpty()) {
+        if (StringUtil.isEmpty(myWorkingDirectory)) {
             throw new RuntimeConfigurationError("Working directory is not specified");
         }
     }

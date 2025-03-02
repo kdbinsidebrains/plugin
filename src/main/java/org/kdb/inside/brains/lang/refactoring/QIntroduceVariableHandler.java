@@ -33,7 +33,7 @@ public class QIntroduceVariableHandler implements RefactoringActionHandler {
     }
 
     private static void showErrorMessage(Project project, Editor editor) {
-        CommonRefactoringUtil.showErrorHint(project, editor, "Selected block should represent an expression", RefactoringBundle.message("introduce.parameter.title"), null);
+        CommonRefactoringUtil.showErrorHint(project, editor, "Selected block testCase represent an expression", RefactoringBundle.message("introduce.parameter.title"), null);
     }
 
     @Override

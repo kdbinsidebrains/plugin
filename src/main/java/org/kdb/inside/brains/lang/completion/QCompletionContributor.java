@@ -10,5 +10,6 @@ public class QCompletionContributor extends CompletionContributor implements Dum
     public QCompletionContributor() {
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(QTypes.SYMBOL_PATTERN), new QSymbolCompletion());
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(QTypes.VARIABLE_PATTERN), new QVariableCompletion());
+        extend(CompletionType.BASIC, PlatformPatterns.psiElement(QTypes.VARIABLE_PATTERN), new QSpecCompletion());
     }
 }

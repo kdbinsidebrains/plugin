@@ -1,50 +1,61 @@
 package org.kdb.inside.brains.ide.runner.qspec;
 
+import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.components.ActionLink;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.ide.qspec.QSpecLibraryPanel;
-import org.kdb.inside.brains.ide.qspec.QSpecLibraryService;
 import org.kdb.inside.brains.ide.runner.KdbCommonSettingsPanel;
-import org.kdb.inside.brains.settings.QSpecConfigurable;
+import org.kdb.inside.brains.lang.qspec.CustomScriptPanel;
+import org.kdb.inside.brains.lang.qspec.QSpecConfigurable;
+import org.kdb.inside.brains.lang.qspec.QSpecLibrary;
+import org.kdb.inside.brains.lang.qspec.QSpecLibraryService;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration> {
-    private final QSpecLibraryService libraryService = QSpecLibraryService.getInstance();
     private JPanel myComponent;
-    private JTextField expectationField;
-    private JTextField specificationField;
-    private QSpecLibraryPanel qSpecLibraryPanel;
+    private JTextField shouldField;
+    private JTextField descField;
+    private final QSpecLibraryService libraryService = QSpecLibraryService.getInstance();
     private KdbCommonSettingsPanel commonSettingsPanel;
     private JCheckBox inheritFromCheckBox;
-    private HyperlinkLabel settingsActionLink;
+    private CustomScriptPanel customScriptPanel;
     private JCheckBox keepInstanceCheckbox;
+    private ActionLink settingsActionLink;
+    private JLabel qSpecPath;
+    private ActionLink qSpecLibraryLink;
 
     public QSpecRunSettingsEditor(Project project) {
-        qSpecLibraryPanel.init(project, libraryService.getLibrary());
+        customScriptPanel.init(project);
         commonSettingsPanel.init(project);
 
-        qSpecLibraryPanel.setEnabled(false);
+        customScriptPanel.setEnabled(false);
         inheritFromCheckBox.setSelected(true);
 
         inheritFromCheckBox.addActionListener(e -> {
             final boolean inherit = inheritFromCheckBox.isSelected();
-            qSpecLibraryPanel.setEnabled(!inherit);
+            customScriptPanel.setEnabled(!inherit);
             if (inherit) {
-                qSpecLibraryPanel.setLibrary(libraryService.getLibrary());
+                customScriptPanel.setText(libraryService.getCustomScript());
             }
         });
 
-        settingsActionLink.setVisible(true);
-        settingsActionLink.setHyperlinkText("settings");
-        settingsActionLink.addHyperlinkListener(e -> {
-            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                QSpecConfigurable.openSetting();
+        qSpecLibraryLink.addActionListener(e -> showSettings(project));
+        settingsActionLink.addActionListener(e -> showSettings(project));
+
+        qSpecPath.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showSettings(project);
             }
         });
+
+        updateLibraryDetails();
     }
 
     @NotNull
@@ -55,34 +66,55 @@ public class QSpecRunSettingsEditor extends SettingsEditor<QSpecRunConfiguration
 
     @Override
     protected void resetEditorFrom(@NotNull QSpecRunConfiguration configuration) {
+        descField.setText(configuration.getSuitePattern());
+        shouldField.setText(configuration.getTestPattern());
         commonSettingsPanel.resetEditorFrom(configuration);
-        expectationField.setText(configuration.getExpectationPattern());
-        specificationField.setText(configuration.getSpecificationPattern());
-        keepInstanceCheckbox.setSelected(configuration.isKeepFailedInstance());
+        keepInstanceCheckbox.setSelected(configuration.isKeepFailed());
 
-        final boolean inheritLibrary = configuration.isInheritLibrary();
-        qSpecLibraryPanel.setEnabled(!inheritLibrary);
-        inheritFromCheckBox.setSelected(inheritLibrary);
-        if (inheritLibrary) {
-            qSpecLibraryPanel.setLibrary(libraryService.getLibrary());
+        final String cs = configuration.getCustomScript();
+        if (cs == null) {
+            customScriptPanel.setEnabled(false);
+            inheritFromCheckBox.setSelected(true);
+            customScriptPanel.setText(libraryService.getCustomScript());
         } else {
-            qSpecLibraryPanel.setLibrary(configuration.getLibrary());
+            customScriptPanel.setEnabled(true);
+            inheritFromCheckBox.setSelected(false);
+            customScriptPanel.setText(cs);
         }
     }
 
     @Override
     protected void applyEditorTo(@NotNull QSpecRunConfiguration configuration) {
-        commonSettingsPanel.applyEditorTo(configuration);
-        configuration.setExpectationPattern(expectationField.getText());
-        configuration.setSpecificationPattern(specificationField.getText());
-        configuration.setKeepFailedInstance(keepInstanceCheckbox.isSelected());
+        configuration.setSuitePattern(descField.getText());
+        configuration.setTestPattern(shouldField.getText());
+        configuration.setKeepFailed(keepInstanceCheckbox.isSelected());
 
-        final boolean inherit = inheritFromCheckBox.isSelected();
-        configuration.setInheritLibrary(inherit);
-        if (inherit) {
-            configuration.setLibrary(null);
+        commonSettingsPanel.applyEditorTo(configuration);
+
+        if (inheritFromCheckBox.isSelected()) {
+            configuration.setCustomScript(null);
         } else {
-            configuration.setLibrary(qSpecLibraryPanel.getLibrary());
+            configuration.setCustomScript(customScriptPanel.getText());
+        }
+    }
+
+    private void showSettings(Project project) {
+        QSpecConfigurable.showConfigurable(project);
+        updateLibraryDetails();
+    }
+
+    private void updateLibraryDetails() {
+        customScriptPanel.setText(libraryService.getCustomScript());
+
+        try {
+            final QSpecLibrary lib = libraryService.getValidLibrary();
+            qSpecPath.setIcon(null);
+            qSpecPath.setForeground(JBColor.foreground());
+            qSpecPath.setText(lib.getLocation().toString());
+        } catch (RuntimeConfigurationException e) {
+            qSpecPath.setForeground(JBColor.RED);
+            qSpecPath.setIcon(AllIcons.General.Warning);
+            qSpecPath.setText("Warning: " + e.getLocalizedMessage());
         }
     }
 }
