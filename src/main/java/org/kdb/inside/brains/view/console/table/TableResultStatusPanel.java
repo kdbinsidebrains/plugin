@@ -31,8 +31,8 @@ class TableResultStatusPanel extends JPanel {
                 .setDefaultInsets(3, 10, 3, 3);
 
         setLayout(new GridBagLayout());
-        add(queryLabel, c.next());
-        add(avgLabel, c.next());
+        add(queryLabel, c.next().fillCell());
+        add(avgLabel, c.next().fillCellNone());
         add(Box.createHorizontalStrut(10), c.next());
         add(countLabel, c.next());
         add(sumLabel, c.next());
@@ -41,6 +41,8 @@ class TableResultStatusPanel extends JPanel {
 
         myTable.getSelectionModel().addListSelectionListener(e -> recalculateValues());
         myTable.getColumnModel().getSelectionModel().addListSelectionListener(e -> recalculateValues());
+
+        setMinimumSize(new Dimension(10, 10));
     }
 
     public void recalculateValues() {

@@ -23,6 +23,7 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBSplitter;
@@ -31,6 +32,7 @@ import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.JBTabsFactory;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.IoErrorText;
+import com.intellij.util.ui.JBDimension;
 import icons.KdbIcons;
 import kx.c;
 import org.apache.commons.io.FileUtils;
@@ -156,8 +158,9 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     private JBSplitter createTabsSplitter() {
         JBSplitter splitter = new JBSplitter(true, 0.5f);
         splitter.setResizeEnabled(true);
-        splitter.setHonorComponentsMinimumSize(false);
+        splitter.setHonorComponentsMinimumSize(true);
         splitter.setHonorComponentsPreferredSize(false);
+        splitter.setLackOfSpaceStrategy(Splitter.LackOfSpaceStrategy.HONOR_THE_SECOND_MIN_SIZE);
         splitter.setAndLoadSplitterProportionKey("KdbConsole.Splitter.Tabs");
         return splitter;
     }
@@ -165,7 +168,8 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     private JBSplitter createWatchesSplitter() {
         JBSplitter splitter = new JBSplitter(false, 0.5f);
         splitter.setResizeEnabled(true);
-        splitter.setHonorComponentsMinimumSize(false);
+        splitter.setLackOfSpaceStrategy(Splitter.LackOfSpaceStrategy.HONOR_THE_SECOND_MIN_SIZE);
+        splitter.setHonorComponentsMinimumSize(true);
         splitter.setHonorComponentsPreferredSize(false);
         splitter.setAndLoadSplitterProportionKey("KdbConsole.Splitter.Watches");
         return splitter;
@@ -177,6 +181,8 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
         final LanguageConsoleBuilder b = new LanguageConsoleBuilder();
         b.gutterContentProvider(gutterProvider);
         console = b.build(project, QLanguage.INSTANCE);
+        console.getComponent().setMinimumSize(new JBDimension(10, 10));
+
 
         LanguageConsoleBuilder.registerExecuteAction(console,
                 text -> {

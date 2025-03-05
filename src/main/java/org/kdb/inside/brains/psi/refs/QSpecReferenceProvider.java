@@ -128,30 +128,41 @@ public class QSpecReferenceProvider extends QBaseReferenceProvider<QVariable> {
             }
 
             for (QVarReference ref : vars) {
-                final QInvokeFunction inv = getMockDeclaration(ref);
-                if (inv != null) {
-                    final QSymbol symbol = findSymbolReference(inv);
-                    if (symbol != null && name.equals(symbol.getQualifiedName())) {
-                        symbols.add(symbol);
-                    }
+                final QSymbol symbol = getMockDeclaration(ref);
+                if (symbol != null && name.equals(symbol.getQualifiedName())) {
+                    symbols.add(symbol);
                 }
             }
         }
 
-        private QInvokeFunction getMockDeclaration(QVarReference ref) {
-            if (MOCK_FUNCTION.equals(ref.getQualifiedName()) &&
-                    ref.getParent() instanceof QCustomFunction qf &&
-                    qf.getParent() instanceof QInvokeFunction mockInv &&
-                    mockInv.getParent() instanceof QInvokeFunction inv) {
-                return inv;
+        private QSymbol getMockDeclaration(QVarReference ref) {
+            if (!MOCK_FUNCTION.equals(ref.getQualifiedName())) {
+                return null;
             }
-            return null;
-        }
+            if (!(ref.getParent() instanceof QCustomFunction qf) || !(qf.getParent() instanceof QInvokeFunction mockInv)) {
+                return null;
+            }
 
-        private QSymbol findSymbolReference(QInvokeFunction inv) {
-            final QCustomFunction cf = inv.getCustomFunction();
-            if (cf != null && cf.getExpression() instanceof QLiteralExpr ex) {
-                return ex.getSymbol();
+            if (mockInv.getParent() instanceof QInvokeFunction inv) {
+                final QCustomFunction cf = inv.getCustomFunction();
+                if (cf != null && cf.getExpression() instanceof QLiteralExpr ex) {
+                    return ex.getSymbol();
+                }
+            } else {
+                final List<QArguments> argumentsList = mockInv.getArgumentsList();
+                if (argumentsList.isEmpty()) {
+                    return null;
+                }
+
+                final List<QExpression> expressions = argumentsList.get(0).getExpressions();
+                if (expressions.isEmpty()) {
+                    return null;
+                }
+
+                if (!(expressions.get(0) instanceof QLiteralExpr lit)) {
+                    return null;
+                }
+                return lit.getSymbol();
             }
             return null;
         }

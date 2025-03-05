@@ -1,5 +1,15 @@
 # KdbInsideBrains Changelog
 
+## [5.15.1]
+
+### Added
+
+- Resolving QSpec `mock natural declaration added
+
+### Fixed
+
+- Table View can be totally hidden in a'Split Left/Down' layout: minimal size added to resolve
+
 ## [5.15.0]
 
 ### Added
