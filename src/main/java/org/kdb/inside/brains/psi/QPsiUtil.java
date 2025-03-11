@@ -12,11 +12,61 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public final class QPsiUtil {
     private QPsiUtil() {
+    }
+
+    public static boolean isResolvableReference(PsiReference reference) {
+        if (reference instanceof PsiPolyVariantReference poly) {
+            final ResolveResult[] resolveResults = poly.multiResolve(false);
+            for (ResolveResult resolveResult : resolveResults) {
+                if (resolveResult.isValidResult() && resolveResult.getElement() != null) {
+                    return true;
+                }
+            }
+        } else {
+            return reference.resolve() != null;
+        }
+        return false;
+    }
+
+    public static boolean hasResolvedReference(PsiElement element) {
+        for (PsiReference reference : element.getReferences()) {
+            if (isResolvableReference(reference)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Does {@link PsiElement#getReferences()} and resolved all references taking into account {@link PsiPolyVariantReference#multiResolve(boolean)}
+     */
+    public static List<PsiElement> getResolvedReferences(PsiElement element) {
+        final List<PsiElement> res = new ArrayList<>();
+        final PsiReference[] references = element.getReferences();
+        for (PsiReference reference : references) {
+            if (reference instanceof PsiPolyVariantReference poly) {
+                final ResolveResult[] resolveResults = poly.multiResolve(false);
+                for (ResolveResult resolveResult : resolveResults) {
+                    final PsiElement el = resolveResult.getElement();
+                    if (resolveResult.isValidResult() && el != null) {
+                        res.add(el);
+                    }
+                }
+            } else {
+                final PsiElement resolve = reference.resolve();
+                if (resolve != null) {
+                    res.add(resolve);
+                }
+            }
+        }
+        return res;
     }
 
     public static boolean isKeyColumn(@Nullable QTableColumn column) {

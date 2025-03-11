@@ -4,13 +4,17 @@ import com.intellij.lang.parameterInfo.CreateParameterInfoContext;
 import com.intellij.lang.parameterInfo.ParameterInfoHandler;
 import com.intellij.lang.parameterInfo.ParameterInfoUIContext;
 import com.intellij.lang.parameterInfo.UpdateParameterInfoContext;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
 
 public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, QParameterInfoHandler.QParameterInfo> {
     @Override
@@ -163,28 +167,7 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
     }
 
     private List<QLambdaExpr> findLambdasByName(QVarReference ref) {
-        final List<QLambdaExpr> lambdas = new ArrayList<>();
-
-        final PsiReference[] references = ref.getReferences();
-        for (PsiReference reference : references) {
-            if (reference instanceof PsiPolyVariantReference) {
-                final ResolveResult[] resolveResults = ((PsiPolyVariantReference) reference).multiResolve(false);
-                for (ResolveResult resolveResult : resolveResults) {
-                    if (resolveResult.isValidResult()) {
-                        final QLambdaExpr qLambdaExpr = resolveLambdaExpr(resolveResult.getElement());
-                        if (qLambdaExpr != null) {
-                            lambdas.add(qLambdaExpr);
-                        }
-                    }
-                }
-            } else {
-                final QLambdaExpr qLambdaExpr = resolveLambdaExpr(reference.resolve());
-                if (qLambdaExpr != null) {
-                    lambdas.add(qLambdaExpr);
-                }
-            }
-        }
-        return lambdas;
+        return QPsiUtil.getResolvedReferences(ref).stream().map(this::resolveLambdaExpr).filter(Objects::nonNull).toList();
     }
 
     private QLambdaExpr resolveLambdaExpr(PsiElement resolve) {
@@ -202,7 +185,7 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
         return null;
     }
 
-    protected static class QParameterInfo {
+    public static class QParameterInfo {
         private final String name;
         private final String[] parameters;
 

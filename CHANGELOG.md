@@ -1,5 +1,17 @@
 # KdbInsideBrains Changelog
 
+## [5.15.2]
+
+### Fixed
+
+- A variable shown as unresolved if it has more than one definition
+
+### Changed
+
+- Function docs logic changed:
+  - if there is more than one definition with the same semantic - the longest description is shown
+  - if there is more than one definition with differing semantics - list of all definitions is shown
+
 ## [5.15.1]
 
 ### Added

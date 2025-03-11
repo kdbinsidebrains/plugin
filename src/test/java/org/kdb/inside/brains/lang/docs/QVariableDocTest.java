@@ -12,7 +12,7 @@ class QVariableDocTest {
     @ParameterizedTest
     @MethodSource("docExamples")
     void docsGroup(String txt) {
-        final QVariableDoc docs = QVariableDoc.from(".asd.qwe[x;qe;f]", txt);
+        final QVariableDoc docs = QVariableDoc.withParsedComment(".asd.qwe[x;qe;f]", txt);
         assertEquals("This is test function", docs.description());
 
         final List<QVariableDoc.Parameter> parameters = docs.parameters();

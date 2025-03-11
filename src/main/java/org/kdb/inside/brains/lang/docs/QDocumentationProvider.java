@@ -5,7 +5,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.io.IOUtils;
@@ -14,13 +13,16 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.QWord;
 import org.kdb.inside.brains.psi.QAssignmentExpr;
+import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QTypes;
 import org.kdb.inside.brains.psi.QVariable;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.intellij.lang.documentation.DocumentationMarkup.*;
 
@@ -56,26 +58,29 @@ public final class QDocumentationProvider extends AbstractDocumentationProvider 
     }
 
     private String createVariableDoc(QVariable variable) {
-        final PsiReference[] references = variable.getReferences();
-        if (references.length != 1) {
+        final List<QVariableDoc> docs = QPsiUtil.getResolvedReferences(variable).stream()
+                .map(r -> PsiTreeUtil.getContextOfType(r, QAssignmentExpr.class))
+                .map(QVariableDoc::withParsedComment)
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (docs.isEmpty()) {
             return null;
         }
 
-        final PsiElement resolve = references[0].resolve();
-        if (resolve == null) {
-            return null;
+        if (docs.size() == 1) {
+            return docs.get(0).toHtml();
         }
 
-        final QAssignmentExpr context = PsiTreeUtil.getContextOfType(resolve, QAssignmentExpr.class);
-        if (context == null) {
-            return null;
+        final List<String> list = docs.stream().map(QVariableDoc::definition).distinct().toList();
+        if (list.size() == 1) {
+            return docs.stream().map(QVariableDoc::toHtml).reduce((s1, s2) -> s1.length() >= s2.length() ? s1 : s2).orElse(null);
         }
-
-        final QVariableDoc doc = QVariableDoc.from(context);
-        if (doc == null) {
-            return context.getText();
-        }
-        return doc.toHtml();
+        return docs.stream().map(QVariableDoc::definition).distinct()
+                .map(s -> DEFINITION_START + s + DEFINITION_END)
+                .collect(
+                        Collectors.joining(GRAYED_START + "or" + GRAYED_END + "<br>")
+                );
     }
 
     @Override

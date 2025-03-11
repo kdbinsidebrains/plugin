@@ -5,7 +5,6 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
@@ -53,10 +52,8 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
             return;
         }
 
-        for (PsiReference reference : variable.getReferences()) {
-            if (reference.resolve() != null) {
-                return;
-            }
+        if (QPsiUtil.hasResolvedReference(variable)) {
+            return;
         }
 
         final InspectorToolWindow inspector = InspectorToolWindow.getExist(holder.getProject());
