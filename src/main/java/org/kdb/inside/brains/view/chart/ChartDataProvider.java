@@ -2,87 +2,67 @@ package org.kdb.inside.brains.view.chart;
 
 import kx.KxConnection;
 import kx.c;
-import org.jfree.data.time.Month;
 import org.jfree.data.time.*;
+import org.jfree.data.time.Month;
 import org.kdb.inside.brains.KdbType;
+import org.kdb.inside.brains.view.console.table.QTableModel;
+import org.kdb.inside.brains.view.console.table.TableResult;
 
-import javax.swing.*;
 import java.sql.Timestamp;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 public interface ChartDataProvider {
     LocalDate KDB_FIRST_DATE = LocalDate.of(2000, 1, 1);
 
-    static ChartDataProvider copy(JTable table) {
-        final int rowsCount = table.getRowCount();
-        final int columnCount = table.getColumnCount();
-
-        final ColumnDefinition[] configs = new ColumnDefinition[columnCount];
-        final Map<String, Object[]> dataMap = new HashMap<>();
-
-        for (int col = 0; col < columnCount; col++) {
-            final ColumnDefinition column = new ColumnDefinition(table.getColumnName(col), table.getColumnClass(col));
-            configs[col] = column;
-
-            final Object[] rData = new Object[rowsCount];
-            for (int row = 0; row < rowsCount; row++) {
-                rData[row] = table.getValueAt(row, col);
-            }
-            dataMap.put(column.name(), rData);
-        }
-
-        return new ChartDataProvider() {
-            @Override
-            public ColumnDefinition[] getColumns() {
-                return configs;
-            }
-
-            @Override
-            public int getRowsCount() {
-                return rowsCount;
-            }
-
-            @Override
-            public Object[] getRows(ColumnDefinition column) {
-                return dataMap.get(column.name());
-            }
-        };
+    static ChartDataProvider of(TableResult table) {
+        return of(table.tableModel());
     }
 
-    static ChartDataProvider columns(JTable table) {
-        final int rowsCount = table.getRowCount();
-        final int columnCount = table.getColumnCount();
+    static ChartDataProvider of(QTableModel model) {
+        final int rowsCount = model.getRowCount();
 
-        final ColumnDefinition[] configs = new ColumnDefinition[columnCount];
-        for (int col = 0; col < columnCount; col++) {
-            configs[col] = new ColumnDefinition(table.getColumnName(col), table.getColumnClass(col));
-        }
+        final Map<ColumnDefinition, Object[]> cache = new HashMap<>();
+
+        final QTableModel.QColumnInfo[] modelCols = model.getColumns();
+        final List<ColumnDefinition> columns = Stream.of(modelCols).map(ColumnDefinition::new).toList();
 
         return new ChartDataProvider() {
-            @Override
-            public ColumnDefinition[] getColumns() {
-                return configs;
-            }
-
             @Override
             public int getRowsCount() {
                 return rowsCount;
             }
 
             @Override
-            public Object[] getRows(ColumnDefinition column) {
-                throw new UnsupportedOperationException("Not implemented");
+            public List<ColumnDefinition> getColumns() {
+                return columns;
+            }
+
+            @Override
+            public Object[] getValues(ColumnDefinition column) {
+                return cache.computeIfAbsent(column, c -> {
+                    final int colIndex = columns.indexOf(c);
+                    if (colIndex == -1) {
+                        throw new IllegalArgumentException("Unknown column " + column);
+                    }
+
+                    final Object[] values = new Object[rowsCount];
+                    for (int row = 0; row < values.length; row++) {
+                        values[row] = model.getValueAt(row, colIndex);
+                    }
+                    return values;
+                });
             }
         };
     }
 
     int getRowsCount();
+
+    List<ColumnDefinition> getColumns();
+
+    Object[] getValues(ColumnDefinition column);
 
     static Object createKdbTemporal(long millis, KdbType type) {
         if (type == null || type == KdbType.TIMESTAMP) {
@@ -144,16 +124,12 @@ public interface ChartDataProvider {
         throw new IllegalArgumentException("Invalid value style: " + value.getClass());
     }
 
-    ColumnDefinition[] getColumns();
-
-    Object[] getRows(ColumnDefinition column);
-
     default long getDistinctCount(ColumnDefinition column) {
-        return Stream.of(getRows(column)).distinct().count();
+        return Stream.of(getValues(column)).distinct().count();
     }
 
     default String[] getSymbols(ColumnDefinition column) {
-        final Object[] row = getRows(column);
+        final Object[] row = getValues(column);
         final String[] res = new String[row.length];
         for (int i = 0; i < res.length; i++) {
             final Object o = row[i];
@@ -167,7 +143,7 @@ public interface ChartDataProvider {
     }
 
     default double[] getDoubles(ColumnDefinition column) {
-        final Object[] row = getRows(column);
+        final Object[] row = getValues(column);
         final double[] res = new double[row.length];
         for (int i = 0; i < res.length; i++) {
             res[i] = ((Number) row[i]).doubleValue();
@@ -176,7 +152,7 @@ public interface ChartDataProvider {
     }
 
     default Date[] getDates(ColumnDefinition column) {
-        final Object[] row = getRows(column);
+        final Object[] row = getValues(column);
         final Date[] res = new Date[row.length];
         for (int i = 0; i < res.length; i++) {
             res[i] = createDate(row[i]);
@@ -186,7 +162,7 @@ public interface ChartDataProvider {
 
 
     default Number[] getNumbers(ColumnDefinition column) {
-        final Object[] row = getRows(column);
+        final Object[] row = getValues(column);
         final Number[] res = new Number[row.length];
         for (int i = 0; i < res.length; i++) {
             res[i] = ((Number) row[i]);
@@ -195,7 +171,7 @@ public interface ChartDataProvider {
     }
 
     default RegularTimePeriod[] getPeriods(ColumnDefinition column) {
-        final Object[] row = getRows(column);
+        final Object[] row = getValues(column);
         final RegularTimePeriod[] res = new RegularTimePeriod[row.length];
         for (int i = 0; i < res.length; i++) {
             res[i] = createPeriod(row[i]);

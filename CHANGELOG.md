@@ -1,5 +1,20 @@
 # KdbInsideBrains Changelog
 
+## [5.15.3]
+
+### Fixed
+
+- The plugin redefined .utl.require in QSpec: original function is used if QUtil is defined
+- Env parameters are stored for KDB Running and QSpec Running configurations
+- Charting Templates store key column prefix and can't be used for non-keyed tables
+- KDB SDK is reported as valid even if it's not removed or moved to another folder
+- TableResult performance slightly improved: unnecessary children generation in 'Charting' and 'Send To ...' actions
+  removed
+
+### Changed
+
+- Key column prefix shown in the TableResult view only without exporting or coping to other formats.
+
 ## [5.15.2]
 
 ### Fixed

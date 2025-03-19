@@ -218,7 +218,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
             template = new ChartTemplate(config);
             final CreateTemplateDialog d = new CreateTemplateDialog(project, template);
             if (d.showAndGet()) {
-                ChartTemplatesService.getService(project).insertTemplate(template);
+                ChartTemplatesService.getService(project).addTemplate(template);
                 invalidateTemplatesList(project, dataProvider);
                 templateButton.setEnabled(false);
                 templatesComboBox.setSelectedItem(template);

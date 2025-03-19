@@ -9,7 +9,10 @@ import org.kdb.inside.brains.view.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.chart.ColumnDefinition;
 import org.kdb.inside.brains.view.chart.types.ChartType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,35 +20,6 @@ public record LineChartConfig(ColumnDefinition domain,
                               List<ValuesDefinition> values,
                               List<ColumnDefinition> expansions,
                               boolean drawShapes) implements ChartConfig {
-    private static void generateCombinations(List<List<String>> inputLists, int depth, List<String> current, List<List<String>> result) {
-        if (depth == inputLists.size()) {
-            result.add(new ArrayList<>(current)); // Add the current combination to the result
-            return;
-        }
-
-        for (String value : inputLists.get(depth)) {
-            current.add(value); // Choose an item from the current list
-            generateCombinations(inputLists, depth + 1, current, result); // Recurse to the next list
-            current.remove(current.size() - 1); // Backtrack
-        }
-    }
-
-    @NotNull
-    public static LineChartConfig restore(@NotNull Element element) {
-        final ColumnDefinition domain = ColumnDefinition.restore(element.getChild("domain"));
-
-        final List<ValuesDefinition> ranges = element.getChild("series").getChildren().stream().flatMap(e -> {
-            final SeriesDefinition sc = SeriesDefinition.restore(e);
-            return e.getChildren().stream().map(el -> ValuesDefinition.restore(el, sc));
-        }).collect(Collectors.toList());
-
-        final List<ColumnDefinition> expansions = element.getChild("expansions").getChildren().stream().map(ColumnDefinition::restore).toList();
-
-        final boolean drawShapes = Boolean.parseBoolean(element.getAttributeValue("drawShapes"));
-
-        return new LineChartConfig(domain, ranges, expansions, drawShapes);
-    }
-
     @Override
     public KdbType getDomainType() {
         return domain.type();
@@ -119,6 +93,22 @@ public record LineChartConfig(ColumnDefinition domain,
         return e;
     }
 
+    @NotNull
+    public static LineChartConfig restore(@NotNull Element element) {
+        final ColumnDefinition domain = ColumnDefinition.restore(element.getChild("domain"));
+
+        final List<ValuesDefinition> ranges = element.getChild("series").getChildren().stream().flatMap(e -> {
+            final SeriesDefinition sc = SeriesDefinition.restore(e);
+            return e.getChildren().stream().map(el -> ValuesDefinition.restore(el, sc));
+        }).collect(Collectors.toList());
+
+        final List<ColumnDefinition> expansions = element.getChild("expansions").getChildren().stream().map(ColumnDefinition::restore).toList();
+
+        final boolean drawShapes = Boolean.parseBoolean(element.getAttributeValue("drawShapes"));
+
+        return new LineChartConfig(domain, ranges, expansions, drawShapes);
+    }
+
     @Override
     public String toHumanString() {
         final StringBuilder builder = new StringBuilder();
@@ -152,17 +142,5 @@ public record LineChartConfig(ColumnDefinition domain,
         builder.append("</table>");
         builder.append("</html>");
         return builder.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof LineChartConfig that)) return false;
-        return drawShapes == that.drawShapes && Objects.equals(domain, that.domain) && Objects.equals(values, that.values) && Objects.equals(expansions, that.expansions);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(domain, values, expansions, drawShapes);
     }
 }

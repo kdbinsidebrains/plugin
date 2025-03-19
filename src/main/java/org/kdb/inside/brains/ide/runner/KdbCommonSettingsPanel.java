@@ -43,7 +43,7 @@ public class KdbCommonSettingsPanel extends JPanel {
     public void resetEditorFrom(@NotNull KdbRunConfigurationBase configuration) {
         myScriptName.setText(configuration.getScriptName());
         myModulesComboBox.setModules(configuration.getValidModules());
-        myModulesComboBox.setSelectedModule(configuration.getConfigurationModule().getModule());
+        myModulesComboBox.setSelectedModule(configuration.getExecutionModule());
         myWorkingDirectoryField.setText(configuration.getWorkingDirectory());
         myEnvironmentField.setEnvs(configuration.getEnvs());
         myEnvironmentField.setPassParentEnvs(configuration.isPassParentEnvs());
@@ -52,7 +52,7 @@ public class KdbCommonSettingsPanel extends JPanel {
 
     public void applyEditorTo(@NotNull KdbRunConfigurationBase configuration) {
         configuration.setScriptName(myScriptName.getText());
-        configuration.setModule(myModulesComboBox.getSelectedModule());
+        configuration.setExecutionModule(myModulesComboBox.getSelectedModule());
         configuration.setWorkingDirectory(myWorkingDirectoryField.getText());
         configuration.setEnvs(myEnvironmentField.getEnvs());
         configuration.setPassParentEnvs(myEnvironmentField.isPassParentEnvs());

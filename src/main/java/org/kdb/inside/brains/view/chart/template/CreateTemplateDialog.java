@@ -6,6 +6,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
+import com.jgoodies.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +55,7 @@ public class CreateTemplateDialog extends DialogWrapper {
     @Override
     protected @Nullable ValidationInfo doValidate() {
         final String text = nameField.getText().trim();
-        if (text.isEmpty()) {
+        if (Strings.isEmpty(text)) {
             return new ValidationInfo("Name can't be null", nameField);
         }
         if (templatesService.containsName(text)) {

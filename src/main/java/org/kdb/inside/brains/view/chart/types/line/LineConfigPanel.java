@@ -19,12 +19,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.kdb.inside.brains.view.chart.types.line.SeriesDefinition.DEFAULT_LOWER_MARGIN;
 import static org.kdb.inside.brains.view.chart.types.line.SeriesDefinition.DEFAULT_UPPER_MARGIN;
@@ -93,7 +92,7 @@ public class LineConfigPanel extends JPanel {
     }
 
     private void initializeDomainComponent() {
-        Stream.of(dataProvider.getColumns()).filter(c -> c.isTemporal() || c.isNumber()).forEach(domainComponent::addItem);
+        dataProvider.getColumns().stream().filter(c -> c.isTemporal() || c.isNumber()).forEach(domainComponent::addItem);
 
         domainComponent.addActionListener(e -> processConfigChanged());
         domainComponent.setRenderer(ColumnDefinition.createListCellRenderer());
@@ -151,7 +150,7 @@ public class LineConfigPanel extends JPanel {
     }
 
     private void initializeValuesComponent() {
-        final List<ValuesItem> values = Stream.of(dataProvider.getColumns())
+        final List<ValuesItem> values = dataProvider.getColumns().stream()
                 .filter(ColumnDefinition::isNumber)
                 .map(ValuesItem::new)
                 .toList();
@@ -211,7 +210,7 @@ public class LineConfigPanel extends JPanel {
     }
 
     private void initializeExpansionComponent() {
-        final List<ExpansionItem> expansions = Stream.of(dataProvider.getColumns())
+        final List<ExpansionItem> expansions = dataProvider.getColumns().stream()
                 .filter(ColumnDefinition::isSymbol)
                 .map(cc -> new ExpansionItem(cc, false, dataProvider.getDistinctCount(cc)))
                 .toList();

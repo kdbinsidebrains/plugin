@@ -27,6 +27,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.util.Date;
+import java.util.List;
 
 public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartConfig> {
     private boolean ignoreUpdate = false;
@@ -117,7 +118,7 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
             }
         };
 
-        final ColumnDefinition[] columns = dataProvider.getColumns();
+        final List<ColumnDefinition> columns = dataProvider.getColumns();
         for (final ColumnDefinition cc : columns) {
             if (cc.isTemporal()) {
                 domainComponent.addItem(cc);

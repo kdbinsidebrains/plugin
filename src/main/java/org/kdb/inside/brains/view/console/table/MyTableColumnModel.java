@@ -6,11 +6,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MyTableColumnModel extends DefaultTableColumnModel {
+class MyTableColumnModel extends DefaultTableColumnModel {
     private final List<TableColumn> allColumns = new ArrayList<>();
-
-    public MyTableColumnModel() {
-    }
 
     public int getColumnCount(boolean includeHidden) {
         return includeHidden ? this.allColumns.size() : this.getColumnCount();

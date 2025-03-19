@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.core.*;
 import org.kdb.inside.brains.settings.KdbSettingsService;
+import org.kdb.inside.brains.view.KdbToolWindowFactory;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -289,6 +290,13 @@ public class KdbConsoleToolWindow implements PersistentStateComponent<Element>, 
             if (content != null && contentManager.getSelectedContent() != content) {
                 content.setIcon(EXECUTED_ICON);
             }
+        }
+    }
+
+    public static class Factory implements KdbToolWindowFactory {
+        @Override
+        public void createToolWindowContentEx(@NotNull Project project, @NotNull ToolWindowEx toolWindow) {
+            getInstance(project).initToolWindow(toolWindow);
         }
     }
 }

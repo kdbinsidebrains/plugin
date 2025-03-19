@@ -10,17 +10,16 @@ import org.kdb.inside.brains.view.chart.template.ChartTemplate;
 import org.kdb.inside.brains.view.console.KdbConsolePanel;
 
 import javax.swing.*;
-import java.util.function.Supplier;
 
 public class ShowChartAction extends EdtAction {
     private final ChartTemplate template;
-    private final Supplier<ChartDataProvider> dataProvider;
+    private final ChartDataProvider dataProvider;
 
-    public ShowChartAction(@Nullable @NlsActions.ActionText String text, @Nullable @NlsActions.ActionDescription String description, @Nullable Icon icon, Supplier<ChartDataProvider> dataProvider) {
+    public ShowChartAction(@Nullable @NlsActions.ActionText String text, @Nullable @NlsActions.ActionDescription String description, @Nullable Icon icon, ChartDataProvider dataProvider) {
         this(text, description, icon, dataProvider, null);
     }
 
-    public ShowChartAction(@Nullable @NlsActions.ActionText String text, @Nullable @NlsActions.ActionDescription String description, @Nullable Icon icon, Supplier<ChartDataProvider> dataProvider, ChartTemplate template) {
+    public ShowChartAction(@Nullable @NlsActions.ActionText String text, @Nullable @NlsActions.ActionDescription String description, @Nullable Icon icon, ChartDataProvider dataProvider, ChartTemplate template) {
         super(text, description, icon);
         this.template = template;
         this.dataProvider = dataProvider;
@@ -38,6 +37,6 @@ public class ShowChartAction extends EdtAction {
         if (e.getProject() == null) {
             return;
         }
-        new ChartingDialog(e.getProject(), title, dataProvider.get(), template).show();
+        new ChartingDialog(e.getProject(), title, dataProvider, template).show();
     }
 }

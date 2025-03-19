@@ -2,6 +2,8 @@ package org.kdb.inside.brains;
 
 import com.google.gson.internal.Primitives;
 import kx.c;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
@@ -257,7 +259,11 @@ public enum KdbType implements Type {
         return typeOf(obj.getClass());
     }
 
-    public static KdbType typeOf(Class<?> clazz) {
+    public static @NotNull KdbType typeOf(@Nullable Class<?> clazz) {
+        if (clazz == null) {
+            return ANY;
+        }
+
         final KdbType kdbType;
         if (clazz.isPrimitive()) {
             kdbType = classToType.get(Primitives.wrap(clazz));
@@ -273,5 +279,26 @@ public enum KdbType implements Type {
 
     public static boolean isNull(Object v) {
         return c.qn(v);
+    }
+
+    public static boolean isDict(Object o) {
+        if (o instanceof c.Dict) {
+            return !isTable(o);
+        }
+        return false;
+    }
+
+    public static boolean isTable(Object o) {
+        if (o instanceof c.Flip) {
+            return true;
+        }
+        if (o instanceof c.Dict d) {
+            return (d.x instanceof c.Flip || d.x.getClass().isArray()) && (d.y instanceof c.Flip || d.y.getClass().isArray());
+        }
+        return false;
+    }
+
+    public static boolean isNotEmptyList(Object o) {
+        return o.getClass().isArray() && !(o instanceof char[]) && Array.getLength(o) != 0;
     }
 }

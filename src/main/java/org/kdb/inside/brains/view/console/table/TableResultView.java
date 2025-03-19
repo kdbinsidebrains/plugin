@@ -18,6 +18,7 @@ import icons.KdbIcons;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.action.BgtAction;
 import org.kdb.inside.brains.action.BgtToggleAction;
@@ -59,8 +60,8 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private final ToggleAction showIndexAction;
     private final ShowTableOptionAction showThousandsAction;
     private final ShowTableOptionAction showScientificAction;
-    private final ActionGroup chartActionGroup;
     private final ActionGroup exportActionGroup;
+    private final ChartActionGroup chartActionGroup;
 
     private final Project project;
     private final TableOptions tableOptions;
@@ -130,7 +131,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         showIndexAction = createShowIndexAction();
         showScientificAction = createShowScientificAction(settingsService.getNumericalOptions());
         showThousandsAction = createShowThousandsAction(settingsService.getTableOptions());
-        chartActionGroup = new ChartActionGroup(myTable);
+        chartActionGroup = new ChartActionGroup(project, () -> tableResult);
         exportActionGroup = ExportDataProvider.createActionGroup(project, this);
 
         final FindModel findModel = new FindModel();
@@ -159,7 +160,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
         add(searchSession.getComponent(), BorderLayout.NORTH);
 
-        if (mode.showStatusBar()) {
+        if (mode.isShowStatusBar()) {
             statusBar = new TableResultStatusPanel(myTable, formatter);
             add(statusBar, BorderLayout.SOUTH);
         }
@@ -179,7 +180,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 if (tableResult != null) {
-                    repeater.accept(tableResult.getQuery(), TableResultView.this);
+                    repeater.accept(tableResult.query(), TableResultView.this);
                 }
             }
 
@@ -333,7 +334,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             }
         };
 
-        final JBTable table = new JBTable(TableResult.EMPTY_MODEL) {
+        final JBTable table = new JBTable(QTableModel.EMPTY_MODEL) {
             @Override
             public @NotNull Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
                 final Component c = super.prepareRenderer(renderer, row, column);
@@ -354,41 +355,65 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             }
 
             @Override
-            public TableResult.QTableModel getModel() {
-                return (TableResult.QTableModel) super.getModel();
+            public QTableModel getModel() {
+                return (QTableModel) super.getModel();
             }
 
             @Override
             public void setModel(@NotNull TableModel model) {
-                super.setModel(model);
-
-                if (model instanceof TableResult.QTableModel qModel) {
-                    final TableRowSorter<TableResult.QTableModel> sorter = new TableRowSorter<>(qModel);
-                    sorter.setStringConverter(new TableStringConverter() {
-                        @Override
-                        public String toString(TableModel model, int row, int column) {
-                            final Object valueAt = model.getValueAt(row, column);
-                            if (valueAt == null) {
-                                return "";
-                            }
-                            return formatter.objectToString(valueAt);
-                        }
-                    });
-
-                    final TableResult.QColumnInfo[] columns = qModel.getColumns();
-                    for (int i = 0; i < columns.length; i++) {
-                        final Comparator<Object> comparator = columns[i].getComparator();
-                        if (comparator != null) {
-                            sorter.setComparator(i, comparator);
-                        }
-                    }
-                    setRowSorter(sorter);
+                if (!(model instanceof QTableModel qModel)) {
+                    throw new UnsupportedOperationException("Only TableResult.QTableModel is supported");
                 }
+
+                super.setModel(qModel);
+
+                final TableRowSorter<QTableModel> sorter = new TableRowSorter<>(qModel);
+                sorter.setStringConverter(new TableStringConverter() {
+                    @Override
+                    public String toString(TableModel model, int row, int column) {
+                        final Object valueAt = model.getValueAt(row, column);
+                        if (valueAt == null) {
+                            return "";
+                        }
+                        return formatter.objectToString(valueAt);
+                    }
+                });
+
+                final QTableModel.QColumnInfo[] columns = qModel.getColumns();
+                for (int i = 0; i < columns.length; i++) {
+                    final Comparator<Object> comparator = columns[i].getComparator();
+                    if (comparator != null) {
+                        sorter.setComparator(i, comparator);
+                    }
+                }
+                setRowSorter(sorter);
             }
 
             @Override
             protected TableColumnModel createDefaultColumnModel() {
                 return new MyTableColumnModel();
+            }
+
+            @Override
+            public void createDefaultColumnsFromModel() {
+                final QTableModel m = getModel();
+
+                final TableColumnModel cm = getColumnModel();
+                while (cm.getColumnCount() > 0) {
+                    cm.removeColumn(cm.getColumn(0));
+                }
+
+                final QTableModel.QColumnInfo[] columns = m.getColumns();
+                for (int i = 0; i < columns.length; i++) {
+                    final TableColumn c = new TableColumn(i);
+                    c.setHeaderValue(columns[i].getDisplayName());
+                    addColumn(c);
+                }
+            }
+
+            @Override
+            public String getToolTipText(@NotNull MouseEvent event) {
+                return null;
             }
         };
 
@@ -399,13 +424,12 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
         final TableCellRenderer defaultRenderer = header.getDefaultRenderer();
         header.setDefaultRenderer((tbl, val, sel, focus, row, column) -> {
-            final Component cmp = defaultRenderer.getTableCellRendererComponent(tbl, val, sel, focus, row, column);
-            if (cmp instanceof JComponent component) {
-                final boolean selectedIndex = tbl.getColumnModel().getSelectionModel().isSelectedIndex(column);
-                final Border border = selectedIndex ? selectedBorder : normalBorder;
-                final Border merge = JBUI.Borders.merge(component.getBorder(), border, true);
-                component.setBorder(merge);
-            }
+            final boolean selectedIndex = tbl.getColumnModel().getSelectionModel().isSelectedIndex(column);
+            final JComponent cmp = (JComponent) defaultRenderer.getTableCellRendererComponent(tbl, val, sel, focus, row, column);
+
+            final Border border = selectedIndex ? selectedBorder : normalBorder;
+            final Border merge = JBUI.Borders.merge(cmp.getBorder(), border, true);
+            cmp.setBorder(merge);
             return cmp;
         });
         table.getColumnModel().getSelectionModel().addListSelectionListener(e -> header.repaint());
@@ -538,13 +562,13 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         if (o == null) {
             return false;
         }
-        if (TableResult.isNotEmptyList(o) && tableOptions.isExpandList()) {
+        if (KdbType.isNotEmptyList(o) && tableOptions.isExpandList()) {
             return true;
         }
-        if (TableResult.isTable(o) && tableOptions.isExpandTable()) {
+        if (KdbType.isTable(o) && tableOptions.isExpandTable()) {
             return true;
         }
-        return TableResult.isDict(o) && tableOptions.isExpandDict();
+        return KdbType.isDict(o) && tableOptions.isExpandDict();
     }
 
     private ExpandedTabDetails getExpandedTabDetails(int r, int c) {
@@ -595,7 +619,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
     @Override
     public Object getNativeObject() {
-        return tableResult.getResult().getObject();
+        return tableResult.result().getObject();
     }
 
     @Override
@@ -621,14 +645,14 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         return false;
     }
 
-    public void showResult(TableResult tableResult) {
+    public void showResult(@Nullable TableResult tableResult) {
         this.tableResult = tableResult;
 
         if (tableResult == null) {
-            myTable.setModel(TableResult.EMPTY_MODEL);
+            myTable.setModel(QTableModel.EMPTY_MODEL);
             searchSession.setDelaySearchEnabled(false);
         } else {
-            final TableResult.QTableModel tableModel = tableResult.getTableModel();
+            final QTableModel tableModel = tableResult.tableModel();
             myTable.setModel(tableModel);
 
             // 10_000 rows by 20 columns can be sorted fast. No reason for delay

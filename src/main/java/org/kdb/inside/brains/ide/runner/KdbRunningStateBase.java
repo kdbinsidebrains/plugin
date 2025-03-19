@@ -10,6 +10,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.util.io.BaseDataReader;
 import com.intellij.util.io.BaseOutputReader;
+import com.jgoodies.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.ide.sdk.KdbSdkType;
 
@@ -17,12 +18,10 @@ import java.io.File;
 
 public abstract class KdbRunningStateBase<C extends KdbRunConfigurationBase> extends CommandLineState {
     protected final C cfg;
-    protected final Module module;
 
-    protected KdbRunningStateBase(C cfg, Module module, ExecutionEnvironment environment) {
+    protected KdbRunningStateBase(C cfg, ExecutionEnvironment environment) {
         super(environment);
         this.cfg = cfg;
-        this.module = module;
     }
 
     @Override
@@ -33,18 +32,26 @@ public abstract class KdbRunningStateBase<C extends KdbRunConfigurationBase> ext
         return handler;
     }
 
-    protected GeneralCommandLine createCommandLine() {
-        final Sdk sdk = KdbSdkType.getModuleSdk(cfg.getConfigurationModule().getModule());
+    protected GeneralCommandLine createCommandLine() throws ExecutionException {
+        final Module module = cfg.getExecutionModule();
+        if (module == null) {
+            throw new ExecutionException("Execution module is not specified");
+        }
+
+        final Sdk sdk = KdbSdkType.getModuleSdk(module);
         if (sdk == null) {
-            throw new IllegalStateException("KDB SDK is not specified");
+            throw new ExecutionException("KDB SDK is not specified");
         }
 
         final File executableFile = KdbSdkType.getInstance().getExecutableFile(sdk);
+        if (executableFile == null) {
+            throw new ExecutionException("KDB SDK is not correct");
+        }
 
         final GeneralCommandLine commandLine = new GeneralCommandLine(executableFile.getAbsolutePath());
 
         final String args = cfg.getKdbOptions();
-        if (args != null) {
+        if (Strings.isNotEmpty(args)) {
             commandLine.withParameters(args.split(" "));
         }
 

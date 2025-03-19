@@ -83,12 +83,12 @@ class TableResultStatusPanel extends JPanel {
             avgLabel.setText("");
             countLabel.setText("");
         } else {
-            final KdbResult result = tableResult.getResult();
+            final KdbResult result = tableResult.result();
 
             final double v = result.getRoundtripMillis() / 1000d;
             final double v1 = ((int) (v * 100)) / 100d;
             timeLabel.setText(formatter.formatTimestamp(new Timestamp(result.getFinishedMillis())).substring(0, 23) + " (" + v1 + "sec)");
-            queryLabel.setText(tableResult.getQuery().getExpression());
+            queryLabel.setText(tableResult.query().getExpression());
 
             invalidateRowsCount();
         }

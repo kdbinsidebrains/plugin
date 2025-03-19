@@ -16,7 +16,6 @@ import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.testframework.sm.runner.ui.SMTRunnerConsoleView;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.StreamUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -26,7 +25,6 @@ import org.codehaus.plexus.util.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
-import org.kdb.inside.brains.ide.runner.KdbConsoleFilter;
 import org.kdb.inside.brains.ide.runner.KdbRunningStateBase;
 import org.kdb.inside.brains.lang.qspec.QSpecLibrary;
 import org.kdb.inside.brains.lang.qspec.QSpecLibraryService;
@@ -54,8 +52,8 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
     public static final String ROOT_SCRIPT_PATH = "/org/kdb/inside/brains/qspec.q";
     private static final String FRAMEWORK_NAME = "KDB QSpec Tests";
 
-    public QSpecRunningState(QSpecRunConfiguration cfg, Module module, ExecutionEnvironment environment) {
-        super(cfg, module, environment);
+    public QSpecRunningState(QSpecRunConfiguration cfg, ExecutionEnvironment environment) {
+        super(cfg, environment);
     }
 
     @Override
@@ -71,7 +69,7 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
             QSpecTestConsoleProperties consoleProperties = new QSpecTestConsoleProperties(cfg, FRAMEWORK_NAME, executor);
 
             ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole(FRAMEWORK_NAME, processHandler, consoleProperties);
-            consoleView.addMessageFilter(new KdbConsoleFilter(cfg.getProject(), module, cfg.getWorkingDirectory()));
+//            consoleView.addMessageFilter(new KdbConsoleFilter(cfg.getProject(), cfg.getWorkingDirectory()));
 
             DefaultExecutionResult executionResult = new DefaultExecutionResult(consoleView, processHandler);
             final AbstractRerunFailedTestsAction rerunFailedTestsAction = consoleProperties.createRerunFailedTestsAction(consoleView);
@@ -156,7 +154,7 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
     }
 
     @Override
-    protected GeneralCommandLine createCommandLine() {
+    protected GeneralCommandLine createCommandLine() throws ExecutionException {
         final GeneralCommandLine commandLine = super.createCommandLine();
         commandLine.addParameter("-q");
         return commandLine;
@@ -205,7 +203,7 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
                 toKdbBool(cfg.isKeepFailed()),
                 toKdbDict(params)
         );
-        final String command = ".tst.app.runScript[" + args + "];";
+        final String command = ".tst.kib.runScript[" + args + "];";
         logAndExecuteCommand(consoleView, processHandler, command);
     }
 

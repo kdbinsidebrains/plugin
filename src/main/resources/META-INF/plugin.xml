@@ -467,7 +467,7 @@
 
         <toolWindow id="KDB Console" icon="KdbIcons.Main.ConsoleWindow"
                     anchor="bottom" canCloseContents="true"
-                    factoryClass="org.kdb.inside.brains.view.console.KdbConsoleToolWindowFactory"/>
+                    factoryClass="org.kdb.inside.brains.view.console.KdbConsoleToolWindow$Factory"/>
 
         <projectService serviceImplementation="org.kdb.inside.brains.view.console.KdbConsoleToolWindow"/>
 

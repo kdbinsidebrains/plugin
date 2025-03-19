@@ -56,7 +56,7 @@ public class KdbInstanceRunConfiguration extends KdbRunConfigurationBase impleme
 
     @Override
     public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) throws ExecutionException {
-        return new KdbInstanceRunningState(this, getExecutionModule(), environment);
+        return new KdbInstanceRunningState(this, environment);
     }
 
     @Override

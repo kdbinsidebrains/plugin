@@ -1,6 +1,5 @@
 package org.kdb.inside.brains.ide.sdk;
 
-import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.*;
@@ -17,6 +16,8 @@ import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -78,15 +79,12 @@ public class KdbSdkType extends SdkType {
         return null;
     }
 
-    public File getExecutableFile(@NotNull Sdk sdk) {
-        if (!Objects.equals(sdk.getSdkType(), this)) {
-            return null;
+    public static boolean hasValidSdk(Module module) {
+        final Sdk sdk = getModuleSdk(module);
+        if (sdk == null || sdk.getHomePath() == null) {
+            return false;
         }
-        final String homePath = sdk.getHomePath();
-        if (homePath == null) {
-            return null;
-        }
-        return findExecutable(new File(homePath));
+        return KdbSdkType.getInstance().isValidSdkHome(sdk.getHomePath());
     }
 
     public static KdbSdkType getInstance() {
@@ -164,16 +162,15 @@ public class KdbSdkType extends SdkType {
     public void saveAdditionalData(@NotNull SdkAdditionalData additionalData, @NotNull Element additional) {
     }
 
-    public static String getHomePath(Module module) {
-        final Sdk sdk = getModuleSdk(module);
-        if (sdk == null) {
+    public File getExecutableFile(@NotNull Sdk sdk) {
+        if (!Objects.equals(sdk.getSdkType(), this)) {
             return null;
         }
-        return sdk.getHomePath();
-    }
-
-    public static String getHomePath(RunConfigurationModule module) {
-        return module == null ? null : getHomePath(module.getModule());
+        final String homePath = sdk.getHomePath();
+        if (homePath == null || !Files.exists(Path.of(homePath))) {
+            return null;
+        }
+        return findExecutable(new File(homePath));
     }
 
     public static Sdk getModuleSdk(Module module) {

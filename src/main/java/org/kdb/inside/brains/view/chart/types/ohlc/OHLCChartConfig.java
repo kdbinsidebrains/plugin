@@ -16,16 +16,6 @@ public record OHLCChartConfig(ColumnDefinition domain, ColumnDefinition openColu
                               ColumnDefinition lowColumn, ColumnDefinition closeColumn,
                               ColumnDefinition volumeColumn) implements ChartConfig {
 
-    public static @NotNull OHLCChartConfig restore(Element element) {
-        final ColumnDefinition date = ColumnDefinition.restore(element.getChild("domain"));
-        final ColumnDefinition open = ColumnDefinition.restore(element.getChild("open"));
-        final ColumnDefinition high = ColumnDefinition.restore(element.getChild("high"));
-        final ColumnDefinition low = ColumnDefinition.restore(element.getChild("low"));
-        final ColumnDefinition close = ColumnDefinition.restore(element.getChild("close"));
-        final ColumnDefinition volume = ColumnDefinition.restore(element.getChild("volume"));
-        return new OHLCChartConfig(date, open, high, low, close, volume);
-    }
-
     @Override
     public ChartType getChartType() {
         return ChartType.OHLC;
@@ -39,20 +29,6 @@ public record OHLCChartConfig(ColumnDefinition domain, ColumnDefinition openColu
     @Override
     public List<ColumnDefinition> getRequiredColumns() {
         return Stream.of(domain, openColumn, highColumn, lowColumn, closeColumn, volumeColumn).filter(Objects::nonNull).collect(Collectors.toList());
-    }
-
-    @Override
-    public Element store() {
-        Element e = new Element(ChartType.OHLC.getTagName());
-        e.addContent(domain.store().setName("domain"));
-        e.addContent(openColumn.store().setName("open"));
-        e.addContent(highColumn.store().setName("high"));
-        e.addContent(lowColumn.store().setName("low"));
-        e.addContent(closeColumn.store().setName("close"));
-        if (volumeColumn != null) {
-            e.addContent(volumeColumn.store().setName("volume"));
-        }
-        return e;
     }
 
     @Override
@@ -72,6 +48,30 @@ public record OHLCChartConfig(ColumnDefinition domain, ColumnDefinition openColu
         builder.append("</table>");
         builder.append("</html>");
         return builder.toString();
+    }
+
+    public static @NotNull OHLCChartConfig restore(Element element) {
+        final ColumnDefinition date = ColumnDefinition.restore(element.getChild("domain"));
+        final ColumnDefinition open = ColumnDefinition.restore(element.getChild("open"));
+        final ColumnDefinition high = ColumnDefinition.restore(element.getChild("high"));
+        final ColumnDefinition low = ColumnDefinition.restore(element.getChild("low"));
+        final ColumnDefinition close = ColumnDefinition.restore(element.getChild("close"));
+        final ColumnDefinition volume = ColumnDefinition.restore(element.getChild("volume"));
+        return new OHLCChartConfig(date, open, high, low, close, volume);
+    }
+
+    @Override
+    public Element store() {
+        Element e = new Element(ChartType.OHLC.getTagName());
+        e.addContent(domain.store().setName("domain"));
+        e.addContent(openColumn.store().setName("open"));
+        e.addContent(highColumn.store().setName("high"));
+        e.addContent(lowColumn.store().setName("low"));
+        e.addContent(closeColumn.store().setName("close"));
+        if (volumeColumn != null) {
+            e.addContent(volumeColumn.store().setName("volume"));
+        }
+        return e;
     }
 
     @Override

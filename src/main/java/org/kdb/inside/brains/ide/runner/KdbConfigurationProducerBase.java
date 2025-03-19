@@ -39,7 +39,7 @@ public abstract class KdbConfigurationProducerBase<C extends KdbRunConfiguration
     @Override
     public boolean isConfigurationFromContext(@NotNull C configuration, @NotNull ConfigurationContext context) {
         final Module contextModule = context.getModule();
-        final Module configModule = configuration.getConfigurationModule().getModule();
+        final Module configModule = configuration.getExecutionModule();
         if (!Objects.equals(contextModule, configModule)) {
             return false;
         }

@@ -23,6 +23,15 @@ public enum ChartType {
         this.function = function;
     }
 
+    public static ChartType byName(String name) {
+        for (ChartType type : ChartType.values()) {
+            if (name.equals(type.tagName)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
     public Icon getIcon() {
         return icon;
     }

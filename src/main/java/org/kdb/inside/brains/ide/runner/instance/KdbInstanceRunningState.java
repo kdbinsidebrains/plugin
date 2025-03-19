@@ -11,27 +11,27 @@ import com.intellij.execution.console.ProcessBackedConsoleExecuteActionHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.module.Module;
+import com.jgoodies.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.ide.runner.KdbRunningStateBase;
 import org.kdb.inside.brains.view.LineNumberGutterProvider;
 
 public class KdbInstanceRunningState extends KdbRunningStateBase<KdbInstanceRunConfiguration> {
-    protected KdbInstanceRunningState(KdbInstanceRunConfiguration cfg, Module module, ExecutionEnvironment environment) {
-        super(cfg, module, environment);
+    protected KdbInstanceRunningState(KdbInstanceRunConfiguration cfg, ExecutionEnvironment environment) {
+        super(cfg, environment);
     }
 
     @Override
-    protected GeneralCommandLine createCommandLine() {
+    protected GeneralCommandLine createCommandLine() throws ExecutionException {
         final GeneralCommandLine commandLine = super.createCommandLine();
 
         final String scriptName = cfg.getScriptName();
-        if (!scriptName.isBlank()) {
+        if (Strings.isNotEmpty(scriptName)) {
             commandLine.addParameter(scriptName);
 
             final String params = cfg.getScriptArguments();
-            if (params != null) {
+            if (Strings.isNotEmpty(params)) {
                 commandLine.addParameters(params.split(" "));
             }
         }
