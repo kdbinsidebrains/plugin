@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## [5.16.0]
+
+### Added
+
+- KDB 4.1 Syntax added
+
 ## [5.15.3]
 
 ### Fixed

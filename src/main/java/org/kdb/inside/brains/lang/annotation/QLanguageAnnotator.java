@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class QLanguageAnnotator implements Annotator {
     private final List<QElementAnnotator<? extends QPsiElement>> raw = List.of(
-            new QLambdaAnnotator(),
+            new QParametersAnnotator(),
             new QContextAnnotator(),
             new QTypeCastAnnotator(),
             new QImportAnnotator(),

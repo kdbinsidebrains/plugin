@@ -20,8 +20,6 @@ import org.kdb.inside.brains.psi.QVariable;
 import java.util.Collection;
 import java.util.List;
 
-import static org.kdb.inside.brains.psi.QPsiUtil.getLambdaDescriptor;
-
 public class QHierarchyNodeDescriptor extends HierarchyNodeDescriptor implements Navigatable {
     private final boolean recursion;
     private final List<SmartPsiElementPointer<PsiElement>> myUsages;
@@ -87,7 +85,7 @@ public class QHierarchyNodeDescriptor extends HierarchyNodeDescriptor implements
             final String name = dec.getQualifiedName();
             final PsiElement parent = dec.getParent();
             if (parent instanceof QAssignmentExpr a && a.getExpression() instanceof QLambdaExpr l) {
-                return getLambdaDescriptor(name, l);
+                return name + l.getParametersInfo();
             }
         }
         if (element instanceof QVariable var) {

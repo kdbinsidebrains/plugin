@@ -17,7 +17,7 @@
 
   rightAssociative=true
 
-  extends(".*expr|var_reference")=expression
+  extends("var_reference|.*expr")=expression
   consumeTokenMethod="consumeTokenFast"
 
   tokens=[
@@ -172,12 +172,36 @@ control_expr ::= CONTROL_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin = 1 me
 condition_expr ::= CONDITION_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin=1 methods=[expressions="expression"] } // $[...]
 private cc_body ::= statement* { recoverWhile=brackets_recover}
 
-parameters ::= BRACKET_OPEN [parameters_body] BRACKET_CLOSE { pin(".*")=1 methods = [variables="var_declaration"] }
-private parameters_body ::= var_declaration (SEMICOLON var_declaration)* {pin(".*")="SEMICOLON" recoverWhile=brackets_recover }
+parameter ::= typed_parameter | pattern_parameter {
+    implements="org.kdb.inside.brains.psi.impl.QParameterExt"
+ }
+typed_parameter ::= var_declaration [COLON expression?] {
+    extends=parameter
+    mixin="org.kdb.inside.brains.psi.impl.QTypedParameterMixin"
+ }
+pattern_parameter ::= PAREN_OPEN parameter (SEMICOLON parameter)* PAREN_CLOSE {
+    extends=parameter
+    pin(".*")="SEMICOLON"
+    methods = [parameters="parameter"]
+    mixin="org.kdb.inside.brains.psi.impl.QPatternParameterMixin"
+ }
 
-lambda_expr ::= BRACE_OPEN lambda_body BRACE_CLOSE {pin=1}
-expressions ::= expressions_group
+private parameters_body ::= parameter (SEMICOLON parameter)* {
+    pin(".*")="SEMICOLON"
+    recoverWhile=brackets_recover
+ }
+parameters ::= BRACKET_OPEN [parameters_body] BRACKET_CLOSE {
+    pin(".*")=1
+    methods = [parameters="parameter"]
+    implements="org.kdb.inside.brains.psi.impl.QParametersExt"
+ }
 private lambda_body ::= parameters? expressions? { recoverWhile=braces_recover }
+lambda_expr ::= BRACE_OPEN lambda_body BRACE_CLOSE {
+    pin=1
+    implements="org.kdb.inside.brains.psi.impl.QLambdaExt"
+ }
+
+expressions ::= expressions_group
 
 private operator ::= operator_type
 private function ::= system_function | custom_function
@@ -190,12 +214,13 @@ fake invoke_expr ::= (operator | function | parentheses_expr) arguments_list? op
 invoke_prefix ::= operator arguments_list operation? expression? { pin=2 extends=invoke_expr}
 invoke_function ::= function ((arguments_list? ((operation? expression) | operation)) | (arguments_list operation?)) { extends=invoke_expr }
 invoke_parentheses ::= parentheses_expr arguments_list? operation? expression? { extends=invoke_expr }
+invoke_pattern_match ::= parentheses_expr var_assignment_type expression {extends=invoke_expr}
 
-private invoke_group ::= invoke_prefix | invoke_function | invoke_parentheses
+private invoke_group ::= invoke_prefix | invoke_function | invoke_pattern_match | invoke_parentheses
 
 type_cast_expr ::= TYPE_CAST_PATTERN expression? {pin = 1 methods=[typeCast="TYPE_CAST_PATTERN"]}
 
-table_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
+table_column ::= (var_declaration column_assignment_type expression?) | expression {pin(".*")=2}
 private table_columns_group ::= table_column (SEMICOLON+ table_column)* SEMICOLON* {
 //    pin(".*")="SEMICOLON"
     recoverWhile=table_columns_recover
@@ -206,9 +231,13 @@ table_keys ::= BRACKET_OPEN [table_columns_group] BRACKET_CLOSE {
     pin=1 extends=table_columns methods=[table_column]
  }
 table_values ::= [table_columns_group] { extends=table_columns }
-table_expr ::= PAREN_OPEN  table_keys  SEMICOLON* table_values PAREN_CLOSE {
+
+private table_dict_start ::= PAREN_OPEN  table_keys
+table_expr ::= table_dict_start SEMICOLON* table_values PAREN_CLOSE {
     pin=2 methods=[table_columns keys="table_columns[0]" values="table_columns[1]"]
 }
+
+dict_expr ::= table_dict_start PAREN_CLOSE
 
 query_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
 query_columns ::= query_column (QUERY_SPLITTER query_column)* {pin(".*")="QUERY_SPLITTER"}
@@ -230,7 +259,8 @@ projection_expr ::= (operator_type | iterator_type | OPERATOR_ARITHMETIC | SYMBO
 
 // Only these expressions can be used as a left arguments of invokes
 prefix_expr ::=
-    table_expr
+    dict_expr
+    | table_expr
     | literal_expr
     | lambda_expr
     | control_expr

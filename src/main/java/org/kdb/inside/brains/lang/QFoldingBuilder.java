@@ -8,11 +8,11 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.*;
+import org.kdb.inside.brains.psi.QLambdaExpr;
+import org.kdb.inside.brains.psi.QTableColumns;
+import org.kdb.inside.brains.psi.QTableExpr;
 
 import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
@@ -23,8 +23,8 @@ public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
     @NotNull
     @Override
     public FoldingDescriptor @NotNull [] buildFoldRegions(@NotNull PsiElement root, @NotNull Document document, boolean quick) {
-        final Collection<QTableExpr> tables = PsiTreeUtil.findChildrenOfType(root, QTableExpr.class);
         final Collection<QLambdaExpr> lambdas = PsiTreeUtil.findChildrenOfType(root, QLambdaExpr.class);
+        final Collection<QTableExpr> tables = PsiTreeUtil.findChildrenOfType(root, QTableExpr.class);
         if (lambdas.isEmpty() && tables.isEmpty()) {
             return EMPTY_ARRAY;
         }
@@ -35,7 +35,7 @@ public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
     public String getPlaceholderText(@NotNull ASTNode node) {
         final PsiElement psi = node.getPsi();
         if (psi instanceof QLambdaExpr lambda) {
-            return "{" + Optional.of(lambda).map(QLambdaExpr::getParameters).map(QParameters::getVariables).map(Collection::stream).map(v -> "[" + v.map(QVariable::getQualifiedName).collect(Collectors.joining(";")) + "]").orElse("") + "...}";
+            return "{" + lambda.getParametersInfo() + "...}";
         } else if (psi instanceof QTableExpr tbl) {
             return "([" + getColumnsCount(tbl.getKeys()) + "]" + getColumnsCount(tbl.getValues()) + ")";
         }

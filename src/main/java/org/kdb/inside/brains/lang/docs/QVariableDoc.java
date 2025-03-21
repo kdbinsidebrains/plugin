@@ -9,11 +9,13 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiWhiteSpace;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kdb.inside.brains.psi.*;
+import org.kdb.inside.brains.psi.QAssignmentExpr;
+import org.kdb.inside.brains.psi.QExpression;
+import org.kdb.inside.brains.psi.QLambdaExpr;
+import org.kdb.inside.brains.psi.QVarDeclaration;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public record QVariableDoc(@NotNull String definition, @Nullable String description, List<Parameter> parameters) {
     public static QVariableDoc withParsedComment(QAssignmentExpr assign) {
@@ -67,27 +69,32 @@ public record QVariableDoc(@NotNull String definition, @Nullable String descript
         if (!(expression instanceof QLambdaExpr lambda)) {
             return null;
         }
-
-        final QParameters parameters = lambda.getParameters();
-        if (parameters == null) {
-            return variable.getQualifiedName() + "[]";
-        }
-        final String params = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
-        return variable.getQualifiedName() + "[" + params + "]";
+        return variable.getQualifiedName() + lambda.getParametersInfo();
     }
 
     private static String collectComment(QAssignmentExpr element) {
-        final StringBuilder b = new StringBuilder();
         PsiElement e = element.getPrevSibling();
-        while (e instanceof PsiComment || e instanceof PsiWhiteSpace) {
+        // comment must have no spaces to be a description
+        if (e instanceof PsiWhiteSpace s && !singleNewLine(s)) {
+            return null;
+        }
+
+        final StringBuilder b = new StringBuilder();
+        do {
             if (e instanceof PsiComment) {
                 b.insert(0, e.getText());
+            } else if (e instanceof PsiWhiteSpace s && singleNewLine(s)) {
+                b.insert(0, e.getText());
             } else {
-                b.insert(0, System.lineSeparator());
+                break;
             }
             e = e.getPrevSibling();
-        }
+        } while (true);
         return b.toString();
+    }
+
+    private static boolean singleNewLine(PsiWhiteSpace space) {
+        return "\n".equals(space.getText());
     }
 
     private static List<String> parseCommentary(String docString) {
@@ -127,7 +134,7 @@ public record QVariableDoc(@NotNull String definition, @Nullable String descript
 
     private static void appendSection(HtmlBuilder builder, String sectionName, String sectionContent) {
         HtmlChunk headerCell = DocumentationMarkup.SECTION_HEADER_CELL.child(HtmlChunk.text(sectionName).wrapWith("p"));
-        HtmlChunk contentCell = DocumentationMarkup.SECTION_CONTENT_CELL.addText(sectionContent);
+        HtmlChunk contentCell = DocumentationMarkup.SECTION_CONTENT_CELL.addRaw(sectionContent);
         builder.append(HtmlChunk.tag("tr").children(headerCell, contentCell));
     }
 
@@ -142,7 +149,7 @@ public record QVariableDoc(@NotNull String definition, @Nullable String descript
 
         if (StringUtil.isNotEmpty(description)) {
             final HtmlBuilder contentBuilder = new HtmlBuilder();
-            contentBuilder.append(HtmlChunk.text(description));
+            contentBuilder.appendRaw(description);
             contentBuilder.append(HtmlChunk.br()).append(HtmlChunk.br());
             builder.append(contentBuilder.wrapWith(DocumentationMarkup.CONTENT_ELEMENT));
         }

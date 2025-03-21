@@ -32,11 +32,10 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
             return null;
         }
         final QExpression expression = customFunction.getExpression();
-        if (expression instanceof QLambdaExpr) {
-            lambdas = List.of((QLambdaExpr) expression);
-        } else if (expression instanceof QVarReference) {
-            ref = (QVarReference) expression;
-            lambdas = findLambdasByName(ref);
+        if (expression instanceof QLambdaExpr l) {
+            lambdas = List.of(l);
+        } else if (expression instanceof QVarReference r) {
+            lambdas = findLambdasByName(r);
         }
 
         if (lambdas == null || lambdas.isEmpty()) {
@@ -148,11 +147,11 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
                 res.add(new QParameterInfo(name, new String[]{"x", "y"}));
                 res.add(new QParameterInfo(name, new String[]{"x", "y", "z"}));
             } else {
-                final List<QVarDeclaration> variables = parameters.getVariables();
-                if (variables.isEmpty()) {
+                final List<QParameter> params = parameters.getParameters();
+                if (params.isEmpty()) {
                     res.add(new QParameterInfo(name, new String[]{"no parameters"}));
                 } else {
-                    res.add(new QParameterInfo(name, variables.stream().map(QVariable::getName).toArray(String[]::new)));
+                    res.add(new QParameterInfo(name, params.stream().map(QParameter::getParameterInfo).toArray(String[]::new)));
                 }
             }
         }
@@ -178,8 +177,8 @@ public class QParameterInfoHandler implements ParameterInfoHandler<QInvokeExpr, 
         final PsiElement parent = resolve.getParent();
         if (parent instanceof QAssignmentExpr assignment) {
             final QExpression expression = assignment.getExpression();
-            if (expression instanceof QLambdaExpr) {
-                return (QLambdaExpr) expression;
+            if (expression instanceof QLambdaExpr l) {
+                return l;
             }
         }
         return null;

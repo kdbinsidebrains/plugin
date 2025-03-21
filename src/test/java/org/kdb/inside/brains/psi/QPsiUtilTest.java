@@ -2,34 +2,11 @@ package org.kdb.inside.brains.psi;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class QPsiUtilTest {
-    public static QVarDeclaration createVarDeclaration(String name) {
-        final QVarDeclaration v = mock(QVarDeclaration.class);
-        when(v.getText()).thenReturn(name);
-        when(v.getName()).thenReturn(name);
-        when(v.getQualifiedName()).thenReturn(name);
-        doCallRealMethod().when(v).getSimpleName();
-        return v;
-    }
-
-    @Test
-    void getLambdaDescriptor() {
-        final QLambdaExpr lambda = mock(QLambdaExpr.class);
-        assertEquals("mock[]", QPsiUtil.getLambdaDescriptor("mock", lambda));
-
-        final QParameters parameters = mock(QParameters.class);
-        when(lambda.getParameters()).thenReturn(parameters);
-        assertEquals("mock[]", QPsiUtil.getLambdaDescriptor("mock", lambda));
-
-        doReturn(List.of(createVarDeclaration("v1"), createVarDeclaration("v2"))).when(parameters).getVariables();
-        assertEquals("mock[v1;v2]", QPsiUtil.getLambdaDescriptor("mock", lambda));
-    }
-
     @Test
     void getImportContent() {
         final QExpression expr = mock();

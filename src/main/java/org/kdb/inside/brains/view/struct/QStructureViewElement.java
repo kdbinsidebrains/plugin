@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.kdb.inside.brains.psi.QPsiUtil.getImportContent;
-import static org.kdb.inside.brains.psi.QPsiUtil.getLambdaDescriptor;
 
 public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
     private final String text;
@@ -160,7 +159,7 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
 
     @NotNull
     private static QStructureViewElement createLambdaElement(QLambdaExpr lambda, String namePrefix) {
-        return new QStructureViewElement(lambda, StructureElementType.LAMBDA, getLambdaDescriptor(namePrefix, lambda), lambda.getExpressions());
+        return new QStructureViewElement(lambda, StructureElementType.LAMBDA, namePrefix + lambda.getParametersInfo(), lambda.getExpressions());
     }
 
     private static String getExpressionType(QExpression expression) {

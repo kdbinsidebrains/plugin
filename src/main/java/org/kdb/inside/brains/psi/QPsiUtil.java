@@ -15,7 +15,6 @@ import org.kdb.inside.brains.QFileType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public final class QPsiUtil {
     private QPsiUtil() {
@@ -117,16 +116,6 @@ public final class QPsiUtil {
                 return el1 instanceof QAssignmentType && "::".equals(el1.getText());
         }
         return false;
-    }
-
-    public static String getLambdaDescriptor(String name, QLambdaExpr lambda) {
-        final QParameters parameters = lambda.getParameters();
-        if (parameters == null) {
-            return name + "[]";
-        } else {
-            final String collect = parameters.getVariables().stream().map(QVariable::getName).collect(Collectors.joining(";"));
-            return name + "[" + collect + "]";
-        }
     }
 
     /**
