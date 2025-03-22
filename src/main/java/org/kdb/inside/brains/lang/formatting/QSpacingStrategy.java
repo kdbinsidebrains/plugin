@@ -32,6 +32,12 @@ public class QSpacingStrategy {
         builder = new SpacingBuilder(codeStyleSettings, QLanguage.INSTANCE);
 
         // Lambda
+        builder.afterInside(COLON, TYPED_PARAMETER).spaceIf(custom.LAMBDA_SPACE_AROUND_TYPED_PARAMS_COLON);
+        builder.beforeInside(COLON, TYPED_PARAMETER).spaceIf(custom.LAMBDA_SPACE_AROUND_TYPED_PARAMS_COLON);
+        builder.afterInside(SEMICOLON, PATTERN_PARAMETER).spaceIf(custom.LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON);
+        builder.beforeInside(SEMICOLON, PATTERN_PARAMETER).spaceIf(custom.LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON);
+        builder.afterInside(PAREN_OPEN, PATTERN_PARAMETER).spaceIf(custom.LAMBDA_SPACE_PATTERN_PARAMS_WITHIN_PARENS);
+        builder.beforeInside(PAREN_CLOSE, PATTERN_PARAMETER).spaceIf(custom.LAMBDA_SPACE_PATTERN_PARAMS_WITHIN_PARENS);
         builder.afterInside(SEMICOLON, PARAMETERS).spaceIf(custom.LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON);
         builder.beforeInside(SEMICOLON, PARAMETERS).spaceIf(custom.LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON);
         builder.afterInside(BRACKET_OPEN, PARAMETERS).spaceIf(custom.LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS, custom.LAMBDA_PARAMS_LBRACKET_ON_NEXT_LINE);

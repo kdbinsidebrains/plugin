@@ -88,7 +88,7 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new LambdaBlock(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.ASSIGNMENT_EXPR || type == QTypes.QUERY_COLUMN) {
+        if (type == QTypes.ASSIGNMENT_EXPR || type == QTypes.QUERY_COLUMN || type == QTypes.TYPED_PARAMETER) {
             return new AssignmentBlock(node, formatter, wrap, alignment, indent);
         }
 
@@ -114,6 +114,10 @@ public abstract class AbstractQBlock extends AbstractBlock {
 
         if (type == QTypes.TABLE_EXPR) {
             return new TableBlock(node, formatter, wrap, alignment, indent);
+        }
+
+        if (type == QTypes.PATTERN_PARAMETER) {
+            return BracketsBlock.parentheses(node, formatter, wrap, alignment, indent);
         }
 
         if (InvokeBlock.isInvokeElement(type)) {

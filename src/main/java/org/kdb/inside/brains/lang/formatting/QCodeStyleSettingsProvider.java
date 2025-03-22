@@ -114,7 +114,12 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         lambda.item("LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS", "Within parameter brackets");
         lambda.item("LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON", "After parameter semicolon");
         lambda.item("LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON", "Before parameter semicolon");
+        lambda.item("LAMBDA_SPACE_AFTER_PATTERN_PAREN", "After parameter semicolon");
+        lambda.item("LAMBDA_SPACE_BEFORE_PATTERN_PAREN", "Before parameter semicolon");
+        lambda.item("LAMBDA_SPACE_PATTERN_PARAMS_WITHIN_PARENS", "Within pattern match parens");
+        lambda.item("LAMBDA_SPACE_TYPED_PARAMS_WITHIN_PARENS", "Within pattern match parens");
         lambda.item("LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE", "Space before global close brace");
+        lambda.item("LAMBDA_SPACE_AROUND_TYPED_PARAMS_COLON", "Around typed parameter definition");
 
         final Group table = customizer.group(TABLE);
 //        table.item("TABLE_SPACE_WITHIN_PARENS", "Within parens");

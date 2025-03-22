@@ -18,6 +18,8 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS = false;
     public boolean LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON = false;
     public boolean LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON = false;
+    public boolean LAMBDA_SPACE_PATTERN_PARAMS_WITHIN_PARENS = false;
+    public boolean LAMBDA_SPACE_AROUND_TYPED_PARAMS_COLON = false;
 
     // Controls
     public int CONTROL_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
