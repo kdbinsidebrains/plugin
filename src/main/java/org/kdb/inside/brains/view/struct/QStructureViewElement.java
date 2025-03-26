@@ -19,21 +19,63 @@ import static org.kdb.inside.brains.psi.QPsiUtil.getImportContent;
 public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
     private final String text;
     private final PsiElement content;
-    private final StructureElementType type;
+    private final @NotNull StructureElementType type;
 
-    protected QStructureViewElement(PsiFile file) {
+    protected QStructureViewElement(@NotNull PsiFile file) {
         this(file, StructureElementType.FILE, file.getName(), file);
     }
 
-    private QStructureViewElement(PsiElement element, StructureElementType type, String text) {
+    private QStructureViewElement(@NotNull PsiElement element, @NotNull StructureElementType type, String text) {
         this(element, type, text, null);
     }
 
-    private QStructureViewElement(PsiElement element, StructureElementType type, String text, PsiElement content) {
+    private QStructureViewElement(@NotNull PsiElement element, @NotNull StructureElementType type, String text, PsiElement content) {
         super(element);
         this.type = type;
         this.text = text;
         this.content = content;
+    }
+
+    @Override
+    public @Nullable String getPresentableText() {
+        return text;
+    }
+
+    public @NotNull StructureElementType getType() {
+        return type;
+    }
+
+    @Override
+    public @NotNull Collection<StructureViewTreeElement> getChildrenBase() {
+        if (content == null || type.isAlwaysLeaf()) {
+            return List.of();
+        }
+        if (content instanceof QDictExpr d) {
+            return getDictChildren(d);
+        }
+        if (content instanceof QTableExpr t) {
+            return getTableChildren(t);
+        }
+        return Stream.of(content.getChildren()).map(QStructureViewElement::createViewElement).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    private @NotNull Collection<StructureViewTreeElement> getDictChildren(QDictExpr d) {
+        final List<QTableColumn> fields = d.getFields();
+        if (fields == null) {
+            return List.of();
+        }
+        return fields.stream()
+                .map(QStructureViewElement::createViewElement)
+                .collect(Collectors.toList());
+    }
+
+    private @NotNull Collection<StructureViewTreeElement> getTableChildren(QTableExpr t) {
+        return Stream.of(t.getKeys(), t.getValues())
+                .filter(Objects::nonNull)
+                .map(QTableColumns::getColumns)
+                .flatMap(Collection::stream)
+                .map(QStructureViewElement::createViewElement)
+                .collect(Collectors.toList());
     }
 
     public static @Nullable QStructureViewElement createViewElement(PsiElement child) {
@@ -46,7 +88,7 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
         } else if (child instanceof QLambdaExpr lambda) {
             return createLambdaElement(lambda, "\uD835\uDF06");
         } else if (child instanceof QTableColumn col) {
-            return createTable(col);
+            return createTableColumns(col);
         } else if (child instanceof QAssignmentExpr assignment) {
             return createAssignment(assignment);
         } else if (child instanceof QInvokeFunction func) {
@@ -124,19 +166,24 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
             return createLambdaElement(lambda, name);
         } else if (expression instanceof QTableExpr) {
             return new QStructureViewElement(assignment, StructureElementType.TABLE, name, expression);
+        } else if (expression instanceof QDictExpr) {
+            return new QStructureViewElement(assignment, StructureElementType.DICT, name, expression);
         } else {
             name += getExpressionType(expression);
             return new QStructureViewElement(assignment, StructureElementType.VARIABLE, name);
         }
     }
 
-    private static @NotNull QStructureViewElement createTable(QTableColumn col) {
-        final boolean keys = col.getParent() instanceof QTableKeys;
+    private static @NotNull QStructureViewElement createTableColumns(QTableColumn col) {
+        final PsiElement parent = col.getParent();
+        final boolean keys = parent instanceof QTableKeys;
         final QVarDeclaration varDeclaration = col.getVarDeclaration();
 
         String name = varDeclaration == null ? "" : varDeclaration.getQualifiedName();
         name += getExpressionType(col.getExpression());
-        return new QStructureViewElement(col, keys ? StructureElementType.TABLE_KEY_COLUMN : StructureElementType.TABLE_VALUE_COLUMN, name);
+
+        final StructureElementType elType = keys ? (parent.getParent() instanceof QDictExpr ? StructureElementType.DICT_FIELD : StructureElementType.TABLE_KEY_COLUMN) : StructureElementType.TABLE_VALUE_COLUMN;
+        return new QStructureViewElement(col, elType, name);
     }
 
     private static @NotNull QStructureViewElement createCommand(QCommand cmd) {
@@ -176,43 +223,5 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
             return ": query";
         }
         return ": expression";
-    }
-
-    @Override
-    public @Nullable String getPresentableText() {
-        return text;
-    }
-
-    private @NotNull Collection<StructureViewTreeElement> processChildren(PsiElement content) {
-        return Stream.of(content.getChildren()).map(this::createChildElement).filter(Objects::nonNull).collect(Collectors.toList());
-    }
-
-    public StructureElementType getType() {
-        return type;
-    }
-
-    @Override
-    public @NotNull Collection<StructureViewTreeElement> getChildrenBase() {
-        if (content == null || type.isAlwaysLeaf()) {
-            return List.of();
-        }
-
-        if (content instanceof QTableExpr) {
-            return getTableElements((QTableExpr) content);
-        }
-        return processChildren(content);
-    }
-
-    private @Nullable QStructureViewElement createChildElement(PsiElement child) {
-        return createViewElement(child);
-    }
-
-    private @NotNull Collection<StructureViewTreeElement> getTableElements(QTableExpr tbl) {
-        return Stream.of(tbl.getKeys(), tbl.getValues())
-                .filter(Objects::nonNull)
-                .map(QTableColumns::getColumns)
-                .flatMap(Collection::stream)
-                .map(QStructureViewElement::createViewElement)
-                .collect(Collectors.toList());
     }
 }

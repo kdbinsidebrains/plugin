@@ -12,6 +12,8 @@ public enum StructureElementType {
     SYMBOL(KdbIcons.Node.Symbol, true, false),
     VARIABLE(KdbIcons.Node.Variable, true, false),
     LAMBDA(KdbIcons.Node.Lambda, false, true),
+    DICT(KdbIcons.Node.Dict, false, false),
+    DICT_FIELD(KdbIcons.Node.DictField, true, false),
     TABLE(KdbIcons.Node.Table, false, false),
     TABLE_KEY_COLUMN(KdbIcons.Node.TableKeyColumn, true, false),
     TABLE_VALUE_COLUMN(KdbIcons.Node.TableValueColumn, true, false);

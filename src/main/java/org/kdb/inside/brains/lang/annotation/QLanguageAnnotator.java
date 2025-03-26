@@ -17,7 +17,8 @@ public class QLanguageAnnotator implements Annotator {
             new QContextAnnotator(),
             new QTypeCastAnnotator(),
             new QImportAnnotator(),
-            new QTableAnnotator(),
+            QFlipAnnotator.newDictAnnotator(),
+            QFlipAnnotator.newTableAnnotator(),
             new QSpecAnnotator()
     );
 

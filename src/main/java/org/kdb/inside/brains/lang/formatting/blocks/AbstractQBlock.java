@@ -112,8 +112,8 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new QueryBlock(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.TABLE_EXPR) {
-            return new TableBlock(node, formatter, wrap, alignment, indent);
+        if (type == QTypes.TABLE_EXPR || type == QTypes.DICT_EXPR) {
+            return new FlipBlock(node, formatter, wrap, alignment, indent);
         }
 
         if (type == QTypes.PATTERN_PARAMETER) {

@@ -19,7 +19,9 @@ import com.jgoodies.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.lang.CastType;
+import org.kdb.inside.brains.lang.annotation.BaseIntentionAction;
 import org.kdb.inside.brains.lang.annotation.QElementAnnotator;
+import org.kdb.inside.brains.lang.annotation.WriteIntentionAction;
 import org.kdb.inside.brains.psi.*;
 
 import java.util.HashMap;
@@ -28,7 +30,6 @@ import java.util.Map;
 
 
 public class QParametersAnnotator extends QElementAnnotator<QParameters> {
-
     public static final String FAMILY_NAME = "QParameters";
 
     public QParametersAnnotator() {
@@ -154,55 +155,35 @@ public class QParametersAnnotator extends QElementAnnotator<QParameters> {
         }
     }
 
-    private static abstract class BaseTypeAction extends AbstractIntentionAction {
-        private final String text;
-        private final boolean replace;
-        @NotNull
-        private final QPsiElement element;
-
+    private static abstract class BaseTypeAction extends BaseIntentionAction {
         public BaseTypeAction(String text, QPsiElement element, boolean replace) {
-            this.text = text;
-            this.element = element;
-            this.replace = replace;
-        }
-
-        @Override
-        public @IntentionName @NotNull String getText() {
-            return text;
-        }
-
-        @Override
-        public @IntentionFamilyName @NotNull String getFamilyName() {
-            return FAMILY_NAME;
-        }
-
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            JBPopupFactory.getInstance()
-                    .createPopupChooserBuilder(CastType.CASTING_TYPES)
-                    .setRenderer(new ListCellRendererWithRightAlignedComponent<>() {
-                        @Override
-                        protected void customize(KdbType type) {
-                            this.setLeftText("`" + type.getCode());
-                            this.setRightForeground(JBColor.GRAY);
-                            this.setRightText(type.getTypeName());
-                        }
-                    })
-                    .setItemChosenCallback(t ->
-                            WriteCommandAction.runWriteCommandAction(project, () -> {
-                                        final String text = "`" + t.getCode();
-                                        final Document document = editor.getDocument();
-                                        if (replace) {
-                                            final TextRange range = element.getTextRange();
-                                            document.replaceString(range.getStartOffset(), range.getEndOffset(), text);
-                                        } else {
-                                            document.insertString(element.getTextOffset() + element.getTextLength(), text);
+            super(FAMILY_NAME, text, (p, e, f) -> {
+                JBPopupFactory.getInstance()
+                        .createPopupChooserBuilder(CastType.CASTING_TYPES)
+                        .setRenderer(new ListCellRendererWithRightAlignedComponent<>() {
+                            @Override
+                            protected void customize(KdbType type) {
+                                this.setLeftText("`" + type.getCode());
+                                this.setRightForeground(JBColor.GRAY);
+                                this.setRightText(type.getTypeName());
+                            }
+                        })
+                        .setItemChosenCallback(t ->
+                                WriteCommandAction.runWriteCommandAction(p, () -> {
+                                            final String symbol = "`" + t.getCode();
+                                            final Document document = e.getDocument();
+                                            if (replace) {
+                                                final TextRange range = element.getTextRange();
+                                                document.replaceString(range.getStartOffset(), range.getEndOffset(), symbol);
+                                            } else {
+                                                document.insertString(element.getTextOffset() + element.getTextLength(), symbol);
+                                            }
                                         }
-                                    }
-                            )
-                    )
-                    .createPopup()
-                    .showInBestPositionFor(editor);
+                                )
+                        )
+                        .createPopup()
+                        .showInBestPositionFor(e);
+            });
         }
     }
 
@@ -218,92 +199,35 @@ public class QParametersAnnotator extends QElementAnnotator<QParameters> {
         }
     }
 
-    private static class RemoveTypeAction extends AbstractIntentionAction {
-        @NotNull
-        private final QTypedParameter param;
-
+    private static class RemoveTypeAction extends WriteIntentionAction {
         public RemoveTypeAction(@NotNull QTypedParameter param) {
-            this.param = param;
-        }
-
-        @Override
-        public boolean startInWriteAction() {
-            return true;
-        }
-
-        @Override
-        public @IntentionName @NotNull String getText() {
-            return "Remove parameter type";
-        }
-
-        @Override
-        public @IntentionFamilyName @NotNull String getFamilyName() {
-            return FAMILY_NAME;
-        }
-
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            final Document document = editor.getDocument();
-            final TextRange allRange = param.getTextRange();
-            final TextRange nameRange = param.getVarDeclaration().getTextRange();
-            document.deleteString(nameRange.getEndOffset(), allRange.getEndOffset());
+            super(FAMILY_NAME, "Remove parameter type", (p, e, f) -> {
+                final Document document = e.getDocument();
+                final TextRange allRange = param.getTextRange();
+                final TextRange nameRange = param.getVarDeclaration().getTextRange();
+                document.deleteString(nameRange.getEndOffset(), allRange.getEndOffset());
+            });
         }
     }
 
-    private static class RedundantParameterAction extends AbstractIntentionAction {
-        @NotNull
-        private final QPatternParameter param;
-
+    private static class RedundantParameterAction extends WriteIntentionAction {
         public RedundantParameterAction(@NotNull QPatternParameter param) {
-            this.param = param;
-        }
+            super(FAMILY_NAME, "Remove pattern match", (p, e, f) -> {
+                final Document document = e.getDocument();
+                final TextRange range = param.getTextRange();
 
-        @Override
-        public boolean startInWriteAction() {
-            return true;
-        }
-
-        @Override
-        public @IntentionName @NotNull String getText() {
-            return "Remove pattern match";
-        }
-
-        @Override
-        public @IntentionFamilyName @NotNull String getFamilyName() {
-            return FAMILY_NAME;
-        }
-
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            final Document document = editor.getDocument();
-            final TextRange range = param.getTextRange();
-
-            document.deleteString(range.getEndOffset(), range.getEndOffset() + 1);
-            document.deleteString(range.getStartOffset(), range.getStartOffset() + 1);
+                document.deleteString(range.getEndOffset(), range.getEndOffset() + 1);
+                document.deleteString(range.getStartOffset(), range.getStartOffset() + 1);
+            });
         }
     }
 
-    private static class RenameIntentionAction extends AbstractIntentionAction {
-        private final QVariable variable;
-
+    private static class RenameIntentionAction extends BaseIntentionAction {
         private RenameIntentionAction(QVariable variable) {
-            this.variable = variable;
-        }
-
-        @Override
-        public @IntentionName @NotNull String getText() {
-            return "Rename parameter";
-        }
-
-        @Override
-        public @IntentionFamilyName @NotNull String getFamilyName() {
-            return FAMILY_NAME;
-        }
-
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            final TextRange r = variable.getTextRange();
-            editor.getSelectionModel().setSelection(r.getStartOffset(), r.getEndOffset());
+            super(FAMILY_NAME, "Rename parameter", (p, e, f) -> {
+                final TextRange r = variable.getTextRange();
+                e.getSelectionModel().setSelection(r.getStartOffset(), r.getEndOffset());
+            });
         }
     }
 }

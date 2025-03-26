@@ -108,7 +108,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean QUERY_COLUMNS_ALIGN = true;
     public boolean QUERY_SPACE_AFTER_COMMA = true;
 
-    // Table
+    // Table & Dict
     public int TABLE_COLUMNS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean TABLE_ALIGN_BRACKETS = true;
     public boolean TABLE_ALIGN_PARENS = false;

@@ -43,6 +43,10 @@ public class ElementContext {
         return scope == ElementScope.QUERY ? (QQueryExpr) element : null;
     }
 
+    public QDictExpr dict() {
+        return scope == ElementScope.DICT ? (QDictExpr) element : null;
+    }
+
     public QTableExpr table() {
         return scope == ElementScope.TABLE ? (QTableExpr) element : null;
     }
@@ -70,7 +74,6 @@ public class ElementContext {
         ASTNode parent = node.getTreeParent();
         while (parent != null) {
             final IElementType elementType = parent.getElementType();
-
             if (elementType == QTypes.PARAMETERS) {
                 return QTypes.PARAMETERS;
             }
@@ -79,6 +82,9 @@ public class ElementContext {
             }
             if (elementType == QTypes.QUERY_EXPR) {
                 return QTypes.QUERY_EXPR;
+            }
+            if (elementType == QTypes.DICT_EXPR) {
+                return QTypes.DICT_EXPR;
             }
             if (elementType == QTypes.TABLE_EXPR) {
                 return QTypes.TABLE_EXPR;
@@ -99,6 +105,9 @@ public class ElementContext {
             }
             if (parent instanceof QQueryExpr) {
                 return new ElementContext(ElementScope.QUERY, parent);
+            }
+            if (parent instanceof QDictExpr) {
+                return new ElementContext(ElementScope.DICT, parent);
             }
             if (parent instanceof QTableExpr) {
                 return new ElementContext(ElementScope.TABLE, parent);

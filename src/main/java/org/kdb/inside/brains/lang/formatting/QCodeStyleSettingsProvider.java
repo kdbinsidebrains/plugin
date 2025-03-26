@@ -23,7 +23,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
     private static final String OPERATORS = "Operators";
     private static final String ITERATORS = "Iterators";
     private static final String LAMBDA = "Lambda ({..})";
-    private static final String TABLE = "Table definition (([...]...))";
+    private static final String TABLE = "Table & Dict definition (([...]...))";
     private static final String CONTROL = "Control statement (if, do, while, ...)";
     private static final String CONDITION = "Condition statement ($, @, ?, ...)";
     private static final String ARGUMENTS = "Arguments (x[;;;])";

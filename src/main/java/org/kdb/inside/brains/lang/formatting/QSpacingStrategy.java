@@ -47,16 +47,18 @@ public class QSpacingStrategy {
         builder.betweenInside(EXPRESSIONS, BRACE_CLOSE, LAMBDA_EXPR).spaceIf(custom.LAMBDA_SPACE_WITHIN_BRACES);
 
         // Table
+        builder.beforeInside(TABLE_KEYS, DICT_EXPR).spaces(0);
+        builder.beforeInside(TABLE_KEYS, TABLE_EXPR).spaces(0);
+        builder.afterInside(BRACKET_OPEN, TABLE_KEYS).spaceIf(false, custom.TABLE_LBRACKET_NEW_LINE);
+        builder.beforeInside(BRACKET_CLOSE, TABLE_KEYS).spaceIf(false, custom.TABLE_RBRACKET_NEW_LINE);
         builder.afterInside(SEMICOLON, TABLE_KEYS).spaceIf(custom.TABLE_SPACE_AFTER_KEY_SEMICOLON);
         builder.beforeInside(SEMICOLON, TABLE_KEYS).spaceIf(custom.TABLE_SPACE_BEFORE_KEY_SEMICOLON);
         // See TableBlock#getSpaces for custom rule as this one doesn't cover it
-        builder.afterInside(BRACKET_OPEN, TABLE_KEYS).spaceIf(false, custom.TABLE_LBRACKET_NEW_LINE);
-        builder.beforeInside(BRACKET_CLOSE, TABLE_KEYS).spaceIf(false, custom.TABLE_RBRACKET_NEW_LINE);
-        builder.beforeInside(TABLE_VALUES, TABLE_EXPR).spaceIf(custom.TABLE_SPACE_BEFORE_COLUMNS, custom.TABLE_RBRACKET_NEW_LINE);
+        builder.beforeInside(PAREN_CLOSE, DICT_EXPR).spaceIf(custom.TABLE_SPACE_AFTER_COLUMNS, custom.TABLE_CLOSE_PAREN_NEW_LINE);
         builder.beforeInside(PAREN_CLOSE, TABLE_EXPR).spaceIf(custom.TABLE_SPACE_AFTER_COLUMNS, custom.TABLE_CLOSE_PAREN_NEW_LINE);
+        builder.beforeInside(TABLE_VALUES, TABLE_EXPR).spaceIf(custom.TABLE_SPACE_BEFORE_COLUMNS, custom.TABLE_RBRACKET_NEW_LINE);
         builder.afterInside(SEMICOLON, TABLE_VALUES).spaceIf(custom.TABLE_SPACE_AFTER_COLUMN_SEMICOLON);
         builder.beforeInside(SEMICOLON, TABLE_VALUES).spaceIf(custom.TABLE_SPACE_BEFORE_COLUMN_SEMICOLON);
-        builder.beforeInside(TABLE_KEYS, TABLE_EXPR).spaces(0);
 
         // Control
         builder.after(CONTROL_KEYWORD).spaceIf(custom.CONTROL_SPACE_AFTER_OPERATOR);

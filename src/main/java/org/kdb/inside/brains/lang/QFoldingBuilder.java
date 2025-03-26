@@ -8,11 +8,11 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
-import org.kdb.inside.brains.psi.QLambdaExpr;
-import org.kdb.inside.brains.psi.QTableColumns;
-import org.kdb.inside.brains.psi.QTableExpr;
+import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.psi.*;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
@@ -24,7 +24,7 @@ public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
     @Override
     public FoldingDescriptor @NotNull [] buildFoldRegions(@NotNull PsiElement root, @NotNull Document document, boolean quick) {
         final Collection<QLambdaExpr> lambdas = PsiTreeUtil.findChildrenOfType(root, QLambdaExpr.class);
-        final Collection<QTableExpr> tables = PsiTreeUtil.findChildrenOfType(root, QTableExpr.class);
+        final Collection<QFlip> tables = PsiTreeUtil.findChildrenOfType(root, QFlip.class);
         if (lambdas.isEmpty() && tables.isEmpty()) {
             return EMPTY_ARRAY;
         }
@@ -38,13 +38,20 @@ public class QFoldingBuilder extends FoldingBuilderEx implements DumbAware {
             return "{" + lambda.getParametersInfo() + "...}";
         } else if (psi instanceof QTableExpr tbl) {
             return "([" + getColumnsCount(tbl.getKeys()) + "]" + getColumnsCount(tbl.getValues()) + ")";
+        } else if (psi instanceof QDictExpr dict) {
+            return "([" + getColumnsCount(dict.getFields()) + "])";
         }
         return "...";
     }
 
     @NotNull
-    private String getColumnsCount(QTableColumns columns) {
-        return columns == null ? "" : " " + columns.getColumns().size() + " ";
+    private String getColumnsCount(@Nullable QTableColumns columns) {
+        return columns == null ? "" : getColumnsCount(columns.getColumns());
+    }
+
+    @NotNull
+    private String getColumnsCount(@Nullable List<QTableColumn> columns) {
+        return columns == null ? "" : " " + columns.size() + " ";
     }
 
     @Override

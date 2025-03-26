@@ -214,13 +214,16 @@ fake invoke_expr ::= (operator | function | parentheses_expr) arguments_list? op
 invoke_prefix ::= operator arguments_list operation? expression? { pin=2 extends=invoke_expr}
 invoke_function ::= function ((arguments_list? ((operation? expression) | operation)) | (arguments_list operation?)) { extends=invoke_expr }
 invoke_parentheses ::= parentheses_expr arguments_list? operation? expression? { extends=invoke_expr }
-invoke_pattern_match ::= parentheses_expr var_assignment_type expression {extends=invoke_expr}
+//invoke_pattern_match ::= parentheses_expr var_assignment_type expression {extends=invoke_expr}
 
-private invoke_group ::= invoke_prefix | invoke_function | invoke_pattern_match | invoke_parentheses
+private invoke_group ::= invoke_prefix | invoke_function | invoke_parentheses
+//private invoke_group ::= invoke_prefix | invoke_function | invoke_pattern_match | invoke_parentheses
 
 type_cast_expr ::= TYPE_CAST_PATTERN expression? {pin = 1 methods=[typeCast="TYPE_CAST_PATTERN"]}
 
-table_column ::= (var_declaration column_assignment_type expression?) | expression {pin(".*")=2}
+table_column ::= (var_declaration column_assignment_type expression?) | expression {
+    pin(".*")=2
+ }
 private table_columns_group ::= table_column (SEMICOLON+ table_column)* SEMICOLON* {
 //    pin(".*")="SEMICOLON"
     recoverWhile=table_columns_recover
@@ -228,16 +231,21 @@ private table_columns_group ::= table_column (SEMICOLON+ table_column)* SEMICOLO
 private table_columns_recover ::= !(PAREN_CLOSE | BRACKET_CLOSE)
 fake table_columns ::= table_columns_group { methods=[columns="table_column"] }
 table_keys ::= BRACKET_OPEN [table_columns_group] BRACKET_CLOSE {
-    pin=1 extends=table_columns methods=[table_column]
+    pin=1 extends=table_columns methods=[columns="table_column"]
  }
-table_values ::= [table_columns_group] { extends=table_columns }
+table_values ::= [table_columns_group] { extends=table_columns methods=[columns="table_column"]}
 
 private table_dict_start ::= PAREN_OPEN  table_keys
 table_expr ::= table_dict_start SEMICOLON* table_values PAREN_CLOSE {
-    pin=2 methods=[table_columns keys="table_columns[0]" values="table_columns[1]"]
+    pin=2
+    methods=[table_columns keys="table_columns[0]" values="table_columns[1]"]
+    implements="org.kdb.inside.brains.psi.QFlip"
 }
 
-dict_expr ::= table_dict_start PAREN_CLOSE
+dict_expr ::= table_dict_start PAREN_CLOSE {
+    methods=[table_keys fields="table_keys/table_column"]
+    implements="org.kdb.inside.brains.psi.QFlip"
+}
 
 query_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
 query_columns ::= query_column (QUERY_SPLITTER query_column)* {pin(".*")="QUERY_SPLITTER"}

@@ -34,6 +34,19 @@ tbl3:(
 
     ;
 
+dict1   :   (    [    key1    :   `value1;    key2        :            134            ] ) ;
+
+
+dict2:(
+    [
+    key1    :   `value1;
+    key2
+        :
+            134
+            ]
+ )
+ ;
+
 select  col1        ,        col2    by     key1 ,    key2      from    tbl3        where    col1    in`a`b`c   ,       (col2=10) or key2%2<-10;
 
 query:{

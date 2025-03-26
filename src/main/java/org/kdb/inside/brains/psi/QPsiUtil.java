@@ -3,6 +3,7 @@ package org.kdb.inside.brains.psi;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -68,10 +69,6 @@ public final class QPsiUtil {
         return res;
     }
 
-    public static boolean isKeyColumn(@Nullable QTableColumn column) {
-        return column != null && column.getParent() instanceof QTableKeys;
-    }
-
     public static String getTypeCast(@NotNull QTypeCastExpr cast) {
         final String text = cast.getTypeCast().getText();
         final String name = text.charAt(0) == '`' ? text.substring(1, text.length() - 1) : text.substring(1, text.length() - 2);
@@ -85,9 +82,16 @@ public final class QPsiUtil {
         return !identifier.isEmpty() && identifier.charAt(0) == '.';
     }
 
+    public static boolean isImplicitName(@NotNull String name) {
+        if (name.length() != 1) {
+            return false;
+        }
+        final char c = name.charAt(0);
+        return 'x' == c || 'y' == c || 'z' == c;
+    }
+
     public static boolean isImplicitVariable(@NotNull QVariable variable) {
-        final String qualifiedName = variable.getQualifiedName();
-        if (QVariable.IMPLICIT_VARS.contains(qualifiedName)) {
+        if (isImplicitName(variable.getQualifiedName())) {
             final QLambdaExpr enclosingLambda = variable.getContext(QLambdaExpr.class);
             return enclosingLambda != null && enclosingLambda.getParameters() == null;
         }
@@ -102,6 +106,7 @@ public final class QPsiUtil {
     public static boolean isGlobalDeclaration(@NotNull QVarDeclaration declaration) {
         final ElementContext of = ElementContext.of(declaration);
         switch (of.getScope()) {
+            case DICT:
             case TABLE:
             case QUERY:
             case PARAMETERS:
@@ -196,6 +201,10 @@ public final class QPsiUtil {
         return project.getService(PsiParserFacade.class).createWhiteSpaceFromText(text);
     }
 
+    public static PsiElement createColon(Project project) {
+        return createCustomCode(project, ":");
+    }
+
     public static PsiElement createSemicolon(Project project) {
         return createCustomCode(project, ";");
     }
@@ -220,6 +229,18 @@ public final class QPsiUtil {
         int pos = element.getTextOffset() + offset + (offset < 0 ? element.getTextLength() : 0);
         editor.getCaretModel().moveToOffset(pos);
         editor.getScrollingModel().scrollToCaret(ScrollType.RELATIVE);
+    }
+
+    public static void selectInEditor(@NotNull Editor editor, @Nullable PsiElement element) {
+        if (element == null) {
+            return;
+        }
+
+        final TextRange range = element.getTextRange();
+        final int offset = range.getStartOffset();
+        editor.getCaretModel().moveToOffset(offset);
+        editor.getScrollingModel().scrollToCaret(ScrollType.RELATIVE);
+        editor.getSelectionModel().setSelection(range.getStartOffset(), range.getEndOffset());
     }
 
     public static PsiElement insert(Project project, PsiElement el, PsiElement parent, boolean blankLineBefore, boolean blankLineAfter) {

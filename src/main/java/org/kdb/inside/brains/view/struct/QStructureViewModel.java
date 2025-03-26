@@ -18,7 +18,7 @@ import java.util.EnumSet;
 
 final class QStructureViewModel extends StructureViewModelBase implements StructureViewModel.ElementInfoProvider, StructureViewModel.ExpandInfoProvider {
     private static final Class[] CLASSES = {
-            QFile.class, QImport.class, QCommand.class, QContext.class, QLambdaExpr.class, QAssignmentExpr.class, QTableColumn.class
+            QFile.class, QImport.class, QCommand.class, QContext.class, QLambdaExpr.class, QAssignmentExpr.class
     };
 
     public QStructureViewModel(@Nullable Editor editor, PsiFile psiFile) {
@@ -43,8 +43,10 @@ final class QStructureViewModel extends StructureViewModelBase implements Struct
     @Override
     public Filter @NotNull [] getFilters() {
         return new Filter[]{
+                new SingleElementFilter("SHOW_DICT", "Show Dicts", StructureElementType.DICT),
+                new SingleElementFilter("SHOW_DICT_FIELDS", "Show Dict Fields", StructureElementType.DICT_FIELD),
                 new SingleElementFilter("SHOW_TABLES", "Show Tables", StructureElementType.TABLE),
-                new MultiElementFilter("SHOW_COLUMNS", "Show Columns", EnumSet.of(StructureElementType.TABLE_VALUE_COLUMN, StructureElementType.TABLE_KEY_COLUMN)),
+                new MultiElementFilter("SHOW_TABLE_COLUMNS", "Show Table Columns", EnumSet.of(StructureElementType.TABLE_VALUE_COLUMN, StructureElementType.TABLE_KEY_COLUMN)),
                 new SingleElementFilter("SHOW_IMPORTS", "Show Imports", StructureElementType.IMPORT),
                 new SingleElementFilter("SHOW_COMMANDS", "Show Commands", StructureElementType.COMMAND),
                 new SingleElementFilter("SHOW_LAMBDAS", "Show Lambdas", StructureElementType.LAMBDA),

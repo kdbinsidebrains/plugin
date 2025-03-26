@@ -1,14 +1,12 @@
 package org.kdb.inside.brains.psi.index;
 
 import icons.KdbIcons;
-import org.kdb.inside.brains.psi.QAssignmentExpr;
-import org.kdb.inside.brains.psi.QExpression;
-import org.kdb.inside.brains.psi.QLambdaExpr;
-import org.kdb.inside.brains.psi.QTableExpr;
+import org.kdb.inside.brains.psi.*;
 
 import javax.swing.*;
 
 public enum IdentifierType {
+    DICT(KdbIcons.Node.Dict),
     TABLE(KdbIcons.Node.Table),
     SYMBOL(KdbIcons.Node.Symbol),
     LAMBDA(KdbIcons.Node.Lambda),
@@ -25,6 +23,9 @@ public enum IdentifierType {
         final QExpression expression = assignment.getExpression();
         if (expression instanceof QLambdaExpr) {
             return LAMBDA;
+        }
+        if (expression instanceof QDictExpr) {
+            return DICT;
         }
         if (expression instanceof QTableExpr) {
             return TABLE;

@@ -4,41 +4,50 @@ import com.intellij.ide.IconProvider;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.BitUtil;
-import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 import static com.intellij.openapi.util.Iconable.ICON_FLAG_VISIBILITY;
+import static icons.KdbIcons.Node.*;
 
 public class QIconProvider extends IconProvider implements DumbAware {
-    public static Icon getColumnIcon(@NotNull QTableColumn column) {
-        return QPsiUtil.isKeyColumn(column) ? KdbIcons.Node.TableKeyColumn : KdbIcons.Node.TableValueColumn;
-    }
-
     @Override
     public @Nullable Icon getIcon(@NotNull PsiElement element, int flags) {
         if (element instanceof QFile) {
-            return KdbIcons.Node.File;
+            return File;
         } else if (element instanceof QImport) {
-            return KdbIcons.Node.Import;
+            return Import;
         } else if (element instanceof QCommand) {
-            return KdbIcons.Node.Command;
+            return Command;
         } else if (element instanceof QContext) {
-            return KdbIcons.Node.Context;
+            return Context;
         } else if (element instanceof QSymbol) {
-            return KdbIcons.Node.Symbol;
+            return Symbol;
         } else if (element instanceof QTableColumn tbl) {
             return getColumnIcon(tbl);
         } else if (element instanceof QLambdaExpr) {
-            return KdbIcons.Node.Lambda;
+            return Lambda;
         } else if (element instanceof QAssignmentExpr assignment) {
             return getAssignmentIcon(assignment, BitUtil.isSet(flags, ICON_FLAG_VISIBILITY));
         } else if (element instanceof QVarDeclaration declaration) {
             return getIcon(declaration.getParent(), flags);
         }
         return null;
+    }
+
+    public static @NotNull Icon getColumnIcon(QTableColumn column) {
+        final PsiElement parent = column.getParent();
+        if (parent instanceof QTableKeys) {
+            if (parent.getParent() instanceof QDictExpr) {
+                return DictField;
+            } else {
+                return TableKeyColumn;
+            }
+        } else {
+            return TableValueColumn;
+        }
     }
 
     private Icon getAssignmentIcon(QAssignmentExpr assignment, boolean visibility) {
@@ -57,19 +66,23 @@ public class QIconProvider extends IconProvider implements DumbAware {
 
     private Icon getExpressionIcon(QExpression expression) {
         if (expression instanceof QLambdaExpr) {
-            return KdbIcons.Node.Lambda;
+            return Lambda;
         } else if (expression instanceof QTableExpr) {
-            return KdbIcons.Node.Table;
+            return Table;
+        } else if (expression instanceof QDictExpr) {
+            return Dict;
         }
-        return KdbIcons.Node.Variable;
+        return Variable;
     }
 
     private Icon getExpressionIcon(QExpression expression, boolean global) {
         if (expression instanceof QLambdaExpr) {
-            return global ? KdbIcons.Node.LambdaPublic : KdbIcons.Node.LambdaPrivate;
+            return global ? LambdaPublic : LambdaPrivate;
         } else if (expression instanceof QTableExpr) {
-            return global ? KdbIcons.Node.TablePublic : KdbIcons.Node.TablePrivate;
+            return global ? TablePublic : TablePrivate;
+        } else if (expression instanceof QDictExpr) {
+            return global ? DictPublic : DictPrivate;
         }
-        return global ? KdbIcons.Node.VariablePublic : KdbIcons.Node.VariablePrivate;
+        return global ? VariablePublic : VariablePrivate;
     }
 }

@@ -12,8 +12,8 @@ import org.kdb.inside.brains.psi.QTypes;
 
 import java.util.List;
 
-public class TableBlock extends AbstractQBlock {
-    public TableBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
+public class FlipBlock extends AbstractQBlock {
+    public FlipBlock(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);
     }
 
@@ -55,7 +55,7 @@ public class TableBlock extends AbstractQBlock {
                 final Wrap wrap = Wrap.createWrap(custom.TABLE_COLUMNS_WRAP, true);
                 return new ColumnsBlock(node, formatter, wrap, alignment, NONE_INDENT);
             }
-            return TableBlock.this.createBlock(node, formatter, null, null, NORMAL_INDENT);
+            return FlipBlock.this.createBlock(node, formatter, null, null, NORMAL_INDENT);
         });
     }
 

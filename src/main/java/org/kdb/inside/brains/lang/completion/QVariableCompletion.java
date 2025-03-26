@@ -200,6 +200,10 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
                 final String join = params == null ? "" : String.join(";", params);
                 b = b.withTailText("[" + join + "]");
             }
+            if (type == IdentifierType.DICT) {
+                final String size = params == null ? "unknown" : String.valueOf(params.size());
+                b = b.withTailText(" " + size + " fields");
+            }
             if (type == IdentifierType.TABLE) {
                 final String size = params == null ? "unknown" : String.valueOf(params.size());
                 b = b.withTailText(" " + size + " columns");
