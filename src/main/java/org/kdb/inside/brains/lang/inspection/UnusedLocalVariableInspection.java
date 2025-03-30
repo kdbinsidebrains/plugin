@@ -23,7 +23,7 @@ public class UnusedLocalVariableInspection extends ElementInspection<QVarDeclara
 
     @Override
     protected void validate(@NotNull QVarDeclaration variable, @NotNull ProblemsHolder holder, boolean isOnTheFly) {
-        final ElementContext context = QPsiUtil.getElementContext(variable);
+        final ElementContext context = ElementContext.of(variable);
         if (!context.is(ElementScope.LAMBDA)) {
             return;
         }

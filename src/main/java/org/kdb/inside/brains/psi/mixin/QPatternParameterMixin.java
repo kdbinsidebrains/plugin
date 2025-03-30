@@ -1,9 +1,10 @@
-package org.kdb.inside.brains.psi.impl;
+package org.kdb.inside.brains.psi.mixin;
 
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.QParameter;
 import org.kdb.inside.brains.psi.QPatternParameter;
+import org.kdb.inside.brains.psi.QPsiElementImpl;
 
 import java.util.stream.Collectors;
 

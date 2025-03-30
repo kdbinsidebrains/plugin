@@ -36,7 +36,7 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
 
         @Override
         public ResolveResult @NotNull [] multiResolve(boolean incompleteCode) {
-            return resolveVariable(myElement, QPsiUtil.getElementContext(myElement));
+            return resolveVariable(myElement, ElementContext.of(myElement));
         }
 
         public static PsiReference[] of(QVariable var) {
@@ -62,7 +62,7 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
                 return ResolveResult.EMPTY_ARRAY;
             }
 
-            final ElementContext queryContext = QPsiUtil.getElementContext(query);
+            final ElementContext queryContext = ElementContext.of(query);
             final Collection<QVarReference> refs = PsiTreeUtil.findChildrenOfAnyType(expression, false, QVarReference.class);
 
             // It's the table definition

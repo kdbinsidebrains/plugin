@@ -1,18 +1,27 @@
-package org.kdb.inside.brains.psi.impl;
+package org.kdb.inside.brains.psi.mixin;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.kdb.inside.brains.psi.QPsiElement;
+import icons.KdbIcons;
+import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.psi.QContext;
+import org.kdb.inside.brains.psi.QPsiElementImpl;
 import org.kdb.inside.brains.psi.QVariable;
 
+import javax.swing.*;
 import java.util.Objects;
 
-public class QPsiContextImpl extends QPsiElementImpl implements QPsiElement {
+public abstract class QContextMixin extends QPsiElementImpl implements QContext {
     private String contextName = null;
 
-    public QPsiContextImpl(ASTNode node) {
+    public QContextMixin(ASTNode node) {
         super(node);
         updateContextName();
+    }
+
+    @Override
+    public @Nullable Icon getIcon(int flags) {
+        return KdbIcons.Node.Context;
     }
 
     @Override

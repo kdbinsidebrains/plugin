@@ -1,10 +1,19 @@
 # KdbInsideBrains Changelog
 
-## [5.16.0]
+## [6.0.0]
 
 ### Added
 
-- KDB 4.1 Syntax added
+- KDB 4.1 Syntax added: major code redesign to support new language features including:
+  - Working with icons was fully redesigned as well
+  - New type Dict has been introduced with a set of new formatting rules
+  - New type TypeVariable introduced with a set of new formatting rules
+  - Indexing redesigned to support new types
+
+### Changed
+
+- Structure View redesigned and optimized
+- NavBar redesigned and optimized
 
 ## [5.15.3]
 

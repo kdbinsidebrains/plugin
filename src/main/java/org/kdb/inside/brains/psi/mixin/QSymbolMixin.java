@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.psi.impl;
+package org.kdb.inside.brains.psi.mixin;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
@@ -7,13 +7,15 @@ import com.intellij.util.IncorrectOperationException;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.psi.QPsiElementImpl;
 import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QSymbol;
 
+import javax.swing.*;
 import java.util.Optional;
 
-public class QSymbolElementImpl extends QPsiElementImpl implements QSymbol {
-    public QSymbolElementImpl(ASTNode node) {
+public class QSymbolMixin extends QPsiElementImpl implements QSymbol, ItemPresentation {
+    public QSymbolMixin(ASTNode node) {
         super(node);
     }
 
@@ -29,7 +31,7 @@ public class QSymbolElementImpl extends QPsiElementImpl implements QSymbol {
 
     @Override
     public ItemPresentation getPresentation() {
-        return new VariablePresentation(this, KdbIcons.Node.Symbol);
+        return this;
     }
 
     @Override
@@ -52,5 +54,25 @@ public class QSymbolElementImpl extends QPsiElementImpl implements QSymbol {
                     getNode().replaceChild(keyNode, newKeyNode);
                 });
         return this;
+    }
+
+    @Override
+    public String getPresentableText() {
+        return getQualifiedName();
+    }
+
+    @Override
+    public String getLocationString() {
+        return QPsiUtil.getLocationString(this);
+    }
+
+    @Override
+    public @Nullable Icon getIcon(int flags) {
+        return KdbIcons.Node.Symbol;
+    }
+
+    @Override
+    public @Nullable Icon getIcon(boolean unused) {
+        return KdbIcons.Node.Symbol;
     }
 }

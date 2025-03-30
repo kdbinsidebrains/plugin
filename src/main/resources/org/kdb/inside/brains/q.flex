@@ -259,7 +259,7 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 }
 
 <YYINITIAL, QUERY_COLUMNS_STATE, QUERY_SOURCE_STATE> {
-  "("{LineSpace}*")"                         { return VECTOR; }
+//  "("{LineSpace}*")"                         { return VECTOR; }
   "("{LineSpace}*"::"{LineSpace}*")"         { return NILL; }
 
   "("                                        { yypushstate(YYINITIAL); return PAREN_OPEN; }

@@ -23,6 +23,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
     private static final String OPERATORS = "Operators";
     private static final String ITERATORS = "Iterators";
     private static final String LAMBDA = "Lambda ({..})";
+    private static final String PATTERN = "Pattern Matching ((a;b):(c;d))";
     private static final String TABLE = "Table & Dict definition (([...]...))";
     private static final String CONTROL = "Control statement (if, do, while, ...)";
     private static final String CONDITION = "Condition statement ($, @, ?, ...)";
@@ -114,10 +115,7 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         lambda.item("LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS", "Within parameter brackets");
         lambda.item("LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON", "After parameter semicolon");
         lambda.item("LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON", "Before parameter semicolon");
-        lambda.item("LAMBDA_SPACE_AFTER_PATTERN_PAREN", "After parameter semicolon");
-        lambda.item("LAMBDA_SPACE_BEFORE_PATTERN_PAREN", "Before parameter semicolon");
         lambda.item("LAMBDA_SPACE_PATTERN_PARAMS_WITHIN_PARENS", "Within pattern match parens");
-        lambda.item("LAMBDA_SPACE_TYPED_PARAMS_WITHIN_PARENS", "Within pattern match parens");
         lambda.item("LAMBDA_GLOBAL_SPACE_BEFORE_CLOSE_BRACE", "Space before global close brace");
         lambda.item("LAMBDA_SPACE_AROUND_TYPED_PARAMS_COLON", "Around typed parameter definition");
 
@@ -163,6 +161,12 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         parentheses.item("PARENTHESES_SPACE_WITHIN_PARENS", "Within parens");
         parentheses.item("PARENTHESES_SPACE_AFTER_SEMICOLON", "After semicolon");
         parentheses.item("PARENTHESES_SPACE_BEFORE_SEMICOLON", "Before semicolon");
+
+        final Group pattern = customizer.group(PATTERN);
+        pattern.item("PATTERN_SPACE_WITHIN_PARENS", "Within parens");
+        pattern.item("PATTERN_SPACE_AFTER_SEMICOLON", "After semicolon");
+        pattern.item("PATTERN_SPACE_BEFORE_SEMICOLON", "Before semicolon");
+        pattern.item("PATTERN_SPACE_AROUND_TYPED_PARAMS_COLON", "Around typed parameter definition");
 
         final Group mode = customizer.group(MODE);
         mode.item("MODE_SPACE_AFTER", "After mode name");
@@ -222,6 +226,12 @@ public class QCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvide
         parentheses.item("PARENTHESES_ALIGN_PAREN", "Align parens when multiline");
         parentheses.item("PARENTHESES_LPAREN_ON_NEXT_LINE", "New line after '('");
         parentheses.item("PARENTHESES_RPAREN_ON_NEXT_LINE", "Place ')' on new line");
+
+        final Group pattern = customizer.wrap(PATTERN, "PATTERN_WRAP");
+        pattern.item("PATTERN_ALIGN_EXPRS", "Align when multiline");
+        pattern.item("PATTERN_ALIGN_PAREN", "Align parens when multiline");
+        pattern.item("PATTERN_LPAREN_ON_NEXT_LINE", "New line after '('");
+        pattern.item("PATTERN_RPAREN_ON_NEXT_LINE", "Place ')' on new line");
 
         final Group lambda = customizer.group(LAMBDA);
         lambda.item("LAMBDA_ALIGN_BRACE", "Align braces");

@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.psi.impl;
+package org.kdb.inside.brains.psi;
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;

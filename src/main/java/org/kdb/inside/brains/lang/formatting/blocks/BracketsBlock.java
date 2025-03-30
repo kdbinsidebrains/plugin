@@ -22,6 +22,7 @@ public class BracketsBlock extends AbstractQBlock {
     private static final Descriptor ARGUMENTS = new Descriptor(QTypes.BRACKET_OPEN, QTypes.BRACKET_CLOSE, c -> c.ARGUMENTS_WRAP, c -> c.ARGUMENTS_ALIGN_BRACKET, c -> c.ARGUMENTS_ALIGN_EXPRS);
     private static final Descriptor PARAMETERS = new Descriptor(QTypes.BRACKET_OPEN, QTypes.BRACKET_CLOSE, c -> c.LAMBDA_PARAMS_WRAP, c -> c.LAMBDA_PARAMS_ALIGN_BRACKETS, c -> c.LAMBDA_PARAMS_ALIGN_NAMES);
     private static final Descriptor PARENTHESES = new Descriptor(QTypes.PAREN_OPEN, QTypes.PAREN_CLOSE, c -> c.PARENTHESES_WRAP, c -> c.PARENTHESES_ALIGN_PAREN, c -> c.PARENTHESES_ALIGN_EXPRS);
+    private static final Descriptor PATTERN = new Descriptor(QTypes.PAREN_OPEN, QTypes.PAREN_CLOSE, c -> c.PATTERN_WRAP, c -> c.PATTERN_ALIGN_PAREN, c -> c.PATTERN_ALIGN_EXPRS);
 
     private BracketsBlock(@NotNull Descriptor descriptor, @NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         super(node, formatter, wrap, alignment, indent);
@@ -42,6 +43,10 @@ public class BracketsBlock extends AbstractQBlock {
 
     public static BracketsBlock parentheses(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
         return new BracketsBlock(PARENTHESES, node, formatter, wrap, alignment, indent);
+    }
+
+    public static BracketsBlock patterns(@NotNull ASTNode node, @NotNull QFormatter formatter, @Nullable Wrap wrap, @Nullable Alignment alignment, @NotNull Indent indent) {
+        return new BracketsBlock(PATTERN, node, formatter, wrap, alignment, indent);
     }
 
     @Override

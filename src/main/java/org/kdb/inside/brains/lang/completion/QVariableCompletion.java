@@ -121,7 +121,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
                 type = "()".equals(varExpr.getText()) ? "vector" : "literal";
             }
 
-            LookupElementBuilder b = LookupElementBuilder.create(name).withIcon(QIconProvider.getColumnIcon(c)).withTailText(" " + type).withTypeText(tableName.getQualifiedName() + "@" + tableName.getContainingFile().getName(), true);
+            LookupElementBuilder b = LookupElementBuilder.create(name).withIcon(c.getIcon(0)).withTailText(" " + type).withTypeText(tableName.getQualifiedName() + "@" + tableName.getContainingFile().getName(), true);
             result.addElement(b);
         });
     }
@@ -193,22 +193,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
                 return true;
             }
 
-            LookupElementBuilder b = LookupElementBuilder.create(key).withIcon(type.getIcon()).withTypeText(file.getName(), true);
-
-            final List<String> params = descriptor.params();
-            if (type == IdentifierType.LAMBDA) {
-                final String join = params == null ? "" : String.join(";", params);
-                b = b.withTailText("[" + join + "]");
-            }
-            if (type == IdentifierType.DICT) {
-                final String size = params == null ? "unknown" : String.valueOf(params.size());
-                b = b.withTailText(" " + size + " fields");
-            }
-            if (type == IdentifierType.TABLE) {
-                final String size = params == null ? "unknown" : String.valueOf(params.size());
-                b = b.withTailText(" " + size + " columns");
-            }
-            result.addElement(b);
+            result.addElement(LookupElementBuilder.create(key).withIcon(type.getIcon()).withTypeText(file.getName(), true));
             return true;
         });
     }
@@ -255,10 +240,6 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
             }
 
             final IdentifierType type = IdentifierType.getType(assignment);
-            if (type == null) {
-                continue;
-            }
-
             final LookupElementBuilder b = LookupElementBuilder.create(variable).withIcon(type.getIcon()).withTypeText("Local " + type.name().toLowerCase(), true);
             result.addElement(b);
         }

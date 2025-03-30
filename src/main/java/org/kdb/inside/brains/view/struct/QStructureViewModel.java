@@ -5,7 +5,6 @@ import com.intellij.ide.structureView.StructureViewModelBase;
 import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.util.treeView.smartTree.*;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NonNls;
@@ -89,11 +88,7 @@ final class QStructureViewModel extends StructureViewModelBase implements Struct
 
         @Override
         public boolean isVisible(TreeElement treeNode) {
-            final PsiElement element = ((QStructureViewElement) treeNode).getElement();
-            if (element instanceof QAssignmentExpr) {
-                return QPsiUtil.isGlobalDeclaration((QAssignmentExpr) element);
-            }
-            return true;
+            return ((QStructureViewElement) treeNode).isGlobalDeclaration();
         }
     }
 

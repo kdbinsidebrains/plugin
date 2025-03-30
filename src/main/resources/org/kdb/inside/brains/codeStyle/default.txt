@@ -17,6 +17,18 @@ end:{(neg union/[w[; ; 0]])@\:(`.u.end;x)}
 var3:indexed[;0];
 indexed[0;0]:var1;
 
+( patternVar1       ;   patternVar2 : `s        ) : ( 10 ; 20);
+
+(
+        patternVar1
+        ;
+        patternVar2
+        :
+         `s
+         )
+          :
+           ( 10 ; 20);
+
 tbl0:([] a:1; b:2);         / This is tbl0 definition
 
 tbl1:(  [      ]     col1:`long$()  ; col2:`float$());

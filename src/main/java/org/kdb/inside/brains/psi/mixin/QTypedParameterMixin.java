@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.psi.impl;
+package org.kdb.inside.brains.psi.mixin;
 
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;

@@ -52,8 +52,10 @@ public class QParametersAnnotator extends QElementAnnotator<QParameters> {
     private void checkParameterType(@NotNull AnnotationHolder holder, @NotNull QParameter param) {
         if (param instanceof @NotNull QPatternParameter pp) {
             final List<QParameter> parameters = pp.getParameters();
-            if (parameters.size() < 2) {
-                holder.newAnnotation(HighlightSeverity.WARNING, "Redundant patter match").range(pp).withFix(new RedundantParameterAction(pp)).create();
+            if (parameters.isEmpty()) {
+                holder.newAnnotation(HighlightSeverity.WARNING, "Empty patter match").range(pp).withFix(new EmptyPatternAction(pp)).create();
+            } else if (parameters.size() == 1) {
+                holder.newAnnotation(HighlightSeverity.WARNING, "Redundant patter match").range(pp).withFix(new RedundantPatternAction(pp)).create();
             }
             parameters.forEach(p -> checkParameterType(holder, p));
         } else if (param instanceof QTypedParameter tp) {
@@ -210,13 +212,21 @@ public class QParametersAnnotator extends QElementAnnotator<QParameters> {
         }
     }
 
-    private static class RedundantParameterAction extends WriteIntentionAction {
-        public RedundantParameterAction(@NotNull QPatternParameter param) {
-            super(FAMILY_NAME, "Remove pattern match", (p, e, f) -> {
+    private static class EmptyPatternAction extends WriteIntentionAction {
+        public EmptyPatternAction(@NotNull QPatternParameter param) {
+            super(FAMILY_NAME, "Remove empty pattern match", (p, e, f) -> {
+                param.delete();
+            });
+        }
+    }
+
+    private static class RedundantPatternAction extends WriteIntentionAction {
+        public RedundantPatternAction(@NotNull QPatternParameter param) {
+            super(FAMILY_NAME, "Remove redundant brackets", (p, e, f) -> {
                 final Document document = e.getDocument();
                 final TextRange range = param.getTextRange();
 
-                document.deleteString(range.getEndOffset(), range.getEndOffset() + 1);
+                document.deleteString(range.getEndOffset() - 1, range.getEndOffset());
                 document.deleteString(range.getStartOffset(), range.getStartOffset() + 1);
             });
         }

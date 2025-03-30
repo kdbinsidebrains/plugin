@@ -9,22 +9,23 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.lang.formatting.QFormatter;
-import org.kdb.inside.brains.psi.QTypes;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.kdb.inside.brains.lang.QNodeFactory.getFirstNotEmptyChild;
 import static org.kdb.inside.brains.lang.QNodeFactory.getNextNotEmptySibling;
+import static org.kdb.inside.brains.psi.QTypes.*;
 
 public abstract class AbstractQBlock extends AbstractBlock {
     private final Indent indent;
+    protected final QFormatter formatter;
+
     protected static final Indent SPACE_INDENT = Indent.getSpaceIndent(1);
 
     protected static final Indent NONE_INDENT = Indent.getNoneIndent();
     protected static final Indent ABSOLLUTE_NONE_INDENT = Indent.getAbsoluteNoneIndent();
     protected static final Indent NORMAL_INDENT = Indent.getNormalIndent();
-    protected final QFormatter formatter;
 
     public AbstractQBlock(@NotNull ASTNode node,
                           @NotNull QFormatter formatter) {
@@ -68,11 +69,11 @@ public abstract class AbstractQBlock extends AbstractBlock {
         }
 
         final IElementType type = node.getElementType();
-        if (type == QTypes.NEW_LINE) {
+        if (type == NEW_LINE) {
             return null;
         }
 
-        if (type == QTypes.BLOCK_COMMENT) { // block comment must never be formatted
+        if (type == BLOCK_COMMENT) { // block comment must never be formatted
             return new LeafBlock(node, formatter, null, null, ABSOLLUTE_NONE_INDENT);
         }
 
@@ -80,44 +81,48 @@ public abstract class AbstractQBlock extends AbstractBlock {
             return new LeafBlock(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.MODE) {
+        if (type == MODE) {
             return new ModeBlock(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.LAMBDA_EXPR) {
+        if (type == LAMBDA_EXPR) {
             return new LambdaBlock(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.ASSIGNMENT_EXPR || type == QTypes.QUERY_COLUMN || type == QTypes.TYPED_PARAMETER) {
+        if (type == ASSIGNMENT_EXPR) {
             return new AssignmentBlock(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.ARGUMENTS) {
+        if (type == QUERY_COLUMN || type == TYPED_PARAMETER || type == DIRECT_TYPED_VARIABLE || type == INVERTED_TYPED_VARIABLE) {
+            return new AssignmentBlock(node, formatter, wrap, alignment, indent);
+        }
+
+        if (type == ARGUMENTS) {
             return BracketsBlock.arguments(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.PARENTHESES_EXPR) {
+        if (type == PARENTHESES_EXPR) {
             return BracketsBlock.parentheses(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.GROUPING_EXPR) {
+        if (type == PATTERN_PARAMETER || type == PATTERN_DECLARATION) {
+            return BracketsBlock.patterns(node, formatter, wrap, alignment, indent);
+        }
+
+        if (type == GROUPING_EXPR) {
             return BracketsBlock.grouping(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.CONDITION_EXPR || type == QTypes.CONTROL_EXPR) {
+        if (type == CONDITION_EXPR || type == CONTROL_EXPR) {
             return new ControlBlock(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.QUERY_EXPR) {
+        if (type == QUERY_EXPR) {
             return new QueryBlock(node, formatter, wrap, alignment, indent);
         }
 
-        if (type == QTypes.TABLE_EXPR || type == QTypes.DICT_EXPR) {
+        if (type == TABLE_EXPR || type == DICT_EXPR) {
             return new FlipBlock(node, formatter, wrap, alignment, indent);
-        }
-
-        if (type == QTypes.PATTERN_PARAMETER) {
-            return BracketsBlock.parentheses(node, formatter, wrap, alignment, indent);
         }
 
         if (InvokeBlock.isInvokeElement(type)) {
@@ -145,39 +150,39 @@ public abstract class AbstractQBlock extends AbstractBlock {
     }
 
     private boolean isPrimitiveType(IElementType type) {
-        return type == QTypes.VAR_DECLARATION
-                || type == QTypes.VAR_REFERENCE
-                || type == QTypes.VAR_ASSIGNMENT_TYPE
-                || type == QTypes.COLUMN_ASSIGNMENT_TYPE
-                || type == QTypes.SYMBOL
-                || type == QTypes.SYMBOLS
-                || type == QTypes.ITERATOR_TYPE
+        return type == VAR_DECLARATION
+                || type == VAR_REFERENCE
+                || type == VAR_ASSIGNMENT_TYPE
+                || type == TYPE_ASSIGNMENT_TYPE
+                || type == SYMBOL
+                || type == SYMBOLS
+                || type == ITERATOR_TYPE
                 ;
     }
 
     private boolean isWrapperType(IElementType type) {
-        return type == QTypes.LITERAL_EXPR
-                || type == QTypes.OPERATOR_TYPE
-                || type == QTypes.SYSTEM_FUNCTION
-                || type == QTypes.INTERNAL_FUNCTION
+        return type == LITERAL_EXPR
+                || type == OPERATOR_TYPE
+                || type == SYSTEM_FUNCTION
+                || type == INTERNAL_FUNCTION
                 ;
     }
 
     private boolean isExpressionType(IElementType type) {
-        return type == QTypes.EXPRESSIONS
-                || type == QTypes.VAR_ACCUMULATOR_TYPE
-                || type == QTypes.CUSTOM_FUNCTION
-                || type == QTypes.SIGNAL_EXPR
-                || type == QTypes.RETURN_EXPR
-                || type == QTypes.CONTEXT
-                || type == QTypes.CONTEXT_BODY
-                || type == QTypes.VAR_INDEXING
-                || type == QTypes.COMMAND
-                || type == QTypes.IMPORT_COMMAND
-                || type == QTypes.IMPORT_FUNCTION
-                || type == QTypes.K_SYNTAX_EXPR
-                || type == QTypes.PROJECTION_EXPR
-                || type == QTypes.TYPE_CAST_EXPR
+        return type == EXPRESSIONS
+                || type == VAR_ACCUMULATOR_TYPE
+                || type == CUSTOM_FUNCTION
+                || type == SIGNAL_EXPR
+                || type == RETURN_EXPR
+                || type == CONTEXT
+                || type == CONTEXT_BODY
+                || type == VAR_INDEXING
+                || type == COMMAND
+                || type == IMPORT_COMMAND
+                || type == IMPORT_FUNCTION
+                || type == K_SYNTAX_EXPR
+                || type == PROJECTION_EXPR
+                || type == TYPE_CAST_EXPR
                 ;
     }
 

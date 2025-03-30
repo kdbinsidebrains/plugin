@@ -30,6 +30,18 @@ public class QSpacingStrategy {
         common = codeStyleSettings.getCommonSettings(QLanguage.INSTANCE);
 
         builder = new SpacingBuilder(codeStyleSettings, QLanguage.INSTANCE);
+        // Pattern match
+        builder.afterInside(COLON, DIRECT_TYPED_VARIABLE).spaceIf(custom.PATTERN_SPACE_AROUND_TYPED_PARAMS_COLON);
+        builder.beforeInside(COLON, DIRECT_TYPED_VARIABLE).spaceIf(custom.PATTERN_SPACE_AROUND_TYPED_PARAMS_COLON);
+        builder.afterInside(COLON, INVERTED_TYPED_VARIABLE).spaceIf(custom.PATTERN_SPACE_AROUND_TYPED_PARAMS_COLON);
+        builder.beforeInside(COLON, INVERTED_TYPED_VARIABLE).spaceIf(custom.PATTERN_SPACE_AROUND_TYPED_PARAMS_COLON);
+        builder.afterInside(PAREN_OPEN, PATTERN_DECLARATION).spaceIf(custom.PATTERN_SPACE_WITHIN_PARENS, custom.PATTERN_LPAREN_ON_NEXT_LINE);
+        builder.beforeInside(PAREN_CLOSE, PATTERN_DECLARATION).spaceIf(custom.PATTERN_SPACE_WITHIN_PARENS, custom.PATTERN_RPAREN_ON_NEXT_LINE);
+        builder.afterInside(SEMICOLON, PATTERN_DECLARATION).spaceIf(custom.PATTERN_SPACE_AFTER_SEMICOLON);
+        builder.beforeInside(SEMICOLON, PATTERN_DECLARATION).spaceIf(custom.PATTERN_SPACE_BEFORE_SEMICOLON);
+        builder.afterInside(BRACKET_OPEN, PATTERN_DECLARATION).spaceIf(false, custom.TABLE_LBRACKET_NEW_LINE);
+        builder.beforeInside(BRACKET_CLOSE, PATTERN_DECLARATION).spaceIf(false, custom.TABLE_RBRACKET_NEW_LINE);
+        builder.afterInside(BRACKET_CLOSE, PATTERN_DECLARATION).spaceIf(custom.TABLE_SPACE_BEFORE_COLUMNS, custom.TABLE_RBRACKET_NEW_LINE);
 
         // Lambda
         builder.afterInside(COLON, TYPED_PARAMETER).spaceIf(custom.LAMBDA_SPACE_AROUND_TYPED_PARAMS_COLON);
@@ -105,8 +117,8 @@ public class QSpacingStrategy {
 
         // Operators
         builder.around(VAR_ASSIGNMENT_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
+        builder.around(TYPE_ASSIGNMENT_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
         builder.around(VAR_ACCUMULATOR_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
-        builder.around(COLUMN_ASSIGNMENT_TYPE).spaceIf(custom.SPACE_AROUND_ASSIGNMENT_OPERATORS);
 
         // Special case - cut can't go between a var
         builder.between(VAR_REFERENCE, OPERATOR_CUT).spaces(1);

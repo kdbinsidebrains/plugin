@@ -18,9 +18,10 @@ public class QFormattingModelBuilder implements FormattingModelBuilder {
         final CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
 
         final Block rootBlock = new CodeBlock(element.getNode(), formatter);
-        if (log.isTraceEnabled()) {
-            log.trace(FormattingModelDumper.dumpFormattingModelToString(rootBlock));
-        }
+//        System.out.println(FormattingModelDumper.dumpFormattingModelToString(rootBlock));
+//        if (log.isTraceEnabled()) {
+//            log.trace(FormattingModelDumper.dumpFormattingModelToString(rootBlock));
+//        }
         return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), rootBlock, settings);
     }
 }

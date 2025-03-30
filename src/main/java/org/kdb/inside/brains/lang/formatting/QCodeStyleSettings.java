@@ -5,6 +5,17 @@ import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
 
 public class QCodeStyleSettings extends CustomCodeStyleSettings {
+    // PatternMatch
+    public int PATTERN_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
+    public boolean PATTERN_ALIGN_EXPRS = true;
+    public boolean PATTERN_ALIGN_PAREN = false;
+    public boolean PATTERN_LPAREN_ON_NEXT_LINE = false;
+    public boolean PATTERN_RPAREN_ON_NEXT_LINE = false;
+    public boolean PATTERN_SPACE_WITHIN_PARENS = false;
+    public boolean PATTERN_SPACE_AFTER_SEMICOLON = false;
+    public boolean PATTERN_SPACE_BEFORE_SEMICOLON = false;
+    public boolean PATTERN_SPACE_AROUND_TYPED_PARAMS_COLON = false;
+
     // Lambda
     public int LAMBDA_PARAMS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean LAMBDA_ALIGN_BRACE = false;

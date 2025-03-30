@@ -21,6 +21,11 @@ public final class QPsiUtil {
     private QPsiUtil() {
     }
 
+    public static String getLocationString(QPsiElement element) {
+        final PsiFile containingFile = element.getContainingFile();
+        return containingFile == null ? "" : containingFile.getName();
+    }
+
     public static boolean isResolvableReference(PsiReference reference) {
         if (reference instanceof PsiPolyVariantReference poly) {
             final ResolveResult[] resolveResults = poly.multiResolve(false);
@@ -42,31 +47,6 @@ public final class QPsiUtil {
             }
         }
         return false;
-    }
-
-    /**
-     * Does {@link PsiElement#getReferences()} and resolved all references taking into account {@link PsiPolyVariantReference#multiResolve(boolean)}
-     */
-    public static List<PsiElement> getResolvedReferences(PsiElement element) {
-        final List<PsiElement> res = new ArrayList<>();
-        final PsiReference[] references = element.getReferences();
-        for (PsiReference reference : references) {
-            if (reference instanceof PsiPolyVariantReference poly) {
-                final ResolveResult[] resolveResults = poly.multiResolve(false);
-                for (ResolveResult resolveResult : resolveResults) {
-                    final PsiElement el = resolveResult.getElement();
-                    if (resolveResult.isValidResult() && el != null) {
-                        res.add(el);
-                    }
-                }
-            } else {
-                final PsiElement resolve = reference.resolve();
-                if (resolve != null) {
-                    res.add(resolve);
-                }
-            }
-        }
-        return res;
     }
 
     public static String getTypeCast(@NotNull QTypeCastExpr cast) {
@@ -98,29 +78,26 @@ public final class QPsiUtil {
         return false;
     }
 
-    public static boolean isGlobalDeclaration(@NotNull QAssignmentExpr assignment) {
-        final QVarDeclaration varDeclaration = assignment.getVarDeclaration();
-        return varDeclaration != null && isGlobalDeclaration(varDeclaration);
-    }
-
     public static boolean isGlobalDeclaration(@NotNull QVarDeclaration declaration) {
-        final ElementContext of = ElementContext.of(declaration);
-        switch (of.getScope()) {
-            case DICT:
-            case TABLE:
-            case QUERY:
-            case PARAMETERS:
-                return false;
-            case FILE:
-                return true;
-            case LAMBDA:
-                if (hasNamespace(declaration.getName())) {
-                    return true;
+        final ElementContext ctx = ElementContext.of(declaration);
+        return switch (ctx.getScope()) {
+            case FILE, CONTEXT -> true;
+            case DICT, TABLE, QUERY, PARAMETERS -> false;
+            case LAMBDA -> {
+                if (hasNamespace(declaration.getQualifiedName())) {
+                    yield true;
                 }
-                final PsiElement el1 = PsiTreeUtil.skipWhitespacesAndCommentsForward(declaration);
-                return el1 instanceof QAssignmentType && "::".equals(el1.getText());
-        }
-        return false;
+
+                final PsiElement parent = declaration.getParent();
+                QAssignmentType assignmentType = null;
+                if (parent instanceof QAssignmentExpr a) {
+                    assignmentType = a.getAssignmentType();
+                } else if (parent instanceof QTypedVariable tv && tv.getParent() instanceof QPatternDeclaration pd && pd.getParent() instanceof QAssignmentExpr a) {
+                    assignmentType = a.getAssignmentType();
+                }
+                yield assignmentType != null && "::".equals(assignmentType.getText());
+            }
+        };
     }
 
     /**
@@ -133,12 +110,12 @@ public final class QPsiUtil {
         return isLeafText(el, ":");
     }
 
-    public static boolean isWhitespace(PsiElement el) {
-        return el instanceof PsiWhiteSpace || el instanceof PsiComment;
-    }
-
     public static boolean isSemicolon(PsiElement el) {
         return isLeafText(el, ";");
+    }
+
+    public static boolean isWhitespace(PsiElement el) {
+        return el instanceof PsiWhiteSpace || el instanceof PsiComment;
     }
 
     public static boolean isLeafText(PsiElement el, String text) {
@@ -149,19 +126,37 @@ public final class QPsiUtil {
         return el instanceof LeafPsiElement && predicate.test(el.getText());
     }
 
+    /**
+     * Returns the appropriate VarAssignment object if the specified element is an expression in an assignment expression
+     */
+    public static @Nullable VarAssignment getVarAssignment(@NotNull QPsiElement element) {
+        QAssignmentExpr assignment = null;
+        final PsiElement parent = element.getParent();
+        if (parent instanceof QAssignmentExpr a) {
+            assignment = a;
+        } else if (parent instanceof QParenthesesExpr p && p.getParent() instanceof QAssignmentExpr a) {
+            assignment = a;
+        }
+
+        if (assignment == null) {
+            return null;
+        }
+
+        final List<VarAssignment> varAssignments = assignment.getVarAssignments();
+        for (VarAssignment varAssignment : varAssignments) {
+            if (varAssignment.expression() == element) {
+                return varAssignment;
+            }
+        }
+        return null;
+    }
+
     public static PsiElement getFirstNonWhitespaceAndCommentsChild(PsiElement el) {
         PsiElement c = el.getFirstChild();
         if (c == null) {
             return null;
         }
         return isWhitespace(c) ? PsiTreeUtil.skipWhitespacesAndCommentsForward(c) : c;
-    }
-
-    public static PsiElement findRootExpression(PsiElement element) {
-        if (element == null) {
-            return null;
-        }
-        return findRootExpression(element, null);
     }
 
     public static PsiElement findRootExpression(PsiElement element, PsiElement context) {
@@ -176,10 +171,6 @@ public final class QPsiUtil {
             parent = parent.getParent();
         }
         return cur;
-    }
-
-    public static ElementContext getElementContext(QPsiElement element) {
-        return ElementContext.of(element);
     }
 
     public static String createQualifiedName(String namespace, String identifier) {
@@ -211,6 +202,31 @@ public final class QPsiUtil {
 
     public static QVarReference createVarReference(Project project, String name) {
         return PsiTreeUtil.findChildOfType(QFileType.createFactoryFile(project, name), QVarReference.class);
+    }
+
+    /**
+     * Does {@link PsiElement#getReferences()} and resolved all references taking into account {@link PsiPolyVariantReference#multiResolve(boolean)}
+     */
+    public static List<PsiElement> getResolvedReferences(PsiElement element) {
+        final List<PsiElement> res = new ArrayList<>();
+        final PsiReference[] references = element.getReferences();
+        for (PsiReference reference : references) {
+            if (reference instanceof PsiPolyVariantReference poly) {
+                final ResolveResult[] resolveResults = poly.multiResolve(false);
+                for (ResolveResult resolveResult : resolveResults) {
+                    final PsiElement el = resolveResult.getElement();
+                    if (resolveResult.isValidResult() && el != null) {
+                        res.add(el);
+                    }
+                }
+            } else {
+                final PsiElement resolve = reference.resolve();
+                if (resolve != null) {
+                    res.add(resolve);
+                }
+            }
+        }
+        return res;
     }
 
     public static PsiElement clear(PsiElement element) {
@@ -289,23 +305,6 @@ public final class QPsiUtil {
 
     public static PsiElement createCustomCode(Project project, String code) {
         return QFileType.createFactoryFile(project, code).getFirstChild();
-    }
-
-    public static String getImportContent(QImport qImport) {
-        if (qImport instanceof QImportFunction f && f.getExpression() != null) {
-            String text = "\"" + f.getExpression().getText().trim().substring(3); // remove 'l ';
-            if (text.startsWith("\"\"")) {
-                text = text.substring(2);
-            }
-            if (text.charAt(0) == '"' && text.charAt(text.length() - 1) == '"') {
-                text = text.substring(1, text.length() - 1);
-            }
-            if (text.charAt(0) == ',') {
-                text = text.substring(1);
-            }
-            return text;
-        }
-        return qImport.getFilePath();
     }
 
     public static QVarDeclaration createVarDeclaration(Project project, String name) {

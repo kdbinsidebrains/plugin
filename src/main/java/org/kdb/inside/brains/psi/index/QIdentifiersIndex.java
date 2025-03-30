@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class QIdentifiersIndex extends FileBasedIndexExtension<String, List<IdentifierDescriptor>> {
-    protected static final int VERSION = 2 + 1000 * QDataIndexer.VERSION;
+    protected static final int VERSION = 3 + 1000 * QDataIndexer.VERSION;
 
     public static final ID<String, List<IdentifierDescriptor>> INDEX_ID = ID.create("KdbInsideBrainsIndex");
 
@@ -45,12 +45,6 @@ public class QIdentifiersIndex extends FileBasedIndexExtension<String, List<Iden
                     out.writeUTF(d.type().name());
                     out.writeInt(range.getStartOffset());
                     out.writeInt(range.getEndOffset());
-
-                    final List<String> params = d.params();
-                    out.writeInt(params.size());
-                    for (String param : params) {
-                        out.writeUTF(param);
-                    }
                 }
             }
 
@@ -61,14 +55,8 @@ public class QIdentifiersIndex extends FileBasedIndexExtension<String, List<Iden
                 for (int i = 0; i < size; i++) {
                     final IdentifierType type = IdentifierType.parseFrom(in.readUTF());
                     final TextRange range = new TextRange(in.readInt(), in.readInt());
-
-                    final int p = in.readInt();
-                    final List<String> params = new ArrayList<>(p);
-                    for (int j = 0; j < p; j++) {
-                        params.add(in.readUTF());
-                    }
                     if (type != null) {
-                        infos.add(new IdentifierDescriptor(type, range, params));
+                        infos.add(new IdentifierDescriptor(type, range));
                     }
                 }
                 return infos;
