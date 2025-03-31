@@ -3,7 +3,7 @@
 
   parserClass="org.kdb.inside.brains.parser.QParser"
 
-  extends="org.kdb.inside.brains.psi.impl.QPsiElementImpl"
+  extends="org.kdb.inside.brains.psi.QPsiElementImpl"
   implements="org.kdb.inside.brains.psi.QPsiElement"
 
   psiClassPrefix="Q"
@@ -17,7 +17,7 @@
 
   rightAssociative=true
 
-  extends(".*expr|var_reference")=expression
+  extends("var_reference|.*expr")=expression
   consumeTokenMethod="consumeTokenFast"
 
   tokens=[
@@ -104,18 +104,32 @@ private statement ::= SEMICOLON | expression SEMICOLON?
 context_body ::= top_in_context*
 context ::= COMMAND_CONTEXT var_declaration? (NEW_LINE context_body)? {
  pin(".*") = 1
- mixin = "org.kdb.inside.brains.psi.impl.QPsiContextImpl"
  methods = [variable="var_declaration"]
+ mixin = "org.kdb.inside.brains.psi.mixin.QContextMixin"
  }
 
 // command - anything with \...
-command ::= COMMAND_SYSTEM command_params? { pin = 1 methods = [command="COMMAND_SYSTEM" parameters="COMMAND_ARGUMENTS"] }
+command ::= COMMAND_SYSTEM command_params? {
+    pin = 1
+    methods = [command="COMMAND_SYSTEM" parameters="COMMAND_ARGUMENTS"]
+    mixin="org.kdb.inside.brains.psi.mixin.QCommandMixIn"
+ }
 private command_params ::= COMMAND_ARGUMENTS {recoverWhile = end_of_line_recover}
 
-import_command ::= COMMAND_IMPORT import_command_file { pin = 1 implements="org.kdb.inside.brains.psi.QImport" }
+import_command ::= COMMAND_IMPORT import_command_file {
+    pin = 1
+    implements="org.kdb.inside.brains.psi.QImport"
+    mixin="org.kdb.inside.brains.psi.mixin.QImportCommandMixin"
+
+ }
 private import_command_file ::= FILE_PATH_PATTERN {recoverWhile = end_of_line_recover }
 
-import_function ::= FUNCTION_IMPORT expression { pin = 1 extends=expression implements="org.kdb.inside.brains.psi.QImport" }
+import_function ::= FUNCTION_IMPORT expression {
+    pin = 1
+    extends=expression
+    implements="org.kdb.inside.brains.psi.QImport"
+    mixin="org.kdb.inside.brains.psi.mixin.QImportFunctionMixin"
+ }
 
 // In mode we can't use line_break as a separator
 private mode_content ::= statement+ { recoverWhile = end_of_line_recover }
@@ -124,18 +138,18 @@ mode ::= MODE_PATTERN mode_content? { pin = 1 methods=[modeName="MODE_PATTERN"] 
 // ============ Custom types ====================
 symbol ::= SYMBOL_PATTERN {
  implements=["org.kdb.inside.brains.psi.QPsiElement" "com.intellij.psi.PsiNameIdentifierOwner" "com.intellij.psi.PsiQualifiedNamedElement" "com.intellij.psi.NavigatablePsiElement"]
- mixin="org.kdb.inside.brains.psi.impl.QSymbolElementImpl"
+ mixin="org.kdb.inside.brains.psi.mixin.QSymbolMixin"
 }
 symbols ::= symbol symbol+
 
 var_reference ::= VARIABLE_PATTERN {
  implements="org.kdb.inside.brains.psi.QVariable"
- mixin="org.kdb.inside.brains.psi.impl.QVariableReferenceImpl"
+ mixin="org.kdb.inside.brains.psi.mixin.QVariableReferenceMixin"
 }
 
 var_declaration ::= VARIABLE_PATTERN {
  implements=["org.kdb.inside.brains.psi.QVariable" "com.intellij.psi.PsiNameIdentifierOwner" "com.intellij.psi.PsiQualifiedNamedElement" "com.intellij.psi.NavigatablePsiElement"]
- mixin="org.kdb.inside.brains.psi.impl.QVariableDeclarationImpl"
+ mixin="org.kdb.inside.brains.psi.mixin.QVariableDeclarationMixin"
 }
 
 iterator_type ::= ITERATOR
@@ -149,16 +163,44 @@ private arguments_def_body ::= statement* {recoverWhile=brackets_recover}
 arguments ::= arguments_def {methods=[expressions="expression"]}
 private arguments_list ::= arguments+
 
-var_indexing ::= var_reference arguments_list {pin=2 methods=[variable="var_reference" arguments_group="arguments"]}
-
-fake assignment_type ::= COLON {}
-column_assignment_type ::= COLON { extends=assignment_type }
+fake assignment_type ::= COLON
+type_assignment_type ::= COLON { extends=assignment_type }
 var_assignment_type ::= COLON COLON? { extends=assignment_type }
 var_accumulator_type ::= operator_type COLON { extends=assignment_type }
 
+var_indexing ::= var_reference arguments_list {pin=2 methods=[variable="var_reference" arguments_group="arguments"]}
 private index_assignment ::= var_indexing var_assignment_type expression { pin = 2 }
+
+fake typed_variable ::= var_declaration type_assignment_type? expression? {
+    methods=[assignment_type="type_assignment_type"]
+}
+direct_typed_variable ::= var_declaration [type_assignment_type expression?] {
+    extends=typed_variable
+    methods=[assignment_type="type_assignment_type"]
+ }
+inverted_typed_variable ::= var_reference type_assignment_type var_declaration {
+    extends=typed_variable
+    methods=[assignment_type="type_assignment_type"]
+ }
+private dict_pattern_declaration ::= PAREN_OPEN BRACKET_OPEN inverted_typed_variable (SEMICOLON inverted_typed_variable)* BRACKET_CLOSE PAREN_CLOSE
+private table_pattern_declaration ::= PAREN_OPEN BRACKET_OPEN BRACKET_CLOSE inverted_typed_variable (SEMICOLON inverted_typed_variable)* PAREN_CLOSE
+private simple_pattern_declaration ::= PAREN_OPEN (direct_typed_variable | SEMICOLON)+ PAREN_CLOSE
+
+pattern_declaration ::= table_pattern_declaration | dict_pattern_declaration | simple_pattern_declaration {
+    methods=[typedVariables="typed_variable"]
+    implements="org.kdb.inside.brains.psi.QTypedVariables"
+    mixin="org.kdb.inside.brains.psi.mixin.QPatternDeclarationMixin"
+ }
+
+private pattern_assignment ::= pattern_declaration var_assignment_type expression  { pin = 2 }
+
 private variable_assignment ::= var_declaration (var_assignment_type|var_accumulator_type) operator_type? expression { pin = 2 }
-assignment_expr ::= index_assignment | variable_assignment
+
+assignment_expr ::= index_assignment | variable_assignment | pattern_assignment {
+    methods=[var_assignment_type]
+    implements="org.kdb.inside.brains.psi.QAssignment"
+    mixin="org.kdb.inside.brains.psi.mixin.QAssignmentMixin"
+ }
 
 private expressions_group ::= separator* expression (separator+ expression)* separator*
 
@@ -172,18 +214,46 @@ control_expr ::= CONTROL_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin = 1 me
 condition_expr ::= CONDITION_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin=1 methods=[expressions="expression"] } // $[...]
 private cc_body ::= statement* { recoverWhile=brackets_recover}
 
-parameters ::= BRACKET_OPEN [parameters_body] BRACKET_CLOSE { pin(".*")=1 methods = [variables="var_declaration"] }
-private parameters_body ::= var_declaration (SEMICOLON var_declaration)* {pin(".*")="SEMICOLON" recoverWhile=brackets_recover }
+parameter ::= typed_parameter | pattern_parameter {
+    implements="org.kdb.inside.brains.psi.QLambdaParameter"
+ }
+typed_parameter ::= var_declaration [COLON expression?] {
+    extends=parameter
+    mixin="org.kdb.inside.brains.psi.mixin.QTypedParameterMixin"
+ }
+private pattern_parameter_body ::= parameter (SEMICOLON parameter)* {
+    pin(".*")="SEMICOLON"
+}
+pattern_parameter ::= PAREN_OPEN [pattern_parameter_body] PAREN_CLOSE {
+    pin=1
+    extends=parameter
+    methods = [parameters="parameter"]
+    mixin="org.kdb.inside.brains.psi.mixin.QPatternParameterMixin"
+ }
 
-lambda_expr ::= BRACE_OPEN lambda_body BRACE_CLOSE {pin=1}
-expressions ::= expressions_group
+private parameters_body ::= parameter (SEMICOLON parameter)* {
+    pin(".*")="SEMICOLON"
+    recoverWhile=brackets_recover
+ }
+parameters ::= BRACKET_OPEN [parameters_body] BRACKET_CLOSE {
+    pin=1
+    methods = [parameters="parameter"]
+    implements="org.kdb.inside.brains.psi.QLambdaParameters"
+ }
 private lambda_body ::= parameters? expressions? { recoverWhile=braces_recover }
+lambda_expr ::= BRACE_OPEN lambda_body BRACE_CLOSE {
+    pin=1
+    implements="org.kdb.inside.brains.psi.QLambda"
+    mixin="org.kdb.inside.brains.psi.mixin.QLambdaMixin"
+ }
+
+expressions ::= expressions_group
 
 private operator ::= operator_type
 private function ::= system_function | custom_function
 private operation ::= (iterator_type | operator_type)+
 
-parentheses_expr ::= PAREN_OPEN !BRACKET_OPEN parentheses_body PAREN_CLOSE {pin=2}
+parentheses_expr ::= PAREN_OPEN !BRACKET_OPEN [parentheses_body] PAREN_CLOSE {pin=2}
 private parentheses_body ::= SEMICOLON* (expression SEMICOLON+)* expression? {pin(".*")=2 recoverWhile=parens_recover}
 
 fake invoke_expr ::= (operator | function | parentheses_expr) arguments_list? operation? expression?
@@ -195,7 +265,11 @@ private invoke_group ::= invoke_prefix | invoke_function | invoke_parentheses
 
 type_cast_expr ::= TYPE_CAST_PATTERN expression? {pin = 1 methods=[typeCast="TYPE_CAST_PATTERN"]}
 
-table_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
+table_column ::= (var_declaration type_assignment_type expression?) | expression {
+    pin(".*")=2
+    methods=[assignment_type="type_assignment_type"]
+    mixin="org.kdb.inside.brains.psi.mixin.QTableColumnMixin"
+ }
 private table_columns_group ::= table_column (SEMICOLON+ table_column)* SEMICOLON* {
 //    pin(".*")="SEMICOLON"
     recoverWhile=table_columns_recover
@@ -203,14 +277,28 @@ private table_columns_group ::= table_column (SEMICOLON+ table_column)* SEMICOLO
 private table_columns_recover ::= !(PAREN_CLOSE | BRACKET_CLOSE)
 fake table_columns ::= table_columns_group { methods=[columns="table_column"] }
 table_keys ::= BRACKET_OPEN [table_columns_group] BRACKET_CLOSE {
-    pin=1 extends=table_columns methods=[table_column]
+    pin=1 extends=table_columns methods=[columns="table_column"]
  }
-table_values ::= [table_columns_group] { extends=table_columns }
-table_expr ::= PAREN_OPEN  table_keys  SEMICOLON* table_values PAREN_CLOSE {
-    pin=2 methods=[table_columns keys="table_columns[0]" values="table_columns[1]"]
+table_values ::= [table_columns_group] { extends=table_columns methods=[columns="table_column"]}
+
+private table_dict_start ::= PAREN_OPEN  table_keys
+table_expr ::= table_dict_start SEMICOLON* table_values PAREN_CLOSE {
+    pin=2
+    methods=[table_columns keys="table_columns[0]" values="table_columns[1]"]
+    implements="org.kdb.inside.brains.psi.QFlip"
+    mixin="org.kdb.inside.brains.psi.mixin.QTableMixin"
 }
 
-query_column ::= (var_declaration column_assignment_type expression) | expression {pin(".*")=2}
+dict_expr ::= table_dict_start PAREN_CLOSE {
+    methods=[table_keys fields="table_keys/table_column"]
+    implements="org.kdb.inside.brains.psi.QFlip"
+    mixin="org.kdb.inside.brains.psi.mixin.QDictMixin"
+}
+
+query_column ::= (var_declaration type_assignment_type expression) | expression {
+    pin(".*")=2
+    methods=[assignment_type="type_assignment_type"]
+ }
 query_columns ::= query_column (QUERY_SPLITTER query_column)* {pin(".*")="QUERY_SPLITTER"}
 private query_values ::= query_columns {recoverWhile=query_values_recover}
 private query_values_recover ::= !(QUERY_BY | QUERY_FROM)
@@ -230,7 +318,8 @@ projection_expr ::= (operator_type | iterator_type | OPERATOR_ARITHMETIC | SYMBO
 
 // Only these expressions can be used as a left arguments of invokes
 prefix_expr ::=
-    table_expr
+    dict_expr
+    | table_expr
     | literal_expr
     | lambda_expr
     | control_expr

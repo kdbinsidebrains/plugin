@@ -17,6 +17,18 @@ end:{(neg union/[w[; ; 0]])@\:(`.u.end;x)}
 var3:indexed[;0];
 indexed[0;0]:var1;
 
+( patternVar1       ;   patternVar2 : `s        ) : ( 10 ; 20);
+
+(
+        patternVar1
+        ;
+        patternVar2
+        :
+         `s
+         )
+          :
+           ( 10 ; 20);
+
 tbl0:([] a:1; b:2);         / This is tbl0 definition
 
 tbl1:(  [      ]     col1:`long$()  ; col2:`float$());
@@ -33,6 +45,19 @@ tbl3:(
  col1:`long$()  ; col2:`float$())
 
     ;
+
+dict1   :   (    [    key1    :   `value1;    key2        :            134            ] ) ;
+
+
+dict2:(
+    [
+    key1    :   `value1;
+    key2
+        :
+            134
+            ]
+ )
+ ;
 
 select  col1        ,        col2    by     key1 ,    key2      from    tbl3        where    col1    in`a`b`c   ,       (col2=10) or key2%2<-10;
 
@@ -66,7 +91,7 @@ This is global lambda definition
 :parameter4 - input 4
 :return nothing
 \
-lambdaGlobal:{[parameter1;parameter2;parameter3;parameter4]
+lambdaGlobal    :   {  [   parameter1  ;   parameter2  : `s;   (   parameter3  :   pot ;   parameter4  :   {   x   }   )   ]
 		innerVar:parameter1+    parameter2  *parameter3;
 				justConstant    :   10;
 						innerLambda:{

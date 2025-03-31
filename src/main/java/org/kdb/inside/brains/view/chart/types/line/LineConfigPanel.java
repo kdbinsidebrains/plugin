@@ -1,5 +1,8 @@
 package org.kdb.inside.brains.view.chart.types.line;
 
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComboBoxTableRenderer;
 import com.intellij.ui.*;
@@ -11,6 +14,7 @@ import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.chart.ColumnDefinition;
 
@@ -34,13 +38,15 @@ public class LineConfigPanel extends JPanel {
     private final Runnable callback;
     private final ChartDataProvider dataProvider;
 
-    private static final int LEFT_INDENT = 10;
-    private static final int VERTICAL_GAP = 5;
-    private final ComboBox<ColumnDefinition> domainComponent = new ComboBox<>();
     private final TableView<SeriesItem> seriesTable = new TableView<>();
+    private final ComboBox<ColumnDefinition> domainComponent = new ComboBox<>();
     private final JCheckBox shapesCheckbox = new JCheckBox("Draw shapes where possible", false);
     private final TableView<ValuesItem> valuesTable = new TableView<>();
     private final TableView<ExpansionItem> expansionTable = new TableView<>();
+
+    private static final int LEFT_INDENT = 10;
+    private static final int VERTICAL_GAP = 5;
+
 
     public LineConfigPanel(ChartDataProvider dataProvider, Runnable callback) {
         super(new BorderLayout());
@@ -70,13 +76,23 @@ public class LineConfigPanel extends JPanel {
         formBuilder.setFormLeftIndent(0);
         formBuilder.addComponent(new TitledSeparator("Values Axes"));
         formBuilder.setFormLeftIndent(LEFT_INDENT);
-        formBuilder.addComponent(ToolbarDecorator.createDecorator(valuesTable).disableAddAction().disableRemoveAction().createPanel());
+        formBuilder.addComponent(
+                ToolbarDecorator.createDecorator(valuesTable)
+                        .disableAddAction().disableRemoveAction()
+                        .addExtraActions(new SelectAllValues(), new UnselectAllValues())
+                        .createPanel()
+        );
         formBuilder.addVerticalGap(VERTICAL_GAP);
 
         formBuilder.setFormLeftIndent(0);
         formBuilder.addComponent(new TitledSeparator("Values Expansion"));
         formBuilder.setFormLeftIndent(LEFT_INDENT);
-        formBuilder.addComponent(ToolbarDecorator.createDecorator(expansionTable).disableAddAction().disableRemoveAction().createPanel());
+        formBuilder.addComponent(
+                ToolbarDecorator.createDecorator(expansionTable)
+                        .disableAddAction().disableRemoveAction()
+                        .addExtraActions(new SelectAllExpansions(), new UnselectAllExpansions())
+                        .createPanel()
+        );
         formBuilder.addVerticalGap(VERTICAL_GAP);
 
         formBuilder.setFormLeftIndent(0);
@@ -468,9 +484,9 @@ public class LineConfigPanel extends JPanel {
     }
 
     private static class ValuesItem implements Item {
-        private final ColumnDefinition column;
         private SeriesItem series;
         private Operation operation = Operation.SUM;
+        private final ColumnDefinition column;
 
         public ValuesItem(ColumnDefinition column) {
             this.column = column;
@@ -535,6 +551,70 @@ public class LineConfigPanel extends JPanel {
 
         public long getValuesCount() {
             return valuesCount;
+        }
+    }
+
+    private class SelectAllValues extends EdtAction {
+        SelectAllValues() {
+            super(ExternalSystemBundle.messagePointer("action.text.select.all"), AllIcons.Actions.Selectall);
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+            final List<SeriesItem> items = seriesTable.getItems();
+            if (!items.isEmpty()) {
+                final ListTableModel<ValuesItem> model = valuesTable.getListTableModel();
+                final SeriesItem series = items.get(0);
+                for (ValuesItem item : model.getItems()) {
+                    item.setSeries(series);
+                }
+                model.fireTableDataChanged();
+            }
+        }
+    }
+
+    private class UnselectAllValues extends EdtAction {
+        UnselectAllValues() {
+            super(ExternalSystemBundle.messagePointer("action.text.unselect.all"), AllIcons.Actions.Unselectall);
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+            final ListTableModel<ValuesItem> model = valuesTable.getListTableModel();
+            for (ValuesItem item : model.getItems()) {
+                item.setSeries(null);
+            }
+            model.fireTableDataChanged();
+        }
+    }
+
+    private class SelectAllExpansions extends EdtAction {
+        SelectAllExpansions() {
+            super(ExternalSystemBundle.messagePointer("action.text.select.all"), AllIcons.Actions.Selectall);
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+            final ListTableModel<ExpansionItem> model = expansionTable.getListTableModel();
+            for (ExpansionItem item : model.getItems()) {
+                item.setEnabled(true);
+            }
+            model.fireTableDataChanged();
+        }
+    }
+
+    private class UnselectAllExpansions extends EdtAction {
+        UnselectAllExpansions() {
+            super(ExternalSystemBundle.messagePointer("action.text.unselect.all"), AllIcons.Actions.Unselectall);
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+            final ListTableModel<ExpansionItem> model = expansionTable.getListTableModel();
+            for (ExpansionItem item : model.getItems()) {
+                item.setEnabled(false);
+            }
+            model.fireTableDataChanged();
         }
     }
 }

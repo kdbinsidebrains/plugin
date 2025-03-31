@@ -1,6 +1,13 @@
 <pre><code class="language-txt">.Q.gc[]
 </code></pre>
-<p>Returns the amount of memory that was returned to the OS.</p>
+<p>Run garbage-collection and returns the amount of memory that was returned to the OS.</p>
+<p>It attempts to coalesce pieces of the heap into their original allocation units and returns any units ≥64MB to the
+    OS. Refer to \g (garbage collection mode) for details on how memory is created on the heap.</p>
+<p>When secondary threads are configured and .Q.gc[] is invoked in the main thread, .Q.gc[] is automatically invoked in
+    each secondary thread. If the call is instigated in a secondary thread, it affects that thread’s local heap
+    only.</p>
+<p>Example of garbage collection in the default deferred mode, using .Q.w[] to view memory stats:</p>
+
 <pre><code class="language-q">q)a:til 10000000
 q).Q.w[]
 used| 67233056
@@ -25,7 +32,9 @@ mmap| 0
 syms| 535
 symw| 23956
 </code></pre>
-<p>Note that memory can become fragmented and therefore difficult to release back to the OS.</p>
+
+<p>Depending on your data, memory can become fragmented and therefore difficult to release back to the OS. The following
+    demonstrates an example:</p>
 <pre><code class="language-q">q)v:{(10#&quot;a&quot;;10000#&quot;b&quot;)}each til 10000000;
 q).Q.w[]
 used| 164614358256
@@ -72,5 +81,12 @@ mphy| 270538350592
 syms| 570
 symw| 24964
 </code></pre>
-<p>So if you have many nested data, e.g. columns of char vectors, or much grouping, you may be fragmenting memory quite
-    heavily.</p>
+
+<p>If you have nested data, e.g. columns of char vectors, or much grouping, you may be fragmenting memory.</p>
+
+<p><b>Since V3.3 2015.08.23</b> (Linux only) unused pages in the heap are dropped from RSS during .Q.gc[].</p>
+
+<p><b>Since 4.1t 2022.07.01</b>, .Q.gc[0] can be used to perform a subset of operations performed by .Q.gc[] (i.e. only
+    return unused blocks >= 64MB to os). This has the advantage of running return faster than .Q.gc[], but with the
+    disadvantage of not defragmenting unused memory blocks of a smaller size (therefore may not free as much unused
+    memory).</p>

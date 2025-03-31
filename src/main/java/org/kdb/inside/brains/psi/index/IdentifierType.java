@@ -1,14 +1,18 @@
 package org.kdb.inside.brains.psi.index;
 
+import com.intellij.lang.LighterASTNode;
+import com.intellij.psi.tree.IElementType;
 import icons.KdbIcons;
-import org.kdb.inside.brains.psi.QAssignmentExpr;
-import org.kdb.inside.brains.psi.QExpression;
-import org.kdb.inside.brains.psi.QLambdaExpr;
-import org.kdb.inside.brains.psi.QTableExpr;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.psi.*;
 
 import javax.swing.*;
 
+import static org.kdb.inside.brains.psi.QTypes.*;
+
 public enum IdentifierType {
+    DICT(KdbIcons.Node.Dict),
     TABLE(KdbIcons.Node.Table),
     SYMBOL(KdbIcons.Node.Symbol),
     LAMBDA(KdbIcons.Node.Lambda),
@@ -21,18 +25,11 @@ public enum IdentifierType {
         this.icon = icon;
     }
 
-    public static IdentifierType getType(QAssignmentExpr assignment) {
-        final QExpression expression = assignment.getExpression();
-        if (expression instanceof QLambdaExpr) {
-            return LAMBDA;
-        }
-        if (expression instanceof QTableExpr) {
-            return TABLE;
-        }
-        return VARIABLE;
+    public Icon getIcon() {
+        return icon;
     }
 
-    public static IdentifierType parseFrom(String name) {
+    public static @Nullable IdentifierType parseFrom(String name) {
         try {
             return valueOf(name);
         } catch (IllegalArgumentException ex) {
@@ -40,7 +37,35 @@ public enum IdentifierType {
         }
     }
 
-    public Icon getIcon() {
-        return icon;
+    public static @NotNull IdentifierType getType(QAssignmentExpr assignment) {
+        final QExpression expression = assignment.getExpression();
+        if (expression instanceof QLambdaExpr) {
+            return LAMBDA;
+        }
+        if (expression instanceof QDictExpr) {
+            return DICT;
+        }
+        if (expression instanceof QTableExpr) {
+            return TABLE;
+        }
+        return VARIABLE;
+    }
+
+    public static @NotNull IdentifierType getType(@Nullable LighterASTNode expression) {
+        if (expression == null) {
+            return IdentifierType.VARIABLE;
+        }
+
+        final IElementType tt = expression.getTokenType();
+        if (tt == LAMBDA_EXPR) {
+            return IdentifierType.LAMBDA;
+        }
+        if (tt == TABLE_EXPR) {
+            return IdentifierType.TABLE;
+        }
+        if (tt == DICT_EXPR) {
+            return IdentifierType.DICT;
+        }
+        return IdentifierType.VARIABLE;
     }
 }

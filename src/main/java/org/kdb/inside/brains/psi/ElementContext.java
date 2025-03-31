@@ -43,12 +43,20 @@ public class ElementContext {
         return scope == ElementScope.QUERY ? (QQueryExpr) element : null;
     }
 
+    public QDictExpr dict() {
+        return scope == ElementScope.DICT ? (QDictExpr) element : null;
+    }
+
     public QTableExpr table() {
         return scope == ElementScope.TABLE ? (QTableExpr) element : null;
     }
 
     public QLambdaExpr lambda() {
         return scope == ElementScope.LAMBDA ? (QLambdaExpr) element : null;
+    }
+
+    public QContext context() {
+        return scope == ElementScope.CONTEXT ? (QContext) element : null;
     }
 
     public QParameters parameters() {
@@ -70,7 +78,6 @@ public class ElementContext {
         ASTNode parent = node.getTreeParent();
         while (parent != null) {
             final IElementType elementType = parent.getElementType();
-
             if (elementType == QTypes.PARAMETERS) {
                 return QTypes.PARAMETERS;
             }
@@ -80,6 +87,9 @@ public class ElementContext {
             if (elementType == QTypes.QUERY_EXPR) {
                 return QTypes.QUERY_EXPR;
             }
+            if (elementType == QTypes.DICT_EXPR) {
+                return QTypes.DICT_EXPR;
+            }
             if (elementType == QTypes.TABLE_EXPR) {
                 return QTypes.TABLE_EXPR;
             }
@@ -88,22 +98,28 @@ public class ElementContext {
         return null;
     }
 
-    public static ElementContext of(@NotNull PsiElement element) {
-        PsiElement parent = element.getParent();
-        while (parent != null) {
-            if (parent instanceof QParameters) {
-                return new ElementContext(ElementScope.PARAMETERS, parent);
+    public static @NotNull ElementContext of(@NotNull PsiElement element) {
+        PsiElement el = element.getParent();
+        while (el != null) {
+            if (el instanceof QParameters) {
+                return new ElementContext(ElementScope.PARAMETERS, el);
             }
-            if (parent instanceof QLambdaExpr) {
-                return new ElementContext(ElementScope.LAMBDA, parent);
+            if (el instanceof QLambdaExpr) {
+                return new ElementContext(ElementScope.LAMBDA, el);
             }
-            if (parent instanceof QQueryExpr) {
-                return new ElementContext(ElementScope.QUERY, parent);
+            if (el instanceof QQueryExpr) {
+                return new ElementContext(ElementScope.QUERY, el);
             }
-            if (parent instanceof QTableExpr) {
-                return new ElementContext(ElementScope.TABLE, parent);
+            if (el instanceof QDictExpr) {
+                return new ElementContext(ElementScope.DICT, el);
             }
-            parent = parent.getParent();
+            if (el instanceof QContext) {
+                return new ElementContext(ElementScope.CONTEXT, el);
+            }
+            if (el instanceof QTableExpr) {
+                return new ElementContext(ElementScope.TABLE, el);
+            }
+            el = el.getParent();
         }
         return new ElementContext(ElementScope.FILE, element.getContainingFile());
     }

@@ -31,10 +31,10 @@ public class AssignmentBlock extends CodeBlock {
             if (elementType == QTypes.VAR_INDEXING) {
                 return createBlock(node, formatter);
             }
-            if (elementType == QTypes.VAR_DECLARATION) {
+            if (elementType == QTypes.VAR_DECLARATION || elementType == QTypes.PATTERN_DECLARATION) {
                 return createBlock(node, formatter);
             }
-            if (elementType == QTypes.VAR_ASSIGNMENT_TYPE || elementType == QTypes.COLUMN_ASSIGNMENT_TYPE || elementType == QTypes.VAR_ACCUMULATOR_TYPE) {
+            if (elementType == QTypes.VAR_ASSIGNMENT_TYPE || elementType == QTypes.TYPE_ASSIGNMENT_TYPE || elementType == QTypes.VAR_ACCUMULATOR_TYPE) {
                 return createBlock(node, formatter, null, alignment, NORMAL_INDENT);
             }
             return createBlock(node, formatter, NORMAL_INDENT);

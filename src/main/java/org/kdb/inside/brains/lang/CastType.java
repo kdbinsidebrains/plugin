@@ -1,6 +1,9 @@
 package org.kdb.inside.brains.lang;
 
+import org.kdb.inside.brains.KdbType;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -27,6 +30,8 @@ public enum CastType {
 
     private static final Map<String, CastType> byName = new HashMap<>();
     private static final Map<Character, CastType> byCode = new HashMap<>();
+
+    public static List<KdbType> CASTING_TYPES = Stream.of(KdbType.values()).filter(t -> t.getCode() != null && t.getCode() != ' ').toList();
 
     static {
         Stream.of(CastType.values()).forEach(value -> {

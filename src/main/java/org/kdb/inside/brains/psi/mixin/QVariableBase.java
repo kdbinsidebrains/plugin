@@ -1,14 +1,18 @@
-package org.kdb.inside.brains.psi.impl;
+package org.kdb.inside.brains.psi.mixin;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.navigation.ItemPresentation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.*;
 
+import javax.swing.*;
 import java.util.Collection;
 
-public class QVariableBase extends QPsiElementImpl implements QVariable {
+public class QVariableBase extends QPsiElementImpl implements QVariable, ItemPresentation {
     private String name = null;
 
     public QVariableBase(ASTNode node) {
@@ -24,6 +28,26 @@ public class QVariableBase extends QPsiElementImpl implements QVariable {
             }
         }
         return name;
+    }
+
+    @Override
+    public String getPresentableText() {
+        return getQualifiedName();
+    }
+
+    @Override
+    public @Nullable Icon getIcon(int flags) {
+        return KdbIcons.Node.Variable;
+    }
+
+    @Override
+    public @Nullable Icon getIcon(boolean unused) {
+        return KdbIcons.Node.Variable;
+    }
+
+    @Override
+    public String getLocationString() {
+        return QPsiUtil.getLocationString(this);
     }
 
     @NotNull
@@ -68,7 +92,7 @@ public class QVariableBase extends QPsiElementImpl implements QVariable {
         final QLambdaExpr lambda = getContext(QLambdaExpr.class);
         if (lambda != null) {
             // implicit variable or in parameters list - ignore namespace
-            if (lambda.getParameters() == null && QVariable.IMPLICIT_VARS.contains(name)) {
+            if (lambda.getParameters() == null && QPsiUtil.isImplicitName(name)) {
                 return name;
             }
 
@@ -90,7 +114,7 @@ public class QVariableBase extends QPsiElementImpl implements QVariable {
         invalidate();
     }
 
-    void invalidate() {
+    public void invalidate() {
         name = null;
     }
 

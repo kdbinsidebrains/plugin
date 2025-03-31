@@ -13,12 +13,14 @@ import java.util.Map;
 
 public class QLanguageAnnotator implements Annotator {
     private final List<QElementAnnotator<? extends QPsiElement>> raw = List.of(
-            new QLambdaAnnotator(),
+            new QParametersAnnotator(),
             new QContextAnnotator(),
             new QTypeCastAnnotator(),
             new QImportAnnotator(),
-            new QTableAnnotator(),
-            new QSpecAnnotator()
+            QFlipAnnotator.newDictAnnotator(),
+            QFlipAnnotator.newTableAnnotator(),
+            new QSpecAnnotator(),
+            new QAssignmentAnnotator()
     );
 
     private final Map<Class<? extends PsiElement>, QElementAnnotator<?>> annotators = new HashMap<>();

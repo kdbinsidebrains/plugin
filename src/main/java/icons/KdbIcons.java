@@ -139,6 +139,11 @@ public final class KdbIcons {
         public static final @NotNull Icon Keyword = AllIcons.Nodes.Constant;
         public static final @NotNull Icon Namespace = AllIcons.Nodes.Package;
 
+        public static final @NotNull Icon Dict = load("/org/kdb/inside/brains/icons/nodes/dict.svg");
+        public static final @NotNull Icon DictPublic = row(Dict, Node.PublicItem);
+        public static final @NotNull Icon DictPrivate = row(Dict, Node.PrivateItem);
+        public static final @NotNull Icon DictField = AllIcons.Nodes.Field;
+
         public static final @NotNull Icon Table = AllIcons.Nodes.DataTables;
         public static final @NotNull Icon TablePublic = row(Table, Node.PublicItem);
         public static final @NotNull Icon TablePrivate = row(Table, Node.PrivateItem);

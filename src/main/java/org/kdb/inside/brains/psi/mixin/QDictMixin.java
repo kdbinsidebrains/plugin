@@ -1,0 +1,20 @@
+package org.kdb.inside.brains.psi.mixin;
+
+import com.intellij.lang.ASTNode;
+import icons.KdbIcons;
+import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.psi.QDictExpr;
+import org.kdb.inside.brains.psi.impl.QExpressionImpl;
+
+import javax.swing.*;
+
+public abstract class QDictMixin extends QExpressionImpl implements QDictExpr {
+    public QDictMixin(ASTNode node) {
+        super(node);
+    }
+
+    @Override
+    public @Nullable Icon getIcon(int flags) {
+        return KdbIcons.Node.Dict;
+    }
+}

@@ -33,9 +33,9 @@ public class QCallerFunctionTreeStructure extends QCallHierarchyTreeStructureBas
                 continue;
             }
 
-            final QAssignmentExpr assign = getGlobalLambdaAssignment(element);
+            final VarAssignment assign = getGlobalLambdaAssignment(element);
             if (assign != null) {
-                res.putValue(assign.getVarDeclaration(), element);
+                res.putValue(assign.declaration(), element);
             } else {
                 res.putValue(element.getContainingFile(), element);
             }
@@ -43,18 +43,21 @@ public class QCallerFunctionTreeStructure extends QCallHierarchyTreeStructureBas
         return res.freezeValues();
     }
 
-    private QAssignmentExpr getGlobalLambdaAssignment(PsiElement el) {
+    private VarAssignment getGlobalLambdaAssignment(PsiElement el) {
         PsiElement element = el;
         while (element != null) {
-            final QAssignmentExpr assign = PsiTreeUtil.getParentOfType(element, QAssignmentExpr.class);
-            if (assign != null && QPsiUtil.isGlobalDeclaration(assign) && assign.getExpression() instanceof QLambdaExpr) {
-                return assign;
+            final QLambdaExpr lambda = PsiTreeUtil.getParentOfType(element, QLambdaExpr.class);
+            if (lambda == null) {
+                return null;
             }
-            element = assign;
+            final VarAssignment assignment = QPsiUtil.getVarAssignment(lambda);
+            if (assignment != null && QPsiUtil.isGlobalDeclaration(assignment.declaration())) {
+                return assignment;
+            }
+            element = lambda;
         }
         return null;
     }
-
 
     private @NotNull Collection<UsageInfo> findUsages(@NotNull QVarDeclaration declaration) {
         final FindUsagesHandlerBase handler = new FindUsagesHandlerBase(declaration);

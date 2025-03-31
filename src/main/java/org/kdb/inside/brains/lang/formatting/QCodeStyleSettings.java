@@ -5,6 +5,17 @@ import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
 
 public class QCodeStyleSettings extends CustomCodeStyleSettings {
+    // PatternMatch
+    public int PATTERN_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
+    public boolean PATTERN_ALIGN_EXPRS = true;
+    public boolean PATTERN_ALIGN_PAREN = false;
+    public boolean PATTERN_LPAREN_ON_NEXT_LINE = false;
+    public boolean PATTERN_RPAREN_ON_NEXT_LINE = false;
+    public boolean PATTERN_SPACE_WITHIN_PARENS = false;
+    public boolean PATTERN_SPACE_AFTER_SEMICOLON = false;
+    public boolean PATTERN_SPACE_BEFORE_SEMICOLON = false;
+    public boolean PATTERN_SPACE_AROUND_TYPED_PARAMS_COLON = false;
+
     // Lambda
     public int LAMBDA_PARAMS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean LAMBDA_ALIGN_BRACE = false;
@@ -18,6 +29,8 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean LAMBDA_SPACE_WITHIN_PARAMS_BRACKETS = false;
     public boolean LAMBDA_SPACE_AFTER_PARAMS_SEMICOLON = false;
     public boolean LAMBDA_SPACE_BEFORE_PARAMS_SEMICOLON = false;
+    public boolean LAMBDA_SPACE_PATTERN_PARAMS_WITHIN_PARENS = false;
+    public boolean LAMBDA_SPACE_AROUND_TYPED_PARAMS_COLON = false;
 
     // Controls
     public int CONTROL_WRAP_TYPE = CommonCodeStyleSettings.DO_NOT_WRAP;
@@ -106,7 +119,7 @@ public class QCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean QUERY_COLUMNS_ALIGN = true;
     public boolean QUERY_SPACE_AFTER_COMMA = true;
 
-    // Table
+    // Table & Dict
     public int TABLE_COLUMNS_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     public boolean TABLE_ALIGN_BRACKETS = true;
     public boolean TABLE_ALIGN_PARENS = false;

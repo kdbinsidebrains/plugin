@@ -43,12 +43,7 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
         final ElementContext context = ElementContext.of(variable);
         final ElementScope scope = context.getScope();
         // ignore every non-resolved variable as it may be referencing a column name
-        if (scope == ElementScope.TABLE) {
-            return;
-        }
-
-        // ignore every non-resolved variable as it may be referencing a column name
-        if (scope == ElementScope.QUERY) {
+        if (scope == ElementScope.DICT || scope == ElementScope.TABLE || scope == ElementScope.QUERY) {
             return;
         }
 

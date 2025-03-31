@@ -18,7 +18,7 @@ public class ExecuteContextAction extends ExecuteAction {
         }
 
         final PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
-        final PsiElement expr = findRootExpression(element);
+        final PsiElement expr = findRootExpression(element, null);
         if (expr == null) {
             return null;
         }

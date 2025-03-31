@@ -3,20 +3,18 @@ package org.kdb.inside.brains.psi.refs;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.ResolveResult;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.*;
 import org.kdb.inside.brains.psi.index.DeclarationRef;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable> {
+    private static final EnumSet<ElementScope> IGNORING_SCOPES = EnumSet.of(ElementScope.DICT, ElementScope.TABLE, ElementScope.QUERY, ElementScope.PARAMETERS);
+
     public QVariableReferenceProvider() {
         super(QVariable.class);
     }
@@ -28,11 +26,7 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
         }
 
         final ElementScope scope = var.getVariableContext().getScope();
-        if (scope != ElementScope.PARAMETERS && scope != ElementScope.TABLE && scope != ElementScope.QUERY) {
-            return QVariableReference.of(var);
-        }
-
-        return PsiReference.EMPTY_ARRAY;
+        return IGNORING_SCOPES.contains(scope) ? PsiReference.EMPTY_ARRAY : QVariableReference.of(var);
     }
 
     public static class QVariableReference extends QBaseReference<QVariable> {
@@ -42,7 +36,7 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
 
         @Override
         public ResolveResult @NotNull [] multiResolve(boolean incompleteCode) {
-            return resolveVariable(myElement, QPsiUtil.getElementContext(myElement));
+            return resolveVariable(myElement, ElementContext.of(myElement));
         }
 
         public static PsiReference[] of(QVariable var) {
@@ -68,19 +62,8 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
                 return ResolveResult.EMPTY_ARRAY;
             }
 
-            final List<QVarReference> refs = new ArrayList<>();
-            PsiElement child = expression.getFirstChild();
-            while (child != null) {
-                if (child instanceof QVarReference) {
-                    refs.add((QVarReference) child);
-                }
-                if (child instanceof LeafPsiElement) {
-                    break;
-                }
-                child = child.getNextSibling();
-            }
-
-            final ElementContext queryContext = QPsiUtil.getElementContext(query);
+            final ElementContext queryContext = ElementContext.of(query);
+            final Collection<QVarReference> refs = PsiTreeUtil.findChildrenOfAnyType(expression, false, QVarReference.class);
 
             // It's the table definition
             if (var instanceof QVarReference && refs.contains(var)) {

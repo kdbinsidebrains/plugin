@@ -13,37 +13,22 @@ import com.intellij.util.indexing.PsiDependentFileContent;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.psi.QElementType;
+import org.kdb.inside.brains.psi.QTokenType;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static org.kdb.inside.brains.psi.QTypes.*;
 
 public class QDataIndexer implements DataIndexer<String, List<IdentifierDescriptor>, FileContent> {
-    protected static final int VERSION = 16;
+    protected static final int VERSION = 17;
 
     private static final Logger log = Logger.getInstance(QDataIndexer.class);
 
     private static final TokenSet CONTEXT_SCOPE = TokenSet.create(CONTEXT);
-    private static final TokenSet COLUMNS_TOKEN = TokenSet.create(TABLE_KEYS, TABLE_VALUES);
-    private static final TokenSet LOCAL_VARIABLE_SCOPE = TokenSet.create(LAMBDA_EXPR, TABLE_EXPR);
-
-    static int[] findAllOffsets(CharSequence text) {
-        // we have only chars - no reason for complex logic, just iterating all chars
-        final int count = text.length();
-        final IntList indexes = new IntArrayList();
-        for (int i = 0; i < count; i++) {
-            final char c = text.charAt(i);
-            if (c == '`') { // symbols
-                indexes.add(i);
-            } else if (c == ':' && (i > 0 && text.charAt(i - 1) != ':')) { // assignments
-                // Ignore double colons - it's the same type, by the fact
-                indexes.add(i);
-            }
-        }
-        return indexes.toIntArray();
-    }
+    private static final TokenSet LOCAL_VARIABLE_SCOPE = TokenSet.create(LAMBDA_EXPR, TABLE_EXPR, DICT_EXPR);
 
     @Override
     public @NotNull Map<String, List<IdentifierDescriptor>> map(@NotNull FileContent content) {
@@ -73,17 +58,19 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
                 return;
             }
 
-            IndexEntry item = null;
+            List<IndexEntry> indexes = null;
             final IElementType tokenType = node.getTokenType();
             if (tokenType == SYMBOL) {
-                item = processSymbol(tree, node, text);
-            } else if (tokenType == COLUMN_ASSIGNMENT_TYPE || tokenType == VAR_ASSIGNMENT_TYPE || tokenType == VAR_ACCUMULATOR_TYPE) {
-                item = processAssignment(tree, node, text, offset);
+                indexes = wrap(processSymbol(node, text));
+            } else if (tokenType == TYPE_ASSIGNMENT_TYPE || tokenType == VAR_ASSIGNMENT_TYPE || tokenType == VAR_ACCUMULATOR_TYPE) {
+                indexes = processAssignment(tree, node, text, offset);
             }
 
-            if (item != null) {
-                log.info(fileName + ": index item generated - " + item);
-                res.computeIfAbsent(item.name, i -> new ArrayList<>()).add(item.descriptor);
+            if (indexes != null) {
+                for (IndexEntry entry : indexes) {
+                    log.info(fileName + ": index indexes generated - " + entry);
+                    res.computeIfAbsent(entry.name, i -> new ArrayList<>()).add(new IdentifierDescriptor(entry.type, entry.range));
+                }
             }
         });
         final long finishedNanos = System.nanoTime();
@@ -91,42 +78,7 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         return res;
     }
 
-    static boolean containsSetBackward(CharSequence text, int startPosition) {
-        int i = startPosition - 1; // ignore symbol char `
-
-        // find bracket ignoring spaces
-        for (; i >= 0; i--) {
-            final char ch = text.charAt(i);
-            if (Character.isWhitespace(ch)) {
-                continue;
-            }
-            if (ch == '[') {
-                i--;
-                break;
-            } else {
-                // no bracket found
-                return false;
-            }
-        }
-
-        // ignore spaces
-        while (i >= 0 && Character.isWhitespace(text.charAt(i))) {
-            i--;
-        }
-        // inverted 'set' and one space before or beginning of the text
-        return i >= 2 && text.charAt(i) == 't' && text.charAt(i - 1) == 'e' && text.charAt(i - 2) == 's' && (i == 2 || Character.isWhitespace(text.charAt(i - 3)));
-    }
-
-    static boolean containsSetForward(CharSequence text, int startPosition) {
-        int i = startPosition;
-        final int length = text.length();
-        while (i < length && Character.isWhitespace(text.charAt(i))) {
-            i++;
-        }
-        return i + 3 <= length && text.charAt(i) == 's' && text.charAt(i + 1) == 'e' && text.charAt(i + 2) == 't' && (i + 3 == length || Character.isWhitespace(text.charAt(i + 3)));
-    }
-
-    private IndexEntry processSymbol(LighterAST tree, LighterASTNode node, CharSequence text) {
+    private @Nullable IndexEntry processSymbol(LighterASTNode node, CharSequence text) {
         final TextRange range = new TextRange(node.getStartOffset() + 1, node.getEndOffset());
         String symbolValue = String.valueOf(range.subSequence(text));
 
@@ -142,37 +94,88 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
 
         // If it's set - a variable definition
         if (containsSetForward(text, range.getEndOffset() + 1) || containsSetBackward(text, range.getStartOffset() - 1)) {
-            return new IndexEntry(symbolValue, new IdentifierDescriptor(IdentifierType.VARIABLE, range));
+            return new IndexEntry(symbolValue, IdentifierType.VARIABLE, range);
         }
-        return new IndexEntry(symbolValue, new IdentifierDescriptor(IdentifierType.SYMBOL, range));
+        return new IndexEntry(symbolValue, IdentifierType.SYMBOL, range);
     }
 
-    private IndexEntry processAssignment(LighterAST tree, LighterASTNode node, CharSequence text, Integer offset) {
-        final LighterASTNode parent = tree.getParent(node);
-        if (parent == null) {
+    private @Nullable List<IndexEntry> processAssignment(LighterAST tree, LighterASTNode assignmentType, CharSequence text, Integer offset) {
+        final LighterASTNode assignmentExpr = tree.getParent(assignmentType);
+        if (assignmentExpr == null) {
             return null;
         }
 
-        final List<LighterASTNode> children = tree.getChildren(parent);
-        if (children.size() < 3) {
+        final List<LighterASTNode> assignmentItems = tree.getChildren(assignmentExpr);
+        if (assignmentItems.size() < 3) {
             return null;
         }
 
-        final LighterASTNode var = children.get(0);
-        final IElementType varType = var.getTokenType();
-        if (varType != VAR_DECLARATION && varType != VAR_INDEXING) {
+        final LighterASTNode varDeclaration = assignmentItems.get(0);
+        final IElementType varType = varDeclaration.getTokenType();
+        if (varType != VAR_DECLARATION && varType != VAR_INDEXING && varType != PATTERN_DECLARATION) {
             return null;
         }
 
         // Ignore not global
-        if (isLocal(tree, var, offset, text)) {
+        if (isLocal(tree, varDeclaration, offset, text)) {
             return null;
         }
 
         if (varType == VAR_INDEXING) {
-            return processIndexingAssignment(tree, var, text);
+            return wrap(processIndexingAssignment(tree, varDeclaration, text));
         }
-        return processDeclarationAssignment(tree, var, children, text);
+
+        final LighterASTNode expression = assignmentItems.get(assignmentItems.size() - 1);
+        if (varType == PATTERN_DECLARATION) {
+            return processPatternAssignment(tree, varDeclaration, expression, text);
+        }
+        return wrap(createEntry(tree, varDeclaration, expression, text));
+    }
+
+    /**
+     * <pre>
+     *     QAssignmentExprImpl(ASSIGNMENT_EXPR)
+     *          QPatternDeclarationImpl(PATTERN_DECLARATION)
+     *              QTypedVariableImpl(TYPED_VARIABLE)
+     *                  QVarDeclarationImpl(variableName65756) - variable name
+     *                  PsiElement(:)
+     *                  QLiteralExprImpl(LITERAL_EXPR)
+     *              QTypedVariableImpl(TYPED_VARIABLE) - variable name
+     *                  QVarDeclarationImpl(variableName45645)
+     *                  PsiElement(:)
+     *                  QVarReferenceImpl(testVar)
+     *              QTypedVariableImpl(TYPED_VARIABLE) - variable name
+     *                  QVarDeclarationImpl(variableName7768768)
+     *                  PsiElement(:)
+     *                  QLambdaExprImpl(LAMBDA_EXPR)
+     *      QVarAssignmentTypeImpl(VAR_ASSIGNMENT_TYPE)
+     *      QParenthesesExprImpl(PARENTHESES_EXPR)
+     *          QLiteralExprImpl(LITERAL_EXPR)
+     *          QLiteralExprImpl(LITERAL_EXPR)
+     *          QLiteralExprImpl(LITERAL_EXPR)
+     * </pre>
+     */
+    private List<IndexEntry> processPatternAssignment(LighterAST tree, LighterASTNode patternDeclaration, LighterASTNode patternValues, CharSequence text) {
+        final List<LighterASTNode> variables = parensBySemicolon(tree, patternDeclaration);
+        final List<LighterASTNode> values = patternValues.getTokenType() == PARENTHESES_EXPR ? parensBySemicolon(tree, patternValues) : List.of();
+
+        final int valuesSize = values.size();
+        final int variablesSize = variables.size();
+
+        final List<IndexEntry> res = new ArrayList<>(variablesSize);
+        for (int i = 0; i < variablesSize; i++) {
+            final LighterASTNode typedVariable = variables.get(i);
+            if (typedVariable == null) {
+                continue;
+            }
+
+            final LighterASTNode varDeclaration = LightTreeUtil.firstChildOfType(tree, typedVariable, VAR_DECLARATION);
+            if (varDeclaration != null) {
+                final LighterASTNode expression = i < valuesSize ? values.get(i) : null;
+                res.add(createEntry(tree, varDeclaration, expression, text));
+            }
+        }
+        return res;
     }
 
     /**
@@ -219,48 +222,22 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         final TextRange range = new TextRange(symbol.getStartOffset() + 1, symbol.getEndOffset());
         CharSequence namespace = getQualifiedName(tree, namespaceNode, text);
         CharSequence varName = text.subSequence(range.getStartOffset(), range.getEndOffset());
-        return new IndexEntry(namespace + "." + varName, new IdentifierDescriptor(IdentifierType.VARIABLE, range));
+        return new IndexEntry(namespace + "." + varName, IdentifierType.VARIABLE, range);
     }
 
-    private @NotNull IndexEntry processDeclarationAssignment(LighterAST tree, LighterASTNode var, List<LighterASTNode> children, CharSequence text) {
-        final Token token = extractToken(tree, children);
-        final List<String> params = token.parameters.stream().map(n -> getVariableName(text, n)).collect(Collectors.toList());
-
-        final String qualifiedName = getQualifiedName(tree, var, text);
-        final TextRange range = new TextRange(var.getStartOffset(), var.getEndOffset());
-
-        return new IndexEntry(qualifiedName, new IdentifierDescriptor(token.type, range, params));
+    private @NotNull IndexEntry createEntry(@NotNull LighterAST tree, @NotNull LighterASTNode varDeclaration, @Nullable LighterASTNode expression, CharSequence text) {
+        final String qualifiedName = getQualifiedName(tree, varDeclaration, text);
+        final TextRange range = new TextRange(varDeclaration.getStartOffset(), varDeclaration.getEndOffset());
+        return new IndexEntry(qualifiedName, IdentifierType.getType(expression), range);
     }
 
-    @NotNull
-    private QDataIndexer.Token extractToken(LighterAST tree, List<LighterASTNode> children) {
-        final LighterASTNode expression = children.get(children.size() - 1);
-        final IElementType tt = expression.getTokenType();
-        if (tt == LAMBDA_EXPR) {
-            List<LighterASTNode> params = LightTreeUtil.getChildrenOfType(tree, expression, PARAMETERS);
-            if (params.size() == 1) {
-                params = LightTreeUtil.getChildrenOfType(tree, params.get(0), VAR_DECLARATION);
-            }
-            return new Token(IdentifierType.LAMBDA, params);
-        }
-        if (tt == TABLE_EXPR) {
-            final List<LighterASTNode> allColumns = LightTreeUtil.getChildrenOfType(tree, expression, COLUMNS_TOKEN);
-            final List<LighterASTNode> columns = allColumns.stream()
-                    .flatMap(c -> LightTreeUtil.getChildrenOfType(tree, c, TABLE_COLUMN).stream())
-                    .flatMap(a -> LightTreeUtil.getChildrenOfType(tree, a, VAR_DECLARATION).stream())
-                    .collect(Collectors.toList());
-            return new Token(IdentifierType.TABLE, columns);
-        }
-        return new Token(IdentifierType.VARIABLE);
-    }
-
-    private String getQualifiedName(LighterAST tree, LighterASTNode var, CharSequence text) {
-        final String name = getVariableName(text, var);
+    private String getQualifiedName(LighterAST tree, LighterASTNode varDeclaration, CharSequence text) {
+        final String name = getVariableName(text, varDeclaration);
         if (name.charAt(0) == '.') {
             return name;
         }
 
-        final LighterASTNode context = findParent(tree, var, CONTEXT_SCOPE);
+        final LighterASTNode context = findParent(tree, varDeclaration, CONTEXT_SCOPE);
         if (context == null) {
             return name;
         }
@@ -306,28 +283,85 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         return node == null || node.getTokenType() != type;
     }
 
-    private record IndexEntry(String name, IdentifierDescriptor descriptor) {
+    static List<IndexEntry> wrap(IndexEntry entry) {
+        return entry == null ? null : List.of(entry);
     }
 
-    static class Token {
-        private final IdentifierType type;
-        private final List<LighterASTNode> parameters;
+    static int[] findAllOffsets(CharSequence text) {
+        // we have only chars - no reason for complex logic, just iterating all chars
+        final int count = text.length();
+        final IntList indexes = new IntArrayList();
+        for (int i = 0; i < count; i++) {
+            final char c = text.charAt(i);
+            if (c == '`') { // symbols
+                indexes.add(i);
+            } else if (c == ':' && (i > 0 && text.charAt(i - 1) != ':')) { // assignments
+                // Ignore double colons - it's the same type, by the fact
+                indexes.add(i);
+            }
+        }
+        return indexes.toIntArray();
+    }
 
-        public Token(IdentifierType type) {
-            this(type, List.of());
+    static boolean containsSetBackward(CharSequence text, int startPosition) {
+        int i = startPosition - 1; // ignore symbol char `
+
+        // find bracket ignoring spaces
+        for (; i >= 0; i--) {
+            final char ch = text.charAt(i);
+            if (Character.isWhitespace(ch)) {
+                continue;
+            }
+            if (ch == '[') {
+                i--;
+                break;
+            } else {
+                // no bracket found
+                return false;
+            }
         }
 
-        public Token(IdentifierType type, List<LighterASTNode> parameters) {
-            this.type = type;
-            this.parameters = parameters;
+        // ignore spaces
+        while (i >= 0 && Character.isWhitespace(text.charAt(i))) {
+            i--;
         }
+        // inverted 'set' and one space before or beginning of the text
+        return i >= 2 && text.charAt(i) == 't' && text.charAt(i - 1) == 'e' && text.charAt(i - 2) == 's' && (i == 2 || Character.isWhitespace(text.charAt(i - 3)));
+    }
 
-        @Override
-        public String toString() {
-            return "Token{" +
-                    "type=" + type +
-                    ", parameters=" + parameters.size() +
-                    '}';
+    static boolean containsSetForward(CharSequence text, int startPosition) {
+        int i = startPosition;
+        final int length = text.length();
+        while (i < length && Character.isWhitespace(text.charAt(i))) {
+            i++;
         }
+        return i + 3 <= length && text.charAt(i) == 's' && text.charAt(i + 1) == 'e' && text.charAt(i + 2) == 't' && (i + 3 == length || Character.isWhitespace(text.charAt(i + 3)));
+    }
+
+    static List<LighterASTNode> parensBySemicolon(LighterAST tree, LighterASTNode node) {
+        final List<LighterASTNode> children = tree.getChildren(node);
+
+        LighterASTNode currentNode = null;
+        List<LighterASTNode> res = new ArrayList<>(children.size());
+        for (LighterASTNode re : children) {
+            final IElementType tokenType = re.getTokenType();
+            if (!(tokenType instanceof QTokenType) && !(tokenType instanceof QElementType)) { // whitespace and others
+                continue;
+            }
+            if (tokenType == PAREN_OPEN || tokenType == BRACKET_OPEN || tokenType == BRACKET_CLOSE) {
+                currentNode = null;
+                continue;
+            }
+            if (tokenType == PAREN_CLOSE || tokenType == SEMICOLON) {
+                res.add(currentNode);
+                currentNode = null;
+                continue;
+            }
+            currentNode = re;
+        }
+        return res;
+    }
+
+    private record IndexEntry(String name, IdentifierType type, TextRange range) {
     }
 }

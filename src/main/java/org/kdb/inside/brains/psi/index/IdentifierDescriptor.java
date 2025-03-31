@@ -2,13 +2,7 @@ package org.kdb.inside.brains.psi.index;
 
 import com.intellij.openapi.util.TextRange;
 
-import java.util.List;
-
-public record IdentifierDescriptor(IdentifierType type, TextRange range, List<String> params) {
-    public IdentifierDescriptor(IdentifierType type, TextRange range) {
-        this(type, range, List.of());
-    }
-
+public record IdentifierDescriptor(IdentifierType type, TextRange range) {
     public boolean isSymbol() {
         return type == IdentifierType.SYMBOL;
     }
@@ -22,7 +16,6 @@ public record IdentifierDescriptor(IdentifierType type, TextRange range, List<St
         return "IdentifierDescriptor{" +
                 "type=" + type +
                 ", range=" + range +
-                ", params=" + params +
                 '}';
     }
 }

@@ -1,10 +1,7 @@
 package org.kdb.inside.brains.lang.annotation.impl;
 
 import com.esotericsoftware.kryo.kryo5.util.Null;
-import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
-import com.intellij.codeInspection.util.IntentionFamilyName;
-import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.Document;
@@ -14,9 +11,10 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
+import org.kdb.inside.brains.lang.annotation.IntentionInvoke;
 import org.kdb.inside.brains.lang.annotation.QElementAnnotator;
+import org.kdb.inside.brains.lang.annotation.WriteIntentionAction;
 import org.kdb.inside.brains.lang.qspec.TestDescriptor;
 import org.kdb.inside.brains.lang.qspec.TestItem;
 import org.kdb.inside.brains.psi.*;
@@ -27,6 +25,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
+    private static final String FAMILY_NAME = "QSpec testing framework";
+
     public QSpecAnnotator() {
         super(QInvokeFunction.class);
     }
@@ -126,33 +126,9 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
         }
     }
 
-    private abstract static class QSpecIntentionAction implements IntentionAction {
-        protected final String text;
-        protected final PsiElement element;
-
-        public QSpecIntentionAction(String text, PsiElement element) {
-            this.text = text;
-            this.element = element;
-        }
-
-        @Override
-        public @IntentionName @NotNull String getText() {
-            return text;
-        }
-
-        @Override
-        public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
-            return true;
-        }
-
-        @Override
-        public boolean startInWriteAction() {
-            return true;
-        }
-
-        @Override
-        public @NotNull @IntentionFamilyName String getFamilyName() {
-            return "QSpec testing framework";
+    private abstract static class QSpecIntentionAction extends WriteIntentionAction {
+        public QSpecIntentionAction(String text, IntentionInvoke invoke) {
+            super(text, FAMILY_NAME, invoke);
         }
 
         @Override
@@ -163,137 +139,110 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
 
     private static class GenerateTestName extends QSpecIntentionAction {
         public GenerateTestName(PsiElement element) {
-            super("Generate random test name", element);
-        }
-
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            final Document document = editor.getDocument();
-            document.insertString(element.getTextOffset() + 1, UUID.randomUUID().toString());
+            super("Generate random test name", (p, e, f) -> {
+                final Document document = e.getDocument();
+                document.insertString(element.getTextOffset() + 1, UUID.randomUUID().toString());
+            });
         }
     }
 
     private static class ArgumentToString extends QSpecIntentionAction {
         public ArgumentToString(PsiElement element) {
-            super("Convert value to string", element);
-        }
+            super("Convert value to string", (p, e, f) -> {
+                final TextRange range = element.getTextRange();
+                final Document document = e.getDocument();
+                document.replaceString(range.getStartOffset(), range.getEndOffset(), '"' + document.getText(range).replace("\"", "\\\"") + '"');
 
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            final TextRange range = element.getTextRange();
-            final Document document = editor.getDocument();
-            document.replaceString(range.getStartOffset(), range.getEndOffset(), '"' + document.getText(range).replace("\"", "\\\"") + '"');
+            });
         }
     }
 
     private static class NoNameIntentionAction extends QSpecIntentionAction {
         public NoNameIntentionAction(PsiElement element) {
-            super("Insert test name", element);
-        }
-
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            if (element instanceof QArguments) {
-                final TextRange textRange = element.getTextRange();
-                editor.getDocument().insertString(textRange.getStartOffset() + 1, "\"\"");
-                editor.getCaretModel().moveToOffset(textRange.getStartOffset() + 2);
-            } else {
-                final TextRange textRange = element.getTextRange();
-                editor.getDocument().insertString(textRange.getEndOffset(), "[\"\"]");
-                editor.getCaretModel().moveToOffset(textRange.getEndOffset() + 2);
-            }
+            super("Insert test name", (p, e, f) -> {
+                if (element instanceof QArguments) {
+                    final TextRange textRange = element.getTextRange();
+                    e.getDocument().insertString(textRange.getStartOffset() + 1, "\"\"");
+                    e.getCaretModel().moveToOffset(textRange.getStartOffset() + 2);
+                } else {
+                    final TextRange textRange = element.getTextRange();
+                    e.getDocument().insertString(textRange.getEndOffset(), "[\"\"]");
+                    e.getCaretModel().moveToOffset(textRange.getEndOffset() + 2);
+                }
+            });
         }
     }
 
     private static class RemoveExcessiveArguments extends QSpecIntentionAction {
         public RemoveExcessiveArguments(PsiElement element) {
-            super("Remove excessive arguments", element);
-        }
+            super("Remove excessive arguments", (p, e, f) -> {
+                PsiElement sibling = QPsiUtil.getPrevNonWhitespace(element);
+                while (QPsiUtil.isSemicolon(sibling)) {
+                    sibling = QPsiUtil.getPrevNonWhitespace(sibling);
+                }
 
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            PsiElement sibling = element.getPrevSibling();
-            while (QPsiUtil.isWhitespace(sibling) || QPsiUtil.isSemicolon(sibling)) {
-                sibling = sibling.getPrevSibling();
-            }
-
-            if (sibling != null) {
-                element.getParent().deleteChildRange(sibling.getNextSibling(), element);
-            } else {
-                element.delete();
-            }
+                if (sibling != null) {
+                    element.getParent().deleteChildRange(sibling.getNextSibling(), element);
+                } else {
+                    element.delete();
+                }
+            });
         }
     }
 
     private static class InsertHoldsArguments extends QSpecIntentionAction {
         public InsertHoldsArguments(QArguments element) {
-            super("Insert empty dictionary", element);
-        }
-
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            final TextRange textRange = element.getTextRange();
-            editor.getDocument().insertString(textRange.getEndOffset() - 1, "; ()!()");
-            editor.getCaretModel().moveToOffset(textRange.getEndOffset() + 2);
-            editor.getSelectionModel().setSelection(textRange.getEndOffset() + 1, textRange.getEndOffset() + 6);
+            super("Insert empty dictionary", (p, e, f) -> {
+                final TextRange textRange = element.getTextRange();
+                e.getDocument().insertString(textRange.getEndOffset() - 1, "; ()!()");
+                e.getCaretModel().moveToOffset(textRange.getEndOffset() + 2);
+                e.getSelectionModel().setSelection(textRange.getEndOffset() + 1, textRange.getEndOffset() + 6);
+            });
         }
     }
 
     private static class MergeInitItem extends QSpecIntentionAction {
-        @NotNull
-        private final TestItem item;
-        @NotNull
-        private final TestItem exist;
-
         public MergeInitItem(@NotNull TestItem item, @NotNull TestItem exist) {
-            super("Merge and remove this one", null);
-            this.item = item;
-            this.exist = exist;
-        }
-
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            final QExpressions expressions = item.getExpressions();
-            if (expressions != null) {
-                final QExpressions existExpressions = exist.getExpressions();
-                if (existExpressions == null) {
-                    final QLambdaExpr lambda = exist.getLambda();
-                    if (lambda != null) {
-                        final PsiElement lastChild = lambda.getLastChild();
-                        lambda.addBefore(expressions, lastChild);
-                        lambda.addBefore(QPsiUtil.createWhitespace(project, "\n"), lastChild);
-                    }
-                } else if (expressions.getChildren().length > 0) {
-                    existExpressions.add(QPsiUtil.createWhitespace(project, "\n\n"));
-                    final @NotNull PsiElement[] children = expressions.getChildren();
-                    for (@NotNull PsiElement child : children) {
-                        existExpressions.add(child);
+            super("Merge and remove this one", (p, e, f) -> {
+                final QExpressions expressions = item.getExpressions();
+                if (expressions != null) {
+                    final QExpressions existExpressions = exist.getExpressions();
+                    if (existExpressions == null) {
+                        final QLambdaExpr lambda = exist.getLambda();
+                        if (lambda != null) {
+                            final PsiElement lastChild = lambda.getLastChild();
+                            lambda.addBefore(expressions, lastChild);
+                            lambda.addBefore(QPsiUtil.createWhitespace(p, "\n"), lastChild);
+                        }
+                    } else if (expressions.getChildren().length > 0) {
+                        existExpressions.add(QPsiUtil.createWhitespace(p, "\n\n"));
+                        final @NotNull PsiElement[] children = expressions.getChildren();
+                        for (@NotNull PsiElement child : children) {
+                            existExpressions.add(child);
+                        }
                     }
                 }
-            }
 
-            final QInvokeFunction invoke = item.getInvoke();
-            PsiElement sibling = invoke.getNextSibling();
-            while (QPsiUtil.isWhitespace(sibling) || QPsiUtil.isSemicolon(sibling)) {
-                sibling = sibling.getNextSibling();
-            }
+                final QInvokeFunction invoke = item.getInvoke();
+                PsiElement sibling = QPsiUtil.getNextNotWhitespace(invoke);
+                while (QPsiUtil.isSemicolon(sibling)) {
+                    sibling = QPsiUtil.getNextNotWhitespace(invoke);
+                }
 
-            if (sibling != null) {
-                invoke.getParent().deleteChildRange(invoke, sibling.getPrevSibling());
-            } else {
-                invoke.delete();
-            }
+                if (sibling != null) {
+                    invoke.getParent().deleteChildRange(invoke, sibling.getPrevSibling());
+                } else {
+                    invoke.delete();
+                }
+            });
         }
     }
 
     private static class RenameTest extends QSpecIntentionAction {
         public RenameTest(QLiteralExpr lit) {
-            super("Rename the test case", lit);
-        }
-
-        @Override
-        public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-            editor.getSelectionModel().setSelection(element.getTextOffset() + 1, element.getTextOffset() + element.getTextLength() - 1);
+            super("Rename the test case", (project, editor, file) -> {
+                editor.getSelectionModel().setSelection(lit.getTextOffset() + 1, lit.getTextOffset() + lit.getTextLength() - 1);
+            });
         }
     }
 }
