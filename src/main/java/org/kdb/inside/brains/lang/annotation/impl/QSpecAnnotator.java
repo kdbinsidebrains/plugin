@@ -25,8 +25,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
-
-    public static final String FAMILY_NAME = "QSpec testing framework";
+    private static final String FAMILY_NAME = "QSpec testing framework";
 
     public QSpecAnnotator() {
         super(QInvokeFunction.class);
@@ -129,7 +128,7 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
 
     private abstract static class QSpecIntentionAction extends WriteIntentionAction {
         public QSpecIntentionAction(String text, IntentionInvoke invoke) {
-            super(FAMILY_NAME, text, invoke);
+            super(text, FAMILY_NAME, invoke);
         }
 
         @Override
@@ -177,9 +176,9 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
     private static class RemoveExcessiveArguments extends QSpecIntentionAction {
         public RemoveExcessiveArguments(PsiElement element) {
             super("Remove excessive arguments", (p, e, f) -> {
-                PsiElement sibling = element.getPrevSibling();
-                while (QPsiUtil.isWhitespace(sibling) || QPsiUtil.isSemicolon(sibling)) {
-                    sibling = sibling.getPrevSibling();
+                PsiElement sibling = QPsiUtil.getPrevNonWhitespace(element);
+                while (QPsiUtil.isSemicolon(sibling)) {
+                    sibling = QPsiUtil.getPrevNonWhitespace(sibling);
                 }
 
                 if (sibling != null) {
@@ -225,9 +224,9 @@ public class QSpecAnnotator extends QElementAnnotator<QInvokeFunction> {
                 }
 
                 final QInvokeFunction invoke = item.getInvoke();
-                PsiElement sibling = invoke.getNextSibling();
-                while (QPsiUtil.isWhitespace(sibling) || QPsiUtil.isSemicolon(sibling)) {
-                    sibling = sibling.getNextSibling();
+                PsiElement sibling = QPsiUtil.getNextNotWhitespace(invoke);
+                while (QPsiUtil.isSemicolon(sibling)) {
+                    sibling = QPsiUtil.getNextNotWhitespace(invoke);
                 }
 
                 if (sibling != null) {

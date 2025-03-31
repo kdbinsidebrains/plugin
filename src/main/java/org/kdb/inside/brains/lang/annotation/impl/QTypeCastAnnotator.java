@@ -19,8 +19,9 @@ import java.util.List;
 import java.util.Set;
 
 public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
+    private static final String FAMILY_NAME = "Type cast";
+
     private static final Set<String> EXTRACTORS = Set.of("hh", "mm", "ss");
-    public static final String FAMILY_NAME = "Type cast";
 
     public QTypeCastAnnotator() {
         super(QTypeCastExpr.class);
@@ -61,7 +62,7 @@ public class QTypeCastAnnotator extends QElementAnnotator<QTypeCastExpr> {
 
         holder.newAnnotation(HighlightSeverity.ERROR, "Unknown cast type: " + name)
                 .range(range)
-                .withFix(new BaseIntentionAction(FAMILY_NAME, "Change cast type to...", (p, e, f) -> {
+                .withFix(new BaseIntentionAction("Change cast type to...", FAMILY_NAME, (p, e, f) -> {
                     JBPopupFactory.getInstance()
                             .createPopupChooserBuilder(List.of(CastType.values()))
                             .setRenderer(new ListCellRendererWithRightAlignedComponent<>() {

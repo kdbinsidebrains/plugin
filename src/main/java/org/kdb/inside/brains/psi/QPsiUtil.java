@@ -159,6 +159,22 @@ public final class QPsiUtil {
         return isWhitespace(c) ? PsiTreeUtil.skipWhitespacesAndCommentsForward(c) : c;
     }
 
+    public static PsiElement getPrevNonWhitespace(PsiElement e) {
+        PsiElement sibling = e.getPrevSibling();
+        while (QPsiUtil.isWhitespace(sibling)) {
+            sibling = sibling.getPrevSibling();
+        }
+        return sibling;
+    }
+
+    public static PsiElement getNextNotWhitespace(PsiElement e) {
+        PsiElement sibling = e.getNextSibling();
+        while (QPsiUtil.isWhitespace(sibling)) {
+            sibling = sibling.getNextSibling();
+        }
+        return sibling;
+    }
+
     public static PsiElement findRootExpression(PsiElement element, PsiElement context) {
         if (element == null) {
             return null;

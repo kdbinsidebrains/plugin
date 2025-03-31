@@ -30,7 +30,7 @@ import java.util.Map;
 
 
 public class QParametersAnnotator extends QElementAnnotator<QParameters> {
-    public static final String FAMILY_NAME = "QParameters";
+    private static final String FAMILY_NAME = "Parameter declaration";
 
     public QParametersAnnotator() {
         super(QParameters.class);
@@ -159,7 +159,7 @@ public class QParametersAnnotator extends QElementAnnotator<QParameters> {
 
     private static abstract class BaseTypeAction extends BaseIntentionAction {
         public BaseTypeAction(String text, QPsiElement element, boolean replace) {
-            super(FAMILY_NAME, text, (p, e, f) -> {
+            super(text, FAMILY_NAME, (p, e, f) -> {
                 JBPopupFactory.getInstance()
                         .createPopupChooserBuilder(CastType.CASTING_TYPES)
                         .setRenderer(new ListCellRendererWithRightAlignedComponent<>() {
@@ -203,7 +203,7 @@ public class QParametersAnnotator extends QElementAnnotator<QParameters> {
 
     private static class RemoveTypeAction extends WriteIntentionAction {
         public RemoveTypeAction(@NotNull QTypedParameter param) {
-            super(FAMILY_NAME, "Remove parameter type", (p, e, f) -> {
+            super("Remove parameter type", FAMILY_NAME, (p, e, f) -> {
                 final Document document = e.getDocument();
                 final TextRange allRange = param.getTextRange();
                 final TextRange nameRange = param.getVarDeclaration().getTextRange();
@@ -214,7 +214,7 @@ public class QParametersAnnotator extends QElementAnnotator<QParameters> {
 
     private static class EmptyPatternAction extends WriteIntentionAction {
         public EmptyPatternAction(@NotNull QPatternParameter param) {
-            super(FAMILY_NAME, "Remove empty pattern match", (p, e, f) -> {
+            super("Remove empty pattern match", FAMILY_NAME, (p, e, f) -> {
                 param.delete();
             });
         }
@@ -222,7 +222,7 @@ public class QParametersAnnotator extends QElementAnnotator<QParameters> {
 
     private static class RedundantPatternAction extends WriteIntentionAction {
         public RedundantPatternAction(@NotNull QPatternParameter param) {
-            super(FAMILY_NAME, "Remove redundant brackets", (p, e, f) -> {
+            super("Remove redundant brackets", FAMILY_NAME, (p, e, f) -> {
                 final Document document = e.getDocument();
                 final TextRange range = param.getTextRange();
 
@@ -234,7 +234,7 @@ public class QParametersAnnotator extends QElementAnnotator<QParameters> {
 
     private static class RenameIntentionAction extends BaseIntentionAction {
         private RenameIntentionAction(QVariable variable) {
-            super(FAMILY_NAME, "Rename parameter", (p, e, f) -> {
+            super("Rename parameter", FAMILY_NAME, (p, e, f) -> {
                 final TextRange r = variable.getTextRange();
                 e.getSelectionModel().setSelection(r.getStartOffset(), r.getEndOffset());
             });

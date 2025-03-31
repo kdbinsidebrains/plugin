@@ -8,8 +8,8 @@ public class WriteIntentionAction extends BaseIntentionAction {
         super(text, invoke);
     }
 
-    public WriteIntentionAction(@IntentionFamilyName @NotNull String familyName, @IntentionFamilyName @NotNull String text, @NotNull IntentionInvoke invoke) {
-        super(familyName, text, invoke);
+    public WriteIntentionAction(@IntentionFamilyName @NotNull String text, @IntentionFamilyName @NotNull String familyName, @NotNull IntentionInvoke invoke) {
+        super(text, familyName, invoke);
     }
 
     @Override

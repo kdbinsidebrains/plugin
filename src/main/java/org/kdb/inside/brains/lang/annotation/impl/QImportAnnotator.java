@@ -10,6 +10,8 @@ import org.kdb.inside.brains.lang.annotation.WriteIntentionAction;
 import org.kdb.inside.brains.psi.QImportCommand;
 
 public class QImportAnnotator extends QElementAnnotator<QImportCommand> {
+    private static final String FAMILY_NAME = "Importing";
+
     public QImportAnnotator() {
         super(QImportCommand.class);
     }
@@ -25,7 +27,7 @@ public class QImportAnnotator extends QElementAnnotator<QImportCommand> {
         if (t2 - t1 > 1) {
             holder.newAnnotation(HighlightSeverity.ERROR, "Only one space is allowed in import command")
                     .range(new TextRange(t1, t2))
-                    .withFix(new WriteIntentionAction("Q import command", "Remove wrong spaces", (p, e, f) -> e.getDocument().deleteString(t1 + 1, t2)))
+                    .withFix(new WriteIntentionAction("Remove wrong spaces", FAMILY_NAME, (p, e, f) -> e.getDocument().deleteString(t1 + 1, t2)))
                     .create();
         }
     }

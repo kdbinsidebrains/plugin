@@ -19,7 +19,8 @@ public class QLanguageAnnotator implements Annotator {
             new QImportAnnotator(),
             QFlipAnnotator.newDictAnnotator(),
             QFlipAnnotator.newTableAnnotator(),
-            new QSpecAnnotator()
+            new QSpecAnnotator(),
+            new QAssignmentAnnotator()
     );
 
     private final Map<Class<? extends PsiElement>, QElementAnnotator<?>> annotators = new HashMap<>();

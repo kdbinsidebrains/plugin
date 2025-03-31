@@ -188,6 +188,8 @@ private simple_pattern_declaration ::= PAREN_OPEN (direct_typed_variable | SEMIC
 
 pattern_declaration ::= table_pattern_declaration | dict_pattern_declaration | simple_pattern_declaration {
     methods=[typedVariables="typed_variable"]
+    implements="org.kdb.inside.brains.psi.QTypedVariables"
+    mixin="org.kdb.inside.brains.psi.mixin.QPatternDeclarationMixin"
  }
 
 private pattern_assignment ::= pattern_declaration var_assignment_type expression  { pin = 2 }

@@ -74,7 +74,7 @@ public class QFlipAnnotator<T extends QFlip> extends QElementAnnotator<T> {
     protected void addDuplicateNameWarning(@NotNull QVarDeclaration master, @NotNull QVarDeclaration slave, @NotNull AnnotationHolder holder) {
         holder.newAnnotation(HighlightSeverity.WARNING, "Duplicate " + typeName + " name")
                 .range(slave)
-                .withFix(new BaseIntentionAction(familyName, "Navigate to duplicate", (p, e, f) -> QPsiUtil.selectInEditor(e, master)))
+                .withFix(new BaseIntentionAction("Navigate to duplicate", familyName, (p, e, f) -> QPsiUtil.selectInEditor(e, master)))
                 .create();
     }
 
@@ -114,13 +114,13 @@ public class QFlipAnnotator<T extends QFlip> extends QElementAnnotator<T> {
         AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.WEAK_WARNING, "Missing " + familyName + " name").range(child);
         final PsiElement missedDeclaration = getMissedColumnDeclaration(child);
         if (missedDeclaration != null) {
-            builder = builder.withFix(new WriteIntentionAction(familyName, "Insert declaration colon", (project, editor, file) -> {
+            builder = builder.withFix(new WriteIntentionAction("Insert declaration colon", familyName, (project, editor, file) -> {
                         final TextRange range = missedDeclaration.getTextRange();
                         editor.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), ":");
                     })
             );
         }
-        builder = builder.withFix(new WriteIntentionAction(familyName, "Insert " + typeName + " name", (project, editor, file) -> {
+        builder = builder.withFix(new WriteIntentionAction("Insert " + typeName + " name", familyName, (project, editor, file) -> {
                     final QVarDeclaration var = QPsiUtil.createVarDeclaration(project, "renameMe");
                     final PsiElement el = column.addBefore(var, child);
                     column.addBefore(QPsiUtil.createColon(project), child);
@@ -150,7 +150,7 @@ public class QFlipAnnotator<T extends QFlip> extends QElementAnnotator<T> {
     private void createSemicolonError(PsiElement el, AnnotationHolder holder) {
         holder.newAnnotation(HighlightSeverity.ERROR, "Tailing semicolon is not allowed")
                 .range(el)
-                .withFix(new WriteIntentionAction(familyName, "Remove semicolon", (p, e, f) -> el.delete()))
+                .withFix(new WriteIntentionAction("Remove semicolon", familyName, (p, e, f) -> el.delete()))
                 .create();
     }
 }

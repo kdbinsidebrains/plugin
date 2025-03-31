@@ -18,7 +18,7 @@ public class BaseIntentionAction extends AbstractIntentionAction {
         this(text, text, invoke);
     }
 
-    public BaseIntentionAction(@IntentionFamilyName @NotNull String familyName, @IntentionName @NotNull String text, @NotNull IntentionInvoke invoke) {
+    public BaseIntentionAction(@IntentionName @NotNull String text, @IntentionFamilyName @NotNull String familyName, @NotNull IntentionInvoke invoke) {
         this.text = text;
         this.familyName = familyName;
         this.invoke = invoke;

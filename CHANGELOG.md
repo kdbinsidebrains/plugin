@@ -9,6 +9,7 @@
   - New type Dict has been introduced with a set of new formatting rules
   - New type TypeVariable introduced with a set of new formatting rules
   - Indexing redesigned to support new types
+- Select/Deselect all Values in Charting added
 
 ### Changed
 

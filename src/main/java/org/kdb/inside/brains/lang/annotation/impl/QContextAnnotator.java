@@ -11,7 +11,7 @@ import org.kdb.inside.brains.psi.QPsiUtil;
 import org.kdb.inside.brains.psi.QVarDeclaration;
 
 public class QContextAnnotator extends QElementAnnotator<QContext> {
-    private static final String FAMILY_NAME = "Q context definition";
+    private static final String FAMILY_NAME = "Context definition";
 
     public QContextAnnotator() {
         super(QContext.class);
@@ -44,7 +44,7 @@ public class QContextAnnotator extends QElementAnnotator<QContext> {
         final TextRange range = variable.getTextRange();
         holder.newAnnotation(HighlightSeverity.ERROR, "Context must be started with a dot")
                 .range(range)
-                .withFix(new WriteIntentionAction(FAMILY_NAME, "Insert context prefix", (p, e, f) -> variable.replace(QPsiUtil.createVarDeclaration(p, "." + qualifiedName))))
+                .withFix(new WriteIntentionAction("Insert context prefix", FAMILY_NAME, (p, e, f) -> variable.replace(QPsiUtil.createVarDeclaration(p, "." + qualifiedName))))
                 .create();
     }
 
@@ -57,7 +57,7 @@ public class QContextAnnotator extends QElementAnnotator<QContext> {
         final TextRange range = variable.getTextRange();
         holder.newAnnotation(HighlightSeverity.ERROR, "Context must be one level depth")
                 .range(range)
-                .withFix(new WriteIntentionAction(FAMILY_NAME, "Remove all invalid context levels", (p, e, f) -> variable.replace(QPsiUtil.createVarDeclaration(p, qualifiedName.substring(0, i)))))
+                .withFix(new WriteIntentionAction("Remove all invalid context levels", FAMILY_NAME, (p, e, f) -> variable.replace(QPsiUtil.createVarDeclaration(p, qualifiedName.substring(0, i)))))
                 .create();
     }
 
@@ -72,7 +72,7 @@ public class QContextAnnotator extends QElementAnnotator<QContext> {
         final TextRange range = textRange.cutOut(new TextRange(2, 2 + spaces));
         holder.newAnnotation(HighlightSeverity.ERROR, "Only one space must separate command from the context name")
                 .range(range)
-                .withFix(new WriteIntentionAction(FAMILY_NAME, "Remove redundant spaces", (p, e, f) -> e.getDocument().deleteString(range.getStartOffset() + 1, range.getEndOffset())))
+                .withFix(new WriteIntentionAction("Remove redundant spaces", FAMILY_NAME, (p, e, f) -> e.getDocument().deleteString(range.getStartOffset() + 1, range.getEndOffset())))
                 .create();
     }
 
