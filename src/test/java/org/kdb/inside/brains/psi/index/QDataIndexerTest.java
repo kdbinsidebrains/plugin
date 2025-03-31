@@ -2,6 +2,7 @@ package org.kdb.inside.brains.psi.index;
 
 import com.intellij.lang.LighterAST;
 import com.intellij.lang.LighterASTNode;
+import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import org.junit.jupiter.api.Test;
 
@@ -44,16 +45,23 @@ class QDataIndexerTest {
     void parensBySemicolon() {
         final LighterASTNode symbol = node(SYMBOL);
         final LighterASTNode lambda = node(LAMBDA_EXPR);
+        final LighterASTNode whitespace = node(TokenType.WHITE_SPACE);
 
         final LighterAST tree = mock(LighterAST.class);
         final LighterASTNode node = mock(LighterASTNode.class);
         final List<LighterASTNode> children = List.of(
                 node(PAREN_OPEN),
+                whitespace,
                 node(SEMICOLON),
+                whitespace,
                 symbol,
+                whitespace,
                 node(SEMICOLON),
+                whitespace,
                 node(SEMICOLON),
+                whitespace,
                 lambda,
+                whitespace,
                 node(PAREN_CLOSE)
         );
         when(tree.getChildren(node)).thenReturn(children);

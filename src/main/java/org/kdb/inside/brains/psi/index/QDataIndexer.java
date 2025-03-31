@@ -14,6 +14,8 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.psi.QElementType;
+import org.kdb.inside.brains.psi.QTokenType;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -343,12 +345,19 @@ public class QDataIndexer implements DataIndexer<String, List<IdentifierDescript
         List<LighterASTNode> res = new ArrayList<>(children.size());
         for (LighterASTNode re : children) {
             final IElementType tokenType = re.getTokenType();
+            if (!(tokenType instanceof QTokenType) && !(tokenType instanceof QElementType)) { // whitespace and others
+                continue;
+            }
+            if (tokenType == PAREN_OPEN || tokenType == BRACKET_OPEN || tokenType == BRACKET_CLOSE) {
+                currentNode = null;
+                continue;
+            }
             if (tokenType == PAREN_CLOSE || tokenType == SEMICOLON) {
                 res.add(currentNode);
                 currentNode = null;
-            } else if (tokenType == DIRECT_TYPED_VARIABLE || tokenType == INVERTED_TYPED_VARIABLE) {
-                currentNode = re;
+                continue;
             }
+            currentNode = re;
         }
         return res;
     }
