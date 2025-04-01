@@ -84,7 +84,7 @@ public final class QPsiUtil {
             case FILE, CONTEXT -> true;
             case DICT, TABLE, QUERY, PARAMETERS -> false;
             case LAMBDA -> {
-                if (hasNamespace(declaration.getQualifiedName())) {
+                if (hasNamespace(declaration.getName())) {
                     yield true;
                 }
 
