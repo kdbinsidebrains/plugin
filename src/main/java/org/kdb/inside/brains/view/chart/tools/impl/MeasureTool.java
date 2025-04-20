@@ -1,7 +1,8 @@
-package org.kdb.inside.brains.view.chart.tools;
+package org.kdb.inside.brains.view.chart.tools.impl;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ui.JBColor;
+import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
@@ -9,8 +10,6 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.panel.AbstractOverlay;
-import org.jfree.chart.panel.Overlay;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.text.TextUtils;
 import org.jfree.chart.ui.RectangleEdge;
@@ -18,7 +17,11 @@ import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.action.EdtAction;
-import org.kdb.inside.brains.view.chart.*;
+import org.kdb.inside.brains.view.chart.ChartColors;
+import org.kdb.inside.brains.view.chart.ChartOptions;
+import org.kdb.inside.brains.view.chart.ChartViewPanel;
+import org.kdb.inside.brains.view.chart.ToolActions;
+import org.kdb.inside.brains.view.chart.tools.AbstractChartTool;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,16 +30,14 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
-public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, ChartMouseListener {
-    private static final KeyStroke KEYSTROKE_ESC = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-
+public class MeasureTool extends AbstractChartTool implements ChartMouseListener {
     private MeasureArea activeArea;
-    private static final KeyStroke KEYSTROKE_DEL = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+    private MeasureArea highlighted;
 
-    private final BaseChartPanel myPanel;
+    private final ChartViewPanel myPanel;
     private final ChartOptions myOptions;
     private final List<MeasureArea> pinnedAreas = new ArrayList<>();
 
@@ -44,14 +45,20 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
 
     private static final Stroke BASIC = new BasicStroke(2);
     private static final Stroke DASHED = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
-    private MeasureArea highlighted;
+
+    public static final String ID = "MEASURE";
 
     static {
         NUMBER_FORMAT.setPositivePrefix("+");
         NUMBER_FORMAT.setNegativePrefix("-");
     }
 
-    public MeasureTool(BaseChartPanel panel, ChartOptions options) {
+    private static final KeyStroke KEYSTROKE_ESC = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+    private static final KeyStroke KEYSTROKE_DEL = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+
+    public MeasureTool(ChartViewPanel panel, ChartOptions options) {
+        super(ID, "Measure", "Measuring tool", KdbIcons.Chart.ToolMeasure);
+
         myPanel = panel;
         myOptions = options;
 
@@ -238,11 +245,11 @@ public class MeasureTool extends AbstractOverlay implements ChartTool, Overlay, 
     }
 
     public boolean isEnabled() {
-        return myOptions.isMeasureToolEnabled();
+        return myOptions.isEnabled(this);
     }
 
     public void setEnabled(boolean enabled) {
-        myOptions.setMeasureToolEnabled(enabled);
+        myOptions.setEnabled(this, enabled);
 
         if (!enabled) {
             cancel();

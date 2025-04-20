@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.chart.tools;
+package org.kdb.inside.brains.view.chart.tools.impl;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -9,10 +9,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
+import icons.KdbIcons;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -22,10 +24,10 @@ import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
-import org.kdb.inside.brains.view.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.chart.ChartOptions;
-import org.kdb.inside.brains.view.chart.ChartTool;
+import org.kdb.inside.brains.view.chart.ChartViewPanel;
+import org.kdb.inside.brains.view.chart.tools.AbstractChartTool;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 
 import javax.swing.*;
@@ -39,16 +41,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseListener {
+public class ValuesTool extends AbstractChartTool implements ExportDataProvider, ChartMouseListener {
     private KdbType domainType;
     private final ChartOptions myOptions;
 
     private final JPanel component;
     private final JBTable pointsTable;
-    private final BaseChartPanel myPanel;
+    private final ChartViewPanel myPanel;
     private final KdbOutputFormatter formatter;
 
-    public ValuesTool(Project project, BaseChartPanel panel, ChartOptions options) {
+    public static final String ID = "VALUES";
+
+    public ValuesTool(Project project, ChartViewPanel panel, ChartOptions options) {
+        super(ID, "Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints);
+
         myPanel = panel;
         myOptions = options;
 
@@ -171,14 +177,6 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
         return new DefaultTableModel(columns, 0);
     }
 
-    public boolean isEnabled() {
-        return myOptions.isValuesToolEnabled();
-    }
-
-    public void setEnabled(boolean enabled) {
-        myOptions.setValuesToolEnabled(enabled);
-    }
-
     public JComponent getComponent() {
         return component;
     }
@@ -189,7 +187,7 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
 
     @Override
     public void chartMouseClicked(ChartMouseEvent event) {
-        if (!isEnabled()) {
+        if (!myOptions.isEnabled(this)) {
             return;
         }
 
@@ -341,5 +339,9 @@ JVM issue:
             res[i] = (Timestamp) model.getValueAt(i, col);
         }
         return res;
+    }
+
+    @Override
+    public void paintOverlay(Graphics2D g2, ChartPanel chartPanel) {
     }
 }

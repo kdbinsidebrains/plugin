@@ -1,5 +1,5 @@
 package org.kdb.inside.brains.view.chart;
 
-public interface ChartViewListener {
+public interface ChartConfigListener {
     void configChanged();
 }

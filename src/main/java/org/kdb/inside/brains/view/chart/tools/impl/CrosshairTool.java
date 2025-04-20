@@ -1,6 +1,7 @@
-package org.kdb.inside.brains.view.chart.tools;
+package org.kdb.inside.brains.view.chart.tools.impl;
 
 import com.intellij.ui.JBColor;
+import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
@@ -14,27 +15,33 @@ import org.jfree.chart.plot.Crosshair;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleAnchor;
 import org.kdb.inside.brains.KdbType;
-import org.kdb.inside.brains.view.chart.BaseChartPanel;
 import org.kdb.inside.brains.view.chart.ChartOptions;
-import org.kdb.inside.brains.view.chart.ChartTool;
+import org.kdb.inside.brains.view.chart.ChartViewPanel;
+import org.kdb.inside.brains.view.chart.tools.AbstractChartTool;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.text.NumberFormat;
 
-public class CrosshairTool extends CrosshairOverlay implements ChartTool, ChartMouseListener {
+public class CrosshairTool extends AbstractChartTool implements ChartMouseListener {
     private Crosshair range;
     private Crosshair domain;
 
-    private final BaseChartPanel myPanel;
+    private final ChartViewPanel myPanel;
     private final ChartOptions myOptions;
 
-    public static final JBColor CROSSHAIR_PAINT = new JBColor(new Color(0xa4a4a5), new Color(0xa4a4a5));
-    public static final JBColor CROSSHAIR_LABEL = new JBColor(new Color(0x595959), new Color(0x595959));
-    public static final JBColor CROSSHAIR_OUTLINE = new JBColor(new Color(0xe0e0e0), new Color(0xe0e0e0));
-    public static final JBColor CROSSHAIR_BACKGROUND = new JBColor(new Color(0xc4c4c4), new Color(0xc4c4c4));
+    public static final String ID = "CROSSHAIR";
 
-    public CrosshairTool(BaseChartPanel panel, ChartOptions options) {
+    private static final JBColor CROSSHAIR_PAINT = new JBColor(new Color(0xa4a4a5), new Color(0xa4a4a5));
+    private static final JBColor CROSSHAIR_LABEL = new JBColor(new Color(0x595959), new Color(0x595959));
+    private static final JBColor CROSSHAIR_OUTLINE = new JBColor(new Color(0xe0e0e0), new Color(0xe0e0e0));
+    private static final JBColor CROSSHAIR_BACKGROUND = new JBColor(new Color(0xc4c4c4), new Color(0xc4c4c4));
+
+    private final CrosshairOverlay overlay = new CrosshairOverlay();
+
+    public CrosshairTool(ChartViewPanel panel, ChartOptions options) {
+        super(ID, "Crosshair", "Show crosshair lines", KdbIcons.Chart.ToolCrosshair);
+
         myPanel = panel;
         myPanel.addOverlay(this);
         myPanel.addChartMouseListener(this);
@@ -44,15 +51,15 @@ public class CrosshairTool extends CrosshairOverlay implements ChartTool, ChartM
 
     @Override
     public void initialize(JFreeChart chart, KdbType domainType) {
-        clearRangeCrosshairs();
-        clearDomainCrosshairs();
+        overlay.clearRangeCrosshairs();
+        overlay.clearDomainCrosshairs();
 
         if (chart != null) {
             range = createCrosshair(true);
-            addRangeCrosshair(range);
+            overlay.addRangeCrosshair(range);
 
             domain = createCrosshair(false);
-            addDomainCrosshair(this.domain);
+            overlay.addDomainCrosshair(this.domain);
         }
 
         fireOverlayChanged();
@@ -67,6 +74,7 @@ public class CrosshairTool extends CrosshairOverlay implements ChartTool, ChartM
         final Point2D p = myPanel.calculateValuesPoint(event);
         range.setValue(p.getY());
         domain.setValue(p.getX());
+        fireOverlayChanged();
     }
 
     @NotNull
@@ -90,16 +98,11 @@ public class CrosshairTool extends CrosshairOverlay implements ChartTool, ChartM
     @Override
     public void paintOverlay(Graphics2D g2, ChartPanel chartPanel) {
         if (isEnabled()) {
-            super.paintOverlay(g2, chartPanel);
+            overlay.paintOverlay(g2, chartPanel);
         }
     }
 
-    public boolean isEnabled() {
-        return myOptions.isCrosshairToolEnabled();
-    }
-
-    public void setEnabled(boolean enabled) {
-        myOptions.setCrosshairToolEnabled(enabled);
-        fireOverlayChanged();
+    private boolean isEnabled() {
+        return myOptions.isEnabled(this);
     }
 }

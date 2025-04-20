@@ -1,54 +1,39 @@
 package org.kdb.inside.brains.view.chart;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
-import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.ImageUtil;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.*;
+import org.jfree.chart.ChartMouseEvent;
+import org.jfree.chart.ChartMouseListener;
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.entity.LegendItemEntity;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.svg.SVGGraphics2D;
 import org.kdb.inside.brains.action.ActionPlaces;
-import org.kdb.inside.brains.action.EdtAction;
+import org.kdb.inside.brains.action.EdtToggleAction;
 import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.chart.template.ChartTemplate;
-import org.kdb.inside.brains.view.chart.tools.CrosshairTool;
-import org.kdb.inside.brains.view.chart.tools.MeasureTool;
-import org.kdb.inside.brains.view.chart.tools.ToolToggleAction;
-import org.kdb.inside.brains.view.chart.tools.ValuesTool;
+import org.kdb.inside.brains.view.chart.tools.ChartTool;
+import org.kdb.inside.brains.view.chart.tools.impl.CrosshairTool;
+import org.kdb.inside.brains.view.chart.tools.impl.MeasureTool;
+import org.kdb.inside.brains.view.chart.tools.impl.ValuesTool;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,11 +42,13 @@ import java.util.stream.Stream;
 import static com.intellij.util.ui.JBUI.Borders;
 
 public class ChartingDialog extends FrameWrapper implements DataProvider {
+    private final ChartOptions options;
+
     private final ValuesTool valuesTool;
     private final MeasureTool measureTool;
     private final CrosshairTool crosshairTool;
 
-    private final BaseChartPanel chartPanel;
+    private final ChartViewPanel chartPanel;
 
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel chartLayoutPanel = new JPanel(cardLayout);
@@ -81,9 +68,9 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
 
         setComponent(rootPanel);
 
-        final ChartOptions chartOptions = KdbSettingsService.getInstance().getChartOptions();
+        options = KdbSettingsService.getInstance().getChartOptions();
 
-        chartPanel = new BaseChartPanel(chartOptions, this::createPopupMenu);
+        chartPanel = new ChartViewPanel(options, this::createPopupMenu);
         chartPanel.addChartMouseListener(new ChartMouseListener() {
             @Override
             public void chartMouseClicked(ChartMouseEvent event) {
@@ -102,11 +89,12 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
             }
         });
 
-        valuesTool = new ValuesTool(project, chartPanel, chartOptions);
-        measureTool = new MeasureTool(chartPanel, chartOptions);
-        crosshairTool = new CrosshairTool(chartPanel, chartOptions);
+        valuesTool = new ValuesTool(project, chartPanel, options);
+        measureTool = new MeasureTool(chartPanel, options);
+        crosshairTool = new CrosshairTool(chartPanel, options);
 
         final ChartConfigPanel configPanel = new ChartConfigPanel(project, dataProvider, this::configChanged, this::close);
+        Disposer.register(this, configPanel);
 
         final JPanel eastPanel = new JPanel(new BorderLayout());
         eastPanel.add(configPanel, BorderLayout.EAST);
@@ -117,7 +105,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         cardLayout.show(chartLayoutPanel, EMPTY_CARD_PANEL_NAME);
 
         splitter.setFirstComponent(chartLayoutPanel);
-        if (valuesTool.isEnabled()) {
+        if (options.isEnabled(valuesTool)) {
             splitter.setSecondComponent(valuesTool.getComponent());
         }
 
@@ -158,7 +146,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
     }
 
     private List<ToolActions> createPopupMenu() {
-        return Stream.of(crosshairTool, measureTool, valuesTool).filter(ChartTool::isEnabled).map(ChartTool::getToolActions).filter(ToolActions::hasActions).toList();
+        return Stream.of(crosshairTool, measureTool, valuesTool).filter(options::isEnabled).map(ChartTool::getToolActions).filter(ToolActions::hasActions).toList();
     }
 
     private void configChanged(ChartView view) {
@@ -192,41 +180,28 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         }
     }
 
-    private void measureSelected(boolean state) {
-        if (measureTool.isEnabled() == state) {
-            return;
+    private void changeState(ChartTool tool, boolean state) {
+        // TODO: remove this code completely
+        if (tool instanceof MeasureTool) {
+            if (options.isEnabled(valuesTool)) {
+                changeState(valuesTool, false);
+            }
+        } else if (tool instanceof ValuesTool) {
+            if (options.isEnabled(measureTool)) {
+                changeState(measureTool, false);
+            }
+            if (state) {
+                splitter.setSecondComponent(valuesTool.getComponent());
+            } else {
+                splitter.setSecondComponent(null);
+            }
         }
-
-        measureTool.setEnabled(state);
-        if (state) {
-            valuesSelected(false);
-        }
-        chartPanel.setDefaultCursor(state);
-    }
-
-    private void valuesSelected(boolean state) {
-        if (valuesTool.isEnabled() == state) {
-            return;
-        }
-        valuesTool.setEnabled(state);
-        if (state) {
-            splitter.setSecondComponent(valuesTool.getComponent());
-            measureSelected(false);
-        } else {
-            splitter.setSecondComponent(null);
-        }
-        chartPanel.setDefaultCursor(state);
+        options.setEnabled(tool, state);
+        chartPanel.repaint(); // overlayChanged?
     }
 
     private JComponent createToolbar() {
         final DefaultActionGroup group = new DefaultActionGroup();
-
-        group.add(new ToolToggleAction("Crosshair", "Show crosshair lines", KdbIcons.Chart.ToolCrosshair, crosshairTool::isEnabled, crosshairTool::setEnabled));
-        group.addSeparator();
-
-        group.add(new ToolToggleAction("Measure", "Measuring tool", KdbIcons.Chart.ToolMeasure, measureTool::isEnabled, this::measureSelected));
-        group.add(new ToolToggleAction("Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints, valuesTool::isEnabled, this::valuesSelected));
-        group.addSeparator();
 
         final DefaultActionGroup snapping = new PopupActionGroup("Snapping", KdbIcons.Chart.ToolMagnet);
         snapping.add(new SpanAction("_Disable Snapping", SnapType.NO));
@@ -234,9 +209,16 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         snapping.add(new SpanAction("Snap to _Vertex", SnapType.VERTEX));
 
         group.add(snapping);
+        group.addSeparator();
+
+        group.add(new ToolToggleAction(crosshairTool));
+        group.addSeparator();
+
+        group.add(new ToolToggleAction(measureTool));
+        group.add(new ToolToggleAction(valuesTool));
 
         group.addSeparator();
-        group.addAll(createChartPanelMenu());
+        group.addAll(chartPanel.createChartActions(getComponent()));
 
         final ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.CHARTS_PANEL_TOOLBAR, group, false);
         actionToolbar.setTargetComponent(chartLayoutPanel);
@@ -247,116 +229,34 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         return actionComponent;
     }
 
-    private DefaultActionGroup createChartPanelMenu() {
-        final DefaultActionGroup group = new DefaultActionGroup();
-        final AnAction action = new EdtAction("_Copy", "Copy the chart", AllIcons.Actions.Copy) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                CopyPasteManager.getInstance().setContents(new ChartingDialog.ChartTransferable());
-            }
-        };
-        action.registerCustomShortcutSet(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK, getComponent());
-        group.add(action);
-
-        final PopupActionGroup saveAs = new PopupActionGroup("_Save As", AllIcons.Actions.MenuSaveall);
-        final EdtAction png = new EdtAction("PNG...", "Save as PNG image", null) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                final FileSaverDescriptor d = new FileSaverDescriptor("Save as PNG Image", "Save chart view as PNG image", "png");
-                final VirtualFileWrapper file = FileChooserFactory.getInstance().createSaveFileDialog(d, e.getProject()).save(null);
-                if (file == null) {
-                    return;
-                }
-                try (final OutputStream out = new FileOutputStream(file.getFile())) {
-                    ChartUtils.writeBufferedImageAsPNG(out, createChartImage());
-                } catch (Exception ex) {
-                    Messages.showErrorDialog(e.getProject(), "PNG image can't be created: " + ex.getMessage(), "Save as PNG Failed");
-                }
-            }
-        };
-        png.registerCustomShortcutSet(KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, getComponent());
-        saveAs.add(png);
-
-        final EdtAction svg = new EdtAction("SVG...", "Save as SVG image", null) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                final FileSaverDescriptor d = new FileSaverDescriptor("Save as SVG Image", "Save chart view as SVG image", "svg");
-                final VirtualFileWrapper file = FileChooserFactory.getInstance().createSaveFileDialog(d, e.getProject()).save(null);
-                if (file == null) {
-                    return;
-                }
-
-                try (final BufferedWriter writer = new BufferedWriter(new FileWriter(file.getFile()))) {
-                    writer.write(createSVGDocument());
-                    writer.flush();
-                } catch (Exception ex) {
-                    Messages.showErrorDialog(e.getProject(), "SVG image can't be created: " + ex.getMessage(), "Save as SVG Failed");
-                }
-            }
-        };
-        svg.registerCustomShortcutSet(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, getComponent());
-        saveAs.add(svg);
-        group.add(saveAs);
-
-        group.addSeparator();
-
-        final DefaultActionGroup zoomIn = new PopupActionGroup("Zoom _In", AllIcons.Graph.ZoomIn);
-        zoomIn.add(new ChartAction(ChartPanel.ZOOM_IN_BOTH_COMMAND, "_Both Axes", "Zoom in both axes"));
-        zoomIn.addSeparator();
-        zoomIn.add(new ChartAction(ChartPanel.ZOOM_IN_RANGE_COMMAND, "_Range Axis", "Zoom in only range axis"));
-        zoomIn.add(new ChartAction(ChartPanel.ZOOM_IN_DOMAIN_COMMAND, "_Domain Axis", "Zoom in only domain axis"));
-        group.add(zoomIn);
-
-        final DefaultActionGroup zoomOut = new PopupActionGroup("Zoom _Out", AllIcons.Graph.ZoomOut);
-        zoomOut.add(new ChartAction(ChartPanel.ZOOM_OUT_BOTH_COMMAND, "_Both Axes", "Zoom out both axes"));
-        zoomOut.addSeparator();
-        zoomOut.add(new ChartAction(ChartPanel.ZOOM_OUT_RANGE_COMMAND, "_Range Axis", "Zoom out only range axis"));
-        zoomOut.add(new ChartAction(ChartPanel.ZOOM_OUT_DOMAIN_COMMAND, "_Domain Axis", "Zoom out only domain axis"));
-        group.add(zoomOut);
-
-        final DefaultActionGroup zoomReset = new PopupActionGroup("Zoom _Reset", AllIcons.Graph.ActualZoom);
-        zoomReset.add(new ChartAction(ChartPanel.ZOOM_RESET_BOTH_COMMAND, "_Both Axes", "Reset the chart zoom"));
-        zoomReset.addSeparator();
-        zoomReset.add(new ChartAction(ChartPanel.ZOOM_RESET_RANGE_COMMAND, "_Range Axis", "Reset zoom for range axis only"));
-        zoomReset.add(new ChartAction(ChartPanel.ZOOM_RESET_DOMAIN_COMMAND, "_Domain Axis", "Reset zoom for domain axis only"));
-        group.add(zoomReset);
-        return group;
-    }
-
     private class SpanAction extends CheckboxAction {
         private final SnapType snapType;
 
         private SpanAction(String name, SnapType snapType) {
             super(name);
             this.snapType = snapType;
+            getTemplatePresentation().setKeepPopupOnPerform(KeepPopupOnPerform.Never);
         }
 
         @Override
         public boolean isSelected(@NotNull AnActionEvent e) {
-            return chartPanel.getSnapType() == snapType;
+            return options.getSnapType() == snapType;
         }
 
         @Override
         public void setSelected(@NotNull AnActionEvent e, boolean state) {
             if (state) {
-                chartPanel.setSnapType(snapType);
+                options.setSnapType(snapType);
             } else {
-                chartPanel.setSnapType(SnapType.NO);
+                options.setSnapType(SnapType.NO);
             }
+            // TODO: update tools with new SnapType
         }
 
         @Override
         public @NotNull ActionUpdateThread getActionUpdateThread() {
             return ActionUpdateThread.EDT;
         }
-    }
-
-    private String createSVGDocument() {
-        final Dimension d = getChartDimension();
-        final SVGGraphics2D g2 = new SVGGraphics2D(d.width, d.height);
-        g2.setRenderingHint(JFreeChart.KEY_SUPPRESS_SHADOW_GENERATION, true);
-        chartPanel.paintComponent(g2);
-        return g2.getSVGDocument();
     }
 
     @Nullable
@@ -368,69 +268,24 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         return super.getData(dataId);
     }
 
-    private BufferedImage createChartImage() {
-        final Dimension d = getChartDimension();
-        final BufferedImage image = ImageUtil.createImage(d.width, d.height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2 = image.createGraphics();
-        chartPanel.paintComponent(g2);
-        g2.dispose();
-        return image;
-    }
 
-    @NotNull
-    private Dimension getChartDimension() {
-        final Insets insets = chartPanel.getInsets();
-        final int w = chartPanel.getWidth() - insets.left - insets.right;
-        final int h = chartPanel.getHeight() - insets.top - insets.bottom;
-        return new Dimension(w, h);
-    }
+    public class ToolToggleAction extends EdtToggleAction {
+        private final ChartTool tool;
 
-    private class ChartAction extends EdtAction {
-        private final String command;
-
-        public ChartAction(String command, String text, String description) {
-            this(command, text, description, null);
-        }
-
-        public ChartAction(String command, String text, String description, Icon icon) {
-            super(text, description, icon);
-            this.command = command;
+        public ToolToggleAction(@NotNull ChartTool tool) {
+            super(tool.getText(), tool.getDescription(), tool.getIcon());
+            this.tool = tool;
+            changeState(tool, options.isEnabled(tool));
         }
 
         @Override
-        public void update(@NotNull AnActionEvent e) {
-            e.getPresentation().setEnabled(chartPanel.getChart() != null);
+        public boolean isSelected(@NotNull AnActionEvent e) {
+            return options.isEnabled(tool);
         }
 
         @Override
-        public void actionPerformed(@NotNull AnActionEvent e) {
-            chartPanel.actionPerformed(new ActionEvent(this, -1, command));
-        }
-    }
-
-    private class ChartTransferable implements Transferable {
-        /**
-         * The data flavor.
-         */
-        final DataFlavor imageFlavor = new DataFlavor("image/x-java-image; class=java.awt.Image", "Image");
-
-        @Override
-        public DataFlavor[] getTransferDataFlavors() {
-            return new DataFlavor[]{this.imageFlavor};
-        }
-
-        @Override
-        public boolean isDataFlavorSupported(DataFlavor flavor) {
-            return this.imageFlavor.equals(flavor);
-        }
-
-        @NotNull
-        @Override
-        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
-            if (!isDataFlavorSupported(flavor)) {
-                throw new UnsupportedFlavorException(flavor);
-            }
-            return createChartImage();
+        public void setSelected(@NotNull AnActionEvent e, boolean state) {
+            changeState(tool, state);
         }
     }
 }
