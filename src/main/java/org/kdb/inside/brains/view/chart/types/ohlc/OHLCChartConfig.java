@@ -3,8 +3,8 @@ package org.kdb.inside.brains.view.chart.types.ohlc;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.KdbType;
+import org.kdb.inside.brains.view.chart.ChartColumn;
 import org.kdb.inside.brains.view.chart.ChartConfig;
-import org.kdb.inside.brains.view.chart.ColumnDefinition;
 import org.kdb.inside.brains.view.chart.types.ChartType;
 
 import java.util.List;
@@ -12,9 +12,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record OHLCChartConfig(ColumnDefinition domain, ColumnDefinition openColumn, ColumnDefinition highColumn,
-                              ColumnDefinition lowColumn, ColumnDefinition closeColumn,
-                              ColumnDefinition volumeColumn) implements ChartConfig {
+public record OHLCChartConfig(ChartColumn domain, ChartColumn openColumn, ChartColumn highColumn,
+                              ChartColumn lowColumn, ChartColumn closeColumn,
+                              ChartColumn volumeColumn) implements ChartConfig {
 
     @Override
     public ChartType getChartType() {
@@ -27,7 +27,7 @@ public record OHLCChartConfig(ColumnDefinition domain, ColumnDefinition openColu
     }
 
     @Override
-    public List<ColumnDefinition> getRequiredColumns() {
+    public List<ChartColumn> getRequiredColumns() {
         return Stream.of(domain, openColumn, highColumn, lowColumn, closeColumn, volumeColumn).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
@@ -51,12 +51,12 @@ public record OHLCChartConfig(ColumnDefinition domain, ColumnDefinition openColu
     }
 
     public static @NotNull OHLCChartConfig restore(Element element) {
-        final ColumnDefinition date = ColumnDefinition.restore(element.getChild("domain"));
-        final ColumnDefinition open = ColumnDefinition.restore(element.getChild("open"));
-        final ColumnDefinition high = ColumnDefinition.restore(element.getChild("high"));
-        final ColumnDefinition low = ColumnDefinition.restore(element.getChild("low"));
-        final ColumnDefinition close = ColumnDefinition.restore(element.getChild("close"));
-        final ColumnDefinition volume = ColumnDefinition.restore(element.getChild("volume"));
+        final ChartColumn date = ChartColumn.restore(element.getChild("domain"));
+        final ChartColumn open = ChartColumn.restore(element.getChild("open"));
+        final ChartColumn high = ChartColumn.restore(element.getChild("high"));
+        final ChartColumn low = ChartColumn.restore(element.getChild("low"));
+        final ChartColumn close = ChartColumn.restore(element.getChild("close"));
+        final ChartColumn volume = ChartColumn.restore(element.getChild("volume"));
         return new OHLCChartConfig(date, open, high, low, close, volume);
     }
 

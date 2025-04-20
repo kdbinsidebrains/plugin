@@ -28,6 +28,7 @@ public final class ChartColors {
                     .map(s -> s.replace("#", "0x").trim())
                     .map(Color::decode)
                     .toArray(Color[]::new);
+
     private static final String colorsMatrixChatOriginal = """
             #3366cc #dc3912 #ff9900 #109618 #990099 #0099c6 #dd4477
             #66aa00 #b82e2e #316395 #994499 #22aa99 #aaaa11 #6633cc

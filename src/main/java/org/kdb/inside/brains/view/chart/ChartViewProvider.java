@@ -52,14 +52,29 @@ public abstract class ChartViewProvider<Panel extends JComponent, Config extends
         return configPanel;
     }
 
+    public ChartView createChartView() {
+        final Config config = createChartConfig();
+
+        if (config == null || config.isInvalid()) {
+            return null;
+        }
+        final JFreeChart chart = createJFreeChart(config);
+        if (chart == null) {
+            return null;
+        }
+        return new ChartView(config, chart);
+    }
+
+
     public abstract Config createChartConfig();
 
     public abstract void updateChartConfig(Config config);
 
 
-    public abstract JFreeChart getJFreeChart(Config config);
+    protected abstract JFreeChart createJFreeChart(Config config);
 
     protected abstract Panel createConfigPanel(ChartDataProvider provider);
+
 
     protected void processConfigChanged() {
         chartViewListeners.forEach(ChartViewListener::configChanged);

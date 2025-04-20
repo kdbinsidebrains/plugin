@@ -4,7 +4,7 @@ import com.intellij.openapi.util.JDOMUtil;
 import org.jdom.JDOMException;
 import org.junit.Test;
 import org.kdb.inside.brains.KdbType;
-import org.kdb.inside.brains.view.chart.ColumnDefinition;
+import org.kdb.inside.brains.view.chart.ChartColumn;
 
 import java.io.IOException;
 
@@ -20,7 +20,7 @@ public class ValuesDefinitionTest {
 
     @Test
     public void store() {
-        final ValuesDefinition c = new ValuesDefinition(new ColumnDefinition("name", KdbType.FLOAT), null, Operation.MAX);
+        final ValuesDefinition c = new ValuesDefinition(new ChartColumn("name", KdbType.FLOAT), null, Operation.MAX);
         assertEquals("<column name=\"name\" type=\"f\" operation=\"MAX\" />", JDOMUtil.write(c.store()));
     }
 

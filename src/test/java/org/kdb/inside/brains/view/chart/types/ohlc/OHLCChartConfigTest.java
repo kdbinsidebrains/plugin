@@ -6,8 +6,8 @@ import org.jdom.JDOMException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.kdb.inside.brains.KdbType;
-import org.kdb.inside.brains.view.chart.ColumnDefinition;
-import org.kdb.inside.brains.view.chart.ColumnDefinitionTest;
+import org.kdb.inside.brains.view.chart.ChartColumn;
+import org.kdb.inside.brains.view.chart.ChartColumnTest;
 
 import java.io.IOException;
 
@@ -25,12 +25,12 @@ public class OHLCChartConfigTest {
 
     @NotNull
     public static OHLCChartConfig createConfig() {
-        final ColumnDefinition date = new ColumnDefinition("date", KdbType.TIMESTAMP);
-        final ColumnDefinition open = new ColumnDefinition("open", KdbType.FLOAT);
-        final ColumnDefinition high = new ColumnDefinition("high", KdbType.FLOAT);
-        final ColumnDefinition low = new ColumnDefinition("low", KdbType.FLOAT);
-        final ColumnDefinition close = new ColumnDefinition("close", KdbType.FLOAT);
-        final ColumnDefinition volume = new ColumnDefinition("volume", KdbType.FLOAT);
+        final ChartColumn date = new ChartColumn("date", KdbType.TIMESTAMP);
+        final ChartColumn open = new ChartColumn("open", KdbType.FLOAT);
+        final ChartColumn high = new ChartColumn("high", KdbType.FLOAT);
+        final ChartColumn low = new ChartColumn("low", KdbType.FLOAT);
+        final ChartColumn close = new ChartColumn("close", KdbType.FLOAT);
+        final ChartColumn volume = new ChartColumn("volume", KdbType.FLOAT);
 
         return new OHLCChartConfig(date, open, high, low, close, volume);
     }
@@ -53,11 +53,11 @@ public class OHLCChartConfigTest {
     @Test
     void restore() throws IOException, JDOMException {
         final OHLCChartConfig c = OHLCChartConfig.restore(JDOMUtil.load(MESSAGE));
-        ColumnDefinitionTest.assertColumn(c.domain(), "date", KdbType.TIMESTAMP);
-        ColumnDefinitionTest.assertColumn(c.openColumn(), "open", KdbType.FLOAT);
-        ColumnDefinitionTest.assertColumn(c.highColumn(), "high", KdbType.FLOAT);
-        ColumnDefinitionTest.assertColumn(c.lowColumn(), "low", KdbType.FLOAT);
-        ColumnDefinitionTest.assertColumn(c.closeColumn(), "close", KdbType.FLOAT);
-        ColumnDefinitionTest.assertColumn(c.volumeColumn(), "volume", KdbType.FLOAT);
+        ChartColumnTest.assertColumn(c.domain(), "date", KdbType.TIMESTAMP);
+        ChartColumnTest.assertColumn(c.openColumn(), "open", KdbType.FLOAT);
+        ChartColumnTest.assertColumn(c.highColumn(), "high", KdbType.FLOAT);
+        ChartColumnTest.assertColumn(c.lowColumn(), "low", KdbType.FLOAT);
+        ChartColumnTest.assertColumn(c.closeColumn(), "close", KdbType.FLOAT);
+        ChartColumnTest.assertColumn(c.volumeColumn(), "volume", KdbType.FLOAT);
     }
 }

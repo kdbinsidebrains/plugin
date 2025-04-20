@@ -13,9 +13,9 @@ import org.jfree.chart.renderer.xy.CandlestickRenderer;
 import org.jfree.data.xy.DefaultHighLowDataset;
 import org.jfree.data.xy.OHLCDataset;
 import org.kdb.inside.brains.view.chart.ChartColors;
+import org.kdb.inside.brains.view.chart.ChartColumn;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.chart.ChartViewProvider;
-import org.kdb.inside.brains.view.chart.ColumnDefinition;
 import org.kdb.inside.brains.view.chart.types.ChartType;
 
 import javax.swing.*;
@@ -33,7 +33,7 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
     private boolean ignoreUpdate = false;
 
     private final JBTable rangesComponent = new JBTable();
-    private final ComboBox<ColumnDefinition> domainComponent = new ComboBox<>();
+    private final ComboBox<ChartColumn> domainComponent = new ComboBox<>();
 
     public OHLCChartViewProvider(ChartDataProvider dataProvider) {
         super("Candlestick", ChartType.OHLC, dataProvider);
@@ -62,7 +62,7 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
         final double[] open = dataProvider.getDoubles(config.openColumn());
         final double[] close = dataProvider.getDoubles(config.closeColumn());
 
-        final ColumnDefinition volumeColumn = config.volumeColumn();
+        final ChartColumn volumeColumn = config.volumeColumn();
         final double[] volume = volumeColumn == null ? new double[dataProvider.getRowsCount()] : dataProvider.getDoubles(volumeColumn);
 
         return new DefaultHighLowDataset("", dates, high, low, open, close, volume);
@@ -88,21 +88,21 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
         return p;
     }
 
-    private ColumnDefinition getSelectedConfig(int column) {
+    private ChartColumn getSelectedConfig(int column) {
         final int rowCount = rangesComponent.getRowCount();
         for (int row = 0; row < rowCount; row++) {
             final Object valueAt = rangesComponent.getValueAt(row, column);
             if (Boolean.TRUE.equals(valueAt)) {
-                return (ColumnDefinition) rangesComponent.getValueAt(row, 0);
+                return (ChartColumn) rangesComponent.getValueAt(row, 0);
             }
         }
         return null;
     }
 
-    private void setSelectedConfig(int column, ColumnDefinition config) {
+    private void setSelectedConfig(int column, ChartColumn config) {
         final int rowCount = rangesComponent.getRowCount();
         for (int row = 0; row < rowCount; row++) {
-            final ColumnDefinition cc = (ColumnDefinition) rangesComponent.getValueAt(row, 0);
+            final ChartColumn cc = (ChartColumn) rangesComponent.getValueAt(row, 0);
             rangesComponent.setValueAt(cc.equals(config), row, column);
         }
     }
@@ -112,14 +112,14 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
             @Override
             public Class<?> getColumnClass(int columnIndex) {
                 if (columnIndex == 0) {
-                    return ColumnDefinition.class;
+                    return ChartColumn.class;
                 }
                 return Boolean.class;
             }
         };
 
-        final List<ColumnDefinition> columns = dataProvider.getColumns();
-        for (final ColumnDefinition cc : columns) {
+        final List<ChartColumn> columns = dataProvider.getColumns();
+        for (final ChartColumn cc : columns) {
             if (cc.isTemporal()) {
                 domainComponent.addItem(cc);
             } else if (cc.isNumber()) {
@@ -127,7 +127,7 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
             }
         }
 
-        domainComponent.setRenderer(ColumnDefinition.createListCellRenderer());
+        domainComponent.setRenderer(ChartColumn.createListCellRenderer());
         domainComponent.addActionListener(e -> {
             if (ignoreUpdate) {
                 return;
@@ -143,7 +143,7 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
         final TableColumnModel columnModel = rangesComponent.getColumnModel();
         final TableColumn col = columnModel.getColumn(0);
         col.setResizable(false);
-        col.setCellRenderer(ColumnDefinition.createTableCellRenderer());
+        col.setCellRenderer(ChartColumn.createTableCellRenderer());
 
         final int width = 5 + rangesComponent.getIntercellSpacing().width;
         final TableCellRenderer headerRenderer = rangesComponent.getTableHeader().getDefaultRenderer();
@@ -193,13 +193,13 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
 
     @Override
     public OHLCChartConfig createChartConfig() {
-        final ColumnDefinition domain = domainComponent.getItem();
+        final ChartColumn domain = domainComponent.getItem();
 
-        final ColumnDefinition open = getSelectedConfig(1);
-        final ColumnDefinition high = getSelectedConfig(2);
-        final ColumnDefinition low = getSelectedConfig(3);
-        final ColumnDefinition close = getSelectedConfig(4);
-        final ColumnDefinition volume = getSelectedConfig(5);
+        final ChartColumn open = getSelectedConfig(1);
+        final ChartColumn high = getSelectedConfig(2);
+        final ChartColumn low = getSelectedConfig(3);
+        final ChartColumn close = getSelectedConfig(4);
+        final ChartColumn volume = getSelectedConfig(5);
         return new OHLCChartConfig(domain, open, high, low, close, volume);
     }
 
@@ -221,7 +221,7 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
     }
 
     @Override
-    public JFreeChart getJFreeChart(OHLCChartConfig config) {
+    protected JFreeChart createJFreeChart(OHLCChartConfig config) {
         return config == null || config.isInvalid() ? null : createChart(config, dataProvider);
     }
 

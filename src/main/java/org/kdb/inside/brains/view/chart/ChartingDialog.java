@@ -3,25 +3,18 @@ package org.kdb.inside.brains.view.chart;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.tabs.*;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.JBUI;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,16 +29,10 @@ import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.chart.template.ChartTemplate;
-import org.kdb.inside.brains.view.chart.template.ChartTemplatesService;
-import org.kdb.inside.brains.view.chart.template.CreateTemplateDialog;
-import org.kdb.inside.brains.view.chart.template.TemplatesEditorDialog;
 import org.kdb.inside.brains.view.chart.tools.CrosshairTool;
 import org.kdb.inside.brains.view.chart.tools.MeasureTool;
 import org.kdb.inside.brains.view.chart.tools.ToolToggleAction;
 import org.kdb.inside.brains.view.chart.tools.ValuesTool;
-import org.kdb.inside.brains.view.chart.types.ChartType;
-import org.kdb.inside.brains.view.chart.types.line.LineChartProvider;
-import org.kdb.inside.brains.view.chart.types.ohlc.OHLCChartViewProvider;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 
 import javax.swing.*;
@@ -65,30 +52,29 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.intellij.util.ui.JBUI.Borders;
 
 public class ChartingDialog extends FrameWrapper implements DataProvider {
-    private static final String EMPTY_CARD_PANEL_NAME = "EMPTY";
-
     private final ValuesTool valuesTool;
     private final MeasureTool measureTool;
     private final CrosshairTool crosshairTool;
-    private static final String CHART_CARD_PANEL_NAME = "CHART";
-    private final JBTabs chartTabs;
+
     private final BaseChartPanel chartPanel;
+
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel chartLayoutPanel = new JPanel(cardLayout);
 
     private final Splitter splitter = new Splitter(true, 0.75f);
-    private final JButton templateButton = new JButton("Create Template");
-    private final ComboBox<ChartTemplate> templatesComboBox = new ComboBox<>();
 
     private final JPanel rootPanel = new JPanel(new BorderLayout());
 
     private final Map<Comparable<?>, RendererConfig> rendererConfigMap = new HashMap<>();
+    private static final Image IMAGE = IconLoader.toImage(KdbIcons.Chart.Icon);
+
+    private static final String EMPTY_CARD_PANEL_NAME = "EMPTY";
+    private static final String CHART_CARD_PANEL_NAME = "CHART";
 
     protected ChartingDialog(@NotNull Project project, String title, ChartDataProvider dataProvider, ChartTemplate template) {
         super(project, "KdbInsideBrains-Charting", false, title);
@@ -120,29 +106,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         measureTool = new MeasureTool(chartPanel, chartOptions);
         crosshairTool = new CrosshairTool(chartPanel, chartOptions);
 
-        chartTabs = createTabs(project, dataProvider);
-
-        templateButton.setEnabled(false);
-        templateButton.addActionListener(e -> upsertTemplate(project, dataProvider));
-
-        final JButton close = new JButton("Close");
-        close.addActionListener(e -> close());
-
-        final JPanel buttonPanel = new JPanel(new BorderLayout());
-        buttonPanel.setBorder(Borders.customLine(JBColor.LIGHT_GRAY, 1, 0, 0, 0));
-        buttonPanel.add(templateButton, BorderLayout.WEST);
-        buttonPanel.add(close, BorderLayout.EAST);
-
-        final JComponent templatePanel = createTemplatePanel(project, dataProvider);
-
-        final JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(templatePanel, BorderLayout.NORTH);
-        topPanel.add(chartTabs.getComponent(), BorderLayout.CENTER);
-
-        final JPanel configPanel = new JPanel(new BorderLayout());
-        configPanel.add(topPanel, BorderLayout.EAST);
-        configPanel.add(buttonPanel, BorderLayout.SOUTH);
-        configPanel.setBorder(Borders.customLine(JBColor.LIGHT_GRAY, 0, 1, 0, 0));
+        final ChartConfigPanel configPanel = new ChartConfigPanel(project, dataProvider, this::configChanged, this::close);
 
         final JPanel eastPanel = new JPanel(new BorderLayout());
         eastPanel.add(configPanel, BorderLayout.EAST);
@@ -150,6 +114,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
 
         chartLayoutPanel.add(chartPanel, CHART_CARD_PANEL_NAME);
         chartLayoutPanel.add(createEmptyPanel(), EMPTY_CARD_PANEL_NAME);
+        cardLayout.show(chartLayoutPanel, EMPTY_CARD_PANEL_NAME);
 
         splitter.setFirstComponent(chartLayoutPanel);
         if (valuesTool.isEnabled()) {
@@ -160,10 +125,10 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         rootPanel.add(splitter, BorderLayout.CENTER);
         rootPanel.setBorder(new CompoundBorder(Borders.empty(0, 10, 10, 10), Borders.customLine(JBColor.LIGHT_GRAY)));
 
-        setImage(IconLoader.toImage(KdbIcons.Chart.Icon));
+        setImage(IMAGE);
         closeOnEsc();
-        configChanged();
-        updateChartByTemplate(template);
+
+        configPanel.updateChart(template);
     }
 
     private static JPanel createEmptyPanel() {
@@ -192,187 +157,28 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         });
     }
 
-    private void invalidateTemplatesList(@NotNull Project project, ChartDataProvider dataProvider) {
-        final ChartTemplatesService service = ChartTemplatesService.getService(project);
-
-        final List<ChartTemplate> templates = service.getTemplates().stream().filter(t -> t.getConfig().isApplicable(dataProvider)).collect(Collectors.toList());
-        templates.add(0, null); // No template element. Selected by default
-
-        final Object selectedItem = templatesComboBox.getSelectedItem();
-        templatesComboBox.setModel(new DefaultComboBoxModel<>(templates.toArray(ChartTemplate[]::new)));
-        templatesComboBox.setSelectedItem(selectedItem);
-    }
-
-    private void upsertTemplate(@NotNull Project project, ChartDataProvider dataProvider) {
-        final ChartViewProvider<JPanel, ChartConfig> provider = getSelectedProvider();
-        if (provider == null) {
-            return;
-        }
-
-        final ChartConfig config = provider.createChartConfig();
-        ChartTemplate template = templatesComboBox.getItem();
-        if (template != null) {
-            template.setConfig(config);
-            templateButton.setEnabled(false);
-        } else {
-            template = new ChartTemplate(config);
-            final CreateTemplateDialog d = new CreateTemplateDialog(project, template);
-            if (d.showAndGet()) {
-                ChartTemplatesService.getService(project).addTemplate(template);
-                invalidateTemplatesList(project, dataProvider);
-                templateButton.setEnabled(false);
-                templatesComboBox.setSelectedItem(template);
-            }
-        }
-    }
-
-    private JPanel createTemplatePanel(@NotNull Project project, @NotNull ChartDataProvider dataProvider) {
-        invalidateTemplatesList(project, dataProvider);
-        templatesComboBox.setEditable(false);
-        templatesComboBox.addItemListener(e -> updateChartByTemplate(templatesComboBox.getItem()));
-
-        templatesComboBox.setRenderer(new ColoredListCellRenderer<>() {
-            @Override
-            protected void customizeCellRenderer(@NotNull JList<? extends ChartTemplate> list, ChartTemplate value, int index, boolean selected, boolean hasFocus) {
-                if (value == null) {
-                    setIcon(null);
-                    append("No template", SimpleTextAttributes.GRAYED_ATTRIBUTES);
-                } else {
-                    setIcon(value.getIcon());
-                    append(value.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
-                }
-            }
-        });
-
-        final AnAction action = new AnAction("Modify Templates", "Manage charting templates", KdbIcons.Chart.Templates) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                TemplatesEditorDialog.showDialog(project, templatesComboBox.getItem());
-                invalidateTemplatesList(project, dataProvider);
-            }
-        };
-        final ActionButton manage = new ActionButton(action, action.getTemplatePresentation().clone(), ActionPlaces.CHARTS_PANEL_TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
-
-        final JPanel p1 = new JPanel(new BorderLayout());
-        p1.add(new JLabel("Templates:"), BorderLayout.WEST);
-        p1.add(manage, BorderLayout.EAST);
-
-        final JPanel p = new JPanel(new BorderLayout());
-        p.add(p1, BorderLayout.NORTH);
-        p.add(templatesComboBox, BorderLayout.CENTER);
-
-        p.setBorder(new CompoundBorder(JBUI.Borders.customLine(JBColor.LIGHT_GRAY, 0, 0, 1, 0), JBUI.Borders.empty(5, 3)));
-        return p;
-    }
-
     private List<ToolActions> createPopupMenu() {
         return Stream.of(crosshairTool, measureTool, valuesTool).filter(ChartTool::isEnabled).map(ChartTool::getToolActions).filter(ToolActions::hasActions).toList();
     }
 
-    private JBTabs createTabs(Project project, ChartDataProvider dataProvider) {
-        final JBTabs tabs = JBTabsFactory.createTabs(project, this);
-
-        final JBTabsPresentation presentation = tabs.getPresentation();
-        presentation.setSingleRow(true);
-        presentation.setSupportsCompression(true);
-        presentation.setTabsPosition(JBTabsPosition.top);
-
-        final List<ChartViewProvider<?, ?>> builders = List.of(new LineChartProvider(dataProvider), new OHLCChartViewProvider(dataProvider));
-
-        final Insets borderInsets = UIManager.getBorder("Button.border").getBorderInsets(new JButton());
-        for (ChartViewProvider<?, ?> builder : builders) {
-            builder.addConfigListener(this::configChanged);
-
-            final JComponent panel = builder.getConfigPanel();
-            panel.setBorder(Borders.empty(0, borderInsets.right));
-
-            final TabInfo info = new TabInfo(ScrollPaneFactory.createScrollPane(panel));
-            info.setIcon(builder.getIcon());
-            info.setText(builder.getName());
-            info.setObject(builder);
-
-            tabs.addTab(info);
-        }
-
-        tabs.addListener(new TabsListener() {
-            @Override
-            public void selectionChanged(TabInfo oldSelection, TabInfo newSelection) {
-                configChanged();
-            }
-        });
-        return tabs;
-    }
-
-    private void updateChartByTemplate(ChartTemplate template) {
-        if (templatesComboBox.getItem() != template) {
-            templatesComboBox.setSelectedItem(template);
-        }
-        templateButton.setText(template == null ? "Create Template" : "Update Template");
-        if (template == null) {
-            templateButton.setEnabled(!getSelectedProvider().createChartConfig().isInvalid());
-            return;
-        }
-
-        final ChartConfig config = template.getConfig();
-
-        final ChartType type = config.getChartType();
-        final TabInfo tab = findTabInfo(type);
-        if (tab == null) {
-            return;
-        }
-        chartTabs.select(tab, false);
-        getProvider(tab).updateChartConfig(config);
-    }
-
-    private void configChanged() {
-        final ChartViewProvider<JPanel, ChartConfig> provider = getSelectedProvider();
-        if (provider == null) {
-            templateButton.setEnabled(false);
+    private void configChanged(ChartView view) {
+        if (view == null) {
+            chartPanel.setChart(null);
             cardLayout.show(chartLayoutPanel, EMPTY_CARD_PANEL_NAME);
-            return;
+        } else {
+            updateChartRenderer(view);
+
+            final JFreeChart chart = view.chart();
+            chartPanel.setChart(chart);
+            cardLayout.show(chartLayoutPanel, CHART_CARD_PANEL_NAME);
+            List.of(valuesTool, measureTool, crosshairTool).forEach(s -> s.initialize(chart, view.config().getDomainType()));
         }
-
-        final ChartConfig config = provider.createChartConfig();
-        final JFreeChart chart = config.isInvalid() ? null : provider.getJFreeChart(config);
-        if (chart != null && chart.getPlot() instanceof XYPlot xy) {
-            updateChartRenderer(config, xy);
-        }
-        chartPanel.setChart(chart);
-
-        final ChartTemplate template = templatesComboBox.getItem();
-
-        templateButton.setEnabled(chart != null && (template == null || !config.equals(template.getConfig())));
-        List.of(valuesTool, measureTool, crosshairTool).forEach(s -> s.initialize(chart, config.getDomainType()));
-
-        cardLayout.show(chartLayoutPanel, chart == null ? EMPTY_CARD_PANEL_NAME : CHART_CARD_PANEL_NAME);
     }
 
-    private ChartViewProvider<JPanel, ChartConfig> getSelectedProvider() {
-        return getProvider(chartTabs.getSelectedInfo());
-    }
+    private void updateChartRenderer(ChartView view) {
+        final XYPlot plot = view.chart().getXYPlot();
 
-    private TabInfo findTabInfo(ChartType type) {
-        final List<TabInfo> tabs = chartTabs.getTabs();
-        for (TabInfo tab : tabs) {
-            @SuppressWarnings("unchecked")
-            ChartViewProvider<JPanel, ChartConfig> provider = (ChartViewProvider<JPanel, ChartConfig>) tab.getObject();
-            if (provider.getType() == type) {
-                return tab;
-            }
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private ChartViewProvider<JPanel, ChartConfig> getProvider(TabInfo info) {
-        if (info == null) {
-            return null;
-        }
-        return (ChartViewProvider<JPanel, ChartConfig>) info.getObject();
-    }
-
-    private void updateChartRenderer(ChartConfig config, XYPlot xyPlot) {
-        final Map<Integer, XYDataset> datasets = xyPlot.getDatasets();
+        final Map<Integer, XYDataset> datasets = plot.getDatasets();
         for (Map.Entry<Integer, XYDataset> entry : datasets.entrySet()) {
             final XYDataset value = entry.getValue();
             final int seriesCount = value.getSeriesCount();
@@ -380,7 +186,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
                 final Comparable<?> seriesKey = value.getSeriesKey(i);
                 final RendererConfig rendererConfig = rendererConfigMap.get(seriesKey);
                 if (rendererConfig != null) {
-                    rendererConfig.update(xyPlot.getRenderer(entry.getKey()), i);
+                    rendererConfig.update(plot.getRenderer(entry.getKey()), i);
                 }
             }
         }

@@ -6,8 +6,8 @@ import org.jdom.JDOMException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.kdb.inside.brains.KdbType;
-import org.kdb.inside.brains.view.chart.ColumnDefinition;
-import org.kdb.inside.brains.view.chart.ColumnDefinitionTest;
+import org.kdb.inside.brains.view.chart.ChartColumn;
+import org.kdb.inside.brains.view.chart.ChartColumnTest;
 import org.kdb.inside.brains.view.chart.types.ChartType;
 
 import java.io.IOException;
@@ -48,17 +48,17 @@ public class LineChartConfigTest {
         final SeriesDefinition s1 = new SeriesDefinition("Series1", SeriesStyle.LINE);
         final SeriesDefinition s2 = new SeriesDefinition("Series2", SeriesStyle.AREA);
 
-        final ColumnDefinition domain = new ColumnDefinition("domain", KdbType.TIMESTAMP);
+        final ChartColumn domain = new ChartColumn("domain", KdbType.TIMESTAMP);
 
-        final ValuesDefinition r1 = new ValuesDefinition(new ColumnDefinition("r1", KdbType.FLOAT), s1, Operation.MAX);
+        final ValuesDefinition r1 = new ValuesDefinition(new ChartColumn("r1", KdbType.FLOAT), s1, Operation.MAX);
 
-        final ValuesDefinition r2 = new ValuesDefinition(new ColumnDefinition("r2", KdbType.FLOAT), s1, Operation.SUM);
+        final ValuesDefinition r2 = new ValuesDefinition(new ChartColumn("r2", KdbType.FLOAT), s1, Operation.SUM);
 
-        final ValuesDefinition r3 = new ValuesDefinition(new ColumnDefinition("r3", KdbType.INT), s2, Operation.COUNT);
+        final ValuesDefinition r3 = new ValuesDefinition(new ChartColumn("r3", KdbType.INT), s2, Operation.COUNT);
 
-        final ColumnDefinition e1 = new ColumnDefinition("e1", KdbType.SYMBOL);
+        final ChartColumn e1 = new ChartColumn("e1", KdbType.SYMBOL);
 
-        final ColumnDefinition e2 = new ColumnDefinition("e2", KdbType.CHAR);
+        final ChartColumn e2 = new ChartColumn("e2", KdbType.CHAR);
 
         return new LineChartConfig(domain, List.of(r1, r2, r3), List.of(e1, e2), true);
     }
@@ -69,7 +69,7 @@ public class LineChartConfigTest {
         assertTrue(c.isDrawShapes());
         assertEquals(ChartType.LINE, c.getChartType());
 
-        ColumnDefinitionTest.assertColumn(c.domain(), "domain", KdbType.TIMESTAMP);
+        ChartColumnTest.assertColumn(c.domain(), "domain", KdbType.TIMESTAMP);
 
         assertEquals(3, c.values().size());
         ValuesDefinitionTest.assertRange(c.values().get(0), "r1", KdbType.FLOAT, Operation.MAX, "Series1");
@@ -83,10 +83,10 @@ public class LineChartConfigTest {
 
         assertSame(c.values().get(0).series(), c.values().get(1).series());
 
-        final List<ColumnDefinition> expansions = c.expansions();
+        final List<ChartColumn> expansions = c.expansions();
         assertEquals(2, expansions.size());
 
-        ColumnDefinitionTest.assertColumn(expansions.get(0), "e1", KdbType.SYMBOL);
-        ColumnDefinitionTest.assertColumn(expansions.get(1), "e2", KdbType.CHAR);
+        ChartColumnTest.assertColumn(expansions.get(0), "e1", KdbType.SYMBOL);
+        ChartColumnTest.assertColumn(expansions.get(1), "e2", KdbType.CHAR);
     }
 }

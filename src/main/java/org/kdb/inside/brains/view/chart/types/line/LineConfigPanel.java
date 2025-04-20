@@ -15,8 +15,8 @@ import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.action.EdtAction;
+import org.kdb.inside.brains.view.chart.ChartColumn;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
-import org.kdb.inside.brains.view.chart.ColumnDefinition;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -39,7 +39,7 @@ public class LineConfigPanel extends JPanel {
     private final ChartDataProvider dataProvider;
 
     private final TableView<SeriesItem> seriesTable = new TableView<>();
-    private final ComboBox<ColumnDefinition> domainComponent = new ComboBox<>();
+    private final ComboBox<ChartColumn> domainComponent = new ComboBox<>();
     private final JCheckBox shapesCheckbox = new JCheckBox("Draw shapes where possible", false);
     private final TableView<ValuesItem> valuesTable = new TableView<>();
     private final TableView<ExpansionItem> expansionTable = new TableView<>();
@@ -111,7 +111,7 @@ public class LineConfigPanel extends JPanel {
         dataProvider.getColumns().stream().filter(c -> c.isTemporal() || c.isNumber()).forEach(domainComponent::addItem);
 
         domainComponent.addActionListener(e -> processConfigChanged());
-        domainComponent.setRenderer(ColumnDefinition.createListCellRenderer());
+        domainComponent.setRenderer(ChartColumn.createListCellRenderer());
     }
 
     private void initializeSeriesComponent() {
@@ -167,7 +167,7 @@ public class LineConfigPanel extends JPanel {
 
     private void initializeValuesComponent() {
         final List<ValuesItem> values = dataProvider.getColumns().stream()
-                .filter(ColumnDefinition::isNumber)
+                .filter(ChartColumn::isNumber)
                 .map(ValuesItem::new)
                 .toList();
 
@@ -227,7 +227,7 @@ public class LineConfigPanel extends JPanel {
 
     private void initializeExpansionComponent() {
         final List<ExpansionItem> expansions = dataProvider.getColumns().stream()
-                .filter(ColumnDefinition::isSymbol)
+                .filter(ChartColumn::isSymbol)
                 .map(cc -> new ExpansionItem(cc, false, dataProvider.getDistinctCount(cc)))
                 .toList();
 
@@ -250,7 +250,7 @@ public class LineConfigPanel extends JPanel {
         column.setCellEditor(new BooleanTableCellEditor());
         column.setCellRenderer(new BooleanTableCellRenderer());
 
-        columnModel.getColumn(1).setCellRenderer(ColumnDefinition.createTableCellRenderer());
+        columnModel.getColumn(1).setCellRenderer(ChartColumn.createTableCellRenderer());
     }
 
     public LineChartConfig createChartConfig() {
@@ -261,7 +261,7 @@ public class LineConfigPanel extends JPanel {
             return new ValuesDefinition(i.column, def, i.operation);
         }).toList();
 
-        final List<ColumnDefinition> expansions = expansionTable.getItems().stream().filter(ExpansionItem::isEnabled).map(ExpansionItem::getColumn).toList();
+        final List<ChartColumn> expansions = expansionTable.getItems().stream().filter(ExpansionItem::isEnabled).map(ExpansionItem::getColumn).toList();
         return new LineChartConfig(domainComponent.getItem(), values, expansions, shapesCheckbox.isSelected());
     }
 
@@ -298,15 +298,15 @@ public class LineConfigPanel extends JPanel {
 
             final ListTableModel<ValuesItem> valuesModel = valuesTable.getListTableModel();
             final List<ValuesItem> values = new ArrayList<>(valuesModel.getItems());
-            final Set<ColumnDefinition> valuesCols = valuesItems.stream().map(v -> v.column).collect(Collectors.toSet());
+            final Set<ChartColumn> valuesCols = valuesItems.stream().map(v -> v.column).collect(Collectors.toSet());
             values.removeIf(v -> valuesCols.contains(v.column));
             valuesItems.addAll(values);
             valuesModel.setItems(valuesItems);
 
             final List<ExpansionItem> expansions = new ArrayList<>();
             final ListTableModel<ExpansionItem> expansionModel = expansionTable.getListTableModel();
-            final Map<ColumnDefinition, ExpansionItem> collect = expansionModel.getItems().stream().collect(Collectors.toMap(i -> i.column, i -> i));
-            for (ColumnDefinition column : config.expansions()) {
+            final Map<ChartColumn, ExpansionItem> collect = expansionModel.getItems().stream().collect(Collectors.toMap(i -> i.column, i -> i));
+            for (ChartColumn column : config.expansions()) {
                 final ExpansionItem remove = collect.remove(column);
                 if (remove != null) {
                     remove.setEnabled(true);
@@ -486,9 +486,9 @@ public class LineConfigPanel extends JPanel {
     private static class ValuesItem implements Item {
         private SeriesItem series;
         private Operation operation = Operation.SUM;
-        private final ColumnDefinition column;
+        private final ChartColumn column;
 
-        public ValuesItem(ColumnDefinition column) {
+        public ValuesItem(ChartColumn column) {
             this.column = column;
         }
 
@@ -523,11 +523,11 @@ public class LineConfigPanel extends JPanel {
     }
 
     private static class ExpansionItem implements Item {
-        final ColumnDefinition column;
+        final ChartColumn column;
         final long valuesCount;
         boolean enabled;
 
-        public ExpansionItem(ColumnDefinition column, boolean enabled, long valuesCount) {
+        public ExpansionItem(ChartColumn column, boolean enabled, long valuesCount) {
             this.column = column;
             this.enabled = enabled;
             this.valuesCount = valuesCount;
@@ -545,7 +545,7 @@ public class LineConfigPanel extends JPanel {
             this.enabled = enabled;
         }
 
-        public ColumnDefinition getColumn() {
+        public ChartColumn getColumn() {
             return column;
         }
 

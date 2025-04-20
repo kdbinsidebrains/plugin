@@ -13,7 +13,7 @@ public interface ChartConfig {
 
     KdbType getDomainType();
 
-    List<ColumnDefinition> getRequiredColumns();
+    List<ChartColumn> getRequiredColumns();
 
 
     boolean isInvalid();

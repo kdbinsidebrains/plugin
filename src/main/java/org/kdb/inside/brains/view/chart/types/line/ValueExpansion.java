@@ -1,6 +1,6 @@
 package org.kdb.inside.brains.view.chart.types.line;
 
-import org.kdb.inside.brains.view.chart.ColumnDefinition;
+import org.kdb.inside.brains.view.chart.ChartColumn;
 
-public record ValueExpansion(ColumnDefinition column, String value) {
+public record ValueExpansion(ChartColumn column, String value) {
 }

@@ -10,14 +10,14 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.Set;
 
-public record ColumnDefinition(String name, KdbType type) {
+public record ChartColumn(String name, KdbType type) {
     static final Set<KdbType> SYMBOL_TYPES = Set.of(KdbType.SYMBOL, KdbType.CHAR, KdbType.CHAR_LIST);
 
     static final Set<KdbType> NUMBER_TYPES = Set.of(KdbType.BYTE, KdbType.SHORT, KdbType.INT, KdbType.LONG, KdbType.REAL, KdbType.FLOAT);
 
     static final Set<KdbType> TEMPORAL_TYPES = Set.of(KdbType.SECOND, KdbType.MINUTE, KdbType.MONTH, KdbType.TIME, KdbType.DATE, KdbType.DATETIME, KdbType.TIMESPAN, KdbType.TIMESTAMP);
 
-    public ColumnDefinition(QTableModel.QColumnInfo info) {
+    public ChartColumn(QTableModel.QColumnInfo info) {
         this(info.getName(), KdbType.typeOf(info.getColumnClass()));
     }
 
@@ -25,13 +25,13 @@ public record ColumnDefinition(String name, KdbType type) {
         return "<html>" + name + " <font color=\"gray\">(" + type.getTypeName().toLowerCase() + ")</font></html>";
     }
 
-    public static ColumnDefinition restore(Element element) {
+    public static ChartColumn restore(Element element) {
         if (element == null) {
             return null;
         }
         final String name = element.getAttributeValue("name");
         final KdbType type = KdbType.typeOf(element.getAttributeValue("type").charAt(0));
-        return new ColumnDefinition(name, type);
+        return new ChartColumn(name, type);
     }
 
     public static boolean isSymbol(KdbType type) {
@@ -50,7 +50,7 @@ public record ColumnDefinition(String name, KdbType type) {
         return new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                final ColumnDefinition cc = (ColumnDefinition) value;
+                final ChartColumn cc = (ChartColumn) value;
                 return super.getTableCellRendererComponent(table, cc == null ? null : cc.getLabel(), isSelected, hasFocus, row, column);
             }
         };
@@ -60,7 +60,7 @@ public record ColumnDefinition(String name, KdbType type) {
         return new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                final ColumnDefinition cc = (ColumnDefinition) value;
+                final ChartColumn cc = (ChartColumn) value;
                 return super.getListCellRendererComponent(list, cc == null ? null : cc.getLabel(), index, isSelected, cellHasFocus);
             }
         };

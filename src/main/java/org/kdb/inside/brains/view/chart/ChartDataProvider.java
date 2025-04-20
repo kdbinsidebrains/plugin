@@ -24,10 +24,10 @@ public interface ChartDataProvider {
     static ChartDataProvider of(QTableModel model) {
         final int rowsCount = model.getRowCount();
 
-        final Map<ColumnDefinition, Object[]> cache = new HashMap<>();
+        final Map<ChartColumn, Object[]> cache = new HashMap<>();
 
         final QTableModel.QColumnInfo[] modelCols = model.getColumns();
-        final List<ColumnDefinition> columns = Stream.of(modelCols).map(ColumnDefinition::new).toList();
+        final List<ChartColumn> columns = Stream.of(modelCols).map(ChartColumn::new).toList();
 
         return new ChartDataProvider() {
             @Override
@@ -36,12 +36,12 @@ public interface ChartDataProvider {
             }
 
             @Override
-            public List<ColumnDefinition> getColumns() {
+            public List<ChartColumn> getColumns() {
                 return columns;
             }
 
             @Override
-            public Object[] getValues(ColumnDefinition column) {
+            public Object[] getValues(ChartColumn column) {
                 return cache.computeIfAbsent(column, c -> {
                     final int colIndex = columns.indexOf(c);
                     if (colIndex == -1) {
@@ -60,9 +60,9 @@ public interface ChartDataProvider {
 
     int getRowsCount();
 
-    List<ColumnDefinition> getColumns();
+    List<ChartColumn> getColumns();
 
-    Object[] getValues(ColumnDefinition column);
+    Object[] getValues(ChartColumn column);
 
     static Object createKdbTemporal(long millis, KdbType type) {
         if (type == null || type == KdbType.TIMESTAMP) {
@@ -124,11 +124,11 @@ public interface ChartDataProvider {
         throw new IllegalArgumentException("Invalid value style: " + value.getClass());
     }
 
-    default long getDistinctCount(ColumnDefinition column) {
+    default long getDistinctCount(ChartColumn column) {
         return Stream.of(getValues(column)).distinct().count();
     }
 
-    default String[] getSymbols(ColumnDefinition column) {
+    default String[] getSymbols(ChartColumn column) {
         final Object[] row = getValues(column);
         final String[] res = new String[row.length];
         for (int i = 0; i < res.length; i++) {
@@ -142,7 +142,7 @@ public interface ChartDataProvider {
         return res;
     }
 
-    default double[] getDoubles(ColumnDefinition column) {
+    default double[] getDoubles(ChartColumn column) {
         final Object[] row = getValues(column);
         final double[] res = new double[row.length];
         for (int i = 0; i < res.length; i++) {
@@ -151,7 +151,7 @@ public interface ChartDataProvider {
         return res;
     }
 
-    default Date[] getDates(ColumnDefinition column) {
+    default Date[] getDates(ChartColumn column) {
         final Object[] row = getValues(column);
         final Date[] res = new Date[row.length];
         for (int i = 0; i < res.length; i++) {
@@ -161,7 +161,7 @@ public interface ChartDataProvider {
     }
 
 
-    default Number[] getNumbers(ColumnDefinition column) {
+    default Number[] getNumbers(ChartColumn column) {
         final Object[] row = getValues(column);
         final Number[] res = new Number[row.length];
         for (int i = 0; i < res.length; i++) {
@@ -170,7 +170,7 @@ public interface ChartDataProvider {
         return res;
     }
 
-    default RegularTimePeriod[] getPeriods(ColumnDefinition column) {
+    default RegularTimePeriod[] getPeriods(ChartColumn column) {
         final Object[] row = getValues(column);
         final RegularTimePeriod[] res = new RegularTimePeriod[row.length];
         for (int i = 0; i < res.length; i++) {
