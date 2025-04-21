@@ -145,8 +145,8 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         });
     }
 
-    private List<ToolActions> createPopupMenu() {
-        return Stream.of(crosshairTool, measureTool, valuesTool).filter(options::isEnabled).map(ChartTool::getToolActions).filter(ToolActions::hasActions).toList();
+    private List<ActionGroup> createPopupMenu() {
+        return Stream.of(crosshairTool, measureTool, valuesTool).filter(options::isEnabled).map(ChartTool::getToolActions).toList();
     }
 
     private void configChanged(ChartView view) {

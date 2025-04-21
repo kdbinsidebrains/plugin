@@ -1,6 +1,8 @@
 package org.kdb.inside.brains.view.chart.tools.impl;
 
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.ui.JBColor;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +22,6 @@ import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.chart.ChartColors;
 import org.kdb.inside.brains.view.chart.ChartOptions;
 import org.kdb.inside.brains.view.chart.ChartViewPanel;
-import org.kdb.inside.brains.view.chart.ToolActions;
 import org.kdb.inside.brains.view.chart.tools.AbstractChartTool;
 
 import javax.swing.*;
@@ -297,12 +298,13 @@ public class MeasureTool extends AbstractChartTool implements ChartMouseListener
     }
 
     @Override
-    public ToolActions getToolActions() {
+    @NotNull
+    public ActionGroup getToolActions() {
         if (!isEnabled()) {
-            return ToolActions.NO_ACTIONS;
+            return ActionGroup.EMPTY_GROUP;
         }
 
-        return new ToolActions("Measure",
+        return new DefaultActionGroup("Measure", List.of(
                 new EdtAction("Remove Measure") {
                     @Override
                     public void update(@NotNull AnActionEvent e) {
@@ -326,7 +328,7 @@ public class MeasureTool extends AbstractChartTool implements ChartMouseListener
                         clear();
                     }
                 }
-        );
+        ));
     }
 
     private MeasureArea findPinnedAreaByPoint(Point2D point) {

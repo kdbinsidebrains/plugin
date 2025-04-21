@@ -2,6 +2,7 @@ package org.kdb.inside.brains.view.chart;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -50,11 +51,11 @@ import java.util.function.Supplier;
 
 public class ChartViewPanel extends ChartPanel {
     private final ChartOptions options;
-    private final Supplier<List<ToolActions>> popupActionsProvider;
+    private final Supplier<List<ActionGroup>> popupActionsProvider;
 
     private static final JBColor COLOR_GRID = new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4));
 
-    public ChartViewPanel(ChartOptions options, Supplier<List<ToolActions>> popupActionsProvider) {
+    public ChartViewPanel(ChartOptions options, Supplier<List<ActionGroup>> popupActionsProvider) {
         super(null, false, false, false, false, false);
         this.options = options;
         this.popupActionsProvider = popupActionsProvider;
@@ -229,17 +230,22 @@ public class ChartViewPanel extends ChartPanel {
 
     @Override
     protected void displayPopupMenu(int x, int y) {
-        final List<ToolActions> actions = popupActionsProvider.get();
+        final List<ActionGroup> actions = popupActionsProvider.get();
         if (actions.isEmpty()) {
             return;
         }
 
         final DefaultActionGroup group = new DefaultActionGroup();
-        for (ToolActions action : actions) {
-            if (action.name() != null) {
-                group.addSeparator(action.name());
+        for (ActionGroup action : actions) {
+            final String name = action.getTemplateText();
+            if (name != null) {
+                group.addSeparator(name);
             }
-            group.addAll(action.actions());
+            group.addAll(action);
+        }
+
+        if (group.getChildrenCount() == 0) {
+            return;
         }
 
         final ListPopup popup = JBPopupFactory.getInstance().createActionGroupPopup(null, group, DataManager.getInstance().getDataContext(this), JBPopupFactory.ActionSelectionAid.MNEMONICS, true);
