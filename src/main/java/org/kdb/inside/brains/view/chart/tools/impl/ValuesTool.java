@@ -11,9 +11,10 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
 import icons.KdbIcons;
 import kx.c;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartMouseEvent;
-import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -24,39 +25,37 @@ import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
+import org.kdb.inside.brains.view.chart.ChartColumn;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
-import org.kdb.inside.brains.view.chart.ChartOptions;
-import org.kdb.inside.brains.view.chart.ChartViewPanel;
+import org.kdb.inside.brains.view.chart.ChartView;
+import org.kdb.inside.brains.view.chart.SnapType;
 import org.kdb.inside.brains.view.chart.tools.AbstractChartTool;
+import org.kdb.inside.brains.view.chart.tools.DataChartTool;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.sql.Timestamp;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-public class ValuesTool extends AbstractChartTool implements ExportDataProvider, ChartMouseListener {
+public class ValuesTool extends AbstractChartTool implements DataChartTool, ExportDataProvider {
     private KdbType domainType;
-    private final ChartOptions myOptions;
+    private SnapType snapType;
 
     private final JPanel component;
     private final JBTable pointsTable;
-    private final ChartViewPanel myPanel;
     private final KdbOutputFormatter formatter;
 
     public static final String ID = "VALUES";
 
-    public ValuesTool(Project project, ChartViewPanel panel, ChartOptions options) {
+    public ValuesTool(Project project) {
         super(ID, "Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints);
-
-        myPanel = panel;
-        myOptions = options;
 
         formatter = KdbOutputFormatter.getDefault();
 
@@ -82,8 +81,6 @@ public class ValuesTool extends AbstractChartTool implements ExportDataProvider,
                 return cellRenderer;
             }
         };
-
-        panel.addChartMouseListener(this);
 
         pointsTable.setShowColumns(true);
         pointsTable.setColumnSelectionAllowed(true);
@@ -114,10 +111,13 @@ public class ValuesTool extends AbstractChartTool implements ExportDataProvider,
         component.add(BorderLayout.CENTER, ScrollPaneFactory.createScrollPane(pointsTable));
     }
 
-    public void initialize(JFreeChart chart, KdbType domainType) {
-        this.domainType = domainType;
-        if (chart != null) {
-            final DefaultTableModel tableModel = createTableModel(chart);
+    @Override
+    public void chartChanged(ChartView view, SnapType snapType) {
+        this.snapType = snapType;
+        if (view != null) {
+            domainType = view.config().getDomainType();
+
+            final DefaultTableModel tableModel = createTableModel(view.chart());
 
             final List<String> curNames = getColumnNames(pointsTable.getModel());
             final List<String> newNames = getColumnNames(tableModel);
@@ -126,6 +126,7 @@ public class ValuesTool extends AbstractChartTool implements ExportDataProvider,
                 initializeColumnModel();
             }
         } else {
+            domainType = null;
             pointsTable.setModel(new DefaultTableModel());
         }
     }
@@ -177,17 +178,14 @@ public class ValuesTool extends AbstractChartTool implements ExportDataProvider,
         return new DefaultTableModel(columns, 0);
     }
 
+    @Override
     public JComponent getComponent() {
         return component;
     }
 
     @Override
-    public void chartMouseMoved(ChartMouseEvent event) {
-    }
-
-    @Override
-    public void chartMouseClicked(ChartMouseEvent event) {
-        if (!myOptions.isEnabled(this)) {
+    public void chartMouseClicked(ChartMouseEvent event, Rectangle2D dataArea) {
+        if (domainType == null) {
             return;
         }
 
@@ -197,8 +195,7 @@ public class ValuesTool extends AbstractChartTool implements ExportDataProvider,
         final ValueAxis domain = plot.getDomainAxis();
         final MouseEvent trigger = event.getTrigger();
 
-        final Point2D p = myPanel.calculateValuesPoint(event);
-        final double x = p.getX();
+        final double x = calculateDomainPoint(event, dataArea, snapType == SnapType.VERTEX);
         if (Double.isNaN(x)) {
             return;
         }
@@ -304,12 +301,8 @@ JVM issue:
     private Object createColumn(TableModel model, int col) {
         if (col == 0) {
             return createStringCol(model, col);
-        } else if (col == 1) {
-            final XYPlot plot = myPanel.getChart().getXYPlot();
-            final ValueAxis domainAxis = plot.getDomainAxis();
-            if (domainAxis instanceof DateAxis) {
-                return createTimestampsCol(model, col);
-            }
+        } else if (col == 1 && ChartColumn.isTemporal(domainType)) {
+            return createTimestampsCol(model, col);
         }
         return createDoubleCol(model, col);
     }
@@ -343,5 +336,13 @@ JVM issue:
 
     @Override
     public void paintOverlay(Graphics2D g2, ChartPanel chartPanel) {
+    }
+
+    @Override
+    public @Nullable Object getData(@NotNull @NonNls String dataId) {
+        if (ExportDataProvider.DATA_KEY.is(dataId)) {
+            return this;
+        }
+        return null;
     }
 }

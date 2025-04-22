@@ -7,7 +7,6 @@ import com.intellij.ui.JBColor;
 import icons.KdbIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartMouseEvent;
-import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -17,11 +16,10 @@ import org.jfree.chart.text.TextUtils;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
-import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.chart.ChartColors;
-import org.kdb.inside.brains.view.chart.ChartOptions;
-import org.kdb.inside.brains.view.chart.ChartViewPanel;
+import org.kdb.inside.brains.view.chart.ChartView;
+import org.kdb.inside.brains.view.chart.SnapType;
 import org.kdb.inside.brains.view.chart.tools.AbstractChartTool;
 
 import javax.swing.*;
@@ -34,12 +32,13 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 
-public class MeasureTool extends AbstractChartTool implements ChartMouseListener {
+public class MeasureTool extends AbstractChartTool {
+    private boolean enabled;
+    private SnapType snapType;
+
     private MeasureArea activeArea;
     private MeasureArea highlighted;
 
-    private final ChartViewPanel myPanel;
-    private final ChartOptions myOptions;
     private final List<MeasureArea> pinnedAreas = new ArrayList<>();
 
     private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#0.00");
@@ -57,70 +56,33 @@ public class MeasureTool extends AbstractChartTool implements ChartMouseListener
     private static final KeyStroke KEYSTROKE_ESC = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
     private static final KeyStroke KEYSTROKE_DEL = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 
-    public MeasureTool(ChartViewPanel panel, ChartOptions options) {
+    public MeasureTool(JComponent chartPanel) {
         super(ID, "Measure", "Measuring tool", KdbIcons.Chart.ToolMeasure);
 
-        myPanel = panel;
-        myOptions = options;
-
-        myPanel.addOverlay(this);
-        myPanel.addChartMouseListener(this);
-        myPanel.registerKeyboardAction(e -> cancel(), KEYSTROKE_ESC, JComponent.WHEN_IN_FOCUSED_WINDOW);
-        myPanel.registerKeyboardAction(e -> remove(), KEYSTROKE_DEL, JComponent.WHEN_IN_FOCUSED_WINDOW);
-    }
-
-    private static String formatPeriod(long startMillis, long endMillis) {
-        final Calendar start = Calendar.getInstance(TimeZone.getDefault());
-        start.setTime(new Date(startMillis));
-
-        final Calendar end = Calendar.getInstance(TimeZone.getDefault());
-        end.setTime(new Date(endMillis));
-
-        int milliseconds = end.get(Calendar.MILLISECOND) - start.get(Calendar.MILLISECOND);
-        int seconds = end.get(Calendar.SECOND) - start.get(Calendar.SECOND);
-        int minutes = end.get(Calendar.MINUTE) - start.get(Calendar.MINUTE);
-        int hours = end.get(Calendar.HOUR_OF_DAY) - start.get(Calendar.HOUR_OF_DAY);
-        int days = end.get(Calendar.DAY_OF_MONTH) - start.get(Calendar.DAY_OF_MONTH);
-        int months = end.get(Calendar.MONTH) - start.get(Calendar.MONTH);
-
-        int years;
-        for (years = end.get(Calendar.YEAR) - start.get(Calendar.YEAR); milliseconds < 0; --seconds) {
-            milliseconds += 1000;
-        }
-        while (seconds < 0) {
-            seconds += 60;
-            --minutes;
-        }
-        while (minutes < 0) {
-            minutes += 60;
-            --hours;
-        }
-        while (hours < 0) {
-            hours += 24;
-            --days;
-        }
-        while (days < 0) {
-            days += start.getActualMaximum(Calendar.DATE);
-            --months;
-            start.add(Calendar.MONTH, 1);
-        }
-        while (months < 0) {
-            months += 12;
-            --years;
-        }
-        return formatTime(years, months, days, hours, minutes, seconds, milliseconds);
-    }
-
-    private static StringBuilder prepare(StringBuilder b) {
-        if (!b.isEmpty()) {
-            b.append(" ");
-        }
-        return b;
+        chartPanel.registerKeyboardAction(e -> cancel(), KEYSTROKE_ESC, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        chartPanel.registerKeyboardAction(e -> remove(), KEYSTROKE_DEL, JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
 
     @Override
-    public void chartMouseClicked(ChartMouseEvent event) {
-        if (!isEnabled()) {
+    public void chartChanged(ChartView view, SnapType snapType) {
+        /*
+        final String chartSnapshot = getChartSnapshot(chart);
+        if (!chartSnapshot.equals(currentChartSnapshot)) {
+            activeArea = null;
+            pinnedAreas.clear();
+            fireOverlayChanged();
+        }
+*/
+        this.snapType = snapType;
+        this.enabled = view != null;
+        if (view == null) {
+            clear();
+        }
+    }
+
+    @Override
+    public void chartMouseClicked(ChartMouseEvent event, Rectangle2D dataArea) {
+        if (!enabled) {
             return;
         }
 
@@ -133,10 +95,11 @@ public class MeasureTool extends AbstractChartTool implements ChartMouseListener
             return;
         }
 
+        final Point2D point = calculateFirstValuePoint(event, dataArea, snapType == SnapType.VERTEX);
         if (activeArea == null) {
-            activeArea = new MeasureArea(myPanel.calculateValuesPoint(event));
+            activeArea = new MeasureArea(point);
         } else {
-            activeArea.finish = myPanel.calculateValuesPoint(event);
+            activeArea.finish = point;
             pinnedAreas.add(activeArea);
             activeArea = null;
         }
@@ -144,54 +107,18 @@ public class MeasureTool extends AbstractChartTool implements ChartMouseListener
     }
 
     @Override
-    public void chartMouseMoved(ChartMouseEvent event) {
-        if (!isEnabled()) {
+    public void chartMouseMoved(ChartMouseEvent event, Rectangle2D dataArea) {
+        if (!enabled) {
             return;
         }
 
-        final Point2D point = myPanel.calculateValuesPoint(event);
+        final Point2D point = calculateFirstValuePoint(event, dataArea, snapType == SnapType.VERTEX);
 
         highlighted = findPinnedAreaByPoint(point);
 
         if (activeArea != null) {
             activeArea.finish = point;
         }
-    }
-
-    private static String formatTime(int years, int months, int days, int hours, int minutes, int seconds, int milliseconds) {
-        final StringBuilder buffer = new StringBuilder();
-        if (years != 0) {
-            buffer.append(years).append("Y");
-        }
-        if (months != 0) {
-            prepare(buffer).append(months).append("M");
-        }
-        if (days != 0) {
-            prepare(buffer).append(days).append("D");
-        }
-
-        if (!buffer.isEmpty() && hours != 0 && minutes != 0 && seconds != 0 && milliseconds != 0) {
-            prepare(buffer).append("T");
-        }
-
-        if (hours != 0) {
-            prepare(buffer).append(hours).append("H");
-        }
-        if (minutes != 0) {
-            prepare(buffer).append(minutes).append("M");
-        }
-
-        if (seconds != 0) {
-            prepare(buffer).append(seconds);
-            if (milliseconds != 0) {
-                buffer.append(".");
-                buffer.append(milliseconds);
-            }
-            buffer.append("S");
-        } else if (milliseconds != 0) {
-            prepare(buffer).append("0.").append(milliseconds).append("S");
-        }
-        return buffer.toString();
     }
 
     @Override
@@ -242,19 +169,7 @@ public class MeasureTool extends AbstractChartTool implements ChartMouseListener
         activeArea = null;
         highlighted = null;
         pinnedAreas.clear();
-        fireOverlayChanged();
-    }
 
-    public boolean isEnabled() {
-        return myOptions.isEnabled(this);
-    }
-
-    public void setEnabled(boolean enabled) {
-        myOptions.setEnabled(this, enabled);
-
-        if (!enabled) {
-            cancel();
-        }
         fireOverlayChanged();
     }
 
@@ -286,21 +201,9 @@ public class MeasureTool extends AbstractChartTool implements ChartMouseListener
     }
 
     @Override
-    public void initialize(JFreeChart chart, KdbType domainType) {
-        /*
-        final String chartSnapshot = getChartSnapshot(chart);
-        if (!chartSnapshot.equals(currentChartSnapshot)) {
-            activeArea = null;
-            pinnedAreas.clear();
-            fireOverlayChanged();
-        }
-*/
-    }
-
-    @Override
     @NotNull
     public ActionGroup getToolActions() {
-        if (!isEnabled()) {
+        if (!enabled) {
             return ActionGroup.EMPTY_GROUP;
         }
 
@@ -386,7 +289,6 @@ public class MeasureTool extends AbstractChartTool implements ChartMouseListener
         }
 
         private void drawDomainLabel(Graphics2D g2, XYPlot plot) {
-
             String label;
             final ValueAxis domain = plot.getDomainAxis();
             if (domain instanceof DateAxis) {
@@ -432,6 +334,91 @@ public class MeasureTool extends AbstractChartTool implements ChartMouseListener
                     area.setRect(x2, y2, x1 - x2, y1 - y2);
                 }
             }
+        }
+
+        private String formatPeriod(long startMillis, long endMillis) {
+            final Calendar start = Calendar.getInstance(TimeZone.getDefault());
+            start.setTime(new Date(startMillis));
+
+            final Calendar end = Calendar.getInstance(TimeZone.getDefault());
+            end.setTime(new Date(endMillis));
+
+            int milliseconds = end.get(Calendar.MILLISECOND) - start.get(Calendar.MILLISECOND);
+            int seconds = end.get(Calendar.SECOND) - start.get(Calendar.SECOND);
+            int minutes = end.get(Calendar.MINUTE) - start.get(Calendar.MINUTE);
+            int hours = end.get(Calendar.HOUR_OF_DAY) - start.get(Calendar.HOUR_OF_DAY);
+            int days = end.get(Calendar.DAY_OF_MONTH) - start.get(Calendar.DAY_OF_MONTH);
+            int months = end.get(Calendar.MONTH) - start.get(Calendar.MONTH);
+
+            int years;
+            for (years = end.get(Calendar.YEAR) - start.get(Calendar.YEAR); milliseconds < 0; --seconds) {
+                milliseconds += 1000;
+            }
+            while (seconds < 0) {
+                seconds += 60;
+                --minutes;
+            }
+            while (minutes < 0) {
+                minutes += 60;
+                --hours;
+            }
+            while (hours < 0) {
+                hours += 24;
+                --days;
+            }
+            while (days < 0) {
+                days += start.getActualMaximum(Calendar.DATE);
+                --months;
+                start.add(Calendar.MONTH, 1);
+            }
+            while (months < 0) {
+                months += 12;
+                --years;
+            }
+            return formatTime(years, months, days, hours, minutes, seconds, milliseconds);
+        }
+
+        private String formatTime(int years, int months, int days, int hours, int minutes, int seconds, int milliseconds) {
+            final StringBuilder buffer = new StringBuilder();
+            if (years != 0) {
+                buffer.append(years).append("Y");
+            }
+            if (months != 0) {
+                prepare(buffer).append(months).append("M");
+            }
+            if (days != 0) {
+                prepare(buffer).append(days).append("D");
+            }
+
+            if (!buffer.isEmpty() && hours != 0 && minutes != 0 && seconds != 0 && milliseconds != 0) {
+                prepare(buffer).append("T");
+            }
+
+            if (hours != 0) {
+                prepare(buffer).append(hours).append("H");
+            }
+            if (minutes != 0) {
+                prepare(buffer).append(minutes).append("M");
+            }
+
+            if (seconds != 0) {
+                prepare(buffer).append(seconds);
+                if (milliseconds != 0) {
+                    buffer.append(".");
+                    buffer.append(milliseconds);
+                }
+                buffer.append("S");
+            } else if (milliseconds != 0) {
+                prepare(buffer).append("0.").append(milliseconds).append("S");
+            }
+            return buffer.toString();
+        }
+
+        private StringBuilder prepare(StringBuilder b) {
+            if (!b.isEmpty()) {
+                b.append(" ");
+            }
+            return b;
         }
 
         public boolean contains(Point2D point) {

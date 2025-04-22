@@ -16,7 +16,6 @@ import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.ImageUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
@@ -26,8 +25,6 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
-import org.jfree.data.general.DatasetUtils;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.svg.SVGGraphics2D;
 import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.action.PopupActionGroup;
@@ -39,8 +36,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -50,14 +45,12 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ChartViewPanel extends ChartPanel {
-    private final ChartOptions options;
     private final Supplier<List<ActionGroup>> popupActionsProvider;
 
     private static final JBColor COLOR_GRID = new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4));
 
-    public ChartViewPanel(ChartOptions options, Supplier<List<ActionGroup>> popupActionsProvider) {
+    public ChartViewPanel(Supplier<List<ActionGroup>> popupActionsProvider) {
         super(null, false, false, false, false, false);
-        this.options = options;
         this.popupActionsProvider = popupActionsProvider;
 
         setFocusable(true);
@@ -254,36 +247,6 @@ public class ChartViewPanel extends ChartPanel {
         popup.showInScreenCoordinates(this, p);
     }
 
-    public Point2D calculateValuesPoint(ChartMouseEvent event) {
-        final JFreeChart chart = event.getChart();
-        final XYPlot plot = (XYPlot) chart.getPlot();
-        final XYDataset dataset = plot.getDataset();
-        final ValueAxis xAxis = plot.getDomainAxis();
-        final ValueAxis yAxis = plot.getRangeAxis();
-        final Rectangle2D dataArea = getScreenDataArea();
-
-        double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, plot.getDomainAxisEdge());
-        final SnapType snapType = options.getSnapType();
-        if (snapType == SnapType.VERTEX) {
-            final int[] ids = DatasetUtils.findItemIndicesForX(dataset, 0, x);
-            if (ids[0] >= 0 && ids[1] >= 0) {
-                final double x1 = dataset.getX(0, ids[0]).doubleValue();
-                final double x2 = dataset.getX(0, ids[1]).doubleValue();
-                final double med = (x1 + x2) / 2;
-                x = x < med ? x1 : x2;
-            } else {
-                x = Double.NaN;
-            }
-        }
-
-        double y = yAxis.java2DToValue(event.getTrigger().getY(), dataArea, plot.getRangeAxisEdge());
-        if (snapType != SnapType.NO) {
-            y = DatasetUtils.findYValue(dataset, 0, x);
-        }
-        return new Point2D.Double(x, y);
-    }
-
-
     private class ChartAction extends EdtAction {
         private final String command;
 
@@ -311,7 +274,7 @@ public class ChartViewPanel extends ChartPanel {
         /**
          * The data flavor.
          */
-        final DataFlavor imageFlavor = new DataFlavor("image/x-java-image; class=java.awt.Image", "Image");
+        private final DataFlavor imageFlavor = new DataFlavor("image/x-java-image; class=java.awt.Image", "Image");
 
         @Override
         public DataFlavor[] getTransferDataFlavors() {

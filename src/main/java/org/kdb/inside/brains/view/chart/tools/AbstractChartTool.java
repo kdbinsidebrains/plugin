@@ -11,6 +11,7 @@ import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 public abstract class AbstractChartTool extends AbstractOverlay implements ChartTool {
@@ -83,12 +84,12 @@ public abstract class AbstractChartTool extends AbstractOverlay implements Chart
         return yAxis.java2DToValue(event.getTrigger().getY(), dataArea, plot.getRangeAxisEdge());
     }
 
-    //    public Point2D calculateFirstValuePoint(ChartPanel panel, ChartMouseEvent event) {
-//        final double x = calculateDomainPoint(panel, event);
-//        final double y = calculateValuePoint(event, x, 0, 0);
-//        return new Point2D.Double(x, y);
-//    }
-//
+    public Point2D calculateFirstValuePoint(ChartMouseEvent event, Rectangle2D dataArea, boolean nearestPoint) {
+        final double x = calculateDomainPoint(event, dataArea, nearestPoint);
+        final double y = calculateValuePoint(event, x, 0, 0);
+        return new Point2D.Double(x, y);
+    }
+
 
     protected double calculateValuePoint(ChartMouseEvent event, double domain, int datasetIndex, int seriesIndex) {
         final JFreeChart chart = event.getChart();

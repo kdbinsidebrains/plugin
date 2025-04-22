@@ -166,6 +166,7 @@ public class ChartConfigPanel extends JPanel implements Disposable {
         if (templatesComboBox.getItem() != template) {
             templatesComboBox.setSelectedItem(template);
         }
+
         templateButton.setText(template == null ? "Create Template" : "Update Template");
         if (template == null) {
             templateButton.setEnabled(!getSelectedProvider().createChartConfig().isInvalid());

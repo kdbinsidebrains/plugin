@@ -39,27 +39,28 @@ public record LineChartConfig(ChartColumn domain,
         return drawShapes;
     }
 
-    public Map<SeriesDefinition, List<SingleRange>> dataset(ChartDataProvider provider) {
+    public LinkedHashMap<SeriesDefinition, List<SingleRange>> dataset(ChartDataProvider provider) {
+        final LinkedHashMap<SeriesDefinition, List<SingleRange>> res = new LinkedHashMap<>();
         if (expansions.isEmpty()) {
-            return values.stream().map(SingleRange::new).collect(Collectors.groupingBy(SingleRange::getSeries));
+            return values.stream().map(SingleRange::new).collect(Collectors.groupingBy(SingleRange::getSeries, LinkedHashMap::new, Collectors.toList()));
         } else {
-            final Map<SeriesDefinition, List<SingleRange>> res = new LinkedHashMap<>();
-
-            final List<List<ValueExpansion>> lists = Lists.cartesianProduct(expansions.stream().map(e -> Stream.of(provider.getSymbols(e)).distinct().map(s -> new ValueExpansion(e, s)).toList()).toList());
-            for (List<ValueExpansion> list : lists) {
+            final List<List<ValueExpansion>> expansionsLists = Lists.cartesianProduct(expansions.stream().map(e -> Stream.of(provider.getSymbols(e)).distinct().map(s -> new ValueExpansion(e, s)).toList()).toList());
+            for (List<ValueExpansion> expansions : expansionsLists) {
                 for (ValuesDefinition v : values) {
-                    res.computeIfAbsent(v.series(), l -> new ArrayList<>()).add(new SingleRange(v, list));
+                    res.computeIfAbsent(v.series(), l -> new ArrayList<>()).add(new SingleRange(v, expansions));
                 }
             }
-            return res;
         }
+        return res;
     }
 
     @Override
     public List<ChartColumn> getRequiredColumns() {
         final List<ChartColumn> c = new ArrayList<>();
         c.add(domain);
-        c.addAll(values.stream().map(ValuesDefinition::column).toList());
+        for (ValuesDefinition value : values) {
+            c.add(value.column());
+        }
         c.addAll(expansions);
         return c;
     }
@@ -73,7 +74,7 @@ public record LineChartConfig(ChartColumn domain,
         final Element seriesEl = new Element("series");
         e.addContent(seriesEl);
 
-        final Map<SeriesDefinition, List<ValuesDefinition>> series = values.stream().collect(Collectors.groupingBy(ValuesDefinition::series, LinkedHashMap::new, Collectors.toList()));
+        final LinkedHashMap<SeriesDefinition, List<ValuesDefinition>> series = values.stream().collect(Collectors.groupingBy(ValuesDefinition::series, LinkedHashMap::new, Collectors.toList()));
         for (Map.Entry<SeriesDefinition, List<ValuesDefinition>> entry : series.entrySet()) {
             final SeriesDefinition key = entry.getKey();
             final List<ValuesDefinition> value = entry.getValue();
@@ -119,7 +120,7 @@ public record LineChartConfig(ChartColumn domain,
         builder.append("<tr><th align=\"left\">Draw Shapes:</th><td>").append(drawShapes ? "Yes" : "No").append("</td>");
 
         builder.append("<tr><th align=\"left\"><u>Series</u></th><th align=\"left\"><u>Columns</u></th><td>");
-        final Map<SeriesDefinition, List<ValuesDefinition>> dataset = values.stream().collect(Collectors.groupingBy(ValuesDefinition::series));
+        final LinkedHashMap<SeriesDefinition, List<ValuesDefinition>> dataset = values.stream().collect(Collectors.groupingBy(ValuesDefinition::series, LinkedHashMap::new, Collectors.toList()));
         for (Map.Entry<SeriesDefinition, List<ValuesDefinition>> entry : dataset.entrySet()) {
             final SeriesDefinition key = entry.getKey();
             boolean first = true;

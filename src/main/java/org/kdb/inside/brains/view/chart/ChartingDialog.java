@@ -25,30 +25,31 @@ import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.chart.template.ChartTemplate;
 import org.kdb.inside.brains.view.chart.tools.ChartTool;
+import org.kdb.inside.brains.view.chart.tools.DataChartTool;
 import org.kdb.inside.brains.view.chart.tools.impl.CrosshairTool;
 import org.kdb.inside.brains.view.chart.tools.impl.MeasureTool;
 import org.kdb.inside.brains.view.chart.tools.impl.ValuesTool;
-import org.kdb.inside.brains.view.export.ExportDataProvider;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static com.intellij.util.ui.JBUI.Borders;
 
 public class ChartingDialog extends FrameWrapper implements DataProvider {
+    private ChartView activeChartView;
+
     private final ChartOptions options;
-
-    private final ValuesTool valuesTool;
-    private final MeasureTool measureTool;
-    private final CrosshairTool crosshairTool;
-
     private final ChartViewPanel chartPanel;
+
+    private final List<ChartTool> chartTools;
 
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel chartLayoutPanel = new JPanel(cardLayout);
@@ -70,7 +71,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
 
         options = KdbSettingsService.getInstance().getChartOptions();
 
-        chartPanel = new ChartViewPanel(options, this::createPopupMenu);
+        chartPanel = new ChartViewPanel(this::createPopupMenu);
         chartPanel.addChartMouseListener(new ChartMouseListener() {
             @Override
             public void chartMouseClicked(ChartMouseEvent event) {
@@ -82,16 +83,24 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
                 if (event.getEntity() instanceof LegendItemEntity item) {
                     changeItemStyle(event.getChart(), item);
                 }
+
+                final Rectangle2D area = chartPanel.getScreenDataArea();
+                enabledTools().forEach(t -> t.chartMouseClicked(event, area));
             }
 
             @Override
             public void chartMouseMoved(ChartMouseEvent event) {
+                final Rectangle2D area = chartPanel.getScreenDataArea();
+                enabledTools().forEach(t -> t.chartMouseMoved(event, area));
             }
         });
 
-        valuesTool = new ValuesTool(project, chartPanel, options);
-        measureTool = new MeasureTool(chartPanel, options);
-        crosshairTool = new CrosshairTool(chartPanel, options);
+        chartTools = List.of(
+                new CrosshairTool(),
+                new ValuesTool(project),
+                new MeasureTool(chartPanel)
+        );
+        chartTools.forEach(chartPanel::addOverlay);
 
         final ChartConfigPanel configPanel = new ChartConfigPanel(project, dataProvider, this::configChanged, this::close);
         Disposer.register(this, configPanel);
@@ -105,9 +114,6 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         cardLayout.show(chartLayoutPanel, EMPTY_CARD_PANEL_NAME);
 
         splitter.setFirstComponent(chartLayoutPanel);
-        if (options.isEnabled(valuesTool)) {
-            splitter.setSecondComponent(valuesTool.getComponent());
-        }
 
         rootPanel.add(eastPanel, BorderLayout.EAST);
         rootPanel.add(splitter, BorderLayout.CENTER);
@@ -117,6 +123,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         closeOnEsc();
 
         configPanel.updateChart(template);
+        enabledTools().forEach(t -> changeToolState(t, true));
     }
 
     private static JPanel createEmptyPanel() {
@@ -141,30 +148,33 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
             if (config != null) {
                 config.update(renderer, series);
                 rendererConfigMap.put(seriesKey, config);
+
+                enabledTools().forEach(t -> t.chartStyleChanged(chart, config, datasetIndex, series));
             }
         });
     }
 
     private List<ActionGroup> createPopupMenu() {
-        return Stream.of(crosshairTool, measureTool, valuesTool).filter(options::isEnabled).map(ChartTool::getToolActions).toList();
+        return enabledTools().map(ChartTool::getToolActions).toList();
     }
 
-    private void configChanged(ChartView view) {
-        if (view == null) {
+    private void configChanged(ChartView chartView) {
+        if (chartView == null) {
             chartPanel.setChart(null);
             cardLayout.show(chartLayoutPanel, EMPTY_CARD_PANEL_NAME);
         } else {
-            updateChartRenderer(view);
-
-            final JFreeChart chart = view.chart();
+            final JFreeChart chart = chartView.chart();
+            updateChartRenderer(chart);
             chartPanel.setChart(chart);
             cardLayout.show(chartLayoutPanel, CHART_CARD_PANEL_NAME);
-            List.of(valuesTool, measureTool, crosshairTool).forEach(s -> s.initialize(chart, view.config().getDomainType()));
         }
+
+        activeChartView = chartView;
+        invalidateTools();
     }
 
-    private void updateChartRenderer(ChartView view) {
-        final XYPlot plot = view.chart().getXYPlot();
+    private void updateChartRenderer(JFreeChart chart) {
+        final XYPlot plot = chart.getXYPlot();
 
         final Map<Integer, XYDataset> datasets = plot.getDatasets();
         for (Map.Entry<Integer, XYDataset> entry : datasets.entrySet()) {
@@ -180,24 +190,32 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         }
     }
 
-    private void changeState(ChartTool tool, boolean state) {
-        // TODO: remove this code completely
-        if (tool instanceof MeasureTool) {
-            if (options.isEnabled(valuesTool)) {
-                changeState(valuesTool, false);
-            }
-        } else if (tool instanceof ValuesTool) {
-            if (options.isEnabled(measureTool)) {
-                changeState(measureTool, false);
-            }
+    private void changeSnapType(SnapType snapType) {
+        options.setSnapType(snapType);
+        invalidateTools();
+    }
+
+    private void invalidateTools() {
+        enabledTools().forEach(t -> t.chartChanged(activeChartView, options.getSnapType()));
+        chartPanel.repaint(); // repaint with enabled tool
+    }
+
+    private void changeToolState(ChartTool tool, boolean state) {
+        options.setEnabled(tool, state);
+
+        if (tool instanceof DataChartTool ct) {
             if (state) {
-                splitter.setSecondComponent(valuesTool.getComponent());
+                final JComponent component = ct.getComponent();
+                if (!Objects.equals(splitter.getSecondComponent(), component)) {
+                    splitter.setSecondComponent(component);
+                }
             } else {
                 splitter.setSecondComponent(null);
             }
         }
-        options.setEnabled(tool, state);
-        chartPanel.repaint(); // overlayChanged?
+
+        tool.chartChanged(state ? activeChartView : null, options.getSnapType());
+        chartPanel.repaint(); // repaint with enabled tool
     }
 
     private JComponent createToolbar() {
@@ -211,11 +229,9 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         group.add(snapping);
         group.addSeparator();
 
-        group.add(new ToolToggleAction(crosshairTool));
-        group.addSeparator();
-
-        group.add(new ToolToggleAction(measureTool));
-        group.add(new ToolToggleAction(valuesTool));
+        for (ChartTool chartTool : chartTools) {
+            group.add(new ToolToggleAction(chartTool));
+        }
 
         group.addSeparator();
         group.addAll(chartPanel.createChartActions(getComponent()));
@@ -227,6 +243,21 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         actionComponent.setBorder(new CompoundBorder(Borders.customLine(JBColor.LIGHT_GRAY, 0, 1, 0, 0), Borders.empty(5, 3)));
 
         return actionComponent;
+    }
+
+    @Nullable
+    @Override
+    public Object getData(@NotNull String dataId) {
+        return enabledTools()
+                .filter(t -> t instanceof DataChartTool)
+                .map(t -> ((DataChartTool) t).getData(dataId))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(super.getData(dataId));
+    }
+
+    private Stream<ChartTool> enabledTools() {
+        return chartTools.stream().filter(options::isEnabled);
     }
 
     private class SpanAction extends CheckboxAction {
@@ -245,12 +276,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
 
         @Override
         public void setSelected(@NotNull AnActionEvent e, boolean state) {
-            if (state) {
-                options.setSnapType(snapType);
-            } else {
-                options.setSnapType(SnapType.NO);
-            }
-            // TODO: update tools with new SnapType
+            changeSnapType(state ? snapType : SnapType.NO);
         }
 
         @Override
@@ -259,23 +285,13 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         }
     }
 
-    @Nullable
-    @Override
-    public Object getData(@NotNull String dataId) {
-        if (ExportDataProvider.DATA_KEY.is(dataId)) {
-            return valuesTool;
-        }
-        return super.getData(dataId);
-    }
-
-
-    public class ToolToggleAction extends EdtToggleAction {
+    private class ToolToggleAction extends EdtToggleAction {
         private final ChartTool tool;
 
         public ToolToggleAction(@NotNull ChartTool tool) {
             super(tool.getText(), tool.getDescription(), tool.getIcon());
             this.tool = tool;
-            changeState(tool, options.isEnabled(tool));
+            changeToolState(tool, options.isEnabled(tool));
         }
 
         @Override
@@ -285,7 +301,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
 
         @Override
         public void setSelected(@NotNull AnActionEvent e, boolean state) {
-            changeState(tool, state);
+            changeToolState(tool, state);
         }
     }
 }
