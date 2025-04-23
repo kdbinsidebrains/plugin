@@ -76,20 +76,21 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
             @Override
             public void chartMouseClicked(ChartMouseEvent event) {
                 final MouseEvent trigger = event.getTrigger();
-                if (trigger.getButton() != MouseEvent.BUTTON1) {
-                    return;
-                }
-
                 if (event.getEntity() instanceof LegendItemEntity item) {
-                    changeItemStyle(event.getChart(), item);
+                    if (trigger.getButton() == MouseEvent.BUTTON1) {
+                        changeItemStyle(event.getChart(), item);
+                    }
+                } else {
+                    final Rectangle2D area = chartPanel.getScreenDataArea();
+                    enabledTools().forEach(t -> t.chartMouseClicked(event, area));
                 }
-
-                final Rectangle2D area = chartPanel.getScreenDataArea();
-                enabledTools().forEach(t -> t.chartMouseClicked(event, area));
             }
 
             @Override
             public void chartMouseMoved(ChartMouseEvent event) {
+                if (event.getEntity() instanceof LegendItemEntity) {
+                    return;
+                }
                 final Rectangle2D area = chartPanel.getScreenDataArea();
                 enabledTools().forEach(t -> t.chartMouseMoved(event, area));
             }

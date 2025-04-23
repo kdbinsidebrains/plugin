@@ -14,7 +14,6 @@ import org.jfree.chart.plot.Crosshair;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleAnchor;
 import org.jfree.chart.ui.RectangleEdge;
-import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.OHLCDataset;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.view.chart.ChartView;
@@ -307,14 +306,8 @@ public class CrosshairTool extends AbstractChartTool {
                 "Low",
                 "Close",
         };
-        private static final ValueSupplier[] SUPPLIERS = new ValueSupplier[]{
-                OHLCDataset::getOpenValue,
-                OHLCDataset::getHighValue,
-                OHLCDataset::getLowValue,
-                OHLCDataset::getCloseValue,
-        };
 
-        private final double[] values = new double[SUPPLIERS.length];
+        private final double[] values = new double[NAMES.length];
 
         public OHLCCrosshair(AxisLocation location, int dataset, int series) {
             super(location, dataset);
@@ -344,42 +337,21 @@ public class CrosshairTool extends AbstractChartTool {
                 return;
             }
 
-            final int[] indices = DatasetUtils.findItemIndicesForX(ds, series, x);
-            if (indices[0] < 0) {
-                clearValues();
+            final double[] doubles = calculateOHLCValues(ds, series, x);
+            if (doubles == null) {
                 return;
             }
 
-            for (int i = 0; i < SUPPLIERS.length; i++) {
-                final ValueSupplier supplier = SUPPLIERS[i];
-                values[i] = getValue(ds, supplier, x, indices[0], indices[1]);
-            }
+            System.arraycopy(doubles, 0, values, 0, values.length);
         }
 
         void clearValues() {
             Arrays.fill(values, Double.NaN);
         }
 
-        // See DatasetUtils#findYValue
-        double getValue(OHLCDataset ds, ValueSupplier supplier, double x, int i1, int i2) {
-            if (i1 == i2) {
-                return supplier.get(ds, series, i1);
-            }
-            double x0 = ds.getXValue(series, i1);
-            double x1 = ds.getXValue(series, i2);
-            double y0 = supplier.get(ds, series, i1);
-            double y1 = supplier.get(ds, series, i2);
-            return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
-        }
-
         @Override
         double calculateValue(ChartMouseEvent event, Rectangle2D dataArea, double x) {
             return Double.NaN; // not in use
-        }
-
-        @FunctionalInterface
-        interface ValueSupplier {
-            double get(OHLCDataset ds, int series, int item);
         }
     }
 

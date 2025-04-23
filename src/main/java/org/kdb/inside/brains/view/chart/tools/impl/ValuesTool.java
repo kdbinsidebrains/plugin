@@ -21,6 +21,7 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.general.DatasetUtils;
+import org.jfree.data.xy.OHLCDataset;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.action.EdtAction;
@@ -46,6 +47,7 @@ import java.util.Vector;
 
 public class ValuesTool extends AbstractChartTool implements DataChartTool, ExportDataProvider {
     private KdbType domainType;
+
     private SnapType snapType;
 
     private final JPanel component;
@@ -62,11 +64,7 @@ public class ValuesTool extends AbstractChartTool implements DataChartTool, Expo
         final DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
             @Override
             protected void setValue(Object value) {
-                if (value instanceof String) {
-                    setText((String) value);
-                } else {
-                    setText(formatter.objectToString(value));
-                }
+                setText(value instanceof String s ? s : formatter.objectToString(value));
             }
         };
 
@@ -158,21 +156,21 @@ public class ValuesTool extends AbstractChartTool implements DataChartTool, Expo
         final Vector<String> columns = new Vector<>();
         columns.add("Key");
         columns.add(domainAxis.getLabel());
-/*
-
-        final int rangeAxisCount = plot.getRangeAxisCount();
-        for (int i = 0; i < rangeAxisCount; i++) {
-            final ValueAxis rangeAxis = plot.getRangeAxis(i);
-            columns.add(rangeAxis.getLabel());
-        }
-*/
 
         final int dsCount = plot.getDatasetCount();
         for (int i = 0; i < dsCount; i++) {
             final XYDataset dataset = plot.getDataset(i);
-            final int seriesCount = dataset.getSeriesCount();
-            for (int j = 0; j < seriesCount; j++) {
-                columns.add(String.valueOf(dataset.getSeriesKey(j)));
+            if (dataset instanceof OHLCDataset) {
+                columns.add("Open");
+                columns.add("High");
+                columns.add("Low");
+                columns.add("Close");
+                columns.add("Volume");
+            } else {
+                final int seriesCount = dataset.getSeriesCount();
+                for (int j = 0; j < seriesCount; j++) {
+                    columns.add(String.valueOf(dataset.getSeriesKey(j)));
+                }
             }
         }
         return new DefaultTableModel(columns, 0);
@@ -200,8 +198,34 @@ public class ValuesTool extends AbstractChartTool implements DataChartTool, Expo
             return;
         }
 
+        final Vector<Object> values = new Vector<>();
+        values.add(getKeyValue(trigger));
+        values.add(getDomainValue(domain, x));
+
+        final int dsCount = plot.getDatasetCount();
+        for (int i = 0; i < dsCount; i++) {
+            final XYDataset dataset = plot.getDataset(i);
+            if (dataset instanceof OHLCDataset ds) {
+                final double[] doubles = calculateOHLCValues(ds, 0, x);
+                if (doubles == null) {
+                    return;
+                }
+                for (double d : doubles) {
+                    values.add(d);
+                }
+            } else {
+                final int seriesCount = dataset.getSeriesCount();
+                for (int s = 0; s < seriesCount; s++) {
+                    values.add(DatasetUtils.findYValue(dataset, s, x));
+                }
+            }
+        }
+        ((DefaultTableModel) pointsTable.getModel()).insertRow(0, values);
+    }
+
+    private @NotNull Object getDomainValue(ValueAxis axis, double x) {
         final Object val;
-        if (domain instanceof DateAxis) {
+        if (axis instanceof DateAxis) {
             final long v = new Timestamp((long) x)
                     .toInstant()
                     .atZone(ZoneOffset.systemDefault())
@@ -212,27 +236,7 @@ public class ValuesTool extends AbstractChartTool implements DataChartTool, Expo
         } else {
             val = x;
         }
-
-        final Vector<Object> values = new Vector<>();
-        values.add(getKeyValue(trigger));
-        values.add(val);
-/*
-
-        final int rangeCount = plot.getRangeAxisCount();
-        for (int i = 0; i < rangeCount; i++) {
-            values.add(plot.getRangeAxis(i).java2DToValue(trigger.getY(), dataArea, RectangleEdge.LEFT));
-        }
-*/
-
-        final int dsCount = plot.getDatasetCount();
-        for (int i = 0; i < dsCount; i++) {
-            final XYDataset dataset = plot.getDataset(i);
-            final int seriesCount = dataset.getSeriesCount();
-            for (int s = 0; s < seriesCount; s++) {
-                values.add(DatasetUtils.findYValue(dataset, s, x));
-            }
-        }
-        ((DefaultTableModel) pointsTable.getModel()).insertRow(0, values);
+        return val;
     }
 
     private String getKeyValue(MouseEvent event) {

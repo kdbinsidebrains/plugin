@@ -8,6 +8,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.panel.AbstractOverlay;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.general.DatasetUtils;
+import org.jfree.data.xy.OHLCDataset;
 import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
@@ -22,6 +23,14 @@ public abstract class AbstractChartTool extends AbstractOverlay implements Chart
     private final String text;
     private final String description;
     private final Icon icon;
+
+    private static final ValueSupplier[] OHLC_SUPPLIERS = new ValueSupplier[]{
+            OHLCDataset::getOpenValue,
+            OHLCDataset::getHighValue,
+            OHLCDataset::getLowValue,
+            OHLCDataset::getCloseValue,
+            OHLCDataset::getVolumeValue,
+    };
 
     public AbstractChartTool(@NotNull @Identifier String id, String text, String description, Icon icon) {
         this.id = id;
@@ -49,6 +58,20 @@ public abstract class AbstractChartTool extends AbstractOverlay implements Chart
     @Override
     public String getDescription() {
         return description;
+    }
+
+    protected static double[] calculateOHLCValues(OHLCDataset ds, int series, double x) {
+        final int[] indices = DatasetUtils.findItemIndicesForX(ds, series, x);
+        if (indices[0] < 0) {
+            return null;
+        }
+
+        final double[] values = new double[OHLC_SUPPLIERS.length];
+        for (int i = 0; i < OHLC_SUPPLIERS.length; i++) {
+            final ValueSupplier supplier = OHLC_SUPPLIERS[i];
+            values[i] = getOHLCValue(ds, supplier, series, x, indices[0], indices[1]);
+        }
+        return values;
     }
 
     protected static double calculateDomainPoint(ChartMouseEvent event, Rectangle2D dataArea, boolean nearestPoint) {
@@ -97,5 +120,22 @@ public abstract class AbstractChartTool extends AbstractOverlay implements Chart
         }
         final XYDataset dataset = plot.getDataset(datasetIndex);
         return DatasetUtils.findYValue(dataset, seriesIndex, domain);
+    }
+
+    // See DatasetUtils#findYValue
+    private static double getOHLCValue(OHLCDataset ds, ValueSupplier supplier, int series, double x, int i1, int i2) {
+        if (i1 == i2) {
+            return supplier.get(ds, series, i1);
+        }
+        double x0 = ds.getXValue(series, i1);
+        double x1 = ds.getXValue(series, i2);
+        double y0 = supplier.get(ds, series, i1);
+        double y1 = supplier.get(ds, series, i2);
+        return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+    }
+
+    @FunctionalInterface
+    private interface ValueSupplier {
+        double get(OHLCDataset ds, int series, int item);
     }
 }
