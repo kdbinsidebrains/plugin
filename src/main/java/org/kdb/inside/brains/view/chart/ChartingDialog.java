@@ -267,7 +267,8 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         private SpanAction(String name, SnapType snapType) {
             super(name);
             this.snapType = snapType;
-            getTemplatePresentation().setKeepPopupOnPerform(KeepPopupOnPerform.Never);
+            //  Available only since 2024.2
+//            getTemplatePresentation().setKeepPopupOnPerform(KeepPopupOnPerform.Never);
         }
 
         @Override
