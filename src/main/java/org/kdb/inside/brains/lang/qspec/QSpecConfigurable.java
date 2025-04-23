@@ -8,14 +8,12 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.wm.WindowManager;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.settings.KdbConfigurable;
 
 import javax.swing.*;
-import java.awt.*;
 
 import static com.intellij.openapi.util.text.StringUtil.notNullize;
 
@@ -32,7 +30,7 @@ public class QSpecConfigurable extends KdbConfigurable {
 
     protected QSpecConfigurable() {
         super(SETTINGS_PAGE_ID, "QSpec Framework");
-        init(guessActiveProject());
+        init(ProjectManager.getInstance().getDefaultProject());
     }
 
     public JComponent init(@Nullable Project project) {
@@ -89,17 +87,6 @@ public class QSpecConfigurable extends KdbConfigurable {
     public void reset() {
         specFolderField.setText(libraryService.getLibraryPath());
         customScriptPanel.setText(libraryService.getCustomScript());
-    }
-
-    private Project guessActiveProject() {
-        Project[] projects = ProjectManager.getInstance().getOpenProjects();
-        for (Project project : projects) {
-            Window window = WindowManager.getInstance().suggestParentWindow(project);
-            if (window != null && window.isActive()) {
-                return project;
-            }
-        }
-        return null;
     }
 
     public static void showConfigurable(Project project) {

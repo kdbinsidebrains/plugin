@@ -41,11 +41,6 @@ public class ChartActionGroup extends PopupActionGroup {
     }
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-        super.actionPerformed(e);
-    }
-
-    @Override
     public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
         final TableResult tableResult = resultSupplier.get();
         if (tableResult == null) {

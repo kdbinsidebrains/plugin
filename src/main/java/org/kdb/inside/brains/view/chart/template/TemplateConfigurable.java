@@ -16,12 +16,13 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 public class TemplateConfigurable extends NamedConfigurable<ChartTemplate> {
+    private String name;
+
     private final ChartTemplate template;
     private final Predicate<String> nameChecker;
     private final JTextPane configDescription = new JTextPane();
     private final JBTextField descriptionField = new JBTextField();
     private final JBCheckBox quickAction = new JBCheckBox("Add to quick popup actions");
-    private String name;
 
     public TemplateConfigurable(@NotNull ChartTemplate template, @NotNull Predicate<String> nameChecker, @Nullable Runnable updateTree) {
         super(true, updateTree);

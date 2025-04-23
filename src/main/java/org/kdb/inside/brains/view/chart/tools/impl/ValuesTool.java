@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.view.chart.tools;
+package org.kdb.inside.brains.view.chart.tools.impl;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -9,59 +9,62 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
+import icons.KdbIcons;
 import kx.c;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartMouseEvent;
-import org.jfree.chart.ChartMouseListener;
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.general.DatasetUtils;
+import org.jfree.data.xy.OHLCDataset;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.action.EdtAction;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
-import org.kdb.inside.brains.view.chart.BaseChartPanel;
+import org.kdb.inside.brains.view.chart.ChartColumn;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
-import org.kdb.inside.brains.view.chart.ChartOptions;
-import org.kdb.inside.brains.view.chart.ChartTool;
+import org.kdb.inside.brains.view.chart.ChartView;
+import org.kdb.inside.brains.view.chart.SnapType;
+import org.kdb.inside.brains.view.chart.tools.AbstractChartTool;
+import org.kdb.inside.brains.view.chart.tools.DataChartTool;
 import org.kdb.inside.brains.view.export.ExportDataProvider;
 
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.sql.Timestamp;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseListener {
+public class ValuesTool extends AbstractChartTool implements DataChartTool, ExportDataProvider {
     private KdbType domainType;
-    private final ChartOptions myOptions;
+
+    private SnapType snapType;
 
     private final JPanel component;
     private final JBTable pointsTable;
-    private final BaseChartPanel myPanel;
     private final KdbOutputFormatter formatter;
 
-    public ValuesTool(Project project, BaseChartPanel panel, ChartOptions options) {
-        myPanel = panel;
-        myOptions = options;
+    public static final String ID = "VALUES";
+
+    public ValuesTool(Project project) {
+        super(ID, "Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints);
 
         formatter = KdbOutputFormatter.getDefault();
 
         final DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
             @Override
             protected void setValue(Object value) {
-                if (value instanceof String) {
-                    setText((String) value);
-                } else {
-                    setText(formatter.objectToString(value));
-                }
+                setText(value instanceof String s ? s : formatter.objectToString(value));
             }
         };
 
@@ -76,8 +79,6 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
                 return cellRenderer;
             }
         };
-
-        panel.addChartMouseListener(this);
 
         pointsTable.setShowColumns(true);
         pointsTable.setColumnSelectionAllowed(true);
@@ -108,10 +109,13 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
         component.add(BorderLayout.CENTER, ScrollPaneFactory.createScrollPane(pointsTable));
     }
 
-    public void initialize(JFreeChart chart, KdbType domainType) {
-        this.domainType = domainType;
-        if (chart != null) {
-            final DefaultTableModel tableModel = createTableModel(chart);
+    @Override
+    public void chartChanged(ChartView view, SnapType snapType) {
+        this.snapType = snapType;
+        if (view != null) {
+            domainType = view.config().getDomainType();
+
+            final DefaultTableModel tableModel = createTableModel(view.chart());
 
             final List<String> curNames = getColumnNames(pointsTable.getModel());
             final List<String> newNames = getColumnNames(tableModel);
@@ -120,6 +124,7 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
                 initializeColumnModel();
             }
         } else {
+            domainType = null;
             pointsTable.setModel(new DefaultTableModel());
         }
     }
@@ -151,45 +156,34 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
         final Vector<String> columns = new Vector<>();
         columns.add("Key");
         columns.add(domainAxis.getLabel());
-/*
-
-        final int rangeAxisCount = plot.getRangeAxisCount();
-        for (int i = 0; i < rangeAxisCount; i++) {
-            final ValueAxis rangeAxis = plot.getRangeAxis(i);
-            columns.add(rangeAxis.getLabel());
-        }
-*/
 
         final int dsCount = plot.getDatasetCount();
         for (int i = 0; i < dsCount; i++) {
             final XYDataset dataset = plot.getDataset(i);
-            final int seriesCount = dataset.getSeriesCount();
-            for (int j = 0; j < seriesCount; j++) {
-                columns.add(String.valueOf(dataset.getSeriesKey(j)));
+            if (dataset instanceof OHLCDataset) {
+                columns.add("Open");
+                columns.add("High");
+                columns.add("Low");
+                columns.add("Close");
+                columns.add("Volume");
+            } else {
+                final int seriesCount = dataset.getSeriesCount();
+                for (int j = 0; j < seriesCount; j++) {
+                    columns.add(String.valueOf(dataset.getSeriesKey(j)));
+                }
             }
         }
         return new DefaultTableModel(columns, 0);
     }
 
-    public boolean isEnabled() {
-        return myOptions.isValuesToolEnabled();
-    }
-
-    public void setEnabled(boolean enabled) {
-        myOptions.setValuesToolEnabled(enabled);
-    }
-
+    @Override
     public JComponent getComponent() {
         return component;
     }
 
     @Override
-    public void chartMouseMoved(ChartMouseEvent event) {
-    }
-
-    @Override
-    public void chartMouseClicked(ChartMouseEvent event) {
-        if (!isEnabled()) {
+    public void chartMouseClicked(ChartMouseEvent event, Rectangle2D dataArea) {
+        if (domainType == null) {
             return;
         }
 
@@ -199,14 +193,39 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
         final ValueAxis domain = plot.getDomainAxis();
         final MouseEvent trigger = event.getTrigger();
 
-        final Point2D p = myPanel.calculateValuesPoint(event);
-        final double x = p.getX();
+        final double x = calculateDomainPoint(event, dataArea, snapType == SnapType.VERTEX);
         if (Double.isNaN(x)) {
             return;
         }
 
+        final Vector<Object> values = new Vector<>();
+        values.add(getKeyValue(trigger));
+        values.add(getDomainValue(domain, x));
+
+        final int dsCount = plot.getDatasetCount();
+        for (int i = 0; i < dsCount; i++) {
+            final XYDataset dataset = plot.getDataset(i);
+            if (dataset instanceof OHLCDataset ds) {
+                final double[] doubles = calculateOHLCValues(ds, 0, x);
+                if (doubles == null) {
+                    return;
+                }
+                for (double d : doubles) {
+                    values.add(d);
+                }
+            } else {
+                final int seriesCount = dataset.getSeriesCount();
+                for (int s = 0; s < seriesCount; s++) {
+                    values.add(DatasetUtils.findYValue(dataset, s, x));
+                }
+            }
+        }
+        ((DefaultTableModel) pointsTable.getModel()).insertRow(0, values);
+    }
+
+    private @NotNull Object getDomainValue(ValueAxis axis, double x) {
         final Object val;
-        if (domain instanceof DateAxis) {
+        if (axis instanceof DateAxis) {
             final long v = new Timestamp((long) x)
                     .toInstant()
                     .atZone(ZoneOffset.systemDefault())
@@ -217,27 +236,7 @@ public class ValuesTool implements ChartTool, ExportDataProvider, ChartMouseList
         } else {
             val = x;
         }
-
-        final Vector<Object> values = new Vector<>();
-        values.add(getKeyValue(trigger));
-        values.add(val);
-/*
-
-        final int rangeCount = plot.getRangeAxisCount();
-        for (int i = 0; i < rangeCount; i++) {
-            values.add(plot.getRangeAxis(i).java2DToValue(trigger.getY(), dataArea, RectangleEdge.LEFT));
-        }
-*/
-
-        final int dsCount = plot.getDatasetCount();
-        for (int i = 0; i < dsCount; i++) {
-            final XYDataset dataset = plot.getDataset(i);
-            final int seriesCount = dataset.getSeriesCount();
-            for (int s = 0; s < seriesCount; s++) {
-                values.add(DatasetUtils.findYValue(dataset, s, x));
-            }
-        }
-        ((DefaultTableModel) pointsTable.getModel()).insertRow(0, values);
+        return val;
     }
 
     private String getKeyValue(MouseEvent event) {
@@ -306,12 +305,8 @@ JVM issue:
     private Object createColumn(TableModel model, int col) {
         if (col == 0) {
             return createStringCol(model, col);
-        } else if (col == 1) {
-            final XYPlot plot = myPanel.getChart().getXYPlot();
-            final ValueAxis domainAxis = plot.getDomainAxis();
-            if (domainAxis instanceof DateAxis) {
-                return createTimestampsCol(model, col);
-            }
+        } else if (col == 1 && ChartColumn.isTemporal(domainType)) {
+            return createTimestampsCol(model, col);
         }
         return createDoubleCol(model, col);
     }
@@ -341,5 +336,17 @@ JVM issue:
             res[i] = (Timestamp) model.getValueAt(i, col);
         }
         return res;
+    }
+
+    @Override
+    public void paintOverlay(Graphics2D g2, ChartPanel chartPanel) {
+    }
+
+    @Override
+    public @Nullable Object getData(@NotNull @NonNls String dataId) {
+        if (ExportDataProvider.DATA_KEY.is(dataId)) {
+            return this;
+        }
+        return null;
     }
 }

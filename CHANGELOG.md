@@ -1,5 +1,18 @@
 # KdbInsideBrains Changelog
 
+## [6.1.0]
+
+### Changed
+
+- Charting View tools redesigned:
+  - Crosshair tool supports multiple range axes as well as candlestick
+  - Values tools supports candlestick
+  - Enabled tools stored in new optimized format
+
+### Fixed
+
+- #122: QSpec configurable can't be created
+
 ## [6.0.1]
 
 ### Fixed

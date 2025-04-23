@@ -16,9 +16,9 @@ import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.xy.*;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.chart.ChartColors;
+import org.kdb.inside.brains.view.chart.ChartColumn;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
 import org.kdb.inside.brains.view.chart.ChartViewProvider;
-import org.kdb.inside.brains.view.chart.ColumnDefinition;
 import org.kdb.inside.brains.view.chart.types.ChartType;
 
 import java.awt.*;
@@ -48,8 +48,8 @@ public class LineChartProvider extends ChartViewProvider<LineConfigPanel, LineCh
     }
 
     @Override
-    public JFreeChart getJFreeChart(LineChartConfig config) {
-        return config.isInvalid() ? null : createChart(config, dataProvider);
+    protected JFreeChart createJFreeChart(LineChartConfig config) {
+        return config == null || config.isInvalid() ? null : createChart(config, dataProvider);
     }
 
     @Override
@@ -61,9 +61,9 @@ public class LineChartProvider extends ChartViewProvider<LineConfigPanel, LineCh
         final JFreeChart chart;
         final XYDataset[] datasets;
 
-        final ColumnDefinition domain = config.domain();
+        final ChartColumn domain = config.domain();
         final Map<SeriesDefinition, List<SingleRange>> dataset = config.dataset(dataProvider);
-        if (ColumnDefinition.isTemporal(domain.type())) {
+        if (ChartColumn.isTemporal(domain.type())) {
             datasets = createTimeDatasets(domain, dataset, dataProvider);
             chart = ChartFactory.createTimeSeriesChart(null, domain.name(), "", null, true, true, false);
 
@@ -170,7 +170,7 @@ public class LineChartProvider extends ChartViewProvider<LineConfigPanel, LineCh
         }
     }
 
-    private IntervalXYDataset[] createNumberDatasets(ColumnDefinition domain, Map<SeriesDefinition, List<SingleRange>> dataset, ChartDataProvider dataProvider) {
+    private IntervalXYDataset[] createNumberDatasets(ChartColumn domain, Map<SeriesDefinition, List<SingleRange>> dataset, ChartDataProvider dataProvider) {
         int i = 0;
         final Number[] periods = dataProvider.getNumbers(domain);
         final CachedDataProvider provider = new CachedDataProvider(dataProvider);
@@ -194,7 +194,7 @@ public class LineChartProvider extends ChartViewProvider<LineConfigPanel, LineCh
         return res;
     }
 
-    private IntervalXYDataset[] createTimeDatasets(ColumnDefinition domain, Map<SeriesDefinition, List<SingleRange>> dataset, ChartDataProvider dataProvider) {
+    private IntervalXYDataset[] createTimeDatasets(ChartColumn domain, Map<SeriesDefinition, List<SingleRange>> dataset, ChartDataProvider dataProvider) {
         int i = 0;
         final RegularTimePeriod[] periods = dataProvider.getPeriods(domain);
         final IntervalXYDataset[] res = new IntervalXYDataset[dataset.size()];
@@ -217,14 +217,14 @@ public class LineChartProvider extends ChartViewProvider<LineConfigPanel, LineCh
 
     private static class CachedDataProvider {
         private final ChartDataProvider dataProvider;
-        private final Map<ColumnDefinition, Object> cache = new HashMap<>();
+        private final Map<ChartColumn, Object> cache = new HashMap<>();
 
         public CachedDataProvider(ChartDataProvider dataProvider) {
             this.dataProvider = dataProvider;
         }
 
         @SuppressWarnings("unchecked")
-        <T> T getValues(ColumnDefinition column, BiFunction<ChartDataProvider, ColumnDefinition, T> function) {
+        <T> T getValues(ChartColumn column, BiFunction<ChartDataProvider, ChartColumn, T> function) {
             return (T) cache.computeIfAbsent(column, c -> function.apply(dataProvider, c));
         }
     }

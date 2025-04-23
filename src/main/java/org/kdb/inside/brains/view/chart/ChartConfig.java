@@ -8,20 +8,20 @@ import java.util.HashSet;
 import java.util.List;
 
 public interface ChartConfig {
-    ChartType getChartType();
+    boolean isInvalid();
 
 
     KdbType getDomainType();
 
-    List<ColumnDefinition> getRequiredColumns();
-
-
-    boolean isInvalid();
+    ChartType getChartType();
 
 
     Element store();
 
     String toHumanString();
+
+
+    List<ChartColumn> getRequiredColumns();
 
 
     default boolean isApplicable(ChartDataProvider dataProvider) {

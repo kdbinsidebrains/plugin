@@ -9,21 +9,21 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ColumnDefinitionTest {
-    public static void assertColumn(ColumnDefinition c, String name, KdbType type) {
+public class ChartColumnTest {
+    public static void assertColumn(ChartColumn c, String name, KdbType type) {
         assertEquals(name, c.name());
         assertEquals(type, c.type());
     }
 
     @Test
     void store() {
-        final ColumnDefinition c = new ColumnDefinition("name", KdbType.FLOAT);
+        final ChartColumn c = new ChartColumn("name", KdbType.FLOAT);
         assertEquals("<column name=\"name\" type=\"f\" />", JDOMUtil.write(c.store()));
     }
 
     @Test
     void restore() throws IOException, JDOMException {
-        final ColumnDefinition c = ColumnDefinition.restore(JDOMUtil.load("<column name=\"name\" type=\"f\" />"));
+        final ChartColumn c = ChartColumn.restore(JDOMUtil.load("<column name=\"name\" type=\"f\" />"));
         assertColumn(c, "name", KdbType.FLOAT);
     }
 }

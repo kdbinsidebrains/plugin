@@ -1,14 +1,23 @@
 package org.kdb.inside.brains.view.chart;
 
+import com.intellij.util.xmlb.annotations.XCollection;
 import org.kdb.inside.brains.settings.SettingsBean;
+import org.kdb.inside.brains.view.chart.tools.ChartTool;
+import org.kdb.inside.brains.view.chart.tools.impl.CrosshairTool;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class ChartOptions implements SettingsBean<ChartOptions> {
     private SnapType snapType = SnapType.NO;
-    private boolean valuesToolEnabled = false;
-    private boolean measureToolEnabled = false;
-    private boolean crosshairToolEnabled = true;
+
+    @XCollection(propertyElementName = "enabledTools", elementName = "tool", valueAttributeName = "id")
+    private final Set<String> enabledTools = new HashSet<>();
+
+    public ChartOptions() {
+        enabledTools.add(CrosshairTool.ID);
+    }
 
     public SnapType getSnapType() {
         return snapType;
@@ -18,57 +27,41 @@ public class ChartOptions implements SettingsBean<ChartOptions> {
         this.snapType = snapType;
     }
 
-    public boolean isValuesToolEnabled() {
-        return valuesToolEnabled;
+    public void setEnabled(ChartTool tool, boolean state) {
+        if (state) {
+            enabledTools.add(tool.getId());
+        } else {
+            enabledTools.remove(tool.getId());
+        }
     }
 
-    public void setValuesToolEnabled(boolean valuesToolEnabled) {
-        this.valuesToolEnabled = valuesToolEnabled;
-    }
-
-    public boolean isMeasureToolEnabled() {
-        return measureToolEnabled;
-    }
-
-    public void setMeasureToolEnabled(boolean measureToolEnabled) {
-        this.measureToolEnabled = measureToolEnabled;
-    }
-
-    public boolean isCrosshairToolEnabled() {
-        return crosshairToolEnabled;
-    }
-
-    public void setCrosshairToolEnabled(boolean crosshairToolEnabled) {
-        this.crosshairToolEnabled = crosshairToolEnabled;
+    public boolean isEnabled(ChartTool tool) {
+        return enabledTools.contains(tool.getId());
     }
 
     @Override
     public void copyFrom(ChartOptions chartOptions) {
         snapType = chartOptions.snapType;
-        valuesToolEnabled = chartOptions.valuesToolEnabled;
-        measureToolEnabled = chartOptions.measureToolEnabled;
-        crosshairToolEnabled = chartOptions.crosshairToolEnabled;
+        enabledTools.clear();
+        enabledTools.addAll(chartOptions.enabledTools);
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (!(o instanceof ChartOptions that)) return false;
-        return valuesToolEnabled == that.valuesToolEnabled && measureToolEnabled == that.measureToolEnabled && crosshairToolEnabled == that.crosshairToolEnabled && snapType == that.snapType;
+        return snapType == that.snapType && Objects.equals(enabledTools, that.enabledTools);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(snapType, valuesToolEnabled, measureToolEnabled, crosshairToolEnabled);
+        return Objects.hash(snapType, enabledTools);
     }
 
     @Override
     public String toString() {
         return "ChartOptions{" +
                 "snapType=" + snapType +
-                ", valuesToolEnabled=" + valuesToolEnabled +
-                ", measureToolEnabled=" + measureToolEnabled +
-                ", crosshairToolEnabled=" + crosshairToolEnabled +
+                ", enabledTools=" + enabledTools +
                 '}';
     }
 }

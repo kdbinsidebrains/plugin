@@ -4,16 +4,17 @@ import org.jfree.chart.JFreeChart;
 import org.kdb.inside.brains.view.chart.types.ChartType;
 
 import javax.swing.*;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public abstract class ChartViewProvider<Panel extends JComponent, Config extends ChartConfig> {
-    protected final ChartDataProvider dataProvider;
     protected Panel configPanel;
+    protected final ChartDataProvider dataProvider;
 
     private final String name;
     private final ChartType type;
-    private final List<ChartViewListener> chartViewListeners = new CopyOnWriteArrayList<>();
+
+    private final Set<ChartConfigListener> configListeners = new CopyOnWriteArraySet<>();
 
     public ChartViewProvider(String name, ChartType type, ChartDataProvider dataProvider) {
         this.name = name;
@@ -21,15 +22,15 @@ public abstract class ChartViewProvider<Panel extends JComponent, Config extends
         this.dataProvider = dataProvider;
     }
 
-    public void addConfigListener(ChartViewListener l) {
+    public void addConfigListener(ChartConfigListener l) {
         if (l != null) {
-            chartViewListeners.add(l);
+            configListeners.add(l);
         }
     }
 
-    public void removeConfigListener(ChartViewListener l) {
+    public void removeConfigListener(ChartConfigListener l) {
         if (l != null) {
-            chartViewListeners.remove(l);
+            configListeners.remove(l);
         }
     }
 
@@ -52,16 +53,31 @@ public abstract class ChartViewProvider<Panel extends JComponent, Config extends
         return configPanel;
     }
 
+    public ChartView createChartView() {
+        final Config config = createChartConfig();
+
+        if (config == null || config.isInvalid()) {
+            return null;
+        }
+        final JFreeChart chart = createJFreeChart(config);
+        if (chart == null) {
+            return null;
+        }
+        return new ChartView(config, chart);
+    }
+
+
     public abstract Config createChartConfig();
 
     public abstract void updateChartConfig(Config config);
 
 
-    public abstract JFreeChart getJFreeChart(Config config);
+    protected abstract JFreeChart createJFreeChart(Config config);
 
     protected abstract Panel createConfigPanel(ChartDataProvider provider);
 
+
     protected void processConfigChanged() {
-        chartViewListeners.forEach(ChartViewListener::configChanged);
+        configListeners.forEach(ChartConfigListener::configChanged);
     }
 }

@@ -4,9 +4,9 @@ import com.google.common.collect.Lists;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.KdbType;
+import org.kdb.inside.brains.view.chart.ChartColumn;
 import org.kdb.inside.brains.view.chart.ChartConfig;
 import org.kdb.inside.brains.view.chart.ChartDataProvider;
-import org.kdb.inside.brains.view.chart.ColumnDefinition;
 import org.kdb.inside.brains.view.chart.types.ChartType;
 
 import java.util.ArrayList;
@@ -16,9 +16,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record LineChartConfig(ColumnDefinition domain,
+public record LineChartConfig(ChartColumn domain,
                               List<ValuesDefinition> values,
-                              List<ColumnDefinition> expansions,
+                              List<ChartColumn> expansions,
                               boolean drawShapes) implements ChartConfig {
     @Override
     public KdbType getDomainType() {
@@ -39,27 +39,28 @@ public record LineChartConfig(ColumnDefinition domain,
         return drawShapes;
     }
 
-    public Map<SeriesDefinition, List<SingleRange>> dataset(ChartDataProvider provider) {
+    public LinkedHashMap<SeriesDefinition, List<SingleRange>> dataset(ChartDataProvider provider) {
+        final LinkedHashMap<SeriesDefinition, List<SingleRange>> res = new LinkedHashMap<>();
         if (expansions.isEmpty()) {
-            return values.stream().map(SingleRange::new).collect(Collectors.groupingBy(SingleRange::getSeries));
+            return values.stream().map(SingleRange::new).collect(Collectors.groupingBy(SingleRange::getSeries, LinkedHashMap::new, Collectors.toList()));
         } else {
-            final Map<SeriesDefinition, List<SingleRange>> res = new LinkedHashMap<>();
-
-            final List<List<ValueExpansion>> lists = Lists.cartesianProduct(expansions.stream().map(e -> Stream.of(provider.getSymbols(e)).distinct().map(s -> new ValueExpansion(e, s)).toList()).toList());
-            for (List<ValueExpansion> list : lists) {
+            final List<List<ValueExpansion>> expansionsLists = Lists.cartesianProduct(expansions.stream().map(e -> Stream.of(provider.getSymbols(e)).distinct().map(s -> new ValueExpansion(e, s)).toList()).toList());
+            for (List<ValueExpansion> expansions : expansionsLists) {
                 for (ValuesDefinition v : values) {
-                    res.computeIfAbsent(v.series(), l -> new ArrayList<>()).add(new SingleRange(v, list));
+                    res.computeIfAbsent(v.series(), l -> new ArrayList<>()).add(new SingleRange(v, expansions));
                 }
             }
-            return res;
         }
+        return res;
     }
 
     @Override
-    public List<ColumnDefinition> getRequiredColumns() {
-        final List<ColumnDefinition> c = new ArrayList<>();
+    public List<ChartColumn> getRequiredColumns() {
+        final List<ChartColumn> c = new ArrayList<>();
         c.add(domain);
-        c.addAll(values.stream().map(ValuesDefinition::column).toList());
+        for (ValuesDefinition value : values) {
+            c.add(value.column());
+        }
         c.addAll(expansions);
         return c;
     }
@@ -73,7 +74,7 @@ public record LineChartConfig(ColumnDefinition domain,
         final Element seriesEl = new Element("series");
         e.addContent(seriesEl);
 
-        final Map<SeriesDefinition, List<ValuesDefinition>> series = values.stream().collect(Collectors.groupingBy(ValuesDefinition::series, LinkedHashMap::new, Collectors.toList()));
+        final LinkedHashMap<SeriesDefinition, List<ValuesDefinition>> series = values.stream().collect(Collectors.groupingBy(ValuesDefinition::series, LinkedHashMap::new, Collectors.toList()));
         for (Map.Entry<SeriesDefinition, List<ValuesDefinition>> entry : series.entrySet()) {
             final SeriesDefinition key = entry.getKey();
             final List<ValuesDefinition> value = entry.getValue();
@@ -87,7 +88,7 @@ public record LineChartConfig(ColumnDefinition domain,
 
         final Element expansionsEl = new Element("expansions");
         e.addContent(expansionsEl);
-        for (ColumnDefinition expansion : expansions) {
+        for (ChartColumn expansion : expansions) {
             expansionsEl.addContent(expansion.store());
         }
         return e;
@@ -95,14 +96,14 @@ public record LineChartConfig(ColumnDefinition domain,
 
     @NotNull
     public static LineChartConfig restore(@NotNull Element element) {
-        final ColumnDefinition domain = ColumnDefinition.restore(element.getChild("domain"));
+        final ChartColumn domain = ChartColumn.restore(element.getChild("domain"));
 
         final List<ValuesDefinition> ranges = element.getChild("series").getChildren().stream().flatMap(e -> {
             final SeriesDefinition sc = SeriesDefinition.restore(e);
             return e.getChildren().stream().map(el -> ValuesDefinition.restore(el, sc));
         }).collect(Collectors.toList());
 
-        final List<ColumnDefinition> expansions = element.getChild("expansions").getChildren().stream().map(ColumnDefinition::restore).toList();
+        final List<ChartColumn> expansions = element.getChild("expansions").getChildren().stream().map(ChartColumn::restore).toList();
 
         final boolean drawShapes = Boolean.parseBoolean(element.getAttributeValue("drawShapes"));
 
@@ -119,7 +120,7 @@ public record LineChartConfig(ColumnDefinition domain,
         builder.append("<tr><th align=\"left\">Draw Shapes:</th><td>").append(drawShapes ? "Yes" : "No").append("</td>");
 
         builder.append("<tr><th align=\"left\"><u>Series</u></th><th align=\"left\"><u>Columns</u></th><td>");
-        final Map<SeriesDefinition, List<ValuesDefinition>> dataset = values.stream().collect(Collectors.groupingBy(ValuesDefinition::series));
+        final LinkedHashMap<SeriesDefinition, List<ValuesDefinition>> dataset = values.stream().collect(Collectors.groupingBy(ValuesDefinition::series, LinkedHashMap::new, Collectors.toList()));
         for (Map.Entry<SeriesDefinition, List<ValuesDefinition>> entry : dataset.entrySet()) {
             final SeriesDefinition key = entry.getKey();
             boolean first = true;
@@ -135,7 +136,7 @@ public record LineChartConfig(ColumnDefinition domain,
 
         if (expansions != null) {
             builder.append("<tr><th align=\"left\"><u>Expansions</u></th><th align=\"left\"><u>Columns</u></th><td>");
-            for (ColumnDefinition expansion : expansions) {
+            for (ChartColumn expansion : expansions) {
                 builder.append("<tr><th align=\"left\">").append("</th><td>").append(expansion.name()).append("</td>");
             }
         }
