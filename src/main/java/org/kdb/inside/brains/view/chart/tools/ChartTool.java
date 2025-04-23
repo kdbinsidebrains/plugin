@@ -32,13 +32,14 @@ public interface ChartTool extends Overlay {
 
     void chartChanged(ChartView view, SnapType snapType);
 
-    default void chartStyleChanged(JFreeChart chart, RendererConfig config, int datasetIndex, int seriesIndex) {
-    }
 
     default void chartMouseMoved(ChartMouseEvent event, Rectangle2D dataArea) {
     }
 
     default void chartMouseClicked(ChartMouseEvent event, Rectangle2D dataArea) {
+    }
+
+    default void chartStyleChanged(JFreeChart chart, RendererConfig config, int datasetIndex, int seriesIndex) {
     }
 
     @NotNull
