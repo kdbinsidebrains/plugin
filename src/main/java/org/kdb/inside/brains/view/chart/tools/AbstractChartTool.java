@@ -51,7 +51,7 @@ public abstract class AbstractChartTool extends AbstractOverlay implements Chart
         return description;
     }
 
-    protected double calculateDomainPoint(ChartMouseEvent event, Rectangle2D dataArea, boolean nearestPoint) {
+    protected static double calculateDomainPoint(ChartMouseEvent event, Rectangle2D dataArea, boolean nearestPoint) {
         final JFreeChart chart = event.getChart();
         if (!(chart.getPlot() instanceof XYPlot plot)) {
             return Double.NaN;
@@ -75,7 +75,7 @@ public abstract class AbstractChartTool extends AbstractOverlay implements Chart
         }
     }
 
-    protected double calculateRangePoint(ChartMouseEvent event, Rectangle2D dataArea, int rangeIndex) {
+    protected static double calculateRangePoint(ChartMouseEvent event, Rectangle2D dataArea, int rangeIndex) {
         final JFreeChart chart = event.getChart();
         if (!(chart.getPlot() instanceof XYPlot plot)) {
             return Double.NaN;
@@ -84,14 +84,13 @@ public abstract class AbstractChartTool extends AbstractOverlay implements Chart
         return yAxis.java2DToValue(event.getTrigger().getY(), dataArea, plot.getRangeAxisEdge());
     }
 
-    public Point2D calculateFirstValuePoint(ChartMouseEvent event, Rectangle2D dataArea, boolean nearestPoint) {
+    public static Point2D calculateFirstValuePoint(ChartMouseEvent event, Rectangle2D dataArea, boolean nearestPoint) {
         final double x = calculateDomainPoint(event, dataArea, nearestPoint);
         final double y = calculateValuePoint(event, x, 0, 0);
         return new Point2D.Double(x, y);
     }
 
-
-    protected double calculateValuePoint(ChartMouseEvent event, double domain, int datasetIndex, int seriesIndex) {
+    protected static double calculateValuePoint(ChartMouseEvent event, double domain, int datasetIndex, int seriesIndex) {
         final JFreeChart chart = event.getChart();
         if (!(chart.getPlot() instanceof XYPlot plot)) {
             return Double.NaN;

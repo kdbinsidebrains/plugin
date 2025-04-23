@@ -14,6 +14,8 @@ import org.jfree.chart.plot.Crosshair;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleAnchor;
 import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.data.general.DatasetUtils;
+import org.jfree.data.xy.OHLCDataset;
 import org.jfree.data.xy.XYDataset;
 import org.kdb.inside.brains.view.chart.ChartView;
 import org.kdb.inside.brains.view.chart.RendererConfig;
@@ -23,18 +25,21 @@ import org.kdb.inside.brains.view.chart.tools.AbstractChartTool;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CrosshairTool extends AbstractChartTool {
     private SnapType snapType;
 
-    private Crosshair chDomain;
-    private final List<IndexedCrosshair> chValues = new ArrayList<>();
-
-    private final CrosshairOverlayProxy crosshairProxy = new CrosshairOverlayProxy();
+    private DomainCrosshair chDomain;
+    private final List<RangeCrosshair> chValues = new ArrayList<>();
 
     public static final String ID = "CROSSHAIR";
+
+    private static final Drawer DRAWER = new Drawer();
+
+    private static final NumberFormat FORMAT = NumberFormat.getNumberInstance();
 
     private static final BasicStroke STROKE = new BasicStroke(0.5F);
     private static final BasicStroke CROSSHAIR_STROKE = new BasicStroke(1.5F);
@@ -60,8 +65,9 @@ public class CrosshairTool extends AbstractChartTool {
         this.snapType = snapType;
 
         final XYPlot plot = view.chart().getXYPlot();
-        chDomain = createCrosshair(plot, true, plot.getDomainAxisLocation(), 0, 0);
+        chDomain = new DomainCrosshair(plot.getDomainAxisLocation(), plot.getDomainAxis());
         chValues.addAll(snapType == SnapType.NO ? createAxisCrosshair(plot) : createSnapCrosshair(plot));
+
         fireOverlayChanged();
     }
 
@@ -71,9 +77,11 @@ public class CrosshairTool extends AbstractChartTool {
             return;
         }
 
-        final IndexedCrosshair c = getValuesCrosshair(datasetIndex, seriesIndex);
-        if (c != null) {
-            c.setLabelOutlinePaint(config.color());
+        for (RangeCrosshair value : chValues) {
+            if (value instanceof IndexedCrosshair ic && ic.dataset == datasetIndex && ic.series == seriesIndex) {
+                ic.setLabelOutlinePaint(config.color());
+                break;
+            }
         }
 
         fireOverlayChanged();
@@ -85,17 +93,11 @@ public class CrosshairTool extends AbstractChartTool {
             return;
         }
 
-        final double x = calculateDomainPoint(event, dataArea, snapType == SnapType.VERTEX);
-        chDomain.setValue(x);
+        chDomain.updateValue(event, dataArea, snapType == SnapType.VERTEX ? 0 : 1);
 
-        for (IndexedCrosshair ch : chValues) {
-            final double y;
-            if (snapType == SnapType.NO) {
-                y = calculateRangePoint(event, dataArea, ch.dataset);
-            } else {
-                y = calculateValuePoint(event, x, ch.dataset, ch.series);
-            }
-            ch.setValue(y);
+        final double x = chDomain.getValue();
+        for (MyCrosshair ch : chValues) {
+            ch.updateValue(event, dataArea, x);
         }
         fireOverlayChanged();
     }
@@ -117,107 +119,274 @@ public class CrosshairTool extends AbstractChartTool {
         final RectangleEdge xAxisEdge = plot.getDomainAxisEdge();
 
         final double x = xAxis.valueToJava2D(chDomain.getValue(), dataArea, xAxisEdge);
-        crosshairProxy.drawVerticalCrosshair(g2, dataArea, x, chDomain);
+        DRAWER.drawVerticalCrosshair(g2, dataArea, x, chDomain);
 
-        for (IndexedCrosshair ch : chValues) {
+        for (RangeCrosshair ch : chValues) {
             final ValueAxis yAxis = plot.getRangeAxis(ch.dataset);
             final RectangleEdge yAxisEdge = plot.getRangeAxisEdge(ch.dataset);
-            final double y = yAxis.valueToJava2D(ch.getValue(), dataArea, yAxisEdge);
-            crosshairProxy.drawHorizontalCrosshair(g2, dataArea, y, ch);
+            ch.paint(g2, dataArea, yAxis, yAxisEdge);
         }
-
         g2.setClip(savedClip);
     }
 
-    private IndexedCrosshair getValuesCrosshair(int datasetIndex, int seriesIndex) {
-        for (IndexedCrosshair c : chValues) {
-            if (c.dataset == datasetIndex && c.series == seriesIndex) {
-                return c;
-            }
-        }
-        return null;
-    }
-
-    private List<IndexedCrosshair> createAxisCrosshair(XYPlot plot) {
-        final List<IndexedCrosshair> res = new ArrayList<>();
+    private List<AxisCrosshair> createAxisCrosshair(XYPlot plot) {
+        final List<AxisCrosshair> res = new ArrayList<>();
         final int rangeAxisCount = plot.getRangeAxisCount();
+        final Map<AxisLocation, AxisCrosshair> r = new HashMap<>();
         for (int i = 0; i < rangeAxisCount; i++) {
-            res.add(createCrosshair(plot, false, plot.getRangeAxisLocation(i), i, 0));
-        }
-        return res;
-    }
+            final ValueAxis axis = plot.getRangeAxis(i);
 
-    private List<IndexedCrosshair> createSnapCrosshair(XYPlot plot) {
-        final List<IndexedCrosshair> res = new ArrayList<>();
-        final int datasetCount = plot.getDatasetCount();
-        for (int set = 0; set < datasetCount; set++) {
-            final XYDataset dataset = plot.getDataset(set);
-            final AxisLocation rangeAxisLocation = plot.getRangeAxisLocation(set);
-            final int seriesCount = dataset.getSeriesCount();
-            for (int ser = 0; ser < seriesCount; ser++) {
-                final IndexedCrosshair crosshair = createCrosshair(plot, false, rangeAxisLocation, set, ser);
-                final Paint paint = plot.getRenderer(set).getSeriesPaint(ser);
-                if (paint != null) {
-                    crosshair.setLabelOutlinePaint(paint);
-                }
+            final AxisLocation location = plot.getRangeAxisLocation(i);
+
+            AxisCrosshair crosshair = r.get(location);
+            if (crosshair == null) {
+                crosshair = new AxisCrosshair(location, i);
+                r.put(location, crosshair);
                 res.add(crosshair);
             }
+
+            crosshair.add(axis.getLabel(), i);
         }
         return res;
     }
 
-    private IndexedCrosshair createCrosshair(XYPlot plot, boolean domain, AxisLocation location, int datasetIndex, int seriesIndex) {
-        final IndexedCrosshair crosshair = new IndexedCrosshair(datasetIndex, seriesIndex);
-        crosshair.setPaint(CROSSHAIR_PAINT);
-        crosshair.setStroke(STROKE);
-        crosshair.setValue(Double.NaN);
-        crosshair.setLabelVisible(true);
-        crosshair.setLabelPaint(CROSSHAIR_LABEL);
-        crosshair.setLabelOutlineVisible(true);
-        crosshair.setLabelOutlinePaint(CROSSHAIR_OUTLINE);
-        crosshair.setLabelOutlineStroke(CROSSHAIR_STROKE);
-        crosshair.setLabelBackgroundPaint(CROSSHAIR_BACKGROUND);
+    private List<RangeCrosshair> createSnapCrosshair(XYPlot plot) {
+        final List<RangeCrosshair> res = new ArrayList<>();
+        final int datasetCount = plot.getDatasetCount();
+        for (int set = 0; set < datasetCount; set++) {
+            final AxisLocation location = plot.getRangeAxisLocation(set);
 
-        crosshair.setLabelAnchor(convertLocation(location, domain));
-        final ValueAxis domainAxis = plot.getDomainAxis();
-        if (domain && domainAxis instanceof DateAxis dateAxis) {
-            crosshair.setLabelGenerator(g -> dateAxis.getTickUnit().valueToString(g.getValue()));
-        } else {
-            crosshair.setLabelGenerator(new StandardCrosshairLabelGenerator("  {0}  ", NumberFormat.getNumberInstance()));
+            final XYDataset dataset = plot.getDataset(set);
+            final int seriesCount = dataset.getSeriesCount();
+
+            if (dataset instanceof OHLCDataset) {
+                for (int ser = 0; ser < seriesCount; ser++) {
+                    res.add(new OHLCCrosshair(location, set, ser));
+                }
+            } else {
+                for (int ser = 0; ser < seriesCount; ser++) {
+                    final IndexedCrosshair crosshair = new IndexedCrosshair(location, set, ser);
+                    final Paint paint = plot.getRenderer(set).getSeriesPaint(ser);
+                    if (paint != null) {
+                        crosshair.setLabelOutlinePaint(paint);
+                    }
+                    res.add(crosshair);
+                }
+            }
         }
-        return crosshair;
+        return res;
     }
 
-    private static RectangleAnchor convertLocation(AxisLocation location, boolean domain) {
-        if (location == AxisLocation.BOTTOM_OR_LEFT) {
-            return domain ? RectangleAnchor.BOTTOM : RectangleAnchor.LEFT;
+    private abstract static class MyCrosshair extends Crosshair {
+        public MyCrosshair(AxisLocation location) {
+            setPaint(CROSSHAIR_PAINT);
+            setStroke(STROKE);
+            setValue(Double.NaN);
+            setLabelVisible(true);
+            setLabelPaint(CROSSHAIR_LABEL);
+            setLabelOutlineVisible(true);
+            setLabelOutlinePaint(CROSSHAIR_OUTLINE);
+            setLabelOutlineStroke(CROSSHAIR_STROKE);
+            setLabelBackgroundPaint(CROSSHAIR_BACKGROUND);
+
+            setLabelAnchor(convertLocation(location));
+            setLabelGenerator(new StandardCrosshairLabelGenerator("  {0}  ", FORMAT));
         }
-        if (location == AxisLocation.TOP_OR_LEFT) {
-            return domain ? RectangleAnchor.TOP : RectangleAnchor.LEFT;
+
+        protected RectangleAnchor convertLocation(AxisLocation location) {
+            if (location == AxisLocation.BOTTOM_OR_LEFT || location == AxisLocation.TOP_OR_LEFT) {
+                return RectangleAnchor.LEFT;
+            }
+            if (location == AxisLocation.BOTTOM_OR_RIGHT || location == AxisLocation.TOP_OR_RIGHT) {
+                return RectangleAnchor.RIGHT;
+            }
+            return null;
         }
-        if (location == AxisLocation.BOTTOM_OR_RIGHT) {
-            return domain ? RectangleAnchor.BOTTOM : RectangleAnchor.RIGHT;
+
+        void updateValue(ChartMouseEvent event, Rectangle2D dataArea, double x) {
+            setValue(calculateValue(event, dataArea, x));
         }
-        if (location == AxisLocation.TOP_OR_RIGHT) {
-            return domain ? RectangleAnchor.TOP : RectangleAnchor.RIGHT;
-        }
-        return null;
+
+        abstract double calculateValue(ChartMouseEvent event, Rectangle2D dataArea, double x);
     }
 
-    private static class IndexedCrosshair extends Crosshair {
-        private final int dataset;
+    private abstract static class RangeCrosshair extends MyCrosshair {
+        protected final int dataset;
+
+        public RangeCrosshair(AxisLocation location, int dataset) {
+            super(location);
+            this.dataset = dataset;
+        }
+
+        void paint(Graphics2D g2, Rectangle2D dataArea, ValueAxis axis, RectangleEdge edge) {
+            final double y = axis.valueToJava2D(getValue(), dataArea, edge);
+            DRAWER.drawHorizontalCrosshair(g2, dataArea, y, this);
+        }
+    }
+
+    private static class DomainCrosshair extends MyCrosshair {
+        public DomainCrosshair(AxisLocation location, ValueAxis domainAxis) {
+            super(location);
+
+            if (domainAxis instanceof DateAxis da) {
+                setLabelGenerator(g -> da.getTickUnit().valueToString(g.getValue()));
+            }
+        }
+
+        @Override
+        protected RectangleAnchor convertLocation(AxisLocation location) {
+            if (location == AxisLocation.BOTTOM_OR_LEFT || location == AxisLocation.BOTTOM_OR_RIGHT) {
+                return RectangleAnchor.BOTTOM;
+            }
+            if (location == AxisLocation.TOP_OR_LEFT || location == AxisLocation.TOP_OR_RIGHT) {
+                return RectangleAnchor.TOP;
+            }
+            return null;
+        }
+
+        @Override
+        double calculateValue(ChartMouseEvent event, Rectangle2D dataArea, double x) {
+            return calculateDomainPoint(event, dataArea, x == 0);
+        }
+    }
+
+    private static class AxisCrosshair extends RangeCrosshair {
+        private final List<AxisDetails> details = new ArrayList<>();
+
+        public AxisCrosshair(AxisLocation location, int axisIndex) {
+            super(location, axisIndex);
+            setLabelGenerator(crosshair -> " " + details.stream().map(d -> d.name + ": " + FORMAT.format(d.value)).collect(Collectors.joining(", ")) + " ");
+        }
+
+        public void add(String name, int axesIndex) {
+            details.add(new AxisDetails(name, axesIndex));
+        }
+
+        @Override
+        double calculateValue(ChartMouseEvent event, Rectangle2D dataArea, double x) {
+            for (AxisDetails detail : details) {
+                detail.value = calculateRangePoint(event, dataArea, detail.axisIndex);
+            }
+            return calculateRangePoint(event, dataArea, dataset);
+        }
+
+        static class AxisDetails {
+            final String name;
+            final int axisIndex;
+            double value;
+
+            public AxisDetails(String name, int axisIndex) {
+                this.name = name;
+                this.axisIndex = axisIndex;
+            }
+        }
+    }
+
+    private static class IndexedCrosshair extends RangeCrosshair {
         private final int series;
 
-        public IndexedCrosshair(int dataset, int series) {
-            this.dataset = dataset;
+        public IndexedCrosshair(AxisLocation location, int dataset, int series) {
+            super(location, dataset);
             this.series = series;
+        }
+
+        @Override
+        double calculateValue(ChartMouseEvent event, Rectangle2D dataArea, double x) {
+            return calculateValuePoint(event, x, dataset, series);
+        }
+    }
+
+    private static class OHLCCrosshair extends RangeCrosshair {
+        private final int series;
+
+        private String label;
+
+        private static final String[] NAMES = new String[]{
+                "Open",
+                "High",
+                "Low",
+                "Close",
+        };
+        private static final ValueSupplier[] SUPPLIERS = new ValueSupplier[]{
+                OHLCDataset::getOpenValue,
+                OHLCDataset::getHighValue,
+                OHLCDataset::getLowValue,
+                OHLCDataset::getCloseValue,
+        };
+
+        private final double[] values = new double[SUPPLIERS.length];
+
+        public OHLCCrosshair(AxisLocation location, int dataset, int series) {
+            super(location, dataset);
+            this.series = series;
+            clearValues();
+            setLabelGenerator(crosshair -> label + ": " + FORMAT.format(getValue()));
+        }
+
+        @Override
+        void paint(Graphics2D g2, Rectangle2D dataArea, ValueAxis axis, RectangleEdge edge) {
+            for (int i = 0; i < values.length; i++) {
+                final double value = values[i];
+                if (Double.isNaN(value)) {
+                    continue;
+                }
+                final double y = axis.valueToJava2D(value, dataArea, edge);
+                label = NAMES[i];
+                setValue(value);
+                DRAWER.drawHorizontalCrosshair(g2, dataArea, y, this);
+            }
+        }
+
+        @Override
+        void updateValue(ChartMouseEvent event, Rectangle2D dataArea, double x) {
+            if (!(event.getChart().getXYPlot().getDataset(dataset) instanceof OHLCDataset ds)) {
+                clearValues();
+                return;
+            }
+
+            final int[] indices = DatasetUtils.findItemIndicesForX(ds, series, x);
+            if (indices[0] < 0) {
+                clearValues();
+                return;
+            }
+
+            for (int i = 0; i < SUPPLIERS.length; i++) {
+                final ValueSupplier supplier = SUPPLIERS[i];
+                values[i] = getValue(ds, supplier, x, indices[0], indices[1]);
+            }
+        }
+
+        void clearValues() {
+            Arrays.fill(values, Double.NaN);
+        }
+
+        // See DatasetUtils#findYValue
+        double getValue(OHLCDataset ds, ValueSupplier supplier, double x, int i1, int i2) {
+            if (i1 == i2) {
+                return supplier.get(ds, series, i1);
+            }
+            double x0 = ds.getXValue(series, i1);
+            double x1 = ds.getXValue(series, i2);
+            double y0 = supplier.get(ds, series, i1);
+            double y1 = supplier.get(ds, series, i2);
+            return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+        }
+
+        @Override
+        double calculateValue(ChartMouseEvent event, Rectangle2D dataArea, double x) {
+            return Double.NaN; // not in use
+        }
+
+        @FunctionalInterface
+        interface ValueSupplier {
+            double get(OHLCDataset ds, int series, int item);
         }
     }
 
     /**
      * Simple proxy to get rid of CrosshairOverlay extension
      */
-    private static class CrosshairOverlayProxy extends CrosshairOverlay {
+    private static class Drawer extends CrosshairOverlay {
         @Override
         protected void drawHorizontalCrosshair(Graphics2D g2, Rectangle2D dataArea, double y, Crosshair crosshair) {
             super.drawHorizontalCrosshair(g2, dataArea, y, crosshair);

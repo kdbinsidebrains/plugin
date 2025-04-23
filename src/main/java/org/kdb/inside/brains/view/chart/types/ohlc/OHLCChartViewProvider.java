@@ -26,6 +26,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -63,8 +64,13 @@ public class OHLCChartViewProvider extends ChartViewProvider<JPanel, OHLCChartCo
         final double[] close = dataProvider.getDoubles(config.closeColumn());
 
         final ChartColumn volumeColumn = config.volumeColumn();
-        final double[] volume = volumeColumn == null ? new double[dataProvider.getRowsCount()] : dataProvider.getDoubles(volumeColumn);
-
+        final double[] volume;
+        if (volumeColumn == null) {
+            volume = new double[dataProvider.getRowsCount()];
+            Arrays.fill(volume, Double.NaN);
+        } else {
+            volume = dataProvider.getDoubles(volumeColumn);
+        }
         return new DefaultHighLowDataset("", dates, high, low, open, close, volume);
     }
 
