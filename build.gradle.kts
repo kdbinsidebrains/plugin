@@ -116,7 +116,7 @@ intellijPlatform {
     }
 
     publishing {
-        token.set(environment("KDBINSIDEBRAIS_RELEASE_PLUGIN_TOKEN", ""))
+        token.set(environment("KDBINSIDEBRAINS_RELEASE_PLUGIN_TOKEN", ""))
 //        channels.set(listOf(environment("CHANNELS", "Testing")))
     }
 
