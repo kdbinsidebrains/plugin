@@ -199,8 +199,8 @@ tasks {
 
         publications {
             create<MavenPublication>("mavenJava") {
-                artifactId = "plugin"
-                groupId = properties("pluginId")
+                groupId = properties("mavenGroupId")
+                artifactId = properties("mavenArtifactId")
                 version = project.version.toString()
 
                 artifact(project.tasks.named("jar")) {
