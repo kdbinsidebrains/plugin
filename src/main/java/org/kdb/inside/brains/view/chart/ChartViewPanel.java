@@ -6,8 +6,6 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -43,6 +41,8 @@ import java.io.FileWriter;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.function.Supplier;
+
+import static org.kdb.inside.brains.UIUtils.saveFile;
 
 public class ChartViewPanel extends ChartPanel {
     private final Supplier<List<ActionGroup>> popupActionsProvider;
@@ -92,8 +92,7 @@ public class ChartViewPanel extends ChartPanel {
         final EdtAction png = new EdtAction("PNG...", "Save as PNG image", null) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                final FileSaverDescriptor d = new FileSaverDescriptor("Save as PNG Image", "Save chart view as PNG image", "png");
-                final VirtualFileWrapper file = FileChooserFactory.getInstance().createSaveFileDialog(d, e.getProject()).save(null);
+                final VirtualFileWrapper file = saveFile(e.getProject(), "Save as PNG Image", "Save chart view as PNG image", "png");
                 if (file == null) {
                     return;
                 }
@@ -110,8 +109,7 @@ public class ChartViewPanel extends ChartPanel {
         final EdtAction svg = new EdtAction("SVG...", "Save as SVG image", null) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                final FileSaverDescriptor d = new FileSaverDescriptor("Save as SVG Image", "Save chart view as SVG image", "svg");
-                final VirtualFileWrapper file = FileChooserFactory.getInstance().createSaveFileDialog(d, e.getProject()).save(null);
+                final VirtualFileWrapper file = saveFile(e.getProject(), "Save as SVG Image", "Save chart view as SVG image", "svg");
                 if (file == null) {
                     return;
                 }

@@ -4,9 +4,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
-import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
@@ -22,6 +19,8 @@ import org.kdb.inside.brains.core.KdbScopeHelper;
 import java.io.FileWriter;
 import java.util.List;
 import java.util.function.Supplier;
+
+import static org.kdb.inside.brains.UIUtils.saveFile;
 
 public class ExportScopesAction extends BgtAction {
     private static final Logger log = Logger.getInstance(ExportScopesAction.class);
@@ -55,11 +54,7 @@ public class ExportScopesAction extends BgtAction {
         }
 
         final Project project = e.getProject();
-
-        final FileSaverDescriptor descriptor = new FileSaverDescriptor("Export Kdb Scopes", "Exporting " + scopes.size() + " scope(s) into external xml file", "xml");
-        final FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project);
-
-        final VirtualFileWrapper file = dialog.save("KdbScopes");
+        final VirtualFileWrapper file = saveFile(project, "Export Kdb Scopes", "Exporting " + scopes.size() + " scope(s) into external xml file", "xml", "KdbScopes");
         if (file == null) {
             return;
         }

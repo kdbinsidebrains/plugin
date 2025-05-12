@@ -1,8 +1,5 @@
 package org.kdb.inside.brains.view.export;
 
-import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
-import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
@@ -22,6 +19,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import static org.kdb.inside.brains.UIUtils.saveFile;
+
 public class ExcelExportAction extends AnExportAction<File> {
     private final boolean saveOnDisk;
 
@@ -37,9 +36,7 @@ public class ExcelExportAction extends AnExportAction<File> {
     @Override
     protected File getExportConfig(Project project, ExportDataProvider dataProvider) throws IOException {
         if (saveOnDisk) {
-            final FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Export to Excel", "Exporting data into Excel file format", "xlsx");
-            final FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, project);
-            final VirtualFileWrapper vfw = saveFileDialog.save(dataProvider.getExportName());
+            final VirtualFileWrapper vfw = saveFile(project, "Export to Excel", "Exporting data into Excel file format", "xlsx", dataProvider.getExportName());
             return vfw == null ? null : vfw.getFile();
         } else {
             return File.createTempFile("kdbinsidebrains_excel_export_", ".xlsx");

@@ -2,7 +2,7 @@ package org.kdb.inside.brains.view.chart.types.line;
 
 import com.intellij.openapi.util.JDOMUtil;
 import org.jdom.JDOMException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.chart.ChartColumn;
 

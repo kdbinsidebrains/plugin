@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
@@ -19,6 +17,8 @@ import javax.swing.*;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+
+import static org.kdb.inside.brains.UIUtils.saveFile;
 
 public class JsonExportAction extends AnExportAction<VirtualFileWrapper> {
     private static final c.Flip EMPTY_FLIP = new c.Flip(new c.Dict(new String[0], new Object[0]));
@@ -38,8 +38,7 @@ public class JsonExportAction extends AnExportAction<VirtualFileWrapper> {
 
     @Override
     protected VirtualFileWrapper getExportConfig(Project project, ExportDataProvider view) {
-        final FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Export to JSON", "Exporting data into JSON file format", "json");
-        return FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, project).save(view.getExportName());
+        return saveFile(project, "Export to JSON", "Exporting data into JSON file format", "json", view.getExportName());
     }
 
     @Override

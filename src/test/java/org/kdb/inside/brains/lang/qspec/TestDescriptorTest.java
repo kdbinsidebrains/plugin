@@ -3,7 +3,7 @@ package org.kdb.inside.brains.lang.qspec;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.kdb.inside.brains.psi.QFile;
 import org.kdb.inside.brains.psi.QInvokeFunction;
 

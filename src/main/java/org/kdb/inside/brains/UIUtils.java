@@ -6,6 +6,8 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Experiments;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.*;
@@ -13,6 +15,7 @@ import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithHistoryWithBrowseButton;
@@ -240,5 +243,14 @@ public final class UIUtils {
         } else {
             throw new UnsupportedOperationException("Unsupported field type: " + field.getClass());
         }
+    }
+
+    public static @Nullable VirtualFileWrapper saveFile(Project project, String title, String description, String extension) {
+        return saveFile(project, title, description, extension, null);
+    }
+
+    public static @Nullable VirtualFileWrapper saveFile(Project project, String title, String description, String extension, String file) {
+        final FileSaverDescriptor d = new FileSaverDescriptor(title, description, new String[]{extension});
+        return FileChooserFactory.getInstance().createSaveFileDialog(d, project).save(file);
     }
 }
