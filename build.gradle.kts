@@ -155,20 +155,21 @@ tasks {
     }
 
     generateParser {
+        purgeOldFiles.set(true)
+
+        pathToPsiRoot.set("org/kdb/inside/brains/psi")
+        pathToParser.set("org/kdb/inside/brains/parser/QParser.java")
         sourceFile.set(file("src/main/resources/org/kdb/inside/brains/q.bnf"))
         targetRootOutputDir.set(file("src/main/gen"))
-        pathToParser.set("org/kdb/inside/brains/parser/QParser.java")
-        pathToPsiRoot.set("org/kdb/inside/brains/psi")
-        purgeOldFiles.set(true)
     }
 
     generateLexer {
+        dependsOn(generateParser)
+
+        targetFile("QLexer")
+        purgeOldFiles.set(false) // if enabled, removes files created by generateParser
         sourceFile.set(file("src/main/resources/org/kdb/inside/brains/q.flex"))
         targetOutputDir.set(file("src/main/gen/org/kdb/inside/brains"))
-        targetFile("QLexer")
-        purgeOldFiles.set(true)
-
-        dependsOn(generateParser)
     }
 
     compileJava {
