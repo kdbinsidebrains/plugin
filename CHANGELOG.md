@@ -1,6 +1,16 @@
 # KdbInsideBrains Changelog
 
-## [6.1.0]
+## 6.1.1
+
+### Changed
+
+Technical release:
+
+- Migration to the latest JetBrains Gradle Build v2
+- IDEA 5.1.1 is set as default
+- Maven repository migrated to Central Portal from OSSRH that is decommissioning soon
+
+## 6.1.0
 
 ### Changed
 
@@ -13,13 +23,13 @@
 
 - #122: QSpec configurable can't be created
 
-## [6.0.1]
+## 6.0.1
 
 ### Fixed
 
 - StackOverFlow at parsing inner lambdas inside a context definition
 
-## [6.0.0]
+## 6.0.0
 
 ### Added
 
@@ -35,7 +45,7 @@
 - Structure View redesigned and optimized
 - NavBar redesigned and optimized
 
-## [5.15.3]
+## 5.15.3
 
 ### Fixed
 
@@ -50,7 +60,7 @@
 
 - Key column prefix shown in the TableResult view only without exporting or coping to other formats.
 
-## [5.15.2]
+## 5.15.2
 
 ### Fixed
 
@@ -62,7 +72,7 @@
   - if there is more than one definition with the same semantic - the longest description is shown
   - if there is more than one definition with differing semantics - list of all definitions is shown
 
-## [5.15.1]
+## 5.15.1
 
 ### Added
 
@@ -72,7 +82,7 @@
 
 - Table View can be totally hidden in a'Split Left/Down' layout: minimal size added to resolve
 
-## [5.15.0]
+## 5.15.0
 
 ### Added
 
@@ -91,20 +101,20 @@
 - InstancesTree freezes in 2025.x version
 - Creating global undefined function works as expected now
 
-## [5.14.3]
+## 5.14.3
 
 ### Fixed
 
 - KDB SDK functionality works in IDEA >= 2023.2
 - Connect with specified scope restored in Instances Toolbar
 
-## [5.14.2]
+## 5.14.2
 
 ### Added
 
 - IDEA 2025.1 added to the supporting list
 
-## [5.14.0]
+## 5.14.0
 
 ### Changed
 
@@ -113,16 +123,15 @@
   - Added an ability to ungroup data by any symbol/text field and show as a separate line
   - Line style can be changed (color, width and so on) by clicking on the legend title now: settings are not stored
     over restarts yet
-
 - Charting templates are not backward compatible and will be removed after the upgrade due to significant changes
 
-## [5.13.1]
+## 5.13.1
 
 ### Fixed
 
 - XMas key column option added to the Settings panel
 
-## [5.13.0]
+## 5.13.0
 
 ### Changed
 
@@ -131,7 +140,7 @@
   - the plugin file can be copied to <user.home>/.kdbinb for auto-installation alongside UI settings
   - Connection Settings dialog supports dynamic plugins reloading (by "Apply" button) now
 
-## [5.12.0]
+## 5.12.0
 
 ### Added
 
@@ -139,43 +148,43 @@
 - Symbols declared as a variable in any form support cross-links to/from the declaration and can be renamed
 - Structure view performance improved
 
-## [5.11.1]
+## 5.11.1
 
 ### Fixed
 
 - Loading Authentication plugin restored
 
-## [5.11.0]
+## 5.11.0
 
 ### Changed
 
 - IDEA 2024.3 Internal API dependency usage resolved
 
-## [5.10.1]
+## 5.10.1
 
 ### Fixed
 
 - Issue #104: In 2024.2, instances do not split console history
 
-## [5.10.0]
+## 5.10.0
 
 ### Changed
 
 - Idea 2024.3 added into the supporting list with deprecated code refactoring
 
-## [5.9.2]
+## 5.9.2
 
 ### Fixed
 
 - Various typos fixed
 
-## [5.9.1]
+## 5.9.1
 
 ### Fixed
 
 - Width of "Port" field in "Instance Editor" dialog fixed to show five numbers.
 
-## [5.9.0]
+## 5.9.0
 
 ### Changed
 
@@ -185,13 +194,13 @@
 
 - Context menu for TableResult is visible now
 
-## [5.8.3]
+## 5.8.3
 
 ### Fixed
 
 - Issues 101: mode highlighting is used for a variable at the end of line sometimes
 
-## [5.8.2]
+## 5.8.2
 
 ### Fixed
 
@@ -201,13 +210,13 @@
 
 - The Inspector query and navigation performance improved
 
-## [5.8.1]
+## 5.8.1
 
 ### Fixed
 
 - Masking underscore in 'Execute file' action name.
 
-## [5.8.0]
+## 5.8.0
 
 ### Added
 
@@ -227,13 +236,13 @@
 - Docking deprecation API resolved
 - IDEA 2024 @ApiStatus.OverrideOnly issues resolved
 
-## [5.7.1]
+## 5.7.1
 
 ### Added
 
 - In TableView new line char is shown as '"↵" U+21B5 Downwards Arrow with Corner Leftwards' char.
 
-## [5.7.0]
+## 5.7.0
 
 ### Added
 
@@ -244,13 +253,13 @@
 - In 'Send Data Into' active connection is always at top with a separator
 - Any 'Export' action uses the tab name for the file name
 
-## [5.6.0]
+## 5.6.0
 
 ### Changed
 
 - IDEA 2024.1 is the default dev version. Deprecation errors removed. Grammar Kit upgraded to 2022.3.2.2.
 
-## [5.5.2]
+## 5.5.2
 
 ### Fixed
 
@@ -262,13 +271,13 @@
 
 - Editors to connection binding stored in settings now
 
-## [5.5.1]
+## 5.5.1
 
 ### Fixed
 
 - issue #96: floating point precision Exception
 
-## [5.5.0]
+## 5.5.0
 
 ### Added
 
@@ -278,7 +287,7 @@
 
 - _Structure View_ doesn't display a loading file for import system function.
 
-## [5.4.0]
+## 5.4.0
 
 ### Added
 
@@ -289,7 +298,7 @@
 
 - Numerical Format settings moved into a separate configuration section in the Settings
 
-## [5.3.0]
+## 5.3.0
 
 ### Added
 
@@ -303,7 +312,7 @@
 
 - Table View scroll doesn't work in NewUI when row number column is enabled.
 
-## [5.2.1]
+## 5.2.1
 
 ### Fixed
 
@@ -314,14 +323,14 @@
 
 - Minor code improvements
 
-## [5.2.0]
+## 5.2.0
 
 ### Added
 
 - CodePage added to InstanceOption that allows to specify which charset encoding should be used for encoding/decoding
   text data.
 
-## [5.1.0]
+## 5.1.0
 
 ### Added
 
@@ -339,7 +348,7 @@
 
 - RegEx and WholeWord search fixed in TableResult view
 
-## [5.0.1]
+## 5.0.1
 
 ### Changed
 
@@ -350,7 +359,7 @@
 
 - Search in InstancesTree not cancelled by Esc (issue #83)
 
-## [5.0.0]
+## 5.0.0
 
 ### Added
 
@@ -362,14 +371,14 @@
 
 - Adding and removing Facet to a project causes many issues in ToolWindows manipulation
 
-## [4.6.0]
+## 4.6.0
 
 ### Changed
 
 - CredentialProvider redesigned to process hostname/port along with credentials as username/port is required for some
   authentication methods.
 
-## [4.5.0]
+## 4.5.0
 
 ### Added
 
@@ -385,13 +394,13 @@
 - HDB table raises an error: the table is returned in format `col1...`colN!`<tableName> and can't be cast to Flip so
   returned as Dict now instead.
 
-## [4.4.1]
+## 4.4.1
 
 ### Fixed
 
 - Code Completion causes deadlock from time to time: issue #76
 
-## [4.4.0]
+## 4.4.0
 
 ### Added
 
@@ -408,7 +417,7 @@
 - Charting takes into account local timezone for drawing the correct scale
 - Measure charting tool shows temporal values for domain
 
-## [4.3.0]
+## 4.3.0
 
 ### Added
 
@@ -420,19 +429,19 @@
 
 - Running query icon size fixed for coloured elements in InstanceView
 
-## [4.2.2]
+## 4.2.2
 
 ### Fixed
 
 - Supporting of sorted dictionaries (type 127) added
 
-## [4.2.1]
+## 4.2.1
 
 ### Fixed
 
 - Table Result tab is not visible in slat few for the first result.
 
-## [4.2.0]
+## 4.2.0
 
 ### Added
 
@@ -445,13 +454,13 @@
 - Expanding the value of a dictionary uses the key name (if it's a string) for new tab name instead of default "Expanded
   Result"
 
-## [4.1.1]
+## 4.1.1
 
 ### Added
 
 - 2023.2 EAP version checked and added to a supported list
 
-## [4.1.0]
+## 4.1.0
 
 ### Added
 
@@ -469,7 +478,7 @@
 
 - Moving an Instance Tree item to a wrong position causes an exception.
 
-## [4.0.0]
+## 4.0.0
 
 ### Changed
 
@@ -480,7 +489,7 @@
 
 - QuickInstance toolbar for NewUI
 
-## [3.8.1]
+## 3.8.1
 
 ### Added
 
@@ -491,14 +500,14 @@
 
 - 'Execute ...' menu only is visible for Q/K files.
 
-## [3.7.1]
+## 3.7.1
 
 ### Fixed
 
 - 'Table Result' is opened even there is no table result.
 - Active instance style changed to bold underline.
 
-## [3.7.0]
+## 3.7.0
 
 ### Added
 
@@ -510,19 +519,19 @@
   option. Enabled by default).
 - If a query returns not a table, 'Table Result' view is cleaned (configuration option. Enabled by default)
 
-## [3.6.3]
+## 3.6.3
 
 ### Fixed
 
 - Backward capability of 2020.* restored for charting
 
-## [3.6.2]
+## 3.6.2
 
 ### Fixed
 
 - KDB SDK supporting for macOS added
 
-## [3.6.1]
+## 3.6.1
 
 ### Fixed
 
@@ -531,7 +540,7 @@
 - Remove Unused Variable action takes into account context and removed only var definition inside conditions and
   controls.
 
-## [3.6.0]
+## 3.6.0
 
 ### Added
 
@@ -548,14 +557,14 @@
 
 - Connect/disconnect actions in InstancesTree moved to the left
 
-## [3.5.1]
+## 3.5.1
 
 ### Fixed
 
 - Reference resoling performance was improved to resolve Execution actions slow preparation
 - IndexColumn updated after filtering in TableView
 
-## [3.5.0]
+## 3.5.0
 
 ### Added
 
@@ -568,7 +577,7 @@
 
 - Changelog fixed
 
-## [3.4.0]
+## 3.4.0
 
 ### Added
 
@@ -590,7 +599,7 @@
 - Variables defined in the Inspector are ignored by UndefinedVariableInspection now
 - Issue #61 fixed - the inspection is ignored for complex system "l ",... constructions
 
-## [3.3.0]
+## 3.3.0
 
 ### Added
 
@@ -598,13 +607,13 @@
 - Index Column in a Table View enabled by default.
 - Inspector scan on a connected option enabled by default.
 
-## [3.2.1]
+## 3.2.1
 
 ### Fixed
 
 - Search by canonical name in the Inspector
 
-## [3.2.0]
+## 3.2.0
 
 ### Added
 
@@ -618,7 +627,7 @@
 - NewUI support removed for now as causes more errors
 - memory leak error for InstancesTree fixed (disposed via Disposer now)
 
-## [3.1.0]
+## 3.1.0
 
 ### Added
 
@@ -628,7 +637,7 @@
 
 - Tabs memory leak in InstancesTree fixed.
 
-## [3.0.0]
+## 3.0.0
 
 ### Added
 
@@ -647,18 +656,17 @@
 
 - Many typos and minor issues fixed
 
-## [2.1.0]
+## 2.1.0
 
 ### Added
 
 - An ability to run a *.q file from the project tree has been added.
 
-## [2.0.0]
+## 2.0.0
 
 ### Added
 
 - All major features have been finally implemented, so the version changed to major 2.x.x from now.
-
 - Library and Module dependencies have been added. Please select 'KDB+ Q Source' library type to add external source
   code to a project (like core files) for navigation and indexing.
 
@@ -667,7 +675,7 @@
 - InstanceTreeView memory leak fixed and the structure is correctly disposed now
 - Some names in usages' dialog fixed
 
-## [1.15.0]
+## 1.15.0
 
 ### Added
 
@@ -683,14 +691,14 @@
 - All possible deprecated and marked for removal warnings were resolved.
 - issue #58: charting time values are offset - wrong timezone is used for date/time axis
 
-## [1.14.0]
+## 1.14.0
 
 ### Added
 
 - Code completion takes the Inspector result into account: if the KdbInspector is active when code completion takes
   variables. function and tables from loaded structure with 'inspector' location.
 
-## [1.13.0]
+## 1.13.0
 
 ### Added
 
@@ -711,7 +719,7 @@
 - Unary primitive functions formatting incorrect. All added into grammar logic as UnaryFunction. They are an inner
   implementation of some functions
 
-## [1.12.0]
+## 1.12.0
 
 ### Added
 
@@ -726,7 +734,7 @@
 - Hidden columns copied to buffer anyway: fully redesigned and works as expected now
 - Selection by index column does nothing if table is not in focus: the focus is grabbed now
 
-## [1.11.0]
+## 1.11.0
 
 ### Added
 
@@ -743,7 +751,7 @@
 - 'Flip Selected Rows' is opened as a new tab like new expand action instead of a window now.
   Ctrl+Dbl Click is hot-click for the action.
 
-## [1.10.0]
+## 1.10.0
 
 ### Added
 
@@ -754,20 +762,20 @@
 
 - Supporting of IDE **2020.3.x** will be removed soon due to high volume of marked for removal APIs.
 
-## [1.9.0]
+## 1.9.0
 
 ### Added
 
 - Average/Count/Sum in TableResult for selected cells: for all numerical cells in selection average and sum
   is calculated as well as the number of total selected cells
 
-## [1.8.1]
+## 1.8.1
 
 ### Fixed
 
 - Show dictionaries with a table as keys or values in TableResult view
 
-## [1.8.0]
+## 1.8.0
 
 ### Added
 
@@ -780,7 +788,7 @@
 - Typos in some labels
 - An exception at 'Flip Table' action
 
-## [1.7.0]
+## 1.7.0
 
 ### Added
 
@@ -799,13 +807,13 @@
 - Clipboard XML exporting fixed for XML text in a cell
 - Removing items from the Instances Tree requires additional approval
 
-## [1.6.2]
+## 1.6.2
 
 ### Fixed
 
 - Default InstancesToolWindows type is Tabbed instead of Combo as requested by many users
 
-## [1.6.1]
+## 1.6.1
 
 ### Fixed
 
@@ -815,7 +823,7 @@
 - Nulls in Excel exported as empty value
 - Copy/Paste takes into account symbol and string wrapping options
 
-## [1.6.0]
+## 1.6.0
 
 ### Added
 
@@ -824,7 +832,7 @@
   - duplicate plugins are not allowed and adding a new version replaces exist one
   - plugin version and description added (plugins must be recompiled)
 
-## [1.5.0]
+## 1.5.0
 
 ### Added
 
@@ -837,7 +845,7 @@
 - Global and Scope credential changes show the appropriate error if something is wrong
 - Credentials plugin completely destroyed when removed and releases all resources
 
-## [1.4.0]
+## 1.4.0
 
 ### Added
 
@@ -845,14 +853,14 @@
 - Show public and private assignments in the StrictureView
 - Show the current element in the NavigationBar, based on the StructureView
 
-## [1.3.1]
+## 1.3.1
 
 ### Fixed
 
 - Only console settings are restored: #36
 - Not all iterators shown in the console result: #37
 
-## [1.3.0]
+## 1.3.0
 
 ### Added
 
@@ -864,25 +872,25 @@
 - Tooltip for a TableResult has been removed - was added for debug and contains irrelevant information
 - Closing last Instance Console View doesn't close the Kdb Console tool window
 
-## [1.2.0]
+## 1.2.0
 
 ### Added
 
 - Quick definition of an unknown function (quickfix) has been added
 
-## [1.1.2]
+## 1.1.2
 
 ### Fixed
 
 - A function's arguments/parameters suggestion has been fixed
 
-## [1.1.1]
+## 1.1.1
 
 ### Fixed
 
 - Key columns showed wrong after moving around in TableResult
 
-## [1.1.0]
+## 1.1.0
 
 ### Added
 
@@ -895,33 +903,33 @@
 
 - Long query overlays query time and rows count in a table result view. The query is truncated to available size now.
 
-## [1.0.1]
+## 1.0.1
 
 ### Fixed
 
 - Freezes at cascading parentheses parsing has been fixed
 
-## [1.0.0]
+## 1.0.0
 
 ### Added
 
 - Code formatting has been added. **Warning: it's not recommended to reformat all code at once**
 - Type suggestions added for a column definition
 
-## [0.24.0]
+## 0.24.0
 
 ### Fixed
 
 - Idea 2022.1 integration fixed (search in a TableView)
 
-## [0.23.1]
+## 0.23.1
 
 ### Fixed
 
 - a string shown in a TableView
 - chart fails if there is no time/float columns
 
-## [0.23.0]
+## 0.23.0
 
 ### Fixed
 
@@ -930,7 +938,7 @@
 - Disabling 'wrap string' option also disables 'Stripe table' option.
 - Key column symbol is not shown for keyed table but dictionary.
 
-## [0.22.0]
+## 0.22.0
 
 ### Added
 
@@ -940,13 +948,13 @@
 
 - a dict in a TableView can be disabled in options
 
-## [0.21.1]
+## 0.21.1
 
 ### Fixed
 
 - a string inside a string parsing fixed
 
-## [0.21.0]
+## 0.21.0
 
 ### Added
 
@@ -956,7 +964,7 @@
   - The Values Tool shows only series values and no range values anymore
   - Measure Tool has a context menu with remove/clear ability
 
-## [0.20.0]
+## 0.20.0
 
 ### Added
 
@@ -971,7 +979,7 @@
   - Changing active console tab changes active connection, so it's the same as select active connection from the
     toolbar
 
-## [0.19.0]
+## 0.19.0
 
 ### Fixed
 
@@ -992,13 +1000,13 @@
     send
     into another KDB instance.
 
-## [0.18.1]
+## 0.18.1
 
 ### Fixed
 
 - resolved #20: QDocs doesn't work for variables
 
-## [0.18.0]
+## 0.18.0
 
 ### Added
 
@@ -1009,7 +1017,7 @@
   - Ability to change line width and show shapes added
   - Transparent colors and axes orders added
 
-## [0.17.1]
+## 0.17.1
 
 ### Fixed
 
@@ -1017,7 +1025,7 @@
 - Connection state notifications are not shown after the plugin update without a restart
 - Line Chart can't draw not double numbers
 
-## [0.17.0]
+## 0.17.0
 
 ### Added
 
@@ -1028,24 +1036,23 @@
 - Icon colors changed for dark theme
 - Restart is not required anymore for the plugin
 
-## [0.16.0]
+## 0.16.0
 
 ### Changed
 
 - Excel exporting format changed to xlsx (Excel 2007) instead of xls (Excel 95)
   - 1,048,576 rows instead of 65,536 and 16,384 cols instead of 256
   - Streams worksheet is used to reduce memory footprint
-
 - Export actions run as a background task to reduce UI freeze
 
-## [0.15.0]
+## 0.15.0
 
 ### Changed
 
 - Supporting of Idea 2021.3 (build 213.*) has been added
 - GrammaKit upgraded to 2021.2.1, IdeaPlugin to 1.3.0, Changelog to 1.3.1
 
-## [0.14.0]
+## 0.14.0
 
 ### Changed
 
@@ -1064,7 +1071,7 @@
 - Symbols indexing has been added but not injected in dependency logic yet
 - Auto-popup has been added for importing files for both, '\l ' and 'system l' constructions
 
-## [0.13.0]
+## 0.13.0
 
 ### Added
 
@@ -1079,20 +1086,20 @@
 - Linux 'Run Configuration' fixed (thanks to zvenczel-kx)
 - The latest IDE version is supported now (2021.2.2). Many compatibility issues have been fixed as well.
 
-## [0.12.2]
+## 0.12.2
 
 ### Added
 
 - Local variables added into the completion list
 
-## [0.12.1]
+## 0.12.1
 
 ### Fixed
 
 - Quick Documentation format has been fixed
 - Missed keyword docs have been added
 
-## [0.12.0]
+## 0.12.0
 
 ### Added
 
@@ -1103,7 +1110,7 @@
 
 - Copy/Paste issue in the console has been fixed: market is not copied anymore.
 
-## [0.11.0]
+## 0.11.0
 
 ### Added
 
@@ -1119,7 +1126,7 @@
 - Global/Local variables inside a lambda defined in a namespace are detected correctly now.
 - Variable references work inside a table definition
 
-## [0.10.1]
+## 0.10.1
 
 ### Added
 
@@ -1130,7 +1137,7 @@
 - Duplicate connection from console tab has been fixed (https://github.com/kdbinsidebrains/plugin/issues/3)
 - Namespace declaration issue fixed (https://github.com/kdbinsidebrains/plugin/issues/2)
 
-## [0.10.0]
+## 0.10.0
 
 ### Added
 
@@ -1142,14 +1149,14 @@
 - The correct variable type is shown in the completion popup
 - Lambda parameters are shown in the completion popup
 
-## [0.9.0]
+## 0.9.0
 
 ### Added
 
 - StructureView for Q files is ready
 - A toolbar to a table result view has been added
 
-## [0.8.0]
+## 0.8.0
 
 ### Added
 
@@ -1169,7 +1176,7 @@
 
 - QInplaceRenameHandler removed from the project
 
-## [0.7.12]
+## 0.7.12
 
 ### Added
 
@@ -1183,7 +1190,7 @@
 - QVariableReferenceProvider - much better but shows global variables in local scope
 - The plugin description has been updated
 
-## [0.7.10]
+## 0.7.10
 
 ### Changed
 
@@ -1195,7 +1202,7 @@
 
 - Dicts processing was removed from flex/bnf - too complex and takes ages for parsing
 
-## [0.6.2] - DOESN'T WORK WITH BIG FILES
+## 0.6.2 - DOESN'T WORK WITH BIG FILES
 
 ### Added
 

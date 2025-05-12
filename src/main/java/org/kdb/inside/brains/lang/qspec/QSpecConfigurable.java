@@ -89,6 +89,12 @@ public class QSpecConfigurable extends KdbConfigurable {
         customScriptPanel.setText(libraryService.getCustomScript());
     }
 
+    @Override
+    public void disposeUIResources() {
+        super.disposeUIResources();
+        specFolderField.dispose();
+    }
+
     public static void showConfigurable(Project project) {
         // Safe model change here
         ShowSettingsUtil.getInstance().showSettingsDialog(project, QSpecConfigurable.class);

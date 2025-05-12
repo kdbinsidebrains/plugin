@@ -4,4 +4,5 @@ build/
 .gradle/
 .sandbox/
 .kdbinb/
+.intellijPlatform/
 src/main/gen/

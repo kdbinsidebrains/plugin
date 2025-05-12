@@ -1,7 +1,5 @@
 package org.kdb.inside.brains.view.export;
 
-import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
@@ -9,6 +7,8 @@ import kx.c;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Files;
+
+import static org.kdb.inside.brains.UIUtils.saveFile;
 
 public class BinaryExportAction extends AnExportAction<VirtualFileWrapper> {
     public BinaryExportAction(String text, ExportingType type, ExportDataProvider dataProvider, String description) {
@@ -22,8 +22,7 @@ public class BinaryExportAction extends AnExportAction<VirtualFileWrapper> {
 
     @Override
     protected VirtualFileWrapper getExportConfig(Project project, ExportDataProvider view) {
-        final FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Export to KDB Binary", "Exporting data into native KDB IPC format", "kib");
-        return FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, project).save(view.getExportName());
+        return saveFile(project, "Export to KDB Binary", "Exporting data into native KDB IPC format", "kib", view.getExportName());
     }
 
     @Override
