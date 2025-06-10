@@ -17,6 +17,19 @@ import java.util.UUID;
 import java.util.function.Function;
 
 public final class KdbOutputFormatter {
+    public static final String NULL_INT_TEXT = "0Ni";
+    public static final String NULL_SHORT_TEXT = "0Nh";
+    public static final String NULL_FLOAT_TEXT = "0Ne";
+    public static final String NULL_UUID_TEXT = "0Ng";
+    public static final String NULL_DATE_TEXT = "0Nd";
+    public static final String NULL_TIME_TEXT = "0Nt";
+    public static final String NULL_MONTH_TEXT = "0Nm";
+    public static final String NULL_MINUTE_TEXT = "0Nu";
+    public static final String NULL_SECOND_TEXT = "0Nv";
+    public static final String NULL_DATETIME_TEXT = "0Nz";
+    public static final String NULL_TIMESPAN_TEXT = "0Nn";
+    public static final String NULL_TIMESTAMP_TEXT = "0Np";
+
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy.MM.dd");
@@ -30,6 +43,7 @@ public final class KdbOutputFormatter {
     private static final DecimalFormat[][] DECIMAL = new DecimalFormat[RoundingMode.values().length][NumericalOptions.MAX_DECIMAL_PRECISION + 1];
     private static final DecimalFormat[][] DECIMAL_SEPARATOR = new DecimalFormat[RoundingMode.values().length][NumericalOptions.MAX_DECIMAL_PRECISION + 1];
     private static final DecimalFormat[][] DECIMAL_SCIENTIFIC = new DecimalFormat[RoundingMode.values().length][NumericalOptions.MAX_DECIMAL_PRECISION + 1];
+
 
     private static KdbOutputFormatter defaultInstance;
 
@@ -392,7 +406,7 @@ public final class KdbOutputFormatter {
 
     @NotNull
     public String formatShort(short v) {
-        return isNull(v) ? "0Nh" : shortToStr(v) + "h";
+        return isNull(v) ? NULL_SHORT_TEXT : shortToStr(v) + "h";
     }
 
     @NotNull
@@ -414,7 +428,7 @@ public final class KdbOutputFormatter {
 
     @NotNull
     public String formatInt(int v) {
-        return isNull(v) ? "0Ni" : intToStr(v) + "i";
+        return isNull(v) ? NULL_INT_TEXT : intToStr(v) + "i";
     }
 
     @NotNull
@@ -458,7 +472,7 @@ public final class KdbOutputFormatter {
 
     @NotNull
     public String formatFloat(float v) {
-        return isNull(v) ? "0Ne" : floatToStr(v) + "e";
+        return isNull(v) ? NULL_FLOAT_TEXT : floatToStr(v) + "e";
     }
 
     @NotNull
@@ -524,7 +538,7 @@ public final class KdbOutputFormatter {
     @NotNull
     public String formatTimestamp(Timestamp v) {
         if (isNull(v)) {
-            return "0Np";
+            return NULL_TIMESTAMP_TEXT;
         }
 
         StringBuilder b = new StringBuilder(10);
@@ -538,42 +552,42 @@ public final class KdbOutputFormatter {
 
     @NotNull
     public String formatUUID(UUID v) {
-        return isNull(v) ? "0Ng" : String.valueOf(v);
+        return isNull(v) ? NULL_UUID_TEXT : String.valueOf(v);
     }
 
     @NotNull
     public String formatDate(Date v) {
-        return isNull(v) ? "0Nd" : DATE_FORMAT.format(v);
+        return isNull(v) ? NULL_DATE_TEXT : DATE_FORMAT.format(v);
     }
 
     @NotNull
     public String formatTime(Time v) {
-        return isNull(v) ? "0Nt" : TIME_FORMAT.format(v);
+        return isNull(v) ? NULL_TIME_TEXT : TIME_FORMAT.format(v);
     }
 
     @NotNull
     public String formatDatetime(java.util.Date v) {
-        return isNull(v) ? "0Nz" : DATETIME_FORMAT.format(v);
+        return isNull(v) ? NULL_DATETIME_TEXT : DATETIME_FORMAT.format(v);
     }
 
     @NotNull
     public String formatTimespan(c.Timespan v) {
-        return isNull(v) ? "0Nn" : String.valueOf(v);
+        return isNull(v) ? NULL_TIMESPAN_TEXT : String.valueOf(v);
     }
 
     @NotNull
     public String formatMonth(c.Month v) {
-        return isNull(v) ? "0Nm" : String.valueOf(v);
+        return isNull(v) ? NULL_MONTH_TEXT : String.valueOf(v);
     }
 
     @NotNull
     public String formatMinute(c.Minute v) {
-        return isNull(v) ? "0Nu" : String.valueOf(v);
+        return isNull(v) ? NULL_MINUTE_TEXT : String.valueOf(v);
     }
 
     @NotNull
     public String formatSecond(c.Second v) {
-        return isNull(v) ? "0Nv" : String.valueOf(v);
+        return isNull(v) ? NULL_SECOND_TEXT : String.valueOf(v);
     }
 
     @NotNull
@@ -722,7 +736,7 @@ public final class KdbOutputFormatter {
 
     private String getKdbTypeName(Class<?> aClass) {
         final KdbType kdbType = KdbType.typeOf(aClass);
-        return kdbType == null || kdbType == KdbType.ANY ? null : kdbType.getTypeName();
+        return kdbType == KdbType.ANY ? null : kdbType.getTypeName();
     }
 
     private boolean isScientificNotation(double s) {

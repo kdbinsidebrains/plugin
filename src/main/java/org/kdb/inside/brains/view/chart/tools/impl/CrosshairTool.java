@@ -71,7 +71,7 @@ public class CrosshairTool extends AbstractChartTool {
     }
 
     @Override
-    public void chartStyleChanged(JFreeChart chart, RendererConfig config, int datasetIndex, int seriesIndex) {
+    public void chartStyleChanged(ChartView chartView, RendererConfig config, int datasetIndex, int seriesIndex) {
         if (chDomain == null || config.color() == null) {
             return;
         }

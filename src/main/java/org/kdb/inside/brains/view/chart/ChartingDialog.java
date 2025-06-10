@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.view.chart;
 
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
@@ -23,10 +22,14 @@ import org.kdb.inside.brains.action.ActionPlaces;
 import org.kdb.inside.brains.action.EdtToggleAction;
 import org.kdb.inside.brains.action.PopupActionGroup;
 import org.kdb.inside.brains.settings.KdbSettingsService;
+import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.chart.template.ChartTemplate;
 import org.kdb.inside.brains.view.chart.tools.ChartTool;
 import org.kdb.inside.brains.view.chart.tools.DataChartTool;
+import org.kdb.inside.brains.view.chart.tools.ModeChartTool;
+import org.kdb.inside.brains.view.chart.tools.ToolMode;
 import org.kdb.inside.brains.view.chart.tools.impl.CrosshairTool;
+import org.kdb.inside.brains.view.chart.tools.impl.LegendTool;
 import org.kdb.inside.brains.view.chart.tools.impl.MeasureTool;
 import org.kdb.inside.brains.view.chart.tools.impl.ValuesTool;
 
@@ -96,11 +99,15 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
             }
         });
 
+        final KdbOutputFormatter outputFormatter = KdbOutputFormatter.getDefault();
+
         chartTools = List.of(
                 new CrosshairTool(),
-                new ValuesTool(project),
-                new MeasureTool(chartPanel)
+                new ValuesTool(project, outputFormatter),
+                new MeasureTool(chartPanel),
+                new LegendTool(outputFormatter)
         );
+        chartTools.forEach(this::restoreToolState);
         chartTools.forEach(chartPanel::addOverlay);
 
         final ChartConfigPanel configPanel = new ChartConfigPanel(project, dataProvider, this::configChanged, this::close);
@@ -124,8 +131,9 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         closeOnEsc();
 
         configPanel.updateChart(template);
-        enabledTools().forEach(t -> changeToolState(t, true));
+        enabledTools().forEach(this::invalidateTool);
     }
+
 
     private static JPanel createEmptyPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
@@ -150,7 +158,7 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
                 config.update(renderer, series);
                 rendererConfigMap.put(seriesKey, config);
 
-                enabledTools().forEach(t -> t.chartStyleChanged(chart, config, datasetIndex, series));
+                enabledTools().forEach(t -> t.chartStyleChanged(activeChartView, config, datasetIndex, series));
             }
         });
     }
@@ -201,9 +209,8 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         chartPanel.repaint(); // repaint with enabled tool
     }
 
-    private void changeToolState(ChartTool tool, boolean state) {
-        options.setEnabled(tool, state);
-
+    private void invalidateTool(ChartTool tool) {
+        final boolean state = options.isEnabled(tool);
         if (tool instanceof DataChartTool ct) {
             if (state) {
                 final JComponent component = ct.getComponent();
@@ -222,16 +229,11 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
     private JComponent createToolbar() {
         final DefaultActionGroup group = new DefaultActionGroup();
 
-        final DefaultActionGroup snapping = new PopupActionGroup("Snapping", KdbIcons.Chart.ToolMagnet);
-        snapping.add(new SpanAction("_Disable Snapping", SnapType.NO));
-        snapping.add(new SpanAction("Snap to _Line", SnapType.LINE));
-        snapping.add(new SpanAction("Snap to _Vertex", SnapType.VERTEX));
-
-        group.add(snapping);
+        group.add(createSnappingAction());
         group.addSeparator();
 
         for (ChartTool chartTool : chartTools) {
-            group.add(new ToolToggleAction(chartTool));
+            group.add(createToolAction(chartTool));
         }
 
         group.addSeparator();
@@ -244,6 +246,35 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         actionComponent.setBorder(new CompoundBorder(Borders.customLine(JBColor.LIGHT_GRAY, 0, 1, 0, 0), Borders.empty(5, 3)));
 
         return actionComponent;
+    }
+
+    private AnAction createToolAction(ChartTool chartTool) {
+        if (chartTool instanceof ModeChartTool<?>) {
+            @SuppressWarnings("unchecked")
+            ToolModeActionGroup<ToolMode> g = new ToolModeActionGroup<>((ModeChartTool<ToolMode>) chartTool);
+            return g;
+        } else {
+            return new ToolToggleAction(chartTool);
+        }
+    }
+
+    private @NotNull DefaultActionGroup createSnappingAction() {
+        final DefaultActionGroup snapping = new PopupActionGroup("Snapping", KdbIcons.Chart.ToolMagnet) {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                Presentation presentation = e.getPresentation();
+                Toggleable.setSelected(presentation, options.getSnapType() != SnapType.NO);
+            }
+
+            @Override
+            public @NotNull ActionUpdateThread getActionUpdateThread() {
+                return ActionUpdateThread.EDT;
+            }
+        };
+        snapping.add(new SpanAction("_Disable Snapping", SnapType.NO));
+        snapping.add(new SpanAction("Snap to _Line", SnapType.LINE));
+        snapping.add(new SpanAction("Snap to _Vertex", SnapType.VERTEX));
+        return snapping;
     }
 
     @Nullable
@@ -261,14 +292,23 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         return chartTools.stream().filter(options::isEnabled);
     }
 
-    private class SpanAction extends CheckboxAction {
+    private void restoreToolState(ChartTool tool) {
+        if (tool instanceof ModeChartTool<?>) {
+            @SuppressWarnings("unchecked")
+            ModeChartTool<ToolMode> ct = (ModeChartTool<ToolMode>) tool;
+            final ToolMode mode = options.getMode(ct);
+            if (mode != null) {
+                ct.setMode(mode);
+            }
+        }
+    }
+
+    private class SpanAction extends EdtToggleAction {
         private final SnapType snapType;
 
         private SpanAction(String name, SnapType snapType) {
             super(name);
             this.snapType = snapType;
-            //  Available only since 2024.2
-//            getTemplatePresentation().setKeepPopupOnPerform(KeepPopupOnPerform.Never);
         }
 
         @Override
@@ -280,11 +320,6 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         public void setSelected(@NotNull AnActionEvent e, boolean state) {
             changeSnapType(state ? snapType : SnapType.NO);
         }
-
-        @Override
-        public @NotNull ActionUpdateThread getActionUpdateThread() {
-            return ActionUpdateThread.EDT;
-        }
     }
 
     private class ToolToggleAction extends EdtToggleAction {
@@ -293,7 +328,6 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
         public ToolToggleAction(@NotNull ChartTool tool) {
             super(tool.getText(), tool.getDescription(), tool.getIcon());
             this.tool = tool;
-            changeToolState(tool, options.isEnabled(tool));
         }
 
         @Override
@@ -303,7 +337,65 @@ public class ChartingDialog extends FrameWrapper implements DataProvider {
 
         @Override
         public void setSelected(@NotNull AnActionEvent e, boolean state) {
-            changeToolState(tool, state);
+            options.setEnabled(tool, state);
+            invalidateTool(tool);
+        }
+    }
+
+    private class ToolModeActionGroup<M extends ToolMode> extends PopupActionGroup {
+        @NotNull
+        private final ModeChartTool<M> chartTool;
+
+        public ToolModeActionGroup(ModeChartTool<M> chartTool) {
+            super(chartTool.getId(), chartTool.getIcon());
+            this.chartTool = chartTool;
+
+            add(new ToolModeAction<>(chartTool));
+            for (M mode : chartTool.getAvailableModes()) {
+                add(new ToolModeAction<>(chartTool, mode));
+            }
+        }
+
+        @Override
+        public void update(@NotNull AnActionEvent e) {
+            Presentation presentation = e.getPresentation();
+            Toggleable.setSelected(presentation, options.isEnabled(chartTool));
+        }
+
+        @Override
+        public @NotNull ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.EDT;
+        }
+    }
+
+    private class ToolModeAction<M extends ToolMode> extends EdtToggleAction {
+        private final M mode;
+        private final ModeChartTool<M> tool;
+
+        public ToolModeAction(@NotNull ModeChartTool<M> tool) {
+            super("Disable", "Disable this charting tool", null);
+            this.tool = tool;
+            mode = null;
+        }
+
+        public ToolModeAction(@NotNull ModeChartTool<M> tool, M mode) {
+            super(mode.getText(), mode.getDescription(), null);
+            this.tool = tool;
+            this.mode = mode;
+        }
+
+        @Override
+        public boolean isSelected(@NotNull AnActionEvent e) {
+            return options.isMode(tool, mode);
+        }
+
+        @Override
+        public void setSelected(@NotNull AnActionEvent e, boolean state) {
+            if (mode != null) {
+                tool.setMode(mode);
+            }
+            options.setModel(tool, mode);
+            invalidateTool(tool);
         }
     }
 }

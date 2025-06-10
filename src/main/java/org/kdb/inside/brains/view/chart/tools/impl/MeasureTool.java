@@ -274,15 +274,21 @@ public class MeasureTool extends AbstractChartTool {
             final Color background = sy < fy ? ChartColors.POSITIVE_40 : ChartColors.NEGATIVE_40;
             final Color border = background.darker();
 
-            g2.setStroke(BASIC);
-            g2.setPaint(background);
-            g2.fill(area);
 
-            g2.setPaint(border);
-            if (highlight) {
-                g2.setStroke(DASHED);
+            final Stroke stroke = g2.getStroke();
+            try {
+                g2.setStroke(BASIC);
+                g2.setPaint(background);
+                g2.fill(area);
+
+                g2.setPaint(border);
+                if (highlight) {
+                    g2.setStroke(DASHED);
+                }
+                g2.draw(area);
+            } finally {
+                g2.setStroke(stroke);
             }
-            g2.draw(area);
 
             drawRangeLabel(g2, diffYV, diffYP, foreground);
             drawDomainLabel(g2, plot);

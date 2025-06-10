@@ -3,18 +3,22 @@ package org.kdb.inside.brains.view.chart;
 import kx.KxConnection;
 import kx.c;
 import org.jfree.data.time.*;
-import org.jfree.data.time.Month;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.view.console.table.QTableModel;
 import org.kdb.inside.brains.view.console.table.TableResult;
 
 import java.sql.Timestamp;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Stream;
 
 public interface ChartDataProvider {
+    Locale DEFAULT_LOCALE = Locale.getDefault();
+
     LocalDate KDB_FIRST_DATE = LocalDate.of(2000, 1, 1);
 
     static ChartDataProvider of(TableResult table) {
@@ -84,42 +88,37 @@ public interface ChartDataProvider {
 
     static Date createDate(Object value) {
         // SQL Date, Time, Timestamp is here
-        Date res;
         if (value instanceof Date date) {
-            res = date;
+            return date;
         } else if (value instanceof c.Month month) {
             final long epochMilli = KDB_FIRST_DATE.plusMonths(month.i).atTime(LocalTime.MIDNIGHT).atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
-            res = new Date(epochMilli);
+            return new Date(epochMilli);
         } else if (value instanceof c.Second v) {
-            res = new Date(v.i * 1_000L);
+            return new Date(v.i * 1_000L);
         } else if (value instanceof c.Minute v) {
-            res = new Date(v.i * 60_000L);
+            return new Date(v.i * 60_000L);
         } else if (value instanceof c.Timespan v) {
-            res = new Date(v.j / 1_000_000L);
-        } else {
-            throw new IllegalArgumentException("Invalid value style: " + value.getClass());
+            return new Date(v.j / 1_000_000L);
         }
-        final ZonedDateTime f = Instant.ofEpochMilli(res.getTime()).atZone(ZoneId.systemDefault()).withZoneSameLocal(ZoneId.systemDefault());
-        final ZonedDateTime t = f.withZoneSameInstant(ZoneOffset.UTC).withZoneSameLocal(ZoneId.systemDefault());
-        return Date.from(t.toInstant());
+        throw new IllegalArgumentException("Invalid value style: " + value.getClass());
     }
 
     static RegularTimePeriod createPeriod(Object value) {
         if (value instanceof java.sql.Date date) {
-            return new Day(date, KxConnection.UTC_TIMEZONE, Locale.getDefault());
+            return new Day(date, KxConnection.UTC_TIMEZONE, DEFAULT_LOCALE);
         } else if (value instanceof java.sql.Time time) {
-            return new Millisecond(time, KxConnection.UTC_TIMEZONE, Locale.getDefault());
+            return new Millisecond(time, KxConnection.UTC_TIMEZONE, DEFAULT_LOCALE);
         } else if (value instanceof java.util.Date datetime) {
-            return new Millisecond(datetime, KxConnection.UTC_TIMEZONE, Locale.getDefault());
+            return new Millisecond(datetime, KxConnection.UTC_TIMEZONE, DEFAULT_LOCALE);
         } else if (value instanceof c.Month v) {
             final long epochMilli = KDB_FIRST_DATE.plusMonths(v.i).atTime(LocalTime.MIDNIGHT).toInstant(ZoneOffset.UTC).toEpochMilli();
-            return new Month(new Date(epochMilli), KxConnection.UTC_TIMEZONE, Locale.getDefault());
+            return new Month(new Date(epochMilli), KxConnection.UTC_TIMEZONE, DEFAULT_LOCALE);
         } else if (value instanceof c.Second v) {
-            return new Second(new Date(v.i * 1_000L), KxConnection.UTC_TIMEZONE, Locale.getDefault());
+            return new Second(new Date(v.i * 1_000L), KxConnection.UTC_TIMEZONE, DEFAULT_LOCALE);
         } else if (value instanceof c.Minute v) {
-            return new Minute(new Date(v.i * 60_000L), KxConnection.UTC_TIMEZONE, Locale.getDefault());
+            return new Minute(new Date(v.i * 60_000L), KxConnection.UTC_TIMEZONE, DEFAULT_LOCALE);
         } else if (value instanceof c.Timespan v) {
-            return new Millisecond(new Date(v.j / 1_000_000L), KxConnection.UTC_TIMEZONE, Locale.getDefault());
+            return new Millisecond(new Date(v.j / 1_000_000L), KxConnection.UTC_TIMEZONE, DEFAULT_LOCALE);
         }
         throw new IllegalArgumentException("Invalid value style: " + value.getClass());
     }

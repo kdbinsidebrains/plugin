@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.view.chart.types.line;
 
+import kx.KxConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -67,10 +68,14 @@ public class LineChartProvider extends ChartViewProvider<LineConfigPanel, LineCh
             datasets = createTimeDatasets(domain, dataset, dataProvider);
             chart = ChartFactory.createTimeSeriesChart(null, domain.name(), "", null, true, true, false);
 
+            final XYPlot xyPlot = chart.getXYPlot();
             if (domain.type() == KdbType.DATE) {
-                final XYPlot xyPlot = chart.getXYPlot();
                 final DateAxis newAxis = createFixedDateAxis((DateAxis) xyPlot.getDomainAxis());
                 xyPlot.setDomainAxis(newAxis);
+            }
+
+            if (xyPlot.getDomainAxis() instanceof DateAxis dx) {
+                dx.setTimeZone(KxConnection.UTC_TIMEZONE);
             }
         } else {
             datasets = createNumberDatasets(domain, dataset, dataProvider);
@@ -201,7 +206,7 @@ public class LineChartProvider extends ChartViewProvider<LineConfigPanel, LineCh
         final CachedDataProvider provider = new CachedDataProvider(dataProvider);
 
         for (Map.Entry<SeriesDefinition, List<SingleRange>> entry : dataset.entrySet()) {
-            final TimeSeriesCollection series = new TimeSeriesCollection();
+            final TimeSeriesCollection series = new TimeSeriesCollection(KxConnection.UTC_TIMEZONE);
             for (SingleRange range : entry.getValue()) {
                 final TimeSeries s = new TimeSeries(range.label());
                 series.addSeries(s);

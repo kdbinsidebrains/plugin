@@ -5,6 +5,9 @@ import icons.KdbIcons;
 import org.jfree.chart.renderer.xy.*;
 
 import javax.swing.*;
+import java.awt.*;
+
+import static org.kdb.inside.brains.view.chart.ChartColors.transparent;
 
 public enum SeriesStyle {
     LINE("Line", KdbIcons.Chart.TypeLine) {
@@ -35,7 +38,21 @@ public enum SeriesStyle {
     BAR("Bar", KdbIcons.Chart.TypeBar) {
         @Override
         public XYItemRenderer createRenderer(LineChartConfig config) {
-            final XYBarRenderer renderer = new XYBarRenderer();
+            final XYBarRenderer renderer = new XYBarRenderer() {
+                @Override
+                public void setSeriesStroke(int series, Stroke stroke, boolean notify) {
+                    super.setSeriesStroke(series, stroke, notify);
+                    super.setSeriesOutlineStroke(series, stroke, notify);
+                }
+
+                @Override
+                public void setSeriesPaint(int series, Paint paint, boolean notify) {
+                    final Color c = (Color) paint;
+                    super.setSeriesPaint(series, transparent(c, 40), notify);
+                    super.setSeriesOutlinePaint(series, c, notify);
+                }
+            };
+            renderer.setDrawBarOutline(true);
             renderer.setShadowVisible(false);
             renderer.setBarPainter(new StandardXYBarPainter());
             return renderer;
@@ -45,7 +62,22 @@ public enum SeriesStyle {
     AREA("Area", KdbIcons.Chart.TypeArea) {
         @Override
         public XYItemRenderer createRenderer(LineChartConfig config) {
-            return new XYAreaRenderer2();
+            final XYAreaRenderer2 r = new XYAreaRenderer2() {
+                @Override
+                public void setSeriesStroke(int series, Stroke stroke, boolean notify) {
+                    super.setSeriesStroke(series, stroke, notify);
+                    super.setSeriesOutlineStroke(series, stroke, notify);
+                }
+
+                @Override
+                public void setSeriesPaint(int series, Paint paint, boolean notify) {
+                    final Color c = (Color) paint;
+                    super.setSeriesPaint(series, transparent(c, 40), notify);
+                    super.setSeriesOutlinePaint(series, c, notify);
+                }
+            };
+            r.setOutline(true);
+            return r;
         }
     },
 
