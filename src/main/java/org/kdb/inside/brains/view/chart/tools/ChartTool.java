@@ -6,7 +6,6 @@ import org.intellij.lang.annotations.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartMouseEvent;
-import org.jfree.chart.JFreeChart;
 import org.jfree.chart.panel.Overlay;
 import org.kdb.inside.brains.view.chart.ChartView;
 import org.kdb.inside.brains.view.chart.RendererConfig;
@@ -39,7 +38,7 @@ public interface ChartTool extends Overlay {
     default void chartMouseClicked(ChartMouseEvent event, Rectangle2D dataArea) {
     }
 
-    default void chartStyleChanged(JFreeChart chart, RendererConfig config, int datasetIndex, int seriesIndex) {
+    default void chartStyleChanged(ChartView chartView, RendererConfig config, int datasetIndex, int seriesIndex) {
     }
 
     @NotNull

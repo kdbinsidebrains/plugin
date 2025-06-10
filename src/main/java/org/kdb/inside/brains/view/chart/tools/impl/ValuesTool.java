@@ -56,10 +56,10 @@ public class ValuesTool extends AbstractChartTool implements DataChartTool, Expo
 
     public static final String ID = "VALUES";
 
-    public ValuesTool(Project project) {
+    public ValuesTool(Project project, KdbOutputFormatter outputFormatter) {
         super(ID, "Points Collector", "Writes each click into a table", KdbIcons.Chart.ToolPoints);
 
-        formatter = KdbOutputFormatter.getDefault();
+        formatter = outputFormatter;
 
         final DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
             @Override

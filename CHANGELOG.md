@@ -1,5 +1,16 @@
 # KdbInsideBrains Changelog
 
+## 6.2.0
+
+### Added
+
+- Bar/Area charting use transparent colours to view more details
+- New Legend charting tool has been added to display current values on the chart.
+
+### Fixed
+
+- Charting timezone issue in Table tool fixed
+
 ## 6.1.1
 
 ### Changed
