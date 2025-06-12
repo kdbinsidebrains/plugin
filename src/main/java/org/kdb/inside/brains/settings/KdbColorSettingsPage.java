@@ -66,11 +66,12 @@ public final class KdbColorSettingsPage implements RainbowColorSettingsPage, Col
                 "`a`b`c\n" +
                 "variable\n" +
                 "(+;*;<;>;~=)\n" +
-                "count\n" +
+                "count;\n" +
                 "`int$()\n" +
                 "a ,/:\\\\: b\n" +
                 "(if[];?[];$[])\n" +
-                "\\d .some.dir";
+                "\\d .some.dir\n" +
+                "{[param1;param2;param2] localV:10; :param1+param2+param3+localV+globalE; }\n";
         // @formatter:on
     }
 

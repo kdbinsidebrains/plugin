@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## 6.3.0
+
+### Added
+
+- Semantic highlighting added: colouring local variable and lambda parameters
+
 ## 6.2.0
 
 ### Added

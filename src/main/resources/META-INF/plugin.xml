@@ -499,6 +499,8 @@
         <codeInsight.lineMarkerProvider language="q"
                                         implementationClass="org.kdb.inside.brains.lang.marker.SystemFunctionsMarkerProvider"/>
 
+        <highlightVisitor implementation="org.kdb.inside.brains.lang.QRainbowVisitor"/>
+
         <!-- Indexes -->
         <fileBasedIndex implementation="org.kdb.inside.brains.psi.index.QIdentifiersIndex"/>
         <projectService serviceImplementation="org.kdb.inside.brains.psi.index.QIndexService"/>

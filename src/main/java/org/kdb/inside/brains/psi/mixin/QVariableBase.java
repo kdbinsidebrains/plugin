@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.psi.*;
 
 import javax.swing.*;
-import java.util.Collection;
 
 public class QVariableBase extends QPsiElementImpl implements QVariable, ItemPresentation {
     private String name = null;
@@ -90,21 +89,9 @@ public class QVariableBase extends QPsiElementImpl implements QVariable, ItemPre
 
         // no lambda - return full name
         final QLambdaExpr lambda = getContext(QLambdaExpr.class);
-        if (lambda != null) {
-            // implicit variable or in parameters list - ignore namespace
-            if (lambda.getParameters() == null && QPsiUtil.isImplicitName(name)) {
-                return name;
-            }
-
-            final Collection<QVarDeclaration> declarations = PsiTreeUtil.findChildrenOfType(lambda, QVarDeclaration.class);
-            for (QVarDeclaration declaration : declarations) {
-                // Same name and same lambda - internal variable
-                if (name.equals(declaration.getName()) && !QPsiUtil.isGlobalDeclaration(declaration)) {
-                    return name;
-                }
-            }
+        if (lambda != null && QPsiUtil.isInnerDeclaration(lambda, name)) {
+            return name;
         }
-
         return QPsiUtil.createQualifiedName(namespaceName, name);
     }
 

@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -98,6 +99,22 @@ public final class QPsiUtil {
                 yield assignmentType != null && "::".equals(assignmentType.getText());
             }
         };
+    }
+
+    public static boolean isInnerDeclaration(QLambda lambda, String name) {
+        // implicit variable or in parameters list - ignore namespace
+        if (lambda.getParameters() == null && QPsiUtil.isImplicitName(name)) {
+            return true;
+        }
+
+        final Collection<QVarDeclaration> declarations = PsiTreeUtil.findChildrenOfType(lambda, QVarDeclaration.class);
+        for (QVarDeclaration declaration : declarations) {
+            // Same name and same lambda - internal variable
+            if (name.equals(declaration.getName()) && !QPsiUtil.isGlobalDeclaration(declaration)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
