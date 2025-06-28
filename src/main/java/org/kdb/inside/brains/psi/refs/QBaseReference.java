@@ -1,7 +1,6 @@
 package org.kdb.inside.brains.psi.refs;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.QPsiElement;
@@ -33,7 +32,7 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
 
     @Override
     public ResolveResult @NotNull [] multiResolve(boolean incompleteCode) {
-        return resolveElement(myElement);
+        return resolveGlobalDefinition(myElement);
     }
 
     @Override
@@ -74,7 +73,7 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
         return false;
     }
 
-    protected ResolveResult[] resolveElement(T element) {
+    protected ResolveResult[] resolveGlobalDefinition(T element) {
         final PsiFile file = element.getContainingFile();
         if (file == null) {
             return ResolveResult.EMPTY_ARRAY;

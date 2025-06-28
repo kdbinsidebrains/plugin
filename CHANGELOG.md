@@ -1,5 +1,13 @@
 # KdbInsideBrains Changelog
 
+## 6.3.1
+
+### Fixed
+
+- Semantic highlighting fixed for queries and tables
+- Unit Tests command is not show if a package contains no Q files
+- Query variable reference inside lambda is not resolved
+
 ## 6.3.0
 
 ### Added

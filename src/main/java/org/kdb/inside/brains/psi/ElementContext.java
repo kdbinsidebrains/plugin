@@ -27,6 +27,14 @@ public class ElementContext {
         return scope == ElementScope.FILE ? (QFile) element : null;
     }
 
+    public boolean isFile() {
+        return scope == ElementScope.FILE;
+    }
+
+    public ElementContext getParent() {
+        return ElementContext.of(element);
+    }
+
     public boolean is(ElementScope scope) {
         return this.scope == scope;
     }
@@ -37,6 +45,10 @@ public class ElementContext {
 
     public boolean any(ElementScope s1, ElementScope s2) {
         return this.scope == s1 || this.scope == s2;
+    }
+
+    public boolean any(ElementScope s1, ElementScope s2, ElementScope s3) {
+        return this.scope == s1 || this.scope == s2 || this.scope == s3;
     }
 
     public QQueryExpr query() {
@@ -63,7 +75,7 @@ public class ElementContext {
         return scope == ElementScope.PARAMETERS ? (QParameters) element : null;
     }
 
-    public static boolean isRoot(@Nullable ASTNode node) {
+    public static boolean isFile(@Nullable ASTNode node) {
         if (node == null) {
             return false;
         }

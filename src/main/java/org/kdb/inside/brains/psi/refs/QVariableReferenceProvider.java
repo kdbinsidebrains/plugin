@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable> {
-    private static final EnumSet<ElementScope> IGNORING_SCOPES = EnumSet.of(ElementScope.DICT, ElementScope.TABLE, ElementScope.QUERY, ElementScope.PARAMETERS);
+    private static final EnumSet<ElementScope> IGNORING_DEFINITION_SCOPES = EnumSet.of(ElementScope.DICT, ElementScope.TABLE, ElementScope.QUERY, ElementScope.PARAMETERS);
 
     public QVariableReferenceProvider() {
         super(QVariable.class);
@@ -26,7 +26,7 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
         }
 
         final ElementScope scope = var.getVariableContext().getScope();
-        return IGNORING_SCOPES.contains(scope) ? PsiReference.EMPTY_ARRAY : QVariableReference.of(var);
+        return IGNORING_DEFINITION_SCOPES.contains(scope) ? PsiReference.EMPTY_ARRAY : QVariableReference.of(var);
     }
 
     public static class QVariableReference extends QBaseReference<QVariable> {
@@ -49,20 +49,26 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
         }
 
         private ResolveResult[] resolveVariable(QVariable variable, ElementContext context) {
-            return switch (context.getScope()) {
-                case QUERY -> resolveQuery(variable, context.query());
-                case LAMBDA -> resolveLambda(variable, context.lambda());
-                default -> resolveElement(variable);
-            };
+            if (context.getScope() == ElementScope.QUERY) {
+                return resolveQuery(context.query(), variable);
+            }
+
+            final QLambdaExpr lambda = variable.getContext(QLambdaExpr.class);
+            if (lambda != null) {
+                return resolveLambda(lambda, variable);
+            }
+
+            return resolveGlobalDefinition(variable);
         }
 
-        private ResolveResult[] resolveQuery(QVariable var, QQueryExpr query) {
+        private ResolveResult[] resolveQuery(QQueryExpr query, QVariable var) {
             final QExpression expression = query.getSource();
             if (expression == null) {
                 return ResolveResult.EMPTY_ARRAY;
             }
 
             final ElementContext queryContext = ElementContext.of(query);
+
             final Collection<QVarReference> refs = PsiTreeUtil.findChildrenOfAnyType(expression, false, QVarReference.class);
 
             // It's the table definition
@@ -101,30 +107,16 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
             return multi(res);
         }
 
-        private ResolveResult[] resolveLambda(QVariable var, QLambdaExpr lambda) {
+        private ResolveResult[] resolveLambda(QLambdaExpr lambda, QVariable var) {
             if (QPsiUtil.isImplicitVariable(var) && lambda.getParameters() == null) {
                 return ResolveResult.EMPTY_ARRAY;
             }
 
-            final String qualifiedName = var.getQualifiedName();
-            final Optional<QVarDeclaration> first = findFirstInLambda(qualifiedName, lambda);
-            if (first.isPresent()) {
-                final QVarDeclaration el = first.get();
-                if (QPsiUtil.isGlobalDeclaration(el)) {
-                    return resolveElement(var);
-                } else {
-                    return single(DeclarationRef.of(el));
-                }
+            final QVarDeclaration declaration = QPsiUtil.getLocalDefinition(lambda, var);
+            if (declaration != null) {
+                return single(DeclarationRef.of(declaration));
             }
-            return resolveElement(var);
-        }
-
-        @NotNull
-        private Optional<QVarDeclaration> findFirstInLambda(String qualifiedName, QLambdaExpr lambda) {
-            return PsiTreeUtil.findChildrenOfType(lambda, QVarDeclaration.class).stream().
-                    filter(v -> v.getQualifiedName().equals(qualifiedName)).
-                    filter(v -> ElementContext.of(v).any(ElementScope.LAMBDA, ElementScope.PARAMETERS)).
-                    findFirst();
+            return resolveGlobalDefinition(var);
         }
     }
 }

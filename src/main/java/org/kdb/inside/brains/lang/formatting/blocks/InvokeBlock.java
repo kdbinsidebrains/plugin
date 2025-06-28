@@ -50,7 +50,7 @@ public class InvokeBlock extends AbstractQBlock {
 
         return iterateChildren((node, first) -> {
             if (first) {
-                if (ElementContext.isRoot(myNode) || notOperationOrIterator(myNode)) {
+                if (ElementContext.isFile(myNode) || notOperationOrIterator(myNode)) {
                     return createBlock(node, formatter, null, null, NONE_INDENT);
                 } else {
                     return createBlock(node, formatter, null, alignment, indent);
