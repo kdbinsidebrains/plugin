@@ -29,8 +29,8 @@ public class QSymbolReferenceProvider extends QBaseReferenceProvider<QSymbol> {
         }
 
         @Override
-        protected ResolveResult[] resolveElement(QSymbol element) {
-            final ResolveResult[] resolveResults = super.resolveElement(element);
+        protected ResolveResult[] resolveGlobalDeclaration(QSymbol element) {
+            final ResolveResult[] resolveResults = super.resolveGlobalDeclaration(element);
             // We resolve symbol on itself if nothing found.
             // It makes life for QSpec and in some other places
             // Downside: symbol is always resolvable and defined that by the fact is true.

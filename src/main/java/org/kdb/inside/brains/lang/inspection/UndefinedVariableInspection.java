@@ -40,10 +40,9 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
             return;
         }
 
-        final ElementContext context = ElementContext.of(variable);
-        final ElementScope scope = context.getScope();
-        // ignore every non-resolved variable as it may be referencing a column name
-        if (scope == ElementScope.DICT || scope == ElementScope.TABLE || scope == ElementScope.QUERY) {
+        final ElementScope scope = variable.getVariableContext().getScope();
+        // every non-resolved variable in a query as it may be referencing a column name
+        if (scope == ElementScope.QUERY) {
             return;
         }
 

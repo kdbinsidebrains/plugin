@@ -14,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -101,22 +100,6 @@ public final class QPsiUtil {
         };
     }
 
-    public static boolean isInnerDeclaration(QLambda lambda, String name) {
-        // implicit variable or in parameters list - ignore namespace
-        if (lambda.getParameters() == null && QPsiUtil.isImplicitName(name)) {
-            return true;
-        }
-
-        final Collection<QVarDeclaration> declarations = PsiTreeUtil.findChildrenOfType(lambda, QVarDeclaration.class);
-        for (QVarDeclaration declaration : declarations) {
-            // Same name and same lambda - internal variable
-            if (name.equals(declaration.getName()) && !QPsiUtil.isGlobalDeclaration(declaration)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Checks is the specified element colon or not.
      *
@@ -190,6 +173,39 @@ public final class QPsiUtil {
             sibling = sibling.getNextSibling();
         }
         return sibling;
+    }
+
+
+    public static @Nullable QVarDeclaration getLocalDeclaration(@NotNull QLambda lambda, @NotNull QVariable variable) {
+        final String name = variable.getName();
+        // implicit variable or in parameters list - ignore namespace
+        if (lambda.getParameters() == null && QPsiUtil.isImplicitName(name)) {
+            return null;
+        }
+
+        final QVarDeclaration[] res = new QVarDeclaration[1];
+        lambda.acceptChildren(new PsiRecursiveElementWalkingVisitor() {
+            @Override
+            public void visitElement(@NotNull PsiElement element) {
+                // we don't search inside others lambda, query, table or dict
+                if (QPsiUtil.isLocalContextElement(element)) {
+                    return;
+                }
+
+                // no reason to search after the definition.// In a lambda it can't be below.
+                if (element.equals(variable)) {
+                    stopWalking();
+                } else if (element instanceof QVarDeclaration d) {
+                    if (name.equals(d.getName()) && !QPsiUtil.isGlobalDeclaration(d)) {
+                        res[0] = d;
+                        stopWalking();
+                    }
+                } else {
+                    super.visitElement(element);
+                }
+            }
+        });
+        return res[0];
     }
 
     public static PsiElement findRootExpression(PsiElement element, PsiElement context) {
@@ -342,5 +358,9 @@ public final class QPsiUtil {
 
     public static QVarDeclaration createVarDeclaration(Project project, String name) {
         return PsiTreeUtil.findChildOfType(QFileType.createFactoryFile(project, name + ":`"), QVarDeclaration.class);
+    }
+
+    public static boolean isLocalContextElement(@NotNull PsiElement element) {
+        return element instanceof QLambdaExpr || element instanceof QQueryExpr || element instanceof QTableExpr || element instanceof QDictExpr;
     }
 }

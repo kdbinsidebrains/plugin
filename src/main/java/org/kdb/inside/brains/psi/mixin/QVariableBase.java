@@ -89,7 +89,7 @@ public class QVariableBase extends QPsiElementImpl implements QVariable, ItemPre
 
         // no lambda - return full name
         final QLambdaExpr lambda = getContext(QLambdaExpr.class);
-        if (lambda != null && QPsiUtil.isInnerDeclaration(lambda, name)) {
+        if (lambda != null && QPsiUtil.getLocalDeclaration(lambda, this) != null) {
             return name;
         }
         return QPsiUtil.createQualifiedName(namespaceName, name);

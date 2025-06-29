@@ -78,7 +78,7 @@ public class QIndexService {
     @Nullable
     private DeclarationRef resolveGlobalDeclaration(IdentifierDescriptor descriptor, VirtualFile file) {
         final DeclarationRef var = resolveDeclaration(descriptor, file);
-        if (var != null && var.isGlobalDeclaration()) {
+        if (var != null && var.isGlobal()) {
             return var;
         }
         return null;
