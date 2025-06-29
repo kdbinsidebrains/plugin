@@ -5,6 +5,7 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiEditorUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -13,9 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
 public final class QPsiUtil {
@@ -101,61 +100,6 @@ public final class QPsiUtil {
         };
     }
 
-
-    public static Map<String, QVarDeclaration> getLambdaDeclarations(@NotNull QLambda lambda) {
-        final Map<String, QVarDeclaration> res = new HashMap<>();
-        lambda.acceptChildren(new PsiRecursiveElementWalkingVisitor() {
-            @Override
-            public void visitElement(@NotNull PsiElement element) {
-                // we don't search inside others lambda, query, table or dict
-                if (isPrivateContextHolder(element)) {
-                    return;
-                }
-
-                if (element instanceof QVarDeclaration d) {
-                    if (!QPsiUtil.isGlobalDeclaration(d)) {
-                        res.put(d.getName(), d);
-                    }
-                } else {
-                    super.visitElement(element);
-                }
-            }
-        });
-        return res;
-    }
-
-    public static @Nullable QVarDeclaration getLocalDefinition(@NotNull QLambda lambda, @NotNull QVariable variable) {
-        final String name = variable.getName();
-        // implicit variable or in parameters list - ignore namespace
-        if (lambda.getParameters() == null && QPsiUtil.isImplicitName(name)) {
-            return null;
-        }
-
-        final QVarDeclaration[] res = new QVarDeclaration[1];
-        lambda.acceptChildren(new PsiRecursiveElementWalkingVisitor() {
-            @Override
-            public void visitElement(@NotNull PsiElement element) {
-                // we don't search inside others lambda, query, table or dict
-                if (isPrivateContextHolder(element)) {
-                    return;
-                }
-
-                // no reason to search after the definition.// In a lambda it can't be below.
-                if (element.equals(variable)) {
-                    stopWalking();
-                } else if (element instanceof QVarDeclaration d) {
-                    if (name.equals(d.getName()) && !QPsiUtil.isGlobalDeclaration(d)) {
-                        res[0] = d;
-                        stopWalking();
-                    }
-                } else {
-                    super.visitElement(element);
-                }
-            }
-        });
-        return res[0];
-    }
-
     /**
      * Checks is the specified element colon or not.
      *
@@ -229,6 +173,39 @@ public final class QPsiUtil {
             sibling = sibling.getNextSibling();
         }
         return sibling;
+    }
+
+
+    public static @Nullable QVarDeclaration getLocalDeclaration(@NotNull QLambda lambda, @NotNull QVariable variable) {
+        final String name = variable.getName();
+        // implicit variable or in parameters list - ignore namespace
+        if (lambda.getParameters() == null && QPsiUtil.isImplicitName(name)) {
+            return null;
+        }
+
+        final QVarDeclaration[] res = new QVarDeclaration[1];
+        lambda.acceptChildren(new PsiRecursiveElementWalkingVisitor() {
+            @Override
+            public void visitElement(@NotNull PsiElement element) {
+                // we don't search inside others lambda, query, table or dict
+                if (QPsiUtil.isLocalContextElement(element)) {
+                    return;
+                }
+
+                // no reason to search after the definition.// In a lambda it can't be below.
+                if (element.equals(variable)) {
+                    stopWalking();
+                } else if (element instanceof QVarDeclaration d) {
+                    if (name.equals(d.getName()) && !QPsiUtil.isGlobalDeclaration(d)) {
+                        res[0] = d;
+                        stopWalking();
+                    }
+                } else {
+                    super.visitElement(element);
+                }
+            }
+        });
+        return res[0];
     }
 
     public static PsiElement findRootExpression(PsiElement element, PsiElement context) {
@@ -383,7 +360,7 @@ public final class QPsiUtil {
         return PsiTreeUtil.findChildOfType(QFileType.createFactoryFile(project, name + ":`"), QVarDeclaration.class);
     }
 
-    public static boolean isPrivateContextHolder(@NotNull PsiElement element) {
+    public static boolean isLocalContextElement(@NotNull PsiElement element) {
         return element instanceof QLambdaExpr || element instanceof QQueryExpr || element instanceof QTableExpr || element instanceof QDictExpr;
     }
 }

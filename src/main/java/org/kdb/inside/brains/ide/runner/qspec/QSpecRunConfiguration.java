@@ -90,7 +90,7 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
         final boolean hasSuite = StringUtil.isNotEmpty(suitePattern);
 
         if (!hasSuite && !hasTest) {
-            return "Tests in '" + FilenameUtils.getName(scriptName) + "'";
+            return "Q Tests in '" + FilenameUtils.getName(scriptName) + "'";
         }
 
         String name = FilenameUtils.getBaseName(scriptName);
@@ -107,7 +107,7 @@ public class QSpecRunConfiguration extends KdbRunConfigurationBase {
     public @Nullable @NlsActions.ActionText String getActionName() {
         final String scriptName = getScriptName();
         if (Files.isDirectory(Path.of(scriptName))) {
-            return ProgramRunnerUtil.shortenName("Tests in '" + FilenameUtils.getBaseName(scriptName) + "'", 0);
+            return ProgramRunnerUtil.shortenName("Q Tests in '" + FilenameUtils.getBaseName(scriptName) + "'", 0);
         }
 
         if (StringUtil.isNotEmpty(testPattern)) {

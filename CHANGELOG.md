@@ -2,11 +2,20 @@
 
 ## 6.3.1
 
+### Added
+
+- Highlighting undefined variables in query/table/dict definition
+
+### Changed
+
+- QSpec Tests command is not show if a package contains no Q files
+
 ### Fixed
 
 - Semantic highlighting fixed for queries and tables
-- Unit Tests command is not show if a package contains no Q files
 - Query variable reference inside lambda is not resolved
+- Undefined variable highlighting takes order into account inside a lambda
+- Download QSpec in 2025.x doesn't work
 
 ## 6.3.0
 

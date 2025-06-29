@@ -57,8 +57,19 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
             if (lambda != null) {
                 return resolveLambda(lambda, variable);
             }
+            return resolveGlobalDeclaration(variable);
+        }
 
-            return resolveGlobalDefinition(variable);
+        private ResolveResult[] resolveLambda(QLambdaExpr lambda, QVariable var) {
+            if (QPsiUtil.isImplicitVariable(var) && lambda.getParameters() == null) {
+                return ResolveResult.EMPTY_ARRAY;
+            }
+
+            final QVarDeclaration declaration = QPsiUtil.getLocalDeclaration(lambda, var);
+            if (declaration != null) {
+                return single(DeclarationRef.of(declaration));
+            }
+            return resolveGlobalDeclaration(var);
         }
 
         private ResolveResult[] resolveQuery(QQueryExpr query, QVariable var) {
@@ -105,18 +116,6 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
                 return resolveVariable(var, queryContext);
             }
             return multi(res);
-        }
-
-        private ResolveResult[] resolveLambda(QLambdaExpr lambda, QVariable var) {
-            if (QPsiUtil.isImplicitVariable(var) && lambda.getParameters() == null) {
-                return ResolveResult.EMPTY_ARRAY;
-            }
-
-            final QVarDeclaration declaration = QPsiUtil.getLocalDefinition(lambda, var);
-            if (declaration != null) {
-                return single(DeclarationRef.of(declaration));
-            }
-            return resolveGlobalDefinition(var);
         }
     }
 }

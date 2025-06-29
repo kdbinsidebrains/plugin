@@ -10,11 +10,13 @@ import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.*;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.DocumentAdapter;
@@ -233,7 +235,10 @@ public final class UIUtils {
 
     public static void initializeFileChooser(@Nullable Project project, @NotNull ComponentWithBrowseButton<?> field, @NotNull FileChooserDescriptor descriptor) {
         if (descriptor.getRoots().isEmpty() && project != null) {
-            descriptor.withRoots(project.getBaseDir());
+            final VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
+            if (projectDir != null) {
+                descriptor.withRoots(projectDir);
+            }
         }
 
         if (field instanceof TextFieldWithBrowseButton button) {

@@ -92,7 +92,7 @@ public class QSpecReferenceProvider extends QBaseReferenceProvider<QVariable> {
         }
 
         @Override
-        protected ResolveResult[] resolveGlobalDefinition(QVariable element) {
+        protected ResolveResult[] resolveGlobalDeclaration(QVariable element) {
             final TestDescriptor desc = TestDescriptor.of(element);
             if (desc == null) {
                 return ResolveResult.EMPTY_ARRAY;

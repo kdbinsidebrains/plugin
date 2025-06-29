@@ -60,7 +60,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
         final LeafPsiElement pos = PsiTreeUtil.getPrevSiblingOfType(el, LeafPsiElement.class);
         if (pos != null && "from".equals(pos.getText())) {
             addGlobal("", project, IdentifierType.TABLE, result);
-            addLambda("", ElementContext.of(query), result);
+            addLambda("", query, result);
             addInspector("", TableElement.class, project, result);
         } else {
             final QExpression source = query.getSource();
@@ -139,7 +139,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
         }
 
         addGlobal(qualifiedName, project, null, result);
-        addLambda(qualifiedName, ElementContext.of(variable), result);
+        addLambda(qualifiedName, variable, result);
         addFunctions(qualifiedName, result);
         addKeywords(qualifiedName, result);
         addInspector(qualifiedName, ExecutableElement.class, project, result);
@@ -198,8 +198,8 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
         });
     }
 
-    private void addLambda(String qualifiedName, ElementContext context, CompletionResultSet result) {
-        final QLambdaExpr lambda = context.lambda();
+    private void addLambda(String qualifiedName, QPsiElement element, CompletionResultSet result) {
+        final QLambdaExpr lambda = element.getContext(QLambdaExpr.class);
         if (lambda == null) {
             return;
         }
@@ -221,7 +221,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
                 continue;
             }
 
-            final LookupElementBuilder b = LookupElementBuilder.create(variable).withIcon(IdentifierType.ARGUMENT.getIcon()).withTypeText("Function argument", true);
+            final LookupElementBuilder b = LookupElementBuilder.create(variable).withIcon(IdentifierType.ARGUMENT.getIcon()).withTypeText("Lambda parameter", true);
             result.addElement(b);
         }
     }

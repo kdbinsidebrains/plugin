@@ -5,10 +5,13 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightVisitor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QFileType;
-import org.kdb.inside.brains.psi.*;
+import org.kdb.inside.brains.psi.ElementScope;
+import org.kdb.inside.brains.psi.QLambda;
+import org.kdb.inside.brains.psi.QVarDeclaration;
+import org.kdb.inside.brains.psi.QVariable;
 
 public class QRainbowVisitor extends RainbowVisitor {
     @Override
@@ -24,44 +27,37 @@ public class QRainbowVisitor extends RainbowVisitor {
     }
 
     private HighlightInfo createVariableInfo(@NotNull QVariable var) {
-        if (var.isGlobal()) {
-            return null;
-        }
-
-        final QLambda lambda = PsiTreeUtil.getParentOfType(var, QLambda.class);
+        final QLambda lambda = var.getContext(QLambda.class);
         if (lambda == null) {
             return null;
         }
 
-        final String name = var.getName();
-        final ElementContext context = ElementContext.of(var);
-        if (context.is(ElementScope.PARAMETERS)) {
-            return getInfo(context.parameters(), var, name, QSyntaxHighlighter.VARIABLE);
+        if (var instanceof QVarDeclaration d) {
+            return getInfo(var, d, lambda);
         }
 
-        if (context.is(ElementScope.LAMBDA) && QPsiUtil.getLocalDefinition(context.lambda(), var) != null) {
-            return getInfo(context.lambda(), var, name, QSyntaxHighlighter.VARIABLE);
+        final PsiReference[] references = var.getReferences();
+        for (PsiReference reference : references) {
+            final PsiElement resolve = reference.resolve();
+            if (resolve instanceof QVarDeclaration d) {
+                final HighlightInfo info = getInfo(var, d, lambda);
+                if (info != null) {
+                    return info;
+                }
+            }
         }
-
-        if (var instanceof QVarReference && context.any(ElementScope.DICT, ElementScope.TABLE) && QPsiUtil.getLocalDefinition(lambda, var) != null) {
-            return getInfo(lambda, var, name, QSyntaxHighlighter.VARIABLE);
-        }
-
-//        final QLambdaExpr l = var.getContext(QLambdaExpr.class);
-//        final QLambdaExpr lambda = findRootLambda(var);
-//        if (lambda != null && QPsiUtil.isInnerDeclaration(lambda, name)) {
-//            return getInfo(lambda, var, name, QSyntaxHighlighter.VARIABLE);
-//        }
         return null;
     }
 
-    private QLambdaExpr findRootLambda(@NotNull QVariable var) {
-        ElementContext ctx = ElementContext.of(var);
-        while (!ctx.isFile()) {
-            if (ctx.is(ElementScope.LAMBDA)) {
-                return ctx.lambda();
-            }
-            ctx = ctx.getParent();
+    private HighlightInfo getInfo(QVariable v, QVarDeclaration d, QLambda lambda) {
+        if (d.isGlobal()) {
+            return null;
+        }
+
+        final ElementScope scope = d.getVariableContext().getScope();
+        // only root variables, no tables, dicts and so on
+        if (scope == ElementScope.PARAMETERS || scope == ElementScope.LAMBDA) {
+            return getInfo(lambda, v, v.getName(), QSyntaxHighlighter.VARIABLE);
         }
         return null;
     }

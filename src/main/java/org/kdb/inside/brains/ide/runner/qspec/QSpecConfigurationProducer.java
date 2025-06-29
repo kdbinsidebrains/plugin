@@ -8,8 +8,10 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kdb.inside.brains.QFileType;
 import org.kdb.inside.brains.ide.runner.KdbConfigurationProducerBase;
 import org.kdb.inside.brains.lang.qspec.TestDescriptor;
 import org.kdb.inside.brains.lang.qspec.TestItem;
@@ -66,7 +68,7 @@ public class QSpecConfigurationProducer extends KdbConfigurationProducerBase<QSp
         }
 
         if (element instanceof PsiDirectory dir) {
-            return true;
+            return containsTestFiles(dir);
         }
 
         final TestDescriptor descriptor = getRunnableTestDescriptor(element);
@@ -110,5 +112,22 @@ public class QSpecConfigurationProducer extends KdbConfigurationProducerBase<QSp
 
     private boolean compareItemName(TestItem item, String value) {
         return (item == null && StringUtil.isEmpty(value)) || (item != null && Objects.equals(item.getCaption(), value));
+    }
+
+    private boolean containsTestFiles(PsiDirectory directory) {
+        // Check files in the current directory
+        for (PsiFile file : directory.getFiles()) {
+            if (file.getFileType() == QFileType.INSTANCE) {
+                return true;
+            }
+        }
+
+        // Recursively check subdirectories
+        for (PsiDirectory subDir : directory.getSubdirectories()) {
+            if (containsTestFiles(subDir)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

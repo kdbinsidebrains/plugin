@@ -8,6 +8,16 @@ public abstract class DeclarationRef {
     private DeclarationRef() {
     }
 
+    public abstract boolean isGlobal();
+
+
+    public abstract PsiElement getElement();
+
+    public abstract QExpression getExpression();
+
+    public abstract NavigationItem getNavigationItem();
+
+
     public static DeclarationRef of(QSymbol symbol) {
         return new SymbolRef(symbol);
     }
@@ -16,13 +26,6 @@ public abstract class DeclarationRef {
         return new VariableRef(declaration);
     }
 
-    public abstract PsiElement getElement();
-
-    public abstract NavigationItem getNavigationItem();
-
-    public abstract QExpression getExpression();
-
-    public abstract boolean isGlobalDeclaration();
 
     public void navigate(boolean requestFocus) {
         final NavigationItem navigationItem = getNavigationItem();
@@ -50,7 +53,7 @@ public abstract class DeclarationRef {
         }
 
         @Override
-        public boolean isGlobalDeclaration() {
+        public boolean isGlobal() {
             return true;
         }
 
@@ -76,7 +79,7 @@ public abstract class DeclarationRef {
         }
 
         @Override
-        public boolean isGlobalDeclaration() {
+        public boolean isGlobal() {
             return QPsiUtil.isGlobalDeclaration(element);
         }
 

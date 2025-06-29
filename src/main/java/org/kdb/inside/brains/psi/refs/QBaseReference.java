@@ -1,6 +1,7 @@
 package org.kdb.inside.brains.psi.refs;
 
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.psi.QPsiElement;
@@ -32,7 +33,7 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
 
     @Override
     public ResolveResult @NotNull [] multiResolve(boolean incompleteCode) {
-        return resolveGlobalDefinition(myElement);
+        return resolveGlobalDeclaration(myElement);
     }
 
     @Override
@@ -73,7 +74,7 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
         return false;
     }
 
-    protected ResolveResult[] resolveGlobalDefinition(T element) {
+    protected ResolveResult[] resolveGlobalDeclaration(T element) {
         final PsiFile file = element.getContainingFile();
         if (file == null) {
             return ResolveResult.EMPTY_ARRAY;
@@ -89,7 +90,7 @@ public abstract class QBaseReference<T extends QPsiElement> extends PsiPolyVaria
         if (initial == null) {
             final GlobalSearchScope scope = GlobalSearchScope.allScope(element.getProject());
             final Collection<DeclarationRef> declarations = QIndexService.getInstance(element).getDeclarations(name, scope);
-            return multi(declarations.stream().filter(DeclarationRef::isGlobalDeclaration));
+            return multi(declarations.stream().filter(DeclarationRef::isGlobal));
         }
         return single(initial);
     }
