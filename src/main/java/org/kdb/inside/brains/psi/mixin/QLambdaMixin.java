@@ -10,7 +10,6 @@ import org.kdb.inside.brains.psi.*;
 import org.kdb.inside.brains.psi.impl.QExpressionImpl;
 
 import javax.swing.*;
-import java.util.List;
 
 public abstract class QLambdaMixin extends QExpressionImpl implements QLambda {
     public QLambdaMixin(ASTNode node) {
@@ -44,27 +43,47 @@ public abstract class QLambdaMixin extends QExpressionImpl implements QLambda {
 
     @Override
     public @Nullable QVarDeclaration getLocalDeclaration(@NotNull QVariable variable) {
-        // implicit variable or in parameters list - ignore namespace
-        if (isImplicitDeclaration(variable)) {
+        final String name = variable.getName();
+        final QParameters parameters = getParameters();
+        if (parameters != null) {
+            final QVarDeclaration d = findInParameters(parameters, name);
+            if (d != null) {
+                return d;
+            }
+        } else if (QPsiUtil.isImplicitName(name)) {
             return null;
         }
 
         final QExpressions expressions = getExpressions();
-        if (expressions == null) {
-            return null;
+        if (expressions != null) {
+            return findInExpressions(expressions, variable, name);
         }
+        return null;
+    }
 
-        final List<QExpression> list = expressions.getExpressionList();
-        if (list.isEmpty()) {
-            return null;
-        }
-
-        final String name = variable.getName();
-
+    private QVarDeclaration findInParameters(QParameters parameters, String name) {
         final SearchResult result = new SearchResult();
-        for (QExpression expression : list) {
+        parameters.acceptChildren(new DeclarationsVisitor() {
+            @Override
+            public void visitElement(@NotNull PsiElement element) {
+                if (element instanceof @NotNull QVarDeclaration d) {
+                    if (d.getName().equals(name)) {
+                        result.declaration = d;
+                        stopWalking();
+                    }
+                } else {
+                    super.visitElement(element);
+                }
+            }
+        });
+        return result.declaration;
+    }
+
+    private QVarDeclaration findInExpressions(QExpressions expressions, QVariable variable, String name) {
+        final SearchResult result = new SearchResult();
+        for (QExpression expression : expressions.getExpressionList()) {
             // We iterate over each expression and takes the right as the best because Q is right-to-left language
-            expression.accept(new PsiRecursiveElementWalkingVisitor() {
+            expression.accept(new DeclarationsVisitor() {
                 @Override
                 public void visitElement(@NotNull PsiElement element) {
                     // we don't search inside others lambda, query, table or dict
@@ -82,26 +101,6 @@ public abstract class QLambdaMixin extends QExpressionImpl implements QLambda {
                     } else {
                         super.visitElement(element);
                     }
-                }
-
-                @Override
-                public void visitComment(@NotNull PsiComment ignore) {
-                }
-
-                @Override
-                public void visitPlainText(@NotNull PsiPlainText ignore) {
-                }
-
-                @Override
-                public void visitWhiteSpace(@NotNull PsiWhiteSpace ignore) {
-                }
-
-                @Override
-                public void visitErrorElement(@NotNull PsiErrorElement ignore) {
-                }
-
-                @Override
-                public void visitOuterLanguageElement(@NotNull OuterLanguageElement ignore) {
                 }
             });
 
@@ -121,5 +120,27 @@ public abstract class QLambdaMixin extends QExpressionImpl implements QLambda {
     private static class SearchResult {
         boolean containsVariable;
         QVarDeclaration declaration;
+    }
+
+    private static class DeclarationsVisitor extends PsiRecursiveElementWalkingVisitor {
+        @Override
+        public void visitComment(@NotNull PsiComment ignore) {
+        }
+
+        @Override
+        public void visitPlainText(@NotNull PsiPlainText ignore) {
+        }
+
+        @Override
+        public void visitWhiteSpace(@NotNull PsiWhiteSpace ignore) {
+        }
+
+        @Override
+        public void visitErrorElement(@NotNull PsiErrorElement ignore) {
+        }
+
+        @Override
+        public void visitOuterLanguageElement(@NotNull OuterLanguageElement ignore) {
+        }
     }
 }
