@@ -7,11 +7,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
-import org.kdb.inside.brains.psi.ElementScope;
-import org.kdb.inside.brains.psi.QLambda;
-import org.kdb.inside.brains.psi.QVarDeclaration;
-import org.kdb.inside.brains.psi.QVariable;
+import org.kdb.inside.brains.psi.*;
 
 public class QRainbowVisitor extends RainbowVisitor {
     @Override
@@ -21,12 +19,15 @@ public class QRainbowVisitor extends RainbowVisitor {
 
     @Override
     public void visit(@NotNull PsiElement psiElement) {
-        if (psiElement instanceof @NotNull QVariable var && !var.isGlobal()) {
-            addInfo(createVariableInfo(var));
+        if (psiElement instanceof @NotNull QVariable var) {
+            final HighlightInfo info = createVariableInfo(var);
+            if (info != null) {
+                addInfo(info);
+            }
         }
     }
 
-    private HighlightInfo createVariableInfo(@NotNull QVariable var) {
+    private @Nullable HighlightInfo createVariableInfo(@NotNull QVariable var) {
         final QLambda lambda = var.getContext(QLambda.class);
         if (lambda == null) {
             return null;
@@ -34,6 +35,10 @@ public class QRainbowVisitor extends RainbowVisitor {
 
         if (var instanceof QVarDeclaration d) {
             return getInfo(var, d, lambda);
+        }
+
+        if (lambda.isImplicitDeclaration(var)) {
+            return createInfo(lambda, var);
         }
 
         final PsiReference[] references = var.getReferences();
@@ -49,15 +54,15 @@ public class QRainbowVisitor extends RainbowVisitor {
         return null;
     }
 
-    private HighlightInfo getInfo(QVariable v, QVarDeclaration d, QLambda lambda) {
-        if (d.isGlobal()) {
+    private @Nullable HighlightInfo getInfo(@NotNull QVariable var, @NotNull QVarDeclaration dec, @NotNull QLambda lambda) {
+        if (QPsiUtil.isGlobalDeclaration(dec)) {
             return null;
         }
 
-        final ElementScope scope = d.getVariableContext().getScope();
+        final ElementScope scope = dec.getVariableContext().getScope();
         // only root variables, no tables, dicts and so on
         if (scope == ElementScope.PARAMETERS || scope == ElementScope.LAMBDA) {
-            return getInfo(lambda, v, v.getName(), QSyntaxHighlighter.VARIABLE);
+            return createInfo(lambda, var);
         }
         return null;
     }
@@ -65,5 +70,9 @@ public class QRainbowVisitor extends RainbowVisitor {
     @Override
     public @NotNull HighlightVisitor clone() {
         return new QRainbowVisitor();
+    }
+
+    private @NotNull HighlightInfo createInfo(@NotNull QLambda lambda, @NotNull QVariable var) {
+        return getInfo(lambda, var, var.getName(), QSyntaxHighlighter.VARIABLE);
     }
 }

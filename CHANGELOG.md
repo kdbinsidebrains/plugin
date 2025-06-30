@@ -1,5 +1,13 @@
 # KdbInsideBrains Changelog
 
+## 6.3.2
+
+### Fixed
+
+- Implicit variables (x,y,z) are not highlighted in Rainbow
+- Implicit variables (x,y,z) shown as undefined if lambda defined in a context (\d)
+- Global variable assignment marked by rainbow as local
+
 ## 6.3.1
 
 ### Added
