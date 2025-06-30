@@ -62,52 +62,53 @@ public abstract class QLambdaMixin extends QExpressionImpl implements QLambda {
     }
 
     private QVarDeclaration findInParameters(QParameters parameters, String name) {
-        final SearchResult result = new SearchResult();
-        parameters.acceptChildren(new DeclarationsVisitor() {
+        final DeclarationsVisitor visitor = new DeclarationsVisitor() {
             @Override
             public void visitElement(@NotNull PsiElement element) {
                 if (element instanceof @NotNull QVarDeclaration d) {
                     if (d.getName().equals(name)) {
-                        result.declaration = d;
+                        declaration = d;
                         stopWalking();
                     }
                 } else {
                     super.visitElement(element);
                 }
             }
-        });
-        return result.declaration;
+        };
+        parameters.acceptChildren(visitor);
+        return visitor.declaration;
     }
 
     private QVarDeclaration findInExpressions(QExpressions expressions, QVariable variable, String name) {
-        final SearchResult result = new SearchResult();
+        final DeclarationsVisitor visitor = new DeclarationsVisitor() {
+            @Override
+            public void visitElement(@NotNull PsiElement element) {
+                // we don't search inside others lambda, query, table or dict
+                if (isContextualElement(element)) {
+                    return;
+                }
+
+                // no reason to search after the definition.// In a lambda it can't be below.
+                if (element.equals(variable)) {
+                    containsVariable = true;
+                } else if (element instanceof QVarDeclaration d) {
+                    if (name.equals(d.getName()) && !QPsiUtil.isGlobalDeclaration(d)) {
+                        declaration = d;
+                    }
+                } else {
+                    super.visitElement(element);
+                }
+            }
+        };
+
         for (QExpression expression : expressions.getExpressionList()) {
             // We iterate over each expression and takes the right as the best because Q is right-to-left language
-            expression.accept(new DeclarationsVisitor() {
-                @Override
-                public void visitElement(@NotNull PsiElement element) {
-                    // we don't search inside others lambda, query, table or dict
-                    if (isContextualElement(element)) {
-                        return;
-                    }
-
-                    // no reason to search after the definition.// In a lambda it can't be below.
-                    if (element.equals(variable)) {
-                        result.containsVariable = true;
-                    } else if (element instanceof QVarDeclaration d) {
-                        if (name.equals(d.getName()) && !QPsiUtil.isGlobalDeclaration(d)) {
-                            result.declaration = d;
-                        }
-                    } else {
-                        super.visitElement(element);
-                    }
-                }
-            });
+            expression.accept(visitor);
 
             // if the declaration found - grate;
             // if the expression contains the original variable and no declaration in the expression, we stop anyway.
-            if (result.declaration != null || result.containsVariable) {
-                return result.declaration;
+            if (visitor.declaration != null || visitor.containsVariable) {
+                return visitor.declaration;
             }
         }
         return null;
@@ -117,12 +118,10 @@ public abstract class QLambdaMixin extends QExpressionImpl implements QLambda {
         return element instanceof QLambdaExpr || element instanceof QQueryExpr || element instanceof QTableExpr || element instanceof QDictExpr;
     }
 
-    private static class SearchResult {
-        boolean containsVariable;
-        QVarDeclaration declaration;
-    }
-
     private static class DeclarationsVisitor extends PsiRecursiveElementWalkingVisitor {
+        protected boolean containsVariable;
+        protected QVarDeclaration declaration;
+
         @Override
         public void visitComment(@NotNull PsiComment ignore) {
         }
