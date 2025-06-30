@@ -318,8 +318,4 @@ public final class QPsiUtil {
     public static QVarDeclaration createVarDeclaration(Project project, String name) {
         return PsiTreeUtil.findChildOfType(QFileType.createFactoryFile(project, name + ":`"), QVarDeclaration.class);
     }
-
-    public static boolean isLocalContextElement(@NotNull PsiElement element) {
-        return element instanceof QLambdaExpr || element instanceof QQueryExpr || element instanceof QTableExpr || element instanceof QDictExpr;
-    }
 }

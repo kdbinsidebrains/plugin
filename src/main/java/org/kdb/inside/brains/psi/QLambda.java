@@ -11,6 +11,8 @@ public interface QLambda extends QPsiElement {
     @Nullable
     QParameters getParameters();
 
+    @Nullable
+    QExpressions getExpressions();
 
 //    boolean isImplicitVariable(String name);
 

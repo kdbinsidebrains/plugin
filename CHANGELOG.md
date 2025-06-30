@@ -7,6 +7,7 @@
 - Implicit variables (x,y,z) are not highlighted in Rainbow
 - Implicit variables (x,y,z) shown as undefined if lambda defined in a context (\d)
 - Global variable assignment marked by rainbow as local
+- Local variable declaration is searched from right-to-left inside lambda expression per expression
 
 ## 6.3.1
 
