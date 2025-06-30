@@ -32,11 +32,12 @@ public class UndefinedVariableInspection extends ElementInspection<QVarReference
             return;
         }
 
-        if (QPsiUtil.isImplicitVariable(variable)) {
+        if (UndefinedExclusion.isExcluded(qualifiedName)) {
             return;
         }
 
-        if (UndefinedExclusion.isExcluded(qualifiedName)) {
+        final QLambda lambda = variable.getContext(QLambda.class);
+        if (lambda != null && lambda.isImplicitDeclaration(variable)) {
             return;
         }
 

@@ -18,15 +18,6 @@ public interface QVariable extends QPsiElement {
     String getQualifiedName();
 
     /**
-     * Returns true of the qualified name starts with dot: <code>.asd.qwe</code>.
-     *
-     * @return true if it's global definition or false otherwise.
-     */
-    default boolean isGlobal() {
-        return QPsiUtil.hasNamespace(getQualifiedName());
-    }
-
-    /**
      * Returns last tone of the name or the full name.
      */
     default String getSimpleName() {

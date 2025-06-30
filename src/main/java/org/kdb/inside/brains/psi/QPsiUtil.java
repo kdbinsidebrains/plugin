@@ -70,14 +70,6 @@ public final class QPsiUtil {
         return 'x' == c || 'y' == c || 'z' == c;
     }
 
-    public static boolean isImplicitVariable(@NotNull QVariable variable) {
-        if (isImplicitName(variable.getQualifiedName())) {
-            final QLambdaExpr enclosingLambda = variable.getContext(QLambdaExpr.class);
-            return enclosingLambda != null && enclosingLambda.getParameters() == null;
-        }
-        return false;
-    }
-
     public static boolean isGlobalDeclaration(@NotNull QVarDeclaration declaration) {
         final ElementContext ctx = ElementContext.of(declaration);
         return switch (ctx.getScope()) {
@@ -173,39 +165,6 @@ public final class QPsiUtil {
             sibling = sibling.getNextSibling();
         }
         return sibling;
-    }
-
-
-    public static @Nullable QVarDeclaration getLocalDeclaration(@NotNull QLambda lambda, @NotNull QVariable variable) {
-        final String name = variable.getName();
-        // implicit variable or in parameters list - ignore namespace
-        if (lambda.getParameters() == null && QPsiUtil.isImplicitName(name)) {
-            return null;
-        }
-
-        final QVarDeclaration[] res = new QVarDeclaration[1];
-        lambda.acceptChildren(new PsiRecursiveElementWalkingVisitor() {
-            @Override
-            public void visitElement(@NotNull PsiElement element) {
-                // we don't search inside others lambda, query, table or dict
-                if (QPsiUtil.isLocalContextElement(element)) {
-                    return;
-                }
-
-                // no reason to search after the definition.// In a lambda it can't be below.
-                if (element.equals(variable)) {
-                    stopWalking();
-                } else if (element instanceof QVarDeclaration d) {
-                    if (name.equals(d.getName()) && !QPsiUtil.isGlobalDeclaration(d)) {
-                        res[0] = d;
-                        stopWalking();
-                    }
-                } else {
-                    super.visitElement(element);
-                }
-            }
-        });
-        return res[0];
     }
 
     public static PsiElement findRootExpression(PsiElement element, PsiElement context) {

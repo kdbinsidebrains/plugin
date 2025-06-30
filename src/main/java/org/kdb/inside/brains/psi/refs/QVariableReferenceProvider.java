@@ -61,11 +61,11 @@ public class QVariableReferenceProvider extends QBaseReferenceProvider<QVariable
         }
 
         private ResolveResult[] resolveLambda(QLambdaExpr lambda, QVariable var) {
-            if (QPsiUtil.isImplicitVariable(var) && lambda.getParameters() == null) {
+            if (lambda.isImplicitDeclaration(var)) {
                 return ResolveResult.EMPTY_ARRAY;
             }
 
-            final QVarDeclaration declaration = QPsiUtil.getLocalDeclaration(lambda, var);
+            final QVarDeclaration declaration = lambda.getLocalDeclaration(var);
             if (declaration != null) {
                 return single(DeclarationRef.of(declaration));
             }
