@@ -4,6 +4,7 @@ import kx.KxConnection;
 import kx.c;
 import org.jfree.data.time.*;
 import org.kdb.inside.brains.KdbType;
+import org.kdb.inside.brains.view.console.table.QColumnInfo;
 import org.kdb.inside.brains.view.console.table.QTableModel;
 import org.kdb.inside.brains.view.console.table.TableResult;
 
@@ -30,7 +31,7 @@ public interface ChartDataProvider {
 
         final Map<ChartColumn, Object[]> cache = new HashMap<>();
 
-        final QTableModel.QColumnInfo[] modelCols = model.getColumns();
+        final QColumnInfo[] modelCols = model.getColumnInfos();
         final List<ChartColumn> columns = Stream.of(modelCols).map(ChartColumn::new).toList();
 
         return new ChartDataProvider() {

@@ -142,7 +142,7 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
             }
 
             final TableColumn column = table.getColumnModel().getColumn(i);
-            if (model instanceof QTableModel m && m.isKeyColumn(column.getModelIndex())) {
+            if (model instanceof QTableModel m && m.isKeyColumn(column)) {
                 c = c.toKeyColors();
             }
             res[i] = c;

@@ -29,8 +29,8 @@ class TableResultSearchSession extends QSearchSession {
     private final Lock delayLock = new ReentrantLock();
     private QSearchSession.RangeExtractor[] rangeExtractors = NO_EXTRACTORS;
 
-    public TableResultSearchSession(@Nullable Project project, @NotNull JComponent component, @NotNull FindModel findModel) {
-        super(project, component, findModel);
+    public TableResultSearchSession(@Nullable Project project, @NotNull JComponent component) {
+        super(project, component);
     }
 
     @Override

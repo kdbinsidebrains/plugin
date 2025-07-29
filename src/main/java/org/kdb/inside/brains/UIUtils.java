@@ -37,6 +37,8 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -46,6 +48,8 @@ public final class UIUtils {
     public static final String KEY_COLUMN_PREFIX = "\u00A1";
 
     public static final String KEY_COLUMN_PREFIX_XMAS = "\uD83C\uDF84";
+
+    private static final Map<Color, Color> KEY_COLUMN_COLORS = new HashMap<>();
 
     private UIUtils() {
     }
@@ -79,11 +83,20 @@ public final class UIUtils {
         return Color.decode(hexColor);
     }
 
-    public static Color getKeyColumnColor(Color c) {
-        if (c == null) {
+    public static Color getKeyColumnColor(Color color) {
+        if (color == null) {
             return null;
         }
-        return new Color(Math.max((int) (c.getRed() * 0.85), 0), Math.max((int) (c.getGreen() * 0.9), 0), Math.max((int) (c.getBlue() * 0.85), 0), c.getAlpha());
+        return KEY_COLUMN_COLORS.computeIfAbsent(color, c -> {
+            int r = c.getRed();
+            int g = c.getGreen();
+            int b = c.getBlue();
+            int a = c.getAlpha();
+            if (r < 125 && g < 125 && b < 125) { // dark
+                return new Color(Math.min((int) (r * 1.15), 255), Math.min((int) (g * 1.3), 255), Math.min((int) (b * 1.15), 255), a);
+            }
+            return new Color(Math.max((int) (r * 0.85), 0), Math.max((int) (g * 0.9), 0), Math.max((int) (b * 0.85), 0), a);
+        });
     }
 
     // Taken from https://stackoverflow.com/questions/1126227/indexof-case-sensitive

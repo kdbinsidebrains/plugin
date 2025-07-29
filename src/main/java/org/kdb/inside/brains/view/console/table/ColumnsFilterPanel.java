@@ -12,37 +12,45 @@ import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import icons.KdbIcons;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 class ColumnsFilterPanel extends NonOpaquePanel {
-    private final MyTableColumnModel columnModel;
-    private final CheckBoxList<TableColumn> columnsFilterList;
+    //    private final MyTableColumnModel columnModel;
+    private final QColumnModel columnModel;
+    private final CheckBoxList<FilterColumn> columnsFilterList;
 
-    public ColumnsFilterPanel(JTable table) {
+    public ColumnsFilterPanel(QTable myTable) {
         super(new BorderLayout());
-        this.columnModel = (MyTableColumnModel) table.getColumnModel();
+        this.columnModel = myTable.getColumnModel();
+
+//        final QTableModel model = (QTableModel) table.getModel();
+//        this.columnModel = (MyTableColumnModel) table.getColumnModel();
+
+//        myTable.addPropertyChangeListener("model", this::modelChanged);
+//        final JTableHeader header = myTable.getTableHeader();
+
 
         columnsFilterList = new CheckBoxList<>() {
             @Override
             protected void doCopyToClipboardAction() {
                 ArrayList<String> selected = new ArrayList<>();
                 for (int index : getSelectedIndices()) {
-                    final TableColumn itemAt = columnsFilterList.getItemAt(index);
+                    final FilterColumn itemAt = getItemAt(index);
                     if (itemAt != null) {
-                        String text = String.valueOf(itemAt.getHeaderValue());
-                        if (text != null) {
-                            selected.add(text);
-                        }
+                        selected.add(itemAt.name);
                     }
                 }
 
@@ -51,38 +59,30 @@ class ColumnsFilterPanel extends NonOpaquePanel {
                     CopyPasteManager.getInstance().setContents(new StringSelection(text));
                 }
             }
+
+            @Override
+            protected @Nls @Nullable String getSecondaryText(int index) {
+                final FilterColumn item = getItemAt(index);
+                if (item != null) {
+                    return item.type;
+                }
+                return null;
+            }
         };
+
         columnsFilterList.setCheckBoxListListener((index, value) -> {
-            final TableColumn col = columnsFilterList.getItemAt(index);
+            final FilterColumn col = columnsFilterList.getItemAt(index);
             if (col == null) {
                 return;
             }
             changeColumnState(col, value);
         });
 
+        myTable.getColumnModel().addColumnModelListener(new TheTableColumnModelListener());
+
         final DefaultActionGroup group = new DefaultActionGroup();
-        group.add(new DumbAwareAction("Select All", "Select all columns", KdbIcons.Console.SelectAll) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                final List<TableColumn> columns = columnModel.getColumns(true);
-                for (TableColumn column : columns) {
-                    columnsFilterList.setItemSelected(column, true);
-                    changeColumnState(column, true);
-                }
-                columnsFilterList.repaint();
-            }
-        });
-        group.add(new DumbAwareAction("Unselect All", "Unselect all columns", KdbIcons.Console.UnselectAll) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                final List<TableColumn> columns = columnModel.getColumns(true);
-                for (TableColumn column : columns) {
-                    columnsFilterList.setItemSelected(column, false);
-                    changeColumnState(column, false);
-                }
-                columnsFilterList.repaint();
-            }
-        });
+        group.add(new SelectUnselectAction("Select All", "Select all columns", KdbIcons.Console.SelectAll, true));
+        group.add(new SelectUnselectAction("Unselect All", "Unselect all columns", KdbIcons.Console.UnselectAll, false));
 
         final ActionToolbar filterToolbar = ActionManager.getInstance().createActionToolbar("TableResultView.FilterToolbar", group, true);
         filterToolbar.setTargetComponent(columnsFilterList);
@@ -98,31 +98,19 @@ class ColumnsFilterPanel extends NonOpaquePanel {
         setMinimumSize(s);
     }
 
-    @NotNull
-    private static Set<Object> getColumnNames(List<TableColumn> oldCols) {
-        return oldCols.stream().map(TableColumn::getHeaderValue).collect(Collectors.toSet());
-    }
-
-    private void changeColumnState(TableColumn col, boolean enabled) {
-        columnModel.setVisible(col, enabled);
-    }
-
-    public void invalidateFilter() {
+    private void invalidateFilter() {
         columnsFilterList.clear();
-        final Enumeration<TableColumn> columns = columnModel.getColumns();
-        while (columns.hasMoreElements()) {
-            final TableColumn tableColumn = columns.nextElement();
-            columnsFilterList.addItem(tableColumn, String.valueOf(tableColumn.getHeaderValue()), true);
+
+        final List<TableColumn> columns = columnModel.getColumns(true);
+        for (TableColumn column : columns) {
+            final QColumnInfo info = columnModel.getColumnInfo(column);
+            final FilterColumn item = new FilterColumn(info.getName(), info.getColumnType().getTypeName(), column);
+            columnsFilterList.addItem(item, item.name, columnModel.isVisible(column));
         }
     }
 
-    private List<TableColumn> getListItems() {
-        final int size = columnsFilterList.getModel().getSize();
-        final List<TableColumn> res = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            res.add(columnsFilterList.getItemAt(i));
-        }
-        return res;
+    private void changeColumnState(FilterColumn col, boolean visible) {
+        columnModel.setVisible(col.column, visible);
     }
 
     @Override
@@ -131,6 +119,54 @@ class ColumnsFilterPanel extends NonOpaquePanel {
     }
 
     public void destroy() {
-        columnModel.reset();
+//        columnModel.reset();
+    }
+
+    record FilterColumn(String name, String type, TableColumn column) {
+    }
+
+    private class SelectUnselectAction extends DumbAwareAction {
+        private final boolean selected;
+
+        public SelectUnselectAction(String text, String description, Icon icon, boolean selected) {
+            super(text, description, icon);
+            this.selected = selected;
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
+            for (FilterColumn item : columnsFilterList.getAllItems()) {
+                columnsFilterList.setItemSelected(item, selected);
+                changeColumnState(item, true);
+            }
+            columnsFilterList.repaint();
+        }
+    }
+
+    private class TheTableColumnModelListener implements TableColumnModelListener {
+        @Override
+        public void columnAdded(TableColumnModelEvent e) {
+
+        }
+
+        @Override
+        public void columnRemoved(TableColumnModelEvent e) {
+
+        }
+
+        @Override
+        public void columnMoved(TableColumnModelEvent e) {
+
+        }
+
+        @Override
+        public void columnMarginChanged(ChangeEvent e) {
+
+        }
+
+        @Override
+        public void columnSelectionChanged(ListSelectionEvent e) {
+
+        }
     }
 }

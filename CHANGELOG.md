@@ -1,5 +1,18 @@
 # KdbInsideBrains Changelog
 
+## 6.3.4
+
+### Added
+
+- Column type tooltip shown in TableResult view
+- Column type tooltip shown in Columns Filter panel of TableResult view
+- Sorting by list columns: comparing by each list's item. The shortest list of all other items being equal.
+
+### Fixed
+
+- Issue 130: Flip rows in Points Collector of Chart View causes NPE
+- Key column in dark mode is more visible
+
 ## 6.3.3
 
 ### Fixed

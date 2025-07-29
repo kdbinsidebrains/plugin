@@ -6,8 +6,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class MyTableColumnModel extends DefaultTableColumnModel {
+class QColumnModel extends DefaultTableColumnModel {
+    private final QTable table;
+
     private final List<TableColumn> allColumns = new ArrayList<>();
+
+    QColumnModel(QTable table) {
+        this.table = table;
+    }
 
     public int getColumnCount(boolean includeHidden) {
         return includeHidden ? this.allColumns.size() : this.getColumnCount();
@@ -18,13 +24,17 @@ class MyTableColumnModel extends DefaultTableColumnModel {
     }
 
     public boolean isVisible(TableColumn column) {
-        return !allColumns.contains(column);
+        return tableColumns.contains(column);
     }
 
     public List<TableColumn> getInvisibleColumns() {
         final List<TableColumn> res = new ArrayList<>(allColumns);
         res.removeAll(tableColumns);
         return res;
+    }
+
+    public QColumnInfo getColumnInfo(TableColumn column) {
+        return table.getModel().getColumnInfo(column.getModelIndex());
     }
 
     @Override

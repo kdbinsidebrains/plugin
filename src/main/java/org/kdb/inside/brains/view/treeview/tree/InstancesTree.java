@@ -1,6 +1,5 @@
 package org.kdb.inside.brains.view.treeview.tree;
 
-import com.intellij.find.FindModel;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
@@ -107,10 +106,7 @@ public class InstancesTree extends DnDAwareTree implements DataProvider, DnDTarg
 
     @NotNull
     private InstancesSearchSession createSearchSession(@Nullable Project project) {
-        final FindModel findModel = new FindModel();
-        findModel.setFindAll(true);
-
-        return new InstancesSearchSession(project, this, findModel);
+        return new InstancesSearchSession(project, this);
     }
 
     @Override

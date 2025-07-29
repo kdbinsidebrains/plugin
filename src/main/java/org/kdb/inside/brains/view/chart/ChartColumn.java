@@ -2,7 +2,7 @@ package org.kdb.inside.brains.view.chart;
 
 import org.jdom.Element;
 import org.kdb.inside.brains.KdbType;
-import org.kdb.inside.brains.view.console.table.QTableModel;
+import org.kdb.inside.brains.view.console.table.QColumnInfo;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -17,7 +17,7 @@ public record ChartColumn(String name, KdbType type) {
 
     static final Set<KdbType> TEMPORAL_TYPES = Set.of(KdbType.SECOND, KdbType.MINUTE, KdbType.MONTH, KdbType.TIME, KdbType.DATE, KdbType.DATETIME, KdbType.TIMESPAN, KdbType.TIMESTAMP);
 
-    public ChartColumn(QTableModel.QColumnInfo info) {
+    public ChartColumn(QColumnInfo info) {
         this(info.getName(), KdbType.typeOf(info.getColumnClass()));
     }
 
