@@ -1,49 +1,46 @@
 package org.kdb.inside.brains.view.console.table;
 
-import com.intellij.openapi.util.NlsContexts;
-import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.SortableColumnModel;
 import kx.c;
 import org.apache.commons.lang3.ArrayUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.KdbType;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
 
+import javax.swing.*;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import java.lang.reflect.Array;
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.Comparator;
 
-import static org.kdb.inside.brains.UIUtils.KEY_COLUMN_PREFIX;
-import static org.kdb.inside.brains.UIUtils.KEY_COLUMN_PREFIX_XMAS;
-
-public abstract class QTableModel implements TableModel {
+public abstract class QTableModel implements TableModel, SortableColumnModel {
     private final QColumnInfo[] columns;
 
     public static final QTableModel EMPTY_MODEL = new EmptyTableModel();
 
-    protected QTableModel(QColumnInfo[] columns) {
+    private QTableModel(QColumnInfo[] columns) {
         this.columns = columns;
     }
 
     @Override
     public void addTableModelListener(TableModelListener l) {
+        // read-only
     }
 
     @Override
     public void removeTableModelListener(TableModelListener l) {
+        // read-only
     }
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
+        // read-only
         return false;
     }
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+        // read-only
         throw new UnsupportedOperationException("Read-only model");
     }
 
@@ -52,8 +49,29 @@ public abstract class QTableModel implements TableModel {
         return columns.length;
     }
 
-    public QColumnInfo[] getColumns() {
+    @Override
+    public QColumnInfo[] getColumnInfos() {
         return columns;
+    }
+
+    @Override
+    public RowSorter.@Nullable SortKey getDefaultSortKey() {
+        return null;
+    }
+
+    @Override
+    public Object getRowValue(int i) {
+        return null;
+    }
+
+    @Override
+    public boolean isSortable() {
+        return true;
+    }
+
+    @Override
+    public void setSortable(boolean b) {
+        throw new UnsupportedOperationException("Always sortable");
     }
 
     @Override
@@ -63,17 +81,8 @@ public abstract class QTableModel implements TableModel {
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        return columns[columnIndex].columnClass;
+        return columns[columnIndex].getColumnClass();
     }
-
-    public String getDisplayColumnName(int columnIndex) {
-        return columns[columnIndex].displayName;
-    }
-
-    public boolean isKeyColumn(int columnIndex) {
-        return columns[columnIndex].key;
-    }
-
 
     @Nullable
     public static QTableModel from(Object k) {
@@ -105,99 +114,7 @@ public abstract class QTableModel implements TableModel {
         return null;
     }
 
-    public static class QColumnInfo extends ColumnInfo<Object, Object> {
-        private final boolean key;
-        private final KdbType columnType;
-        private final Class<?> columnClass;
-        private final Comparator<Object> comparator;
-        private final String displayName;
-
-        @SuppressWarnings("unchecked")
-        public QColumnInfo(String name, Class<?> columnClass, boolean key) {
-            super(name);
-            this.key = key;
-            this.columnClass = columnClass;
-            this.columnType = KdbType.typeOf(columnClass);
-            this.displayName = createDisplayName(name, key);
-
-            if (columnClass != null && (Comparable.class.isAssignableFrom(columnClass) || columnClass.isPrimitive())) {
-                comparator = (o1, o2) -> ((Comparable<Object>) o1).compareTo(o2);
-            } else {
-                comparator = null;
-            }
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        @Override
-        public Class<?> getColumnClass() {
-            return columnClass;
-        }
-
-        @Override
-        public boolean isCellEditable(Object o) {
-            return false;
-        }
-
-        @Override
-        public @Nullable Object valueOf(Object o) {
-            return o;
-        }
-
-        @Override
-        public @NlsContexts.Tooltip @Nullable String getTooltipText() {
-            return "Type: " + columnType.getTypeName();
-        }
-
-        @Override
-        public @Nullable Comparator<Object> getComparator() {
-            return comparator;
-        }
-
-        static QColumnInfo[] of(c.Flip flip, boolean key) {
-            final int length = flip.x.length;
-            QColumnInfo[] res = new QColumnInfo[length];
-            for (int i = 0; i < length; i++) {
-                res[i] = new QColumnInfo(flip.x[i], guessColumnType(flip.y[i]), key);
-            }
-            return res;
-        }
-
-        private static Class<?> guessColumnType(Object column) {
-            // list of lists
-            if (column.getClass().equals(Object[].class)) {
-                Object[] obj = (Object[]) column;
-                if (obj.length != 0) {
-                    Class<?> c = obj[0].getClass();
-                    for (int i = 1; i < obj.length; i++) {
-                        if (c.equals(obj[i])) {
-                            return Object.class;
-                        }
-                    }
-                    return c;
-                }
-            }
-            return column.getClass().getComponentType();
-        }
-
-        @NotNull
-        private static String createDisplayName(String name, boolean key) {
-            if (key) {
-                if (KdbSettingsService.getInstance().getTableOptions().isXmasKeyColumn()) {
-                    final LocalDate now = LocalDate.now();
-                    if (now.getMonth() == Month.DECEMBER && now.getDayOfMonth() >= 14) {
-                        return KEY_COLUMN_PREFIX_XMAS + " " + name;
-                    }
-                }
-                return KEY_COLUMN_PREFIX + " " + name;
-            }
-            return name;
-        }
-    }
-
-    private static class EmptyTableModel extends QTableModel {
+    private static final class EmptyTableModel extends QTableModel {
         private static final QColumnInfo[] EMPTY_COLUMNS = new QColumnInfo[0];
 
         private EmptyTableModel() {
@@ -215,11 +132,11 @@ public abstract class QTableModel implements TableModel {
         }
     }
 
-    public static class ListTableModel extends QTableModel {
+    public static final class ListTableModel extends QTableModel {
         private final Object array;
         private final int rowsCount;
 
-        protected ListTableModel(Object array) {
+        private ListTableModel(Object array) {
             this(array, array.getClass().getComponentType());
         }
 
@@ -240,7 +157,7 @@ public abstract class QTableModel implements TableModel {
         }
     }
 
-    public static class DictTableModel extends QTableModel {
+    public static final class DictTableModel extends QTableModel {
         private final Object keys;
         private final Object values;
 
@@ -290,7 +207,7 @@ public abstract class QTableModel implements TableModel {
         }
     }
 
-    public static class SimpleTableModel extends QTableModel {
+    public static final class SimpleTableModel extends QTableModel {
         final c.Flip flip;
         final int rowsCount;
 

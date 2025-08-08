@@ -28,19 +28,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.function.Function;
 
 public class InstancesSearchSession extends QSearchSession {
+    private int selectedIndex = -1;
+
     private final InstancesTree instancesTree;
     private final List<KdbInstance> foundInstances = new ArrayList<>();
     private final Set<KdbInstance> excludedInstances = new HashSet<>();
     private final Map<KdbInstance, EnumMap<FilterContext, List<TextRange>>> instanceDetails = new LinkedHashMap<>();
-    private int selectedIndex = -1;
 
-    public InstancesSearchSession(@Nullable Project project, @NotNull InstancesTree instancesTree, @NotNull FindModel findModel) {
-        super(project, instancesTree, findModel);
+    public InstancesSearchSession(@Nullable Project project, @NotNull InstancesTree instancesTree) {
+        super(project, instancesTree);
         this.instancesTree = instancesTree;
     }
 

@@ -1,25 +1,20 @@
 package org.kdb.inside.brains.view.console.table;
 
-import com.intellij.find.FindModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.*;
+import com.intellij.ui.PopupHandler;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.TabInfo;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import icons.KdbIcons;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.KdbType;
-import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.action.BgtAction;
 import org.kdb.inside.brains.action.BgtToggleAction;
 import org.kdb.inside.brains.action.EdtToggleAction;
@@ -38,18 +33,12 @@ import org.kdb.inside.brains.view.export.ExportingType;
 import org.kdb.inside.brains.view.export.OpenInEditorAction;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Comparator;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
-
-import static java.lang.Math.max;
 
 public class TableResultView extends NonOpaquePanel implements DataProvider, ExportDataProvider {
     private TableResult tableResult;
@@ -66,7 +55,8 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private final Project project;
     private final TableOptions tableOptions;
 
-    private final JBTable myTable;
+    private final QTable myTable;
+
     private final Splitter splitter;
     private final JScrollPane tableScroll;
 
@@ -74,12 +64,8 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
     private final KdbOutputFormatter formatter;
 
-    private ColumnsFilterPanel columnsFilter;
+    private QSchemaViewPanel schemaViewPanel;
     private TableResultStatusPanel statusBar;
-
-    private static final Color DECORATED_ROW_COLOR = UIUtil.getDecoratedRowColor();
-    private static final JBColor SEARCH_FOREGROUND = new JBColor(Gray._50, Gray._0);
-    private static final JBColor SEARCH_BACKGROUND = UIUtil.getSearchMatchGradientStartColor();
 
     public static final DataKey<TableResultView> DATA_KEY = DataKey.create("KdbConsole.TableResultView");
 
@@ -96,19 +82,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
         final KdbSettingsService settingsService = KdbSettingsService.getInstance();
 
-        this.tableOptions = settingsService.getTableOptions();
         this.formatter = createOutputFormatter();
+        this.tableOptions = settingsService.getTableOptions();
 
-        myTable = createTable();
-
-        myTable.setStriped(false);
-        myTable.setShowGrid(tableOptions.isShowGrid());
-
-        myTable.setShowColumns(true);
-        myTable.setColumnSelectionAllowed(true);
-
-        myTable.setAutoCreateRowSorter(false);
-        myTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        myTable = new QTable(project, tableOptions, formatter);
 
         // Disable original handler
         myTable.setTransferHandler(new TransferHandler() {
@@ -130,15 +107,9 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         filterAction = createFilterAction();
         showIndexAction = createShowIndexAction();
         showScientificAction = createShowScientificAction(settingsService.getNumericalOptions());
-        showThousandsAction = createShowThousandsAction(settingsService.getTableOptions());
+        showThousandsAction = createShowThousandsAction(tableOptions);
         chartActionGroup = new ChartActionGroup(project, () -> tableResult);
         exportActionGroup = ExportDataProvider.createActionGroup(project, this);
-
-        final FindModel findModel = new FindModel();
-        findModel.setFindAll(true);
-
-        searchSession = new TableResultSearchSession(project, myTable, findModel);
-        searchSession.getFindModel().addObserver(this::modelBeenUpdated);
 
         tableScroll = ScrollPaneFactory.createScrollPane(myTable, true);
         if (tableOptions.isIndexColumn()) {
@@ -158,6 +129,8 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
         add(splitter, BorderLayout.CENTER);
 
+        searchSession = myTable.getSearchSession();
+        searchSession.getFindModel().addObserver(m -> searchModelUpdated());
         add(searchSession.getComponent(), BorderLayout.NORTH);
 
         if (mode.isShowStatusBar()) {
@@ -229,13 +202,13 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
                 if (state) {
-                    columnsFilter = new ColumnsFilterPanel(myTable);
-                    splitter.setSecondComponent(columnsFilter);
-                    columnsFilter.requestFocus();
+                    schemaViewPanel = new QSchemaViewPanel(myTable);
+                    splitter.setSecondComponent(schemaViewPanel);
+                    schemaViewPanel.requestFocus();
                 } else {
                     splitter.setSecondComponent(null);
-                    columnsFilter.destroy();
-                    columnsFilter = null;
+                    schemaViewPanel.dispose();
+                    schemaViewPanel = null;
                 }
             }
         };
@@ -268,172 +241,6 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
     private KdbOutputFormatter createOutputFormatter() {
         // We can't pass the supplier itself here as it's changed inside the action so use a wrapper
         return new KdbOutputFormatter(new FormatterOptions().withThousandAndScientific(() -> showThousandsAction.supplier.getAsBoolean(), () -> showScientificAction.supplier.getAsBoolean()));
-    }
-
-    @NotNull
-    private JBTable createTable() {
-        final var valueColumnRenderer = new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                final Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                if (!isSelected) {
-                    if (tableOptions.isStriped() && row % 2 == 0) {
-                        c.setBackground(DECORATED_ROW_COLOR);
-                    } else {
-                        c.setBackground(table.getBackground());
-                    }
-                }
-                return c;
-            }
-
-            @NotNull
-            private String createColoredText(String text, List<TextRange> ranges) {
-                int s = 0;
-                boolean rollover = false;
-                final StringBuilder b = new StringBuilder("<html>");
-                for (int i = 0; i < text.length(); i++) {
-                    boolean a = inRanges(i, ranges);
-                    if (rollover != a) {
-                        b.append(StringUtil.escapeXmlEntities(text.substring(s, i)));
-                        if (a) {
-                            b.append("<span bgcolor=\"").append(ColorUtil.toHtmlColor(SEARCH_BACKGROUND)).append("\" color=\"").append(ColorUtil.toHtmlColor(SEARCH_FOREGROUND)).append("\">");
-                        } else {
-                            b.append("</span>");
-                        }
-                        s = i;
-                        rollover = a;
-                    }
-                }
-                b.append(StringUtil.escapeXmlEntities(text.substring(s)));
-                b.append("</html>");
-                return b.toString();
-            }
-
-            private boolean inRanges(int offset, List<TextRange> ranges) {
-                for (TextRange range : ranges) {
-                    if (range.contains(offset)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            private String fixSystemChars(String text) {
-                return text.replace('\n', '\u21B5').replace('\t', ' ');
-            }
-
-            @Override
-            protected void setValue(Object value) {
-                String text = formatter.objectToString(value);
-                final List<TextRange> extract = searchSession.extract(text);
-                if (!extract.isEmpty()) {
-                    text = createColoredText(text, extract);
-                }
-                text = fixSystemChars(text);
-                super.setText(text);
-            }
-        };
-
-        final JBTable table = new JBTable(QTableModel.EMPTY_MODEL) {
-            @Override
-            public @NotNull Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
-                final Component c = super.prepareRenderer(renderer, row, column);
-
-                final TableColumn tableColumn = getColumnModel().getColumn(column);
-                tableColumn.setPreferredWidth(max(c.getPreferredSize().width + getIntercellSpacing().width + 20, tableColumn.getPreferredWidth()));
-
-                final boolean keyColumn = getModel().isKeyColumn(tableColumn.getModelIndex());
-                if (keyColumn) {
-                    c.setBackground(UIUtils.getKeyColumnColor(c.getBackground()));
-                }
-                return c;
-            }
-
-            @Override
-            public TableCellRenderer getCellRenderer(int row, int column) {
-                return valueColumnRenderer;
-            }
-
-            @Override
-            public QTableModel getModel() {
-                return (QTableModel) super.getModel();
-            }
-
-            @Override
-            public void setModel(@NotNull TableModel model) {
-                if (!(model instanceof QTableModel qModel)) {
-                    throw new UnsupportedOperationException("Only TableResult.QTableModel is supported");
-                }
-
-                super.setModel(qModel);
-
-                final TableRowSorter<QTableModel> sorter = new TableRowSorter<>(qModel);
-                sorter.setStringConverter(new TableStringConverter() {
-                    @Override
-                    public String toString(TableModel model, int row, int column) {
-                        final Object valueAt = model.getValueAt(row, column);
-                        if (valueAt == null) {
-                            return "";
-                        }
-                        return formatter.objectToString(valueAt);
-                    }
-                });
-
-                final QTableModel.QColumnInfo[] columns = qModel.getColumns();
-                for (int i = 0; i < columns.length; i++) {
-                    final Comparator<Object> comparator = columns[i].getComparator();
-                    if (comparator != null) {
-                        sorter.setComparator(i, comparator);
-                    }
-                }
-                setRowSorter(sorter);
-            }
-
-            @Override
-            protected TableColumnModel createDefaultColumnModel() {
-                return new MyTableColumnModel();
-            }
-
-            @Override
-            public void createDefaultColumnsFromModel() {
-                final QTableModel m = getModel();
-
-                final TableColumnModel cm = getColumnModel();
-                while (cm.getColumnCount() > 0) {
-                    cm.removeColumn(cm.getColumn(0));
-                }
-
-                final QTableModel.QColumnInfo[] columns = m.getColumns();
-                for (int i = 0; i < columns.length; i++) {
-                    final TableColumn c = new TableColumn(i);
-                    c.setHeaderValue(columns[i].getDisplayName());
-                    addColumn(c);
-                }
-            }
-
-            @Override
-            public String getToolTipText(@NotNull MouseEvent event) {
-                return null;
-            }
-        };
-
-        final JTableHeader header = table.getTableHeader();
-
-        final Border normalBorder = JBUI.Borders.emptyBottom(1);
-        final Border selectedBorder = JBUI.Borders.customLine(table.getSelectionBackground(), 0, 0, 1, 0);
-
-        final TableCellRenderer defaultRenderer = header.getDefaultRenderer();
-        header.setDefaultRenderer((tbl, val, sel, focus, row, column) -> {
-            final boolean selectedIndex = tbl.getColumnModel().getSelectionModel().isSelectedIndex(column);
-            final JComponent cmp = (JComponent) defaultRenderer.getTableCellRendererComponent(tbl, val, sel, focus, row, column);
-
-            final Border border = selectedIndex ? selectedBorder : normalBorder;
-            final Border merge = JBUI.Borders.merge(cmp.getBorder(), border, true);
-            cmp.setBorder(merge);
-            return cmp;
-        });
-        table.getColumnModel().getSelectionModel().addListSelectionListener(e -> header.repaint());
-        return table;
     }
 
     @NotNull
@@ -627,62 +434,19 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         return formatter;
     }
 
-    private static boolean containsIgnoreCase(String str, String searchStr, boolean ignoreCase) {
-        if (str == null || searchStr == null) {
-            return false;
-        }
-
-        final int length = searchStr.length();
-        if (length == 0) {
-            return true;
-        }
-
-        for (int i = str.length() - length; i >= 0; i--) {
-            if (str.regionMatches(ignoreCase, i, searchStr, 0, length)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void showResult(@Nullable TableResult tableResult) {
         this.tableResult = tableResult;
 
-        if (tableResult == null) {
-            myTable.setModel(QTableModel.EMPTY_MODEL);
-            searchSession.setDelaySearchEnabled(false);
-        } else {
-            final QTableModel tableModel = tableResult.tableModel();
-            myTable.setModel(tableModel);
+        myTable.setTableResult(tableResult);
 
-            // 10_000 rows by 20 columns can be sorted fast. No reason for delay
-            searchSession.setDelaySearchEnabled(tableModel.getRowCount() * tableModel.getColumnCount() > 200_000);
-
-            updateHeaderWidth();
-            modelBeenUpdated(searchSession.getFindModel());
-        }
-
-        if (columnsFilter != null) {
-            columnsFilter.invalidateFilter();
-        }
+        searchModelUpdated();
 
         if (statusBar != null) {
             statusBar.showResult(tableResult);
         }
     }
 
-    private void updateHeaderWidth() {
-        final TableCellRenderer renderer = myTable.getTableHeader().getDefaultRenderer();
-        final TableColumnModel columnModel = myTable.getColumnModel();
-        for (int i = 0; i < myTable.getColumnCount(); ++i) {
-            columnModel.getColumn(i).setPreferredWidth(renderer.getTableCellRendererComponent(myTable, myTable.getModel().getColumnName(i), false, false, 0, i).getPreferredSize().width);
-        }
-    }
-
-    private void modelBeenUpdated(FindModel findModel) {
-        final RowFilter<TableModel, Integer> filter = searchSession.createTableFilter();
-        ((TableRowSorter<? extends TableModel>) myTable.getRowSorter()).setRowFilter(filter);
-
+    private void searchModelUpdated() {
         final RowNumberView numberTable = getNumberTable();
         if (numberTable != null) {
             numberTable.invalidate();
@@ -718,7 +482,10 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         public void setSelected(@NotNull AnActionEvent e, boolean state) {
             supplier = () -> state;
             myTable.repaint();
-            statusBar.recalculateValues();
+
+            if (statusBar != null) {
+                statusBar.recalculateValues();
+            }
         }
     }
 }

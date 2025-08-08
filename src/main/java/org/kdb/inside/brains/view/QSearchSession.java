@@ -20,13 +20,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class QSearchSession implements SearchSession {
-    protected static final RangeExtractor[] NO_EXTRACTORS = new RangeExtractor[0];
     private final FindModel findModel;
     private final SearchReplaceComponent searchComponent;
+
     private boolean internalChangeFlag;
 
-    public QSearchSession(@Nullable Project project, @NotNull JComponent component, @NotNull FindModel findModel) {
-        this.findModel = findModel;
+    protected static final RangeExtractor[] NO_EXTRACTORS = new RangeExtractor[0];
+
+    public QSearchSession(@Nullable Project project, @NotNull JComponent component) {
+        this.findModel = new FindModel();
+        findModel.setFindAll(true);
 
         searchComponent = initializeComponent(SearchReplaceComponent.buildFor(project, component))
                 .withDataProvider(dataId -> SearchSession.KEY.is(dataId) ? QSearchSession.this : null)
