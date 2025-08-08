@@ -30,7 +30,7 @@ plugins {
     id("maven-publish")
     id("org.jetbrains.changelog") version "2.2.1"
     id("org.jetbrains.grammarkit") version "2022.3.2.2"
-    id("org.jetbrains.intellij.platform") version "2.5.0"
+    id("org.jetbrains.intellij.platform") version "2.7.0"
 }
 
 repositories {
@@ -84,8 +84,8 @@ dependencies {
         testFramework(TestFrameworkType.JUnit5)
     }
 
-    implementation("org.jfree:jfreechart:1.5.5")
-    implementation("org.jfree:org.jfree.svg:5.0.6")
+    implementation("org.jfree:jfreechart:1.5.6")
+    implementation("org.jfree:org.jfree.svg:5.0.7")
     implementation("org.apache.poi:poi:5.4.1")
     implementation("org.apache.poi:poi-ooxml:5.4.1")
 
