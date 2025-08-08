@@ -1,5 +1,6 @@
 package org.kdb.inside.brains.view.console.table;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -17,40 +18,33 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.TableColumnModelEvent;
-import javax.swing.event.TableColumnModelListener;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.List;
 
-class ColumnsFilterPanel extends NonOpaquePanel {
-    //    private final MyTableColumnModel columnModel;
-    private final QColumnModel columnModel;
-    private final CheckBoxList<FilterColumn> columnsFilterList;
+class QSchemaViewPanel extends NonOpaquePanel implements Disposable {
+    //    private final QTableColumnModel columnModel;
+    private final CheckBoxList<QColumnView> columnsFilterList;
 
-    public ColumnsFilterPanel(QTable myTable) {
+    @NotNull
+    private final QTable myTable;
+    private final ThePropertyChangeListener listener = new ThePropertyChangeListener();
+
+    public QSchemaViewPanel(QTable myTable) {
         super(new BorderLayout());
-        this.columnModel = myTable.getColumnModel();
 
-//        final QTableModel model = (QTableModel) table.getModel();
-//        this.columnModel = (MyTableColumnModel) table.getColumnModel();
-
-//        myTable.addPropertyChangeListener("model", this::modelChanged);
-//        final JTableHeader header = myTable.getTableHeader();
-
+        this.myTable = myTable;
 
         columnsFilterList = new CheckBoxList<>() {
             @Override
             protected void doCopyToClipboardAction() {
-                ArrayList<String> selected = new ArrayList<>();
+                final ArrayList<String> selected = new ArrayList<>();
                 for (int index : getSelectedIndices()) {
-                    final FilterColumn itemAt = getItemAt(index);
+                    final QColumnView itemAt = getItemAt(index);
                     if (itemAt != null) {
-                        selected.add(itemAt.name);
+                        selected.add(itemAt.getName());
                     }
                 }
 
@@ -62,23 +56,21 @@ class ColumnsFilterPanel extends NonOpaquePanel {
 
             @Override
             protected @Nls @Nullable String getSecondaryText(int index) {
-                final FilterColumn item = getItemAt(index);
+                final QColumnView item = getItemAt(index);
                 if (item != null) {
-                    return item.type;
+                    return item.getColumnType().getTypeName();
                 }
                 return null;
             }
         };
 
         columnsFilterList.setCheckBoxListListener((index, value) -> {
-            final FilterColumn col = columnsFilterList.getItemAt(index);
+            final QColumnView col = columnsFilterList.getItemAt(index);
             if (col == null) {
                 return;
             }
-            changeColumnState(col, value);
+            col.setVisible(value);
         });
-
-        myTable.getColumnModel().addColumnModelListener(new TheTableColumnModelListener());
 
         final DefaultActionGroup group = new DefaultActionGroup();
         group.add(new SelectUnselectAction("Select All", "Select all columns", KdbIcons.Console.SelectAll, true));
@@ -89,28 +81,14 @@ class ColumnsFilterPanel extends NonOpaquePanel {
         add(filterToolbar.getComponent(), BorderLayout.NORTH);
         add(ScrollPaneFactory.createScrollPane(columnsFilterList, true), BorderLayout.CENTER);
 
-        invalidateFilter();
-
         new ListSpeedSearch<>(columnsFilterList, AbstractButton::getText);
 
         final Dimension s = getMinimumSize();
         s.width = s.width + 155;
         setMinimumSize(s);
-    }
 
-    private void invalidateFilter() {
-        columnsFilterList.clear();
-
-        final List<TableColumn> columns = columnModel.getColumns(true);
-        for (TableColumn column : columns) {
-            final QColumnInfo info = columnModel.getColumnInfo(column);
-            final FilterColumn item = new FilterColumn(info.getName(), info.getColumnType().getTypeName(), column);
-            columnsFilterList.addItem(item, item.name, columnModel.isVisible(column));
-        }
-    }
-
-    private void changeColumnState(FilterColumn col, boolean visible) {
-        columnModel.setVisible(col.column, visible);
+        myTable.addPropertyChangeListener("columnModel", listener);
+        invalidateFilter(myTable.getColumnModel());
     }
 
     @Override
@@ -118,11 +96,18 @@ class ColumnsFilterPanel extends NonOpaquePanel {
         return columnsFilterList;
     }
 
-    public void destroy() {
-//        columnModel.reset();
+    @Override
+    public void dispose() {
+        myTable.removePropertyChangeListener("columnModel", listener);
+        columnsFilterList.clear();
     }
 
-    record FilterColumn(String name, String type, TableColumn column) {
+    private void invalidateFilter(QColumnModel columnModel) {
+        columnsFilterList.clear();
+
+        for (QColumnView column : columnModel.getSchemaColumns()) {
+            columnsFilterList.addItem(column, column.getName(), column.isVisible());
+        }
     }
 
     private class SelectUnselectAction extends DumbAwareAction {
@@ -135,38 +120,18 @@ class ColumnsFilterPanel extends NonOpaquePanel {
 
         @Override
         public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
-            for (FilterColumn item : columnsFilterList.getAllItems()) {
+            for (QColumnView item : columnsFilterList.getAllItems()) {
+                item.setVisible(selected);
                 columnsFilterList.setItemSelected(item, selected);
-                changeColumnState(item, true);
             }
             columnsFilterList.repaint();
         }
     }
 
-    private class TheTableColumnModelListener implements TableColumnModelListener {
+    private class ThePropertyChangeListener implements PropertyChangeListener {
         @Override
-        public void columnAdded(TableColumnModelEvent e) {
-
-        }
-
-        @Override
-        public void columnRemoved(TableColumnModelEvent e) {
-
-        }
-
-        @Override
-        public void columnMoved(TableColumnModelEvent e) {
-
-        }
-
-        @Override
-        public void columnMarginChanged(ChangeEvent e) {
-
-        }
-
-        @Override
-        public void columnSelectionChanged(ListSelectionEvent e) {
-
+        public void propertyChange(PropertyChangeEvent evt) {
+            invalidateFilter((QColumnModel) evt.getNewValue());
         }
     }
 }

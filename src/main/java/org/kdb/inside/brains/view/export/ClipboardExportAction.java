@@ -11,7 +11,7 @@ import org.kdb.inside.brains.UIUtils;
 import org.kdb.inside.brains.settings.KdbSettingsService;
 import org.kdb.inside.brains.view.KdbOutputFormatter;
 import org.kdb.inside.brains.view.console.TableOptions;
-import org.kdb.inside.brains.view.console.table.QTableModel;
+import org.kdb.inside.brains.view.console.table.QColumnView;
 
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
@@ -142,7 +142,7 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
             }
 
             final TableColumn column = table.getColumnModel().getColumn(i);
-            if (model instanceof QTableModel m && m.isKeyColumn(column)) {
+            if (column instanceof QColumnView qc && qc.isKey()) {
                 c = c.toKeyColors();
             }
             res[i] = c;

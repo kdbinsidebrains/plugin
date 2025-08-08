@@ -10,7 +10,6 @@ import org.kdb.inside.brains.view.console.ConsoleOptions;
 
 import javax.swing.*;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import java.lang.reflect.Array;
 
@@ -19,7 +18,7 @@ public abstract class QTableModel implements TableModel, SortableColumnModel {
 
     public static final QTableModel EMPTY_MODEL = new EmptyTableModel();
 
-    protected QTableModel(QColumnInfo[] columns) {
+    private QTableModel(QColumnInfo[] columns) {
         this.columns = columns;
     }
 
@@ -55,10 +54,6 @@ public abstract class QTableModel implements TableModel, SortableColumnModel {
         return columns;
     }
 
-    public QColumnInfo getColumnInfo(int columnIndex) {
-        return columns[columnIndex];
-    }
-
     @Override
     public RowSorter.@Nullable SortKey getDefaultSortKey() {
         return null;
@@ -76,6 +71,7 @@ public abstract class QTableModel implements TableModel, SortableColumnModel {
 
     @Override
     public void setSortable(boolean b) {
+        throw new UnsupportedOperationException("Always sortable");
     }
 
     @Override
@@ -86,10 +82,6 @@ public abstract class QTableModel implements TableModel, SortableColumnModel {
     @Override
     public Class<?> getColumnClass(int columnIndex) {
         return columns[columnIndex].getColumnClass();
-    }
-
-    public boolean isKeyColumn(TableColumn column) {
-        return columns[column.getModelIndex()].isKey();
     }
 
     @Nullable
@@ -122,7 +114,7 @@ public abstract class QTableModel implements TableModel, SortableColumnModel {
         return null;
     }
 
-    private static class EmptyTableModel extends QTableModel {
+    private static final class EmptyTableModel extends QTableModel {
         private static final QColumnInfo[] EMPTY_COLUMNS = new QColumnInfo[0];
 
         private EmptyTableModel() {
@@ -140,11 +132,11 @@ public abstract class QTableModel implements TableModel, SortableColumnModel {
         }
     }
 
-    public static class ListTableModel extends QTableModel {
+    public static final class ListTableModel extends QTableModel {
         private final Object array;
         private final int rowsCount;
 
-        protected ListTableModel(Object array) {
+        private ListTableModel(Object array) {
             this(array, array.getClass().getComponentType());
         }
 
@@ -165,7 +157,7 @@ public abstract class QTableModel implements TableModel, SortableColumnModel {
         }
     }
 
-    public static class DictTableModel extends QTableModel {
+    public static final class DictTableModel extends QTableModel {
         private final Object keys;
         private final Object values;
 
@@ -215,7 +207,7 @@ public abstract class QTableModel implements TableModel, SortableColumnModel {
         }
     }
 
-    public static class SimpleTableModel extends QTableModel {
+    public static final class SimpleTableModel extends QTableModel {
         final c.Flip flip;
         final int rowsCount;
 

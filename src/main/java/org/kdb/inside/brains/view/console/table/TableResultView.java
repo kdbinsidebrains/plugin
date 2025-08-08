@@ -64,7 +64,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
 
     private final KdbOutputFormatter formatter;
 
-    private ColumnsFilterPanel columnsFilter;
+    private QSchemaViewPanel schemaViewPanel;
     private TableResultStatusPanel statusBar;
 
     public static final DataKey<TableResultView> DATA_KEY = DataKey.create("KdbConsole.TableResultView");
@@ -202,13 +202,13 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
                 if (state) {
-                    columnsFilter = new ColumnsFilterPanel(myTable);
-                    splitter.setSecondComponent(columnsFilter);
-                    columnsFilter.requestFocus();
+                    schemaViewPanel = new QSchemaViewPanel(myTable);
+                    splitter.setSecondComponent(schemaViewPanel);
+                    schemaViewPanel.requestFocus();
                 } else {
                     splitter.setSecondComponent(null);
-                    columnsFilter.destroy();
-                    columnsFilter = null;
+                    schemaViewPanel.dispose();
+                    schemaViewPanel = null;
                 }
             }
         };

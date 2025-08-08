@@ -12,16 +12,17 @@ import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Comparator;
+import java.util.Objects;
 
 import static org.kdb.inside.brains.UIUtils.KEY_COLUMN_PREFIX;
 import static org.kdb.inside.brains.UIUtils.KEY_COLUMN_PREFIX_XMAS;
 
 public class QColumnInfo extends ColumnInfo<Object, Object> {
     private final boolean key;
+    private final String displayName;
     private final KdbType columnType;
     private final Class<?> columnClass;
     private final Comparator<Object> comparator;
-    private final String displayName;
 
     @SuppressWarnings("unchecked")
     public QColumnInfo(String name, Class<?> columnClass, boolean key) {
@@ -130,5 +131,27 @@ public class QColumnInfo extends ColumnInfo<Object, Object> {
             return KEY_COLUMN_PREFIX + " " + name;
         }
         return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        QColumnInfo that = (QColumnInfo) o;
+        return columnType == that.columnType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), columnType);
+    }
+
+    @Override
+    public String toString() {
+        return getName() + ":" + columnType;
     }
 }

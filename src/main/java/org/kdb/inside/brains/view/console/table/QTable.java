@@ -23,6 +23,8 @@ import javax.swing.border.Border;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Comparator;
 import java.util.List;
 
@@ -40,7 +42,8 @@ class QTable extends JBTable {
     private static final JBColor SEARCH_BACKGROUND = UIUtil.getSearchMatchGradientStartColor();
 
     public QTable(Project project, TableOptions tableOptions, KdbOutputFormatter formatter) {
-        super(QTableModel.EMPTY_MODEL);
+        super(QTableModel.EMPTY_MODEL, new QColumnModel());
+        super.setAutoCreateColumnsFromModel(false);
 
         this.formatter = formatter;
         this.tableOptions = tableOptions;
@@ -64,20 +67,79 @@ class QTable extends JBTable {
         return searchSession;
     }
 
-    @SuppressWarnings("unchecked")
-    public TableRowSorter<QTableModel> getRowSorter() {
-        return (TableRowSorter<QTableModel>) super.getRowSorter();
+
+    public void setTableResult(@Nullable TableResult tableResult) {
+        if (tableResult == null) {
+            super.setModel(QTableModel.EMPTY_MODEL);
+            getColumnModel().syncModel(QTableModel.EMPTY_MODEL);
+            searchSession.setDelaySearchEnabled(false);
+        } else {
+            final QTableModel tableModel = tableResult.tableModel();
+
+            super.setModel(tableModel);
+            getColumnModel().syncModel(tableModel);
+
+            // 10_000 rows by 20 columns can be sorted fast. No reason for delay
+            searchSession.setDelaySearchEnabled(tableModel.getRowCount() * tableModel.getColumnCount() > 200_000);
+
+            updateHeaderWidth();
+            processFindModelChanged(searchSession.getFindModel());
+        }
+
+        for (PropertyChangeListener l : getPropertyChangeListeners("columnModel")) {
+            l.propertyChange(new PropertyChangeEvent(this, "columnModel", columnModel, columnModel));
+        }
+        resizeAndRepaint();
     }
 
+    @Override
+    public final QTableModel getModel() {
+        return (QTableModel) super.getModel();
+    }
+
+    @Override
+    public final void setModel(@NotNull TableModel model) {
+        if (getModel() == null) { // initialization
+            super.setModel(model);
+        } else {
+            throw new UnsupportedOperationException("Not supported. Use #setTableResult");
+        }
+    }
+
+    // Column model wrapper
+    @Override
+    public final QColumnModel getColumnModel() {
+        return (QColumnModel) super.getColumnModel();
+    }
+
+    @Override
+    public final void createDefaultColumnsFromModel() {
+        throw new UnsupportedOperationException("Not supported. Use #setTableResult");
+    }
+
+    @Override
+    public final void setColumnModel(@NotNull TableColumnModel model) {
+        if (getColumnModel() == null) { // initialization
+            super.setColumnModel(model);
+        } else {
+            throw new UnsupportedOperationException("Changing column model is not supported. Use #setTableResult");
+        }
+    }
+
+    @Override
+    protected final TableColumnModel createDefaultColumnModel() {
+        throw new UnsupportedOperationException("Not supported. Use #setTableResult");
+    }
+
+    // Renderer
     @Override
     public @NotNull Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
         final Component c = super.prepareRenderer(renderer, row, column);
 
-        final TableColumn tableColumn = getColumnModel().getColumn(column);
+        final QColumnView tableColumn = getColumnModel().getColumn(column);
         tableColumn.setPreferredWidth(max(c.getPreferredSize().width + getIntercellSpacing().width + 20, tableColumn.getPreferredWidth()));
 
-        final boolean keyColumn = getModel().isKeyColumn(tableColumn);
-        if (keyColumn) {
+        if (tableColumn.isKey()) {
             c.setBackground(UIUtils.getKeyColumnColor(c.getBackground()));
         }
         return c;
@@ -88,52 +150,10 @@ class QTable extends JBTable {
         return valueCellRenderer;
     }
 
-    @Override
-    public final QTableModel getModel() {
-        return (QTableModel) super.getModel();
-    }
-
-    @Override
-    public final void setModel(@NotNull TableModel model) {
-        if (!(model instanceof QTableModel qModel)) {
-            throw new UnsupportedOperationException("Only QTableModel is supported");
-        }
-        super.setModel(qModel);
-    }
-
-    @Override
-    public final QColumnModel getColumnModel() {
-        return (QColumnModel) super.getColumnModel();
-    }
-
-    @Override
-    public final void createDefaultColumnsFromModel() {
-        final QTableModel m = getModel();
-
-        final QColumnModel cm = getColumnModel();
-        while (cm.getColumnCount() > 0) {
-            cm.removeColumn(cm.getColumn(0));
-        }
-
-        final QColumnInfo[] columns = m.getColumnInfos();
-        for (int i = 0; i < columns.length; i++) {
-            final TableColumn c = new TableColumn(i);
-            c.setHeaderValue(columns[i].getDisplayName());
-            addColumn(c);
-        }
-    }
-
-    @Override
-    protected final QColumnModel createDefaultColumnModel() {
-        return new QColumnModel(this);
-    }
-
-    @Override
-    public final void setColumnModel(@NotNull TableColumnModel model) {
-        if (!(model instanceof QColumnModel qModel)) {
-            throw new UnsupportedOperationException("Only QColumnModel is supported");
-        }
-        super.setColumnModel(qModel);
+    // Sorter
+    @SuppressWarnings("unchecked")
+    public TableRowSorter<QTableModel> getRowSorter() {
+        return (TableRowSorter<QTableModel>) super.getRowSorter();
     }
 
     @Override
@@ -183,22 +203,6 @@ class QTable extends JBTable {
         });
         sorter.setMaxSortKeys(1);
         return sorter;
-    }
-
-    void setTableResult(@Nullable TableResult tableResult) {
-        if (tableResult == null) {
-            setModel(QTableModel.EMPTY_MODEL);
-            searchSession.setDelaySearchEnabled(false);
-        } else {
-            final QTableModel tableModel = tableResult.tableModel();
-            setModel(tableModel);
-
-            // 10_000 rows by 20 columns can be sorted fast. No reason for delay
-            searchSession.setDelaySearchEnabled(tableModel.getRowCount() * tableModel.getColumnCount() > 200_000);
-
-            updateHeaderWidth();
-            processFindModelChanged(searchSession.getFindModel());
-        }
     }
 
     @Override
