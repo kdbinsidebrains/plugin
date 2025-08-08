@@ -99,6 +99,13 @@ class QSchemaViewPanel extends NonOpaquePanel implements Disposable {
     @Override
     public void dispose() {
         myTable.removePropertyChangeListener("columnModel", listener);
+        final int itemsCount = columnsFilterList.getItemsCount();
+        for (int i = 0; i < itemsCount; i++) {
+            final QColumnView item = columnsFilterList.getItemAt(i);
+            if (item != null) {
+                item.setVisible(true);
+            }
+        }
         columnsFilterList.clear();
     }
 
@@ -120,9 +127,13 @@ class QSchemaViewPanel extends NonOpaquePanel implements Disposable {
 
         @Override
         public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
-            for (QColumnView item : columnsFilterList.getAllItems()) {
-                item.setVisible(selected);
-                columnsFilterList.setItemSelected(item, selected);
+            final int itemsCount = columnsFilterList.getItemsCount();
+            for (int i = 0; i < itemsCount; i++) {
+                final QColumnView item = columnsFilterList.getItemAt(i);
+                if (item != null) {
+                    item.setVisible(selected);
+                    columnsFilterList.setItemSelected(item, selected);
+                }
             }
             columnsFilterList.repaint();
         }
