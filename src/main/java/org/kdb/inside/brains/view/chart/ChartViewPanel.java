@@ -39,6 +39,7 @@ import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -46,6 +47,8 @@ import static org.kdb.inside.brains.UIUtils.saveFile;
 
 public class ChartViewPanel extends ChartPanel {
     private final Supplier<List<ActionGroup>> popupActionsProvider;
+
+    private static final DecimalFormat NUMBER_VALUE_FORMATTER = new DecimalFormat("###,###,###.##");
 
     private static final JBColor COLOR_GRID = new JBColor(new Color(0xd3d3d4), new Color(0xd3d3d4));
 
@@ -178,6 +181,7 @@ public class ChartViewPanel extends ChartPanel {
 
         if (axis instanceof NumberAxis a) {
             a.setAutoRangeIncludesZero(false);
+            a.setNumberFormatOverride(NUMBER_VALUE_FORMATTER);
             // Leads to wrong values display
 //        } else if (axis instanceof DateAxis a) {
 //            a.setTimeZone(UTC_TIMEZONE);
