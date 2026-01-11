@@ -1,5 +1,15 @@
 # KdbInsideBrains Changelog
 
+## 6.5.2
+
+### Added
+
+- Semantic highlighting for braces, brackets, and parens
+
+### Fixed
+
+- In ChartView range axis values shown in decimal format all the time rather than converting into exponential
+
 ## 6.4.0
 
 ### Added

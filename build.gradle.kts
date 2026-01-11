@@ -28,9 +28,9 @@ plugins {
     id("idea")
     id("signing")
     id("maven-publish")
-    id("org.jetbrains.changelog") version "2.2.1"
-    id("org.jetbrains.grammarkit") version "2022.3.2.2"
-    id("org.jetbrains.intellij.platform") version "2.7.0"
+    id("org.jetbrains.changelog") version "2.5.0"
+    id("org.jetbrains.grammarkit") version "2023.3.0.1"
+    id("org.jetbrains.intellij.platform") version "2.10.5"
 }
 
 repositories {
@@ -86,13 +86,13 @@ dependencies {
 
     implementation("org.jfree:jfreechart:1.5.6")
     implementation("org.jfree:org.jfree.svg:5.0.7")
-    implementation("org.apache.poi:poi:5.4.1")
-    implementation("org.apache.poi:poi-ooxml:5.4.1")
+    implementation("org.apache.poi:poi:5.5.1")
+    implementation("org.apache.poi:poi-ooxml:5.5.1")
 
-    testImplementation("org.mockito:mockito-core:5.17.0")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.10.1")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.3")
+    testImplementation("org.mockito:mockito-core:5.21.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.14.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.2")
 }
 
 // Read more: https://github.com/JetBrains/gradle-intellij-plugin

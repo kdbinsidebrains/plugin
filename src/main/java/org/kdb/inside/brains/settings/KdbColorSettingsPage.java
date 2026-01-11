@@ -87,7 +87,10 @@ public final class KdbColorSettingsPage implements RainbowColorSettingsPage, Col
 
     @Override
     public boolean isRainbowType(TextAttributesKey type) {
-        return QSyntaxHighlighter.VARIABLE.equals(type);
+        return QSyntaxHighlighter.VARIABLE.equals(type) ||
+                QSyntaxHighlighter.PARENTHESES.equals(type) ||
+                QSyntaxHighlighter.BRACKETS.equals(type) ||
+                QSyntaxHighlighter.BRACES.equals(type);
     }
 
     @Override
