@@ -97,5 +97,4 @@ public final class KdbColorSettingsPage implements RainbowColorSettingsPage, Col
     public Map<String, TextAttributesKey> getAdditionalHighlightingTagToDescriptorMap() {
         return null;
     }
-
 }

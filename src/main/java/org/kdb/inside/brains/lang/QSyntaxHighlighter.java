@@ -111,12 +111,12 @@ public final class QSyntaxHighlighter extends SyntaxHighlighterBase {
             entry(QTypes.BLOCK_COMMENT, COMMENT),
 
             entry(QTypes.NILL, NILL),
-            entry(QTypes.VECTOR, VECTOR),
             entry(QTypes.CHAR, CHAR),
             entry(QTypes.STRING, STRING),
 
             entry(QTypes.SIGNED_ATOM, ATOM),
             entry(QTypes.UNSIGNED_ATOM, ATOM),
+            entry(QTypes.LIST_ATOMS, VECTOR),
 
             entry(TokenType.BAD_CHARACTER, BAD_CHARACTER)
     );

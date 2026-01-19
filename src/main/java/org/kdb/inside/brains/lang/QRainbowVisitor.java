@@ -10,10 +10,18 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.QFileType;
 import org.kdb.inside.brains.psi.*;
+import org.kdb.inside.brains.settings.KdbSettingsService;
+import org.kdb.inside.brains.view.editor.EditorOptions;
 
 import java.util.function.Predicate;
 
 public class QRainbowVisitor extends RainbowVisitor {
+    private final EditorOptions editorOptions;
+
+    public QRainbowVisitor() {
+        editorOptions = KdbSettingsService.getInstance().getEditorOptions();
+    }
+
     @Override
     public boolean suitableForFile(@NotNull PsiFile psiFile) {
         return QFileType.is(psiFile);
@@ -22,15 +30,23 @@ public class QRainbowVisitor extends RainbowVisitor {
     @Override
     public void visit(@NotNull PsiElement psiElement) {
         if (psiElement instanceof @NotNull QVariable var) {
-            createVariableInfo(var);
+            if (editorOptions.isRainbowVariables()) {
+                createVariableInfo(var);
+            }
         } else {
             final IElementType type = psiElement.getNode().getElementType();
             if (type == QTypes.BRACE_OPEN || type == QTypes.BRACE_CLOSE) {
-                createBraceInfo(psiElement);
+                if (editorOptions.isRainbowBrace()) {
+                    createBraceInfo(psiElement);
+                }
             } else if (type == QTypes.PAREN_OPEN || type == QTypes.PAREN_CLOSE) {
-                createParenInfo(psiElement);
+                if (editorOptions.isRainbowParen()) {
+                    createParenInfo(psiElement);
+                }
             } else if (type == QTypes.BRACKET_OPEN || type == QTypes.BRACKET_CLOSE) {
-                createBracketInfo(psiElement);
+                if (editorOptions.isRainbowBracket()) {
+                    createBracketInfo(psiElement);
+                }
             }
         }
     }

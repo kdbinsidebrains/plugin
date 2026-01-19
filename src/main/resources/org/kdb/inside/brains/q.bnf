@@ -70,7 +70,17 @@
     QUERY_WHERE="where"
     QUERY_SPLITTER="splitter"
 
-    VECTOR="vector"
+    BYTES="bytes"
+    DECIMALS="decimals"
+    FLOATS="floats"
+    TIMES="times"
+    BOOLEANS="booleans"
+    MONTHS="months"
+    DATES="dates"
+    DATETIMES="datetimes"
+    TIMESTAMPS="timestamps"
+    MINUTES="minutes"
+    SECONDS="seconds"
 
     SIGNED_ATOM="signed atom"
     UNSIGNED_ATOM="unsigned atom"
@@ -142,6 +152,11 @@ symbol ::= SYMBOL_PATTERN {
 }
 symbols ::= symbol symbol+
 
+list_atoms ::= BYTES | DECIMALS | FLOATS | TIMES | BOOLEANS | MONTHS | DATES | DATETIMES | TIMESTAMPS | MINUTES | SECONDS {
+  implements = "org.kdb.inside.brains.psi.QVector"
+  mixin = "org.kdb.inside.brains.psi.mixin.QVectorMixin"
+}
+
 var_reference ::= VARIABLE_PATTERN {
  implements="org.kdb.inside.brains.psi.QVariable"
  mixin="org.kdb.inside.brains.psi.mixin.QVariableReferenceMixin"
@@ -208,7 +223,7 @@ return_expr ::= COLON expression
 
 signal_expr ::= "'" expression
 
-literal_expr ::= NILL | CHAR | SIGNED_ATOM | UNSIGNED_ATOM | VECTOR | STRING | symbols | symbol
+literal_expr ::= NILL | CHAR | SIGNED_ATOM | UNSIGNED_ATOM |  STRING | list_atoms | symbols | symbol
 
 control_expr ::= CONTROL_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin = 1 methods=[expressions="expression"] } // if/else/while and so on
 condition_expr ::= CONDITION_KEYWORD BRACKET_OPEN cc_body BRACKET_CLOSE { pin=1 methods=[expressions="expression"] } // $[...]

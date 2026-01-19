@@ -116,11 +116,11 @@ CommandArguments=[^\r\n]+
 
 TypeCast=(("`"\w*)|("\""\w*"\""))"$"
 
-IntCode=[ihjfepnuvt]
 FloatCode=[fe]
 TimeCode=[uvt]
 DatetimeCode=[mdz]
 TimestampCode=[pn]
+DecimalCode=[ihjfepnuvt]
 GuidCode="g"
 
 Null=0[Nn]
@@ -133,13 +133,13 @@ ByteList=("0x"{ByteLetter}{2}{ByteLetter}+)
 Boolean=[01]"b"
 BooleanList=([01][01]+"b")
 
-IntegerAtom=(0|([1-9][0-9]*))
-Integer=-?({IntegerAtom}|{Null}|{Infinity})
-IntegerList={Integer}({WhiteSpace}{Integer})+{IntCode}?
+DecimalAtom=(0|([1-9][0-9]*))
+Decimal=-?({DecimalAtom}|{Null}|{Infinity})
+DecimalList={Decimal}({WhiteSpace}{Decimal})+{DecimalCode}?
 
-FloatDigAtom={IntegerAtom}(\.[0-9]*)|(\.[0-9]+)
-FloatExpAtom={IntegerAtom}(\.[0-9]+)?([eE][+-]?[0-9]*)
-Float=-?({IntegerAtom}|{FloatDigAtom}|{FloatExpAtom}|{Null}|{Infinity})
+FloatDigAtom={DecimalAtom}(\.[0-9]*)|(\.[0-9]+)
+FloatExpAtom={DecimalAtom}(\.[0-9]+)?([eE][+-]?[0-9]*)
+Float=-?({DecimalAtom}|{FloatDigAtom}|{FloatExpAtom}|{Null}|{Infinity})
 FloatList={Float}({WhiteSpace}{Float})+{FloatCode}?
 
 MonthAtom=[:digit:]{4}\.[:digit:]{2}
@@ -147,7 +147,7 @@ Month=-?({MonthAtom}|{Null}|{Infinity})
 MonthList={Month}({WhiteSpace}{Month})+"m"?
 
 TimeAtom=[:digit:]+(\:[:digit:]{2}(\:[0-5][:digit:](\.[:digit:]+)?)?)?
-Time=-?({IntegerAtom}|{Null}|{MinuteAtom}|{SecondAtom}|{TimeAtom}|{Infinity})
+Time=-?({DecimalAtom}|{Null}|{MinuteAtom}|{SecondAtom}|{TimeAtom}|{Infinity})
 TimeList={Time}({WhiteSpace}{Time})+{TimeCode}?
 
 DateAtom={MonthAtom}\.[:digit:]{2}
@@ -159,8 +159,8 @@ Datetime=-?({DatetimeAtom}|{DateAtom}|{Null}|{Infinity})
 DatetimeList={Datetime}({WhiteSpace}{Datetime})+"z"?
 
 TimestampAtom={DateAtom}("D"{TimeAtom})?
-TimespanAtom={IntegerAtom}"D"({TimeAtom})?
-Timestamp=-?({TimestampAtom}|{TimespanAtom}|{IntegerAtom}|{Null}|{MinuteAtom}|{SecondAtom}|{TimeAtom}|{FloatDigAtom}|{Infinity})
+TimespanAtom={DecimalAtom}"D"({TimeAtom})?
+Timestamp=-?({TimestampAtom}|{TimespanAtom}|{DecimalAtom}|{Null}|{MinuteAtom}|{SecondAtom}|{TimeAtom}|{FloatDigAtom}|{Infinity})
 TimestampList={Timestamp}({WhiteSpace}{Timestamp})+{TimestampCode}?
 
 MinuteAtom=[:digit:]{2,3}\:[0-5][:digit:]
@@ -179,20 +179,20 @@ String                = (\"\")|({UnclosedString}\")
 Symbol="`"[.:/_a-zA-Z0-9]*
 
 SignedAtom=
-    {IntegerAtom}{IntCode}?|
+    {DecimalAtom}{DecimalCode}?|
     ({FloatDigAtom}|{FloatExpAtom}){FloatCode}?|
     {DatetimeAtom}"z"?|
     {MonthAtom}"m"?|
     ({TimestampAtom}|{TimespanAtom}|{FloatDigAtom}){TimestampCode}?|
     ({MinuteAtom}|{SecondAtom}|{TimeAtom}){TimeCode}?|
-    ({Infinity}|{Null})({IntCode}|{DatetimeCode})?
+    ({Infinity}|{Null})({DecimalCode}|{DatetimeCode})?
 
 UnsignedAtom={Boolean}|{Byte}|{Null}{GuidCode}|{DateAtom}[dz]?
 
 NegativeAtom="-"{SignedAtom}
 
-Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
-    {TimestampList}|{TimeList}|{MonthList}|{DateList}|{DatetimeList}|{MinuteList}|{SecondList}
+//Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
+//    {TimestampList}|{TimeList}|{MonthList}|{DateList}|{DatetimeList}|{MinuteList}|{SecondList}
 
 %state MODE_STATE
 %state QUERY_COLUMNS_STATE
@@ -242,7 +242,17 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 }
 
 <NEGATIVE_ATOM_STATE> {
-  {Vector}                                   { yypopstate(); return VECTOR; }
+  {BooleanList}                              { yypopstate(); return BOOLEANS; }
+  {ByteList}                                 { yypopstate(); return BYTES; }
+  {DecimalList}                              { yypopstate(); return DECIMALS; }
+  {FloatList}                                { yypopstate(); return FLOATS; }
+  {TimestampList}                            { yypopstate(); return TIMESTAMPS; }
+  {TimeList}                                 { yypopstate(); return TIMES; }
+  {MonthList}                                { yypopstate(); return MONTHS; }
+  {DateList}                                 { yypopstate(); return DATES; }
+  {DatetimeList}                             { yypopstate(); return DATETIMES; }
+  {MinuteList}                               { yypopstate(); return MINUTES; }
+  {SecondList}                               { yypopstate(); return SECONDS; }
   {NegativeAtom}                             { yypopstate(); return SIGNED_ATOM; }
 }
 
@@ -259,7 +269,6 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
 }
 
 <YYINITIAL, QUERY_COLUMNS_STATE, QUERY_SOURCE_STATE> {
-//  "("{LineSpace}*")"                         { return VECTOR; }
   "("{LineSpace}*"::"{LineSpace}*")"         { return NILL; }
 
   "("                                        { yypushstate(YYINITIAL); return PAREN_OPEN; }
@@ -339,7 +348,18 @@ Vector={BooleanList}|{ByteList}|{IntegerList}|{FloatList}|
   {BinaryFunction}                           { return BINARY_FUNCTION; }
   {ComplexFunction}                          { return COMPLEX_FUNCTION; }
 
-  {Vector}                                   { return VECTOR; }
+  {BooleanList}                              { return BOOLEANS; }
+  {ByteList}                                 { return BYTES; }
+  {DecimalList}                              { return DECIMALS; }
+  {FloatList}                                { return FLOATS; }
+  {TimestampList}                            { return TIMESTAMPS; }
+  {TimeList}                                 { return TIMES; }
+  {MonthList}                                { return MONTHS; }
+  {DateList}                                 { return DATES; }
+  {DatetimeList}                             { return DATETIMES; }
+  {MinuteList}                               { return MINUTES; }
+  {SecondList}                               { return SECONDS; }
+
   {NegativeAtom}                             { if (isNegativeSign()) { return SIGNED_ATOM; } else { yypushback(yylength() - 1); return OPERATOR_ARITHMETIC; } }
   {SignedAtom}                               { return SIGNED_ATOM; }
   {UnsignedAtom}                             { return UNSIGNED_ATOM; }
