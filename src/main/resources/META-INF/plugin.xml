@@ -427,22 +427,20 @@
                 serviceImplementation="org.kdb.inside.brains.core.credentials.CredentialService"/>
 
         <!-- Configuration / Settings -->
+        <colorSettingsPage id="Kdb.Settings.Color"
+                           implementation="org.kdb.inside.brains.settings.KdbColorSettingsPage"/>
+
         <applicationService serviceImplementation="org.kdb.inside.brains.settings.KdbSettingsService"/>
-        <colorSettingsPage implementation="org.kdb.inside.brains.settings.KdbColorSettingsPage"/>
 
         <applicationConfigurable id="Kdb.Settings"
                                  groupId="language"
                                  displayName="KDB+ Q"
                                  instance="org.kdb.inside.brains.settings.KdbSettingsConfigurable">
+            <configurable instance="org.kdb.inside.brains.view.editor.EditorConfigurable"/>
             <configurable instance="org.kdb.inside.brains.settings.KdbConnectionsConfigurable"/>
             <configurable instance="org.kdb.inside.brains.lang.qspec.QSpecConfigurable"/>
             <configurable instance="org.kdb.inside.brains.lang.exclusions.UndefinedExclusionsConfigurable"/>
         </applicationConfigurable>
-
-        <!--
-                <applicationConfigurable groupId="language" displayName="KDB+ Q" id="Kdb.Settings"
-                                         instance="org.kdb.inside.brains.settings.KdbSettingsConfigurable"/>
-        -->
 
         <!-- KDB Instances -->
         <projectService serviceImplementation="org.kdb.inside.brains.core.KdbScopeHolder"/>
@@ -476,7 +474,7 @@
 
         <lang.commenter language="q" implementationClass="org.kdb.inside.brains.lang.QCommenter"/>
         <lang.ast.factory language="q" implementationClass="org.kdb.inside.brains.lang.QNodeFactory"/>
-        <lang.braceMatcher language="q" implementationClass="org.kdb.inside.brains.lang.QBracesMatcher"/>
+        <lang.braceMatcher language="q" implementationClass="org.kdb.inside.brains.lang.highlighting.QBracesMatcher"/>
         <lang.parserDefinition language="q" implementationClass="org.kdb.inside.brains.QParserDefinition"/>
         <lang.namesValidator language="q"
                              implementationClass="org.kdb.inside.brains.lang.refactoring.QNamesValidator"/>
@@ -500,6 +498,9 @@
                                         implementationClass="org.kdb.inside.brains.lang.marker.SystemFunctionsMarkerProvider"/>
 
         <highlightVisitor implementation="org.kdb.inside.brains.lang.QRainbowVisitor"/>
+
+        <highlightUsagesHandlerFactory
+                implementation="org.kdb.inside.brains.lang.highlighting.QVectorHighlighterFactory"/>
 
         <!-- Indexes -->
         <fileBasedIndex implementation="org.kdb.inside.brains.psi.index.QIdentifiersIndex"/>

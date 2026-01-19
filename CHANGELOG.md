@@ -1,5 +1,11 @@
 # KdbInsideBrains Changelog
 
+## 6.6.0
+
+### Added
+
+- Dictionary keys/values pair highlighting
+
 ## 6.5.2
 
 ### Added
@@ -87,9 +93,9 @@ Technical release:
 ### Changed
 
 - Charting View tools redesigned:
-    - Crosshair tool supports multiple range axes as well as candlestick
-    - Values tools supports candlestick
-    - Enabled tools stored in new optimized format
+  - Crosshair tool supports multiple range axes as well as candlestick
+  - Values tools supports candlestick
+  - Enabled tools stored in new optimized format
 
 ### Fixed
 
@@ -106,10 +112,10 @@ Technical release:
 ### Added
 
 - KDB 4.1 Syntax added: major code redesign to support new language features including:
-    - Working with icons was fully redesigned as well
-    - New type Dict has been introduced with a set of new formatting rules
-    - New type TypeVariable introduced with a set of new formatting rules
-    - Indexing redesigned to support new types
+  - Working with icons was fully redesigned as well
+  - New type Dict has been introduced with a set of new formatting rules
+  - New type TypeVariable introduced with a set of new formatting rules
+  - Indexing redesigned to support new types
 - Select/Deselect all Values in Charting added
 
 ### Changed
@@ -141,8 +147,8 @@ Technical release:
 ### Changed
 
 - Function docs logic changed:
-    - if there is more than one definition with the same semantic - the longest description is shown
-    - if there is more than one definition with differing semantics - list of all definitions is shown
+  - if there is more than one definition with the same semantic - the longest description is shown
+  - if there is more than one definition with differing semantics - list of all definitions is shown
 
 ## 5.15.1
 
@@ -159,10 +165,10 @@ Technical release:
 ### Added
 
 - QSpec Testing Framework added for Unit-Testing (https://www.kdbinsidebrains.dev/testing):
-    - Downloading the lib from GitHub that is attached a synthetic library to any project with KDB code
-    - Running an expectation, a description or even a directory
-    - Test cases code analysis, suggestions, and completion
-    - Quick generate actions for: description, before, after and expectations
+  - Downloading the lib from GitHub that is attached a synthetic library to any project with KDB code
+  - Running an expectation, a description or even a directory
+  - Test cases code analysis, suggestions, and completion
+  - Quick generate actions for: description, before, after and expectations
 - Run local KDB Instance functionality was redesigned to support QSpec Testing Framework
 - Exclusion list of undefined variables has been added: any undefined variable can be added to the list, and will be
   undefined inspection will be disabled for the variable.
@@ -191,10 +197,10 @@ Technical release:
 ### Changed
 
 - Charting is fully redesigned (https://www.kdbinsidebrains.dev/features/charting):
-    - Issue with dropping grouped data is fixed: new Operation term (_sum, count, avg, min, max_) was introduced
-    - Added an ability to ungroup data by any symbol/text field and show as a separate line
-    - Line style can be changed (color, width and so on) by clicking on the legend title now: settings are not stored
-      over restarts yet
+  - Issue with dropping grouped data is fixed: new Operation term (_sum, count, avg, min, max_) was introduced
+  - Added an ability to ungroup data by any symbol/text field and show as a separate line
+  - Line style can be changed (color, width and so on) by clicking on the legend title now: settings are not stored
+    over restarts yet
 - Charting templates are not backward compatible and will be removed after the upgrade due to significant changes
 
 ## 5.13.1
@@ -208,9 +214,9 @@ Technical release:
 ### Changed
 
 - Credential functionality was redesigned to support easier IDEA versions migration:
-    - the plugins folder changed from <IdeaSystem>/KdbInsideBrains to <user.home>/.kdbinb
-    - the plugin file can be copied to <user.home>/.kdbinb for auto-installation alongside UI settings
-    - Connection Settings dialog supports dynamic plugins reloading (by "Apply" button) now
+  - the plugins folder changed from <IdeaSystem>/KdbInsideBrains to <user.home>/.kdbinb
+  - the plugin file can be copied to <user.home>/.kdbinb for auto-installation alongside UI settings
+  - Connection Settings dialog supports dynamic plugins reloading (by "Apply" button) now
 
 ## 5.12.0
 
@@ -641,9 +647,9 @@ Technical release:
 ### Added
 
 - Charting templates have been introduced: https://www.kdbinsidebrains.dev/features/charting#templates:
-    - Save/Restore a chart configuration
-    - Quick charting by template
-    - Templates manager
+  - Save/Restore a chart configuration
+  - Quick charting by template
+  - Templates manager
 
 ### Fixed
 
@@ -654,15 +660,15 @@ Technical release:
 ### Added
 
 - Dedicated Live Templates context (KDB+ Q) added with a few templates:
-    - sel - create a simple select query: select ... from ... where
-    - td - today: .z.d
-    - yd - yesterday: .z.d-1
-    - l10s - time within the last 10 seconds by time column
-    - l5m - time within the last 5 minutes by time column
+  - sel - create a simple select query: select ... from ... where
+  - td - today: .z.d
+  - yd - yesterday: .z.d-1
+  - l10s - time within the last 10 seconds by time column
+  - l5m - time within the last 5 minutes by time column
 - Code Completion improved for queries:
-    - suggest a table name after 'from' keyword
-    - the selection from a table, when columns are extracted and suggested in 'select', 'be' and 'where' sections
-    - completion works for defined tables as well as loaded from the Inspector
+  - suggest a table name after 'from' keyword
+  - the selection from a table, when columns are extracted and suggested in 'select', 'be' and 'where' sections
+  - completion works for defined tables as well as loaded from the Inspector
 - Keys are loaded from KDB Instance at inspection time, NOTE: The Inspector query was changed
 
 ### Fixed
@@ -690,9 +696,9 @@ Technical release:
 ### Added
 
 - Inspector has been improved and more functionality added:
-    - Scroll to source
-    - Diff with the source for a function
-    - Restore expanded/selected item between connection change/refresh
+  - Scroll to source
+  - Diff with the source for a function
+  - Restore expanded/selected item between connection change/refresh
 
 ### Fixed
 
@@ -719,9 +725,9 @@ Technical release:
   in
   the
   plugin:
-    - Split logs by months introduced: https://www.kdbinsidebrains.dev/settings/options#log-queries
-    - Ability to change the background of the console for colored
-      instances: https://www.kdbinsidebrains.dev/features/instances#highlighting-severity
+  - Split logs by months introduced: https://www.kdbinsidebrains.dev/settings/options#log-queries
+  - Ability to change the background of the console for colored
+    instances: https://www.kdbinsidebrains.dev/features/instances#highlighting-severity
 - IDEA 2022.3 supporting added
 
 ### Fixed
@@ -796,9 +802,9 @@ Technical release:
 ### Added
 
 - Table declaration annotations added:
-    - tailing semicolon marked as an error
-    - set of semicolon (empty declarations) marked as an error
-    - even expressions are allowed without column names, they are marked as a warning if it's not declaration
+  - tailing semicolon marked as an error
+  - set of semicolon (empty declarations) marked as an error
+  - even expressions are allowed without column names, they are marked as a warning if it's not declaration
 
 ### Fixed
 
@@ -900,9 +906,9 @@ Technical release:
 ### Added
 
 - CredentialsPlugin functionality redesigned:
-    - plugins copied into Idea System folder (current approach will be auto-migrated)
-    - duplicate plugins are not allowed and adding a new version replaces exist one
-    - plugin version and description added (plugins must be recompiled)
+  - plugins copied into Idea System folder (current approach will be auto-migrated)
+  - duplicate plugins are not allowed and adding a new version replaces exist one
+  - plugin version and description added (plugins must be recompiled)
 
 ## 1.5.0
 
@@ -1032,9 +1038,9 @@ Technical release:
 
 - Dark icons set added with IntelliJ Idea colors
 - Charting is ready now:
-    - A New Magnet/Snap tool has been added with the ability to snap to line, vertex or disable the tool (default)
-    - The Values Tool shows only series values and no range values anymore
-    - Measure Tool has a context menu with remove/clear ability
+  - A New Magnet/Snap tool has been added with the ability to snap to line, vertex or disable the tool (default)
+  - The Values Tool shows only series values and no range values anymore
+  - Measure Tool has a context menu with remove/clear ability
 
 ## 0.20.0
 
@@ -1047,9 +1053,9 @@ Technical release:
 ### Changed
 
 - Console behaviours changed:
-    - Closing a console tab closes the connection as well now
-    - Changing active console tab changes active connection, so it's the same as select active connection from the
-      toolbar
+  - Closing a console tab closes the connection as well now
+  - Changing active console tab changes active connection, so it's the same as select active connection from the
+    toolbar
 
 ## 0.19.0
 
@@ -1063,14 +1069,14 @@ Technical release:
 - Table Result supports search by words and regex with or without case match
 - Right side toolbar in charts view has been added instead of the context menu
 - Charting tools have been introduced:
-    - **Crosshair tool** - to show current values for the mouse position
-    - **Measure tool** - draw measuring rectangles on the chart with values diff: left mouse click to start, move, left
-      mouse click to finish.
-      Esc to cancel current drawing.
-    - **Points collector** - save any chart clicked values into the points' collector table with the ability to export
-      or
-      send
-      into another KDB instance.
+  - **Crosshair tool** - to show current values for the mouse position
+  - **Measure tool** - draw measuring rectangles on the chart with values diff: left mouse click to start, move, left
+    mouse click to finish.
+    Esc to cancel current drawing.
+  - **Points collector** - save any chart clicked values into the points' collector table with the ability to export
+    or
+    send
+    into another KDB instance.
 
 ## 0.18.1
 
@@ -1085,9 +1091,9 @@ Technical release:
 - Charting configuration has been redesigned
 - Candlestick chart has been added
 - Line charts have been updated:
-    - Spline, Steps, Bar, Area, Diff and Scatter line charts have been added
-    - Ability to change line width and show shapes added
-    - Transparent colors and axes orders added
+  - Spline, Steps, Bar, Area, Diff and Scatter line charts have been added
+  - Ability to change line width and show shapes added
+  - Transparent colors and axes orders added
 
 ## 0.17.1
 
@@ -1113,8 +1119,8 @@ Technical release:
 ### Changed
 
 - Excel exporting format changed to xlsx (Excel 2007) instead of xls (Excel 95)
-    - 1,048,576 rows instead of 65,536 and 16,384 cols instead of 256
-    - Streams worksheet is used to reduce memory footprint
+  - 1,048,576 rows instead of 65,536 and 16,384 cols instead of 256
+  - Streams worksheet is used to reduce memory footprint
 - Export actions run as a background task to reduce UI freeze
 
 ## 0.15.0

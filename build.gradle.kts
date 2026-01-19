@@ -81,6 +81,8 @@ dependencies {
         bundledPlugin("com.intellij.java")
         plugins(properties("platformPlugins").split(','))
 
+        testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.Plugin.Java)
         testFramework(TestFrameworkType.JUnit5)
     }
 
@@ -138,6 +140,10 @@ tasks {
     java {
         withSourcesJar()
         withJavadocJar()
+    }
+
+    test {
+        useJUnitPlatform()
     }
 
     named("javadoc") {

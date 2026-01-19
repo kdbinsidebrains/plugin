@@ -110,6 +110,10 @@ public final class QPsiUtil {
         return el instanceof PsiWhiteSpace || el instanceof PsiComment;
     }
 
+    public static boolean isOperator(@NotNull PsiElement el, @NotNull String text) {
+        return el instanceof QOperatorType && text.equals(el.getText());
+    }
+
     public static boolean isLeafText(PsiElement el, String text) {
         return el instanceof LeafPsiElement && text.equals(el.getText());
     }

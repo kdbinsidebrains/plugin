@@ -1,4 +1,4 @@
-package org.kdb.inside.brains.lang;
+package org.kdb.inside.brains.lang.highlighting;
 
 import com.intellij.codeInsight.highlighting.PairedBraceMatcherAdapter;
 import com.intellij.lang.BracePair;

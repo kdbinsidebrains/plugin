@@ -11,6 +11,7 @@ import org.kdb.inside.brains.view.chart.ChartOptions;
 import org.kdb.inside.brains.view.console.ConsoleOptions;
 import org.kdb.inside.brains.view.console.NumericalOptions;
 import org.kdb.inside.brains.view.console.TableOptions;
+import org.kdb.inside.brains.view.editor.EditorOptions;
 import org.kdb.inside.brains.view.inspector.InspectorOptions;
 
 import java.util.ArrayList;
@@ -37,6 +38,17 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
     public void removeSettingsListener(KdbSettingsListener listener) {
         if (listener != null) {
             listeners.remove(listener);
+        }
+    }
+
+    public EditorOptions getEditorOptions() {
+        return myState.editorOptions;
+    }
+
+    public void setEditorOptions(EditorOptions options) {
+        if (!myState.editorOptions.equals(options)) {
+            myState.editorOptions.copyFrom(options);
+            notifySettingsChanged(myState.editorOptions);
         }
     }
 
@@ -132,11 +144,12 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         myState.setChartOptions(state.chartOptions);
         myState.setTableOptions(state.tableOptions);
         myState.setConsoleOptions(state.consoleOptions);
-        myState.setEditorOptions(state.executionOptions);
+        myState.setExecutionOptions(state.executionOptions);
         myState.setInstanceOptions(state.instanceOptions);
         myState.setCredentialPlugins(state.credentialPlugins);
         myState.setInspectorOptions(state.inspectorOptions);
         myState.setNumericalOptions(state.numericalOptions);
+        myState.setEditorOptions(state.editorOptions);
     }
 
     public static KdbSettingsService getInstance() {
@@ -150,11 +163,20 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
         private final List<String> credentialPlugins = new ArrayList<>();
         private final ChartOptions chartOptions = new ChartOptions();
         private final TableOptions tableOptions = new TableOptions();
+        private final EditorOptions editorOptions = new EditorOptions();
         private final ConsoleOptions consoleOptions = new ConsoleOptions();
         private final InstanceOptions instanceOptions = InstanceOptions.defaultOptions();
         private final ExecutionOptions executionOptions = new ExecutionOptions();
         private final InspectorOptions inspectorOptions = new InspectorOptions();
         private final NumericalOptions numericalOptions = new NumericalOptions();
+
+        public ExecutionOptions getExecutionOptions() {
+            return executionOptions;
+        }
+
+        public void setExecutionOptions(ExecutionOptions options) {
+            executionOptions.copyFrom(options);
+        }
 
         public List<String> getCredentialPlugins() {
             return credentialPlugins;
@@ -191,12 +213,12 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
             this.instanceOptions.copyFrom(instanceOptions);
         }
 
-        public ExecutionOptions getEditorOptions() {
-            return executionOptions;
+        public EditorOptions getEditorOptions() {
+            return editorOptions;
         }
 
-        public void setEditorOptions(ExecutionOptions executionOptions) {
-            this.executionOptions.copyFrom(executionOptions);
+        public void setEditorOptions(EditorOptions editorOptions) {
+            this.editorOptions.copyFrom(editorOptions);
         }
 
         public InspectorOptions getInspectorOptions() {
