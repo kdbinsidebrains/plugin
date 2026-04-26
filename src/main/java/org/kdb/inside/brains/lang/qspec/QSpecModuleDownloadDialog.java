@@ -7,9 +7,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.util.ExceptionUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.codehaus.plexus.util.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.UIUtils;
@@ -62,7 +62,7 @@ public class QSpecModuleDownloadDialog extends DialogWrapper {
         downloadButton.addActionListener(this::startDownloading);
 
         setOKActionEnabled(false);
-        setOKButtonText("Use The Library");
+        setOKButtonText("Use the Library");
 
         init();
         setSize(700, 500);
@@ -93,7 +93,7 @@ public class QSpecModuleDownloadDialog extends DialogWrapper {
 
     private void error(String text, Exception ex) {
         print("ERROR: " + text);
-        print(ExceptionUtils.getStackTrace(ex));
+        print(ExceptionUtil.getThrowableText(ex));
     }
 
     private void print(String text) {

@@ -35,6 +35,47 @@
 - Key column in dark mode is more visible now
 - TableView internal code redesigned for better supporting
 
+## 6.7.0
+
+### Added
+
+- Added support for IDEA 2026.x
+
+## 6.6.0
+
+### Added
+
+- Dictionary keys/values pair highlighting
+
+## 6.5.2
+
+### Added
+
+- Semantic highlighting for braces, brackets, and parens
+
+### Fixed
+
+- In ChartView range axis values shown in decimal format all the time rather than converting into exponential
+
+## 6.4.0
+
+### Added
+
+- IDEA 2025.2 supporting added and used by default
+- Column type tooltip shown in TableResult view
+- Column type tooltip shown in Columns Filter panel of TableResult view
+- Sorting of primitive list columns: comparing by each list's item. The shortest list of all other items being equal.
+- Columns order, visibility and sorting are not reset if the schema is the same after reload
+
+### Fixed
+
+- Issue 130: Flip rows in Points Collector of Chart View causes NPE
+
+### Changed
+
+- Key column in dark mode is more visible now
+- TableView internal code redesigned for better supporting
+
 ## 6.3.3
 
 ### Fixed

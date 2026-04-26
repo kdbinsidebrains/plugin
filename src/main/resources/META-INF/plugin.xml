@@ -37,6 +37,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
     <depends optional="true" config-file="plugin-modules-java.xml">com.intellij.modules.java</depends>
+    <depends optional="true" config-file="plugin-spellchecker.xml">com.intellij.modules.spellchecker</depends>
 
     <actions>
         <action id="Kdb.Instances.Connect"
@@ -486,8 +487,7 @@
         <callHierarchyProvider language="q"
                                implementationClass="org.kdb.inside.brains.lang.hierarchy.QCallHierarchyProvider"/>
 
-        <spellchecker.support language="q" implementationClass="org.kdb.inside.brains.lang.QSpellcheckingStrategy"/>
-
+        <!--        <spellchecker.support language="q" implementationClass="org.kdb.inside.brains.lang.QSpellcheckingStrategy"/>-->
 
         <lang.foldingBuilder language="q" implementationClass="org.kdb.inside.brains.lang.QFoldingBuilder"/>
 
