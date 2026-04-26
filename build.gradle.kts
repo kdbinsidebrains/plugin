@@ -29,8 +29,8 @@ plugins {
     id("signing")
     id("maven-publish")
     id("org.jetbrains.changelog") version "2.5.0"
-    id("org.jetbrains.grammarkit") version "2023.3.0.1"
-    id("org.jetbrains.intellij.platform") version "2.10.5"
+    id("org.jetbrains.grammarkit") version "2023.3.0.3"
+    id("org.jetbrains.intellij.platform") version "2.15.0"
 }
 
 repositories {
@@ -79,6 +79,7 @@ dependencies {
         jetbrainsRuntime()
 
         bundledPlugin("com.intellij.java")
+        bundledModule("intellij.spellchecker")
         plugins(properties("platformPlugins").split(','))
 
         testFramework(TestFrameworkType.Platform)
@@ -124,7 +125,14 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            properties("pluginVerifierVersions").split(",").forEach { ide(it.trim()) }
+            properties("pluginVerifierVersions")
+                .split(",")
+                .map(String::trim)
+                .forEach { version ->
+                    val type = version.substringBefore("-")
+                    val build = version.substringAfter("-")
+                    create(type, build)
+                }
         }
     }
 }

@@ -21,7 +21,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.codehaus.plexus.util.ExceptionUtils;
+import com.intellij.util.ExceptionUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QFileType;
@@ -130,7 +130,7 @@ public class QSpecRunningState extends KdbRunningStateBase<QSpecRunConfiguration
             consoleView.print(ex.getMessage(), ConsoleViewContentType.ERROR_OUTPUT);
             processHandler.killProcess();
         } catch (Exception ex) {
-            consoleView.print(ExceptionUtils.getStackTrace(ex), ConsoleViewContentType.ERROR_OUTPUT);
+            consoleView.print(ExceptionUtil.getThrowableText(ex), ConsoleViewContentType.ERROR_OUTPUT);
             processHandler.killProcess();
         }
     }

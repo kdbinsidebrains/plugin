@@ -1,0 +1,7 @@
+<idea-plugin require-restart="false">
+    <extensions defaultExtensionNs="com.intellij">
+        <spellchecker.support
+                language="q"
+                implementationClass="org.kdb.inside.brains.lang.QSpellcheckingStrategy"/>
+    </extensions>
+</idea-plugin>
