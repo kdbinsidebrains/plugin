@@ -2,12 +2,14 @@ package org.kdb.inside.brains.view.struct;
 
 import com.intellij.ide.navigationToolbar.StructureAwareNavBarModelExtension;
 import com.intellij.lang.Language;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kdb.inside.brains.QLanguage;
 import org.kdb.inside.brains.psi.*;
+
+import javax.swing.*;
+import java.util.Optional;
 
 /**
  * See JavaNavBarExtension as an example
@@ -20,48 +22,37 @@ public class QNavBarExtension extends StructureAwareNavBarModelExtension {
     }
 
     @Override
-    public @Nullable PsiElement getLeafElement(@NotNull DataContext dataContext) {
-        final PsiElement leafElement = super.getLeafElement(dataContext);
-        // resolve Assignment to something meaningful
-        if (leafElement instanceof QAssignmentExpr) {
-            return ElementContext.of(leafElement).getElement();
-        }
-        return leafElement;
+    public @Nullable Icon getIcon(Object object) {
+        return getElement(object).map(e -> e.getIcon(false)).orElse(null);
     }
 
     @Override
     public @Nullable String getPresentableText(Object object) {
-        if (!(object instanceof QPsiElement e)) {
+        return getElement(object).map(QStructureViewElement::getPresentableText).orElse(null);
+    }
+
+    @Override
+    public @Nullable PsiElement getParent(@Nullable PsiElement psiElement) {
+        if (psiElement == null) {
             return null;
         }
-
-        if (object instanceof QSymbol s) {
-            return s.getName();
-        }
-        if (object instanceof QVarDeclaration d) {
-            return d.getQualifiedName();
-        }
-        if (object instanceof QCommand c) {
-            return c.getCommand().getText();
-        }
-        if (object instanceof QImport i) {
-            return "<import>";
-        }
-        if (object instanceof QContext ctx) {
-            return getVarName(ctx.getVariable());
-        }
-        if (object instanceof QLambdaExpr || object instanceof QTableExpr || object instanceof QDictExpr) {
-            return getDeclarationName((QPsiElement) object);
-        }
-        return null;
+        return ElementContext.of(psiElement).getElement();
     }
 
-    private String getDeclarationName(QPsiElement element) {
-        final VarAssignment assignment = QPsiUtil.getVarAssignment(element);
-        return assignment == null ? "<anonymous>" : assignment.declaration().getQualifiedName();
-    }
-
-    private String getVarName(QVarDeclaration var) {
-        return var == null ? null : var.getQualifiedName();
+    private Optional<QStructureViewElement> getElement(Object object) {
+        if (!(object instanceof QPsiElement psi)) {
+            return Optional.empty();
+        }
+        final PsiElement target;
+        if (psi instanceof QLambdaExpr || psi instanceof QTableExpr || psi instanceof QDictExpr) {
+            final PsiElement parent = psi.getParent();
+            target = parent instanceof QAssignmentExpr ? parent : psi;
+        } else {
+            target = psi;
+        }
+        return QStructureViewElement.createViewElement(target)
+                .filter(e -> e instanceof QStructureViewElement)
+                .map(e -> (QStructureViewElement) e)
+                .findFirst();
     }
 }

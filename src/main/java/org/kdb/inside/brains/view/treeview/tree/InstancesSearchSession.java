@@ -1,6 +1,5 @@
 package org.kdb.inside.brains.view.treeview.tree;
 
-import com.intellij.find.FindBundle;
 import com.intellij.find.FindModel;
 import com.intellij.find.SearchReplaceComponent;
 import com.intellij.find.editorHeaderActions.*;
@@ -394,15 +393,15 @@ public class InstancesSearchSession extends QSearchSession {
 
     private class ExcludeAction extends ButtonAction {
         ExcludeAction() {
-            super(FindBundle.message("button.exclude"));
+            super("Exclude");
         }
 
         @Override
         protected void update(@NotNull JButton button) {
             button.setEnabled(!foundInstances.isEmpty());
             button.setText(selectedIndex != -1 && excludedInstances.contains(foundInstances.get(selectedIndex))
-                    ? FindBundle.message("button.include")
-                    : FindBundle.message("button.exclude"));
+                    ? "Include"
+                    : "Exclude");
         }
 
         @Override
