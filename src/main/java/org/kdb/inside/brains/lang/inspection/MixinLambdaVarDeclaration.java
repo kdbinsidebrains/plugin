@@ -38,7 +38,7 @@ public class MixinLambdaVarDeclaration extends ElementInspection<QLambdaExpr> {
 
             boolean global = QPsiUtil.isGlobalDeclaration(value.get(0));
             for (QVarDeclaration declaration : value) {
-                if (global == QPsiUtil.isGlobalDeclaration(declaration)) {
+                if (global == QPsiUtil.isGlobalDeclaration(declaration) || QPsiUtil.isParameterDeclaration(declaration)) {
                     continue;
                 }
 

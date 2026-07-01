@@ -26,7 +26,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.ImageUtil;
-import org.apache.commons.lang.text.StrSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +42,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class UIUtils {
     public static final String KEY_COLUMN_PREFIX = "\u00A1";
@@ -50,12 +51,20 @@ public final class UIUtils {
     public static final String KEY_COLUMN_PREFIX_XMAS = "\uD83C\uDF84";
 
     private static final Map<Color, Color> KEY_COLUMN_COLORS = new HashMap<>();
+    private static final Pattern SYSTEM_PROPERTY = Pattern.compile("\\$\\{([^}]+)}");
 
     private UIUtils() {
     }
 
     public static String replaceSystemProperties(String string) {
-        return StrSubstitutor.replaceSystemProperties(string);
+        final Matcher matcher = SYSTEM_PROPERTY.matcher(string);
+        final StringBuilder result = new StringBuilder();
+        while (matcher.find()) {
+            String value = System.getProperty(matcher.group(1), "");
+            matcher.appendReplacement(result, Matcher.quoteReplacement(value));
+        }
+        matcher.appendTail(result);
+        return result.toString();
     }
 
     public static JComponent wrapWithHelpLabel(JComponent component, String text) {

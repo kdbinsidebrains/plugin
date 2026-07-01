@@ -116,14 +116,14 @@ public class ScopesEditorPanel extends MasterDetailsComponent {
     protected void initTree() {
         super.initTree();
         myTree.setShowsRootHandles(false);
-        new TreeSpeedSearch(myTree, true, treePath -> ((MyNode) treePath.getLastPathComponent()).getDisplayName());
+        TreeSpeedSearch.installOn(myTree, true, treePath -> ((MyNode) treePath.getLastPathComponent()).getDisplayName());
 
         final ColoredTreeCellRenderer cellRenderer = (ColoredTreeCellRenderer) myTree.getCellRenderer();
 
         final Map<KdbScope, String> instancesCount = new LinkedHashMap<>();
         myTree.setCellRenderer((tree, value, selected, expanded, leaf, row, hasFocus) -> {
             cellRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-            if (value instanceof MyNode node && ((MyNode) value).getConfigurable() != null) {
+            if (value instanceof MyNode node && node.getConfigurable() != null) {
                 final Object editableObject = node.getConfigurable();
                 if (!(editableObject instanceof ScopeConfigurable scopeConfigurable)) {
                     return cellRenderer;

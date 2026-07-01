@@ -5,7 +5,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -60,7 +59,7 @@ public class InstanceScanner implements Disposable {
     }
 
     private Task startThread(InstanceConnection connection) {
-        Task.Backgroundable task = new Task.Backgroundable(project, "Scanning instance " + connection.getCanonicalName(), false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+        Task.Backgroundable task = new Task.Backgroundable(project, "Scanning instance " + connection.getCanonicalName(), false) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 if (!indicator.isCanceled()) {

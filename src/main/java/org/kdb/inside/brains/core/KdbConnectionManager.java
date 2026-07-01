@@ -7,7 +7,6 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Progressive;
 import com.intellij.openapi.progress.Task;
@@ -463,7 +462,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
             connecting();
 
             final ConnectionProgressive progressive = new ConnectionProgressive(this);
-            final Task task = new Task.Backgroundable(project, "Connection to kdb instance", true, PerformInBackgroundOption.DEAF) {
+            final Task task = new Task.Backgroundable(project, "Connection to kdb instance", true) {
                 @Override
                 public void run(@NotNull ProgressIndicator indicator) {
                     progressive.run(indicator);
@@ -627,7 +626,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
                     }
                 };
             } else {
-                return new Task.Backgroundable(project, title, true, PerformInBackgroundOption.DEAF) {
+                return new Task.Backgroundable(project, title, true) {
                     @Override
                     public void run(@NotNull ProgressIndicator indicator) {
                         queryProgressive.run(indicator);

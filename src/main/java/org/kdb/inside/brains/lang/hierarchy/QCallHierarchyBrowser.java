@@ -72,7 +72,7 @@ public class QCallHierarchyBrowser extends CallHierarchyBrowserBase {
     protected @Nullable Comparator<NodeDescriptor<?>> getComparator() {
         final HierarchyBrowserManager instance = HierarchyBrowserManager.getInstance(myProject);
         if (instance != null && instance.getState() != null && instance.getState().SORT_ALPHABETICALLY) {
-            return AlphaComparator.INSTANCE;
+            return AlphaComparator.getInstance();
         } else {
             return NODE_DESCRIPTOR_COMPARATOR;
         }

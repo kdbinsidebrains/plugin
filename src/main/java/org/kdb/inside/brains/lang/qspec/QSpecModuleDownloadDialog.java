@@ -20,7 +20,7 @@ import javax.swing.text.DefaultCaret;
 import java.awt.event.ActionEvent;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -116,7 +116,7 @@ public class QSpecModuleDownloadDialog extends DialogWrapper {
     private void download(Path dest) throws IOException {
         final Path tmp = Files.createTempFile("kdbinsidebrains", "qspec");
         try {
-            FileUtils.copyURLToFile(new URL(GITHUB_URL), tmp.toFile());
+            FileUtils.copyURLToFile(URI.create(GITHUB_URL).toURL(), tmp.toFile());
             print("Downloaded. Extracting files...");
             extractFiles(tmp, dest);
         } finally {

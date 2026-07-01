@@ -13,10 +13,10 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.actions.AbstractToggleUseSoftWrapsAction;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -178,24 +178,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     private TabInfo createConsoleTab() {
         final String historyName = "KdbConsolePanel-" + connection.getName();
 
-        final LanguageConsoleBuilder b = new LanguageConsoleBuilder();
-        b.gutterContentProvider(gutterProvider);
-        console = b.build(project, QLanguage.INSTANCE);
-        console.getComponent().setMinimumSize(new JBDimension(10, 10));
-
-
-        LanguageConsoleBuilder.registerExecuteAction(console,
-                text -> {
-                    if (!showHistory) {
-                        clearHistory();
-                        gutterProvider.beforeEvaluate(console.getHistoryViewer());
-                    }
-                    processQuery(new KdbQuery(text));
-                },
-                historyName,
-                historyName,
-                view -> connection.isConnected()
-        );
+        console = createConsole(historyName);
 
         printToConsole("Kdb console for instance: " + connection.getName() + ".\n", ConsoleViewContentType.SYSTEM_OUTPUT);
 
@@ -221,6 +204,27 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
         HistoryCopyHandler.redefineHistoricalViewer(console);
 
         return tab;
+    }
+
+    private LanguageConsoleView createConsole(String historyName) {
+        final LanguageConsoleBuilder b = new LanguageConsoleBuilder();
+        b.gutterContentProvider(gutterProvider);
+
+        final LanguageConsoleView console = ReadAction.compute(() -> b.build(project, QLanguage.INSTANCE));
+        LanguageConsoleBuilder.registerExecuteAction(console,
+                text -> {
+                    if (!showHistory) {
+                        clearHistory();
+                        gutterProvider.beforeEvaluate(console.getHistoryViewer());
+                    }
+                    processQuery(new KdbQuery(text));
+                },
+                historyName,
+                historyName,
+                view -> connection.isConnected()
+        );
+        console.getComponent().setMinimumSize(new JBDimension(10, 10));
+        return console;
     }
 
     private void updateTabColor(TabInfo tab) {
@@ -464,7 +468,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
 
         final String tabName = virtualFile.getNameWithoutExtension();
         final Application application = ApplicationManager.getApplication();
-        new Task.Backgroundable(project, "Loading a table from " + tabName, false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+        new Task.Backgroundable(project, "Loading a table from " + tabName, false) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 try {

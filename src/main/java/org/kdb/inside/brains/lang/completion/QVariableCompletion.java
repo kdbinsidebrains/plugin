@@ -128,7 +128,7 @@ public class QVariableCompletion extends CompletionProvider<CompletionParameters
 
     private void completeVariable(QVariable variable, Project project, CompletionResultSet result) {
         // No suggestion in parameters - it's free-form names
-        if (variable.getParent() instanceof QParameters) {
+        if (QPsiUtil.isParameterDeclaration(variable)) {
             return;
         }
 

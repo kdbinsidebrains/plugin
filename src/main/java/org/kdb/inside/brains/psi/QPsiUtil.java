@@ -70,6 +70,10 @@ public final class QPsiUtil {
         return 'x' == c || 'y' == c || 'z' == c;
     }
 
+    public static boolean isParameterDeclaration(@NotNull QVariable variable) {
+        return variable.getParent() instanceof QParameters;
+    }
+
     public static boolean isGlobalDeclaration(@NotNull QVarDeclaration declaration) {
         final ElementContext ctx = ElementContext.of(declaration);
         return switch (ctx.getScope()) {

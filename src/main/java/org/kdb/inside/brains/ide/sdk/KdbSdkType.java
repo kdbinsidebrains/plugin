@@ -105,9 +105,11 @@ public class KdbSdkType extends SdkType {
         }
 
         try {
-            final Runtime runtime = Runtime.getRuntime();
-            final String[] args = {"QHOME=" + root.getAbsolutePath()};
-            final Process exec = runtime.exec(executable.getAbsolutePath(), args, root);
+            final ProcessBuilder pb = new ProcessBuilder(executable.getAbsolutePath());
+            pb.directory(root);
+            pb.environment().put("QHOME", root.getAbsolutePath());
+
+            final Process exec = pb.start();
 
             try (BufferedWriter out = exec.outputWriter()) {
                 out.write("string[.z.K],\" \",string[.z.k]");
