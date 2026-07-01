@@ -3,8 +3,8 @@ package org.kdb.inside.brains.view.export;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.UIUtil;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.jdesktop.swingx.plaf.basic.core.BasicTransferable;
 import org.jetbrains.annotations.NotNull;
 import org.kdb.inside.brains.UIUtils;
@@ -103,8 +103,7 @@ public final class ClipboardExportAction extends AnExportAction<CopyPasteManager
                 plainStr.append(val).append('\t');
 
                 htmlStr.append("  <td class=\"").append(t).append(c).append("\">");
-                htmlStr.append(StringEscapeUtils.escapeHtml(val));
-//                htmlStr.append(StringEscapeUtils.escapeHtml3(val));
+                htmlStr.append(StringUtil.escapeXmlEntities(val));
                 htmlStr.append("</td>\n");
                 indicator.setFraction(count++ / totalCount);
             }

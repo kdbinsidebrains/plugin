@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -79,7 +78,12 @@ public abstract class AnExportAction<Config> extends BgtAction {
         }
 
         final String title = "Exporting " + dataProvider.getExportName();
-        new Task.Backgroundable(project, title, isCancelable(), PerformInBackgroundOption.DEAF) {
+        new Task.Backgroundable(project, title, isCancelable()) {
+            @Override
+            public boolean shouldStartInBackground() {
+                return false;
+            }
+
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 try {

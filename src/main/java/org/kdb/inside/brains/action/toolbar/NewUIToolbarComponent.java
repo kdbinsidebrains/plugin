@@ -3,6 +3,7 @@ package org.kdb.inside.brains.action.toolbar;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
 import com.intellij.openapi.actionSystem.impl.IdeaActionButtonLook;
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,7 @@ public class NewUIToolbarComponent extends EdtAction implements CustomComponentA
         final ActionToolbar toolbar = actionManager.createActionToolbar(ActionPlaces.MAIN_TOOLBAR, group, true);
         toolbar.setReservePlaceAutoPopupIcon(false);
         toolbar.setMinimumButtonSize(JBUI.size(36, 30));
-        toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+        toolbar.setLayoutStrategy(ToolbarLayoutStrategy.NOWRAP_STRATEGY);
 
         final JComponent c = toolbar.getComponent();
         c.setOpaque(false);

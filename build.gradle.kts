@@ -19,7 +19,7 @@ val versionProps = Properties().apply {
 
 version = versionProps["pluginVersion"] as String
 
-val javaVersion = JavaVersion.VERSION_17
+val javaVersion = JavaVersion.VERSION_21
 val platformType = properties("platformType")
 val platformVersion = properties("platformVersion")
 
@@ -130,8 +130,8 @@ intellijPlatform {
                 .map(String::trim)
                 .forEach { version ->
                     val type = version.substringBefore("-")
-                    val build = version.substringAfter("-")
-                    create(type, build)
+                    val version = version.substringAfter("-")
+                    create(type, version)
                 }
         }
     }
@@ -188,6 +188,7 @@ tasks {
 
     compileJava {
         dependsOn(generateLexer)
+
         options.compilerArgs.addAll(listOf("-Xlint:unchecked", "-Xlint:deprecation"))
     }
 

@@ -81,7 +81,7 @@ class QSchemaViewPanel extends NonOpaquePanel implements Disposable {
         add(filterToolbar.getComponent(), BorderLayout.NORTH);
         add(ScrollPaneFactory.createScrollPane(columnsFilterList, true), BorderLayout.CENTER);
 
-        new ListSpeedSearch<>(columnsFilterList, AbstractButton::getText);
+        ListSpeedSearch.installOn(columnsFilterList, AbstractButton::getText);
 
         final Dimension s = getMinimumSize();
         s.width = s.width + 155;

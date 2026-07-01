@@ -33,8 +33,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -173,7 +173,7 @@ final class TabsDockingManager implements Disposable {
     private @Nullable DockContainer findContainerFor(RelativePoint point, @NotNull DockableContent<?> content) {
         List<DockContainer> containers = getContainers();
         containers.remove(myCurrentDragSession.myStartDragContainer);
-        containers.add(0, myCurrentDragSession.myStartDragContainer);
+        containers.addFirst(myCurrentDragSession.myStartDragContainer);
 
         final DevicePoint dp = new DevicePoint(point);
         for (DockContainer each : containers) {
@@ -413,9 +413,13 @@ final class TabsDockingManager implements Disposable {
         }
 
         private void installListeners(@NotNull Window frame) {
-            UiNotifyConnector uiNotifyConnector = myContainer instanceof Activatable
-                    ? new UiNotifyConnector(((RootPaneContainer) frame).getContentPane(), (Activatable) myContainer)
-                    : null;
+            final UiNotifyConnector uiNotifyConnector;
+            if (myContainer instanceof Activatable activatable) {
+                uiNotifyConnector = UiNotifyConnector.installOn(((RootPaneContainer) frame).getContentPane(), activatable);
+            } else {
+                uiNotifyConnector = null;
+            }
+
             frame.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {

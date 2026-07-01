@@ -25,7 +25,6 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -75,8 +74,8 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -147,8 +146,7 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
         registerAutoExpandListener(tree, modelWrapper.treeModel);
 
         TreeUtil.installActions(tree);
-
-        new TreeSpeedSearch(tree, true, path -> InspectorElement.unwrap(path).map(InspectorElement::getCanonicalName).orElse(null));
+        TreeUIHelper.getInstance().installTreeSpeedSearch(tree, path -> InspectorElement.unwrap(path).map(InspectorElement::getCanonicalName).orElse(null), true);
 
         setToolbar(createToolbar());
         setContent(ScrollPaneFactory.createScrollPane(tree));
@@ -271,7 +269,7 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
         final String canonicalName = el.getCanonicalName();
 
 
-        new Task.Backgroundable(project, "Loading function diff", false, PerformInBackgroundOption.DEAF) {
+        new Task.Backgroundable(project, "Loading function diff", false) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 try {

@@ -75,7 +75,7 @@ class WatchesTree extends DnDAwareTree implements Disposable {
         getEmptyText().setText("No watches");
         setModel(treeModel = new DefaultTreeModel(rootNode));
 
-        new TreeSpeedSearch(this, false, path -> {
+        TreeSpeedSearch.installOn(this, false, path -> {
             String text = null;
             if (path != null) {
                 final Object node = path.getLastPathComponent();
