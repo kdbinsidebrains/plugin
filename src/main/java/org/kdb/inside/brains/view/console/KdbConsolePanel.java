@@ -7,7 +7,6 @@ import com.intellij.execution.console.LanguageConsoleView;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.icons.AllIcons;
-import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
@@ -255,7 +254,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
         ActionUtil.copyFrom(softWrapAction, IdeActions.ACTION_EDITOR_USE_SOFT_WRAPS);
         actions.add(softWrapAction);
 
-        final String message = ActionsBundle.message("action.EditorConsoleScrollToTheEnd.text");
+        final String message = "Scroll to End";
         actions.add(new EdtToggleAction(message, message, AllIcons.RunConfigurations.Scroll_down) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {

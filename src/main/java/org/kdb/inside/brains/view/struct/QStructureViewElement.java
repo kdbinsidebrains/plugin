@@ -97,6 +97,9 @@ public class QStructureViewElement extends PsiTreeElementBase<PsiElement> {
     }
 
     public static @NotNull Stream<StructureViewTreeElement> createViewElement(@NotNull PsiElement element) {
+        if (element instanceof PsiFile file) {
+            return Stream.of(new QStructureViewElement(file));
+        }
         if (element instanceof QImport i) {
             return Stream.ofNullable(createImport(i));
         }

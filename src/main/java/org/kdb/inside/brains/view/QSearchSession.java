@@ -1,6 +1,9 @@
 package org.kdb.inside.brains.view;
 
-import com.intellij.find.*;
+import com.intellij.find.FindModel;
+import com.intellij.find.SearchReplaceComponent;
+import com.intellij.find.SearchSession;
+import com.intellij.find.SearchTextArea;
 import com.intellij.find.editorHeaderActions.EditorHeaderToggleAction;
 import com.intellij.find.editorHeaderActions.Embeddable;
 import com.intellij.icons.AllIcons;
@@ -285,7 +288,7 @@ public class QSearchSession implements SearchSession {
     // I had to redefine all these classes because they use FindSettings which are not required for the plugin
     protected static class ToggleMatchCase extends EditorHeaderToggleAction implements Embeddable {
         public ToggleMatchCase() {
-            super(FindBundle.message("find.case.sensitive"),
+            super("Match &Case",
                     AllIcons.Actions.MatchCase,
                     AllIcons.Actions.MatchCaseHovered,
                     AllIcons.Actions.MatchCaseSelected);
@@ -304,7 +307,7 @@ public class QSearchSession implements SearchSession {
 
     protected static class ToggleWholeWordsOnlyAction extends EditorHeaderToggleAction implements Embeddable {
         public ToggleWholeWordsOnlyAction() {
-            super(FindBundle.message("find.whole.words"),
+            super("&Words",
                     AllIcons.Actions.Words,
                     AllIcons.Actions.WordsHovered,
                     AllIcons.Actions.WordsSelected);
@@ -323,7 +326,7 @@ public class QSearchSession implements SearchSession {
 
     protected static class ToggleRegex extends EditorHeaderToggleAction implements Embeddable {
         public ToggleRegex() {
-            super(FindBundle.message("find.regex"),
+            super("Rege&x",
                     AllIcons.Actions.Regex,
                     AllIcons.Actions.RegexHovered,
                     AllIcons.Actions.RegexSelected);

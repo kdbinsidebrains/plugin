@@ -1,6 +1,5 @@
 package org.kdb.inside.brains.lang.hierarchy;
 
-import com.intellij.ide.IdeBundle;
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.project.Project;
@@ -60,7 +59,7 @@ public class QHierarchyNodeDescriptor extends HierarchyNodeDescriptor implements
 
         int count = myUsages.size();
         if (count > 1) {
-            String text = IdeBundle.message("node.call.hierarchy.N.usages", count);
+            String text = "\\ (" + count + " usages)";
             myHighlightedText.getEnding().addText(text, HierarchyNodeDescriptor.getUsageCountPrefixAttributes());
             ending.addText(" ");
         }

@@ -15,7 +15,6 @@ import com.intellij.ide.util.treeView.smartTree.Group;
 import com.intellij.ide.util.treeView.smartTree.SmartTreeStructure;
 import com.intellij.ide.util.treeView.smartTree.TreeAction;
 import com.intellij.ide.util.treeView.smartTree.TreeElementWrapper;
-import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
@@ -203,7 +202,7 @@ public class InspectorToolWindow extends KdbToolWindowPanel implements Persisten
 
     @NotNull
     private DefaultActionGroup createPopup() {
-        final DumbAwareAction scroll = new EdtAction(ActionsBundle.messagePointer("action.EditSource.text"), ActionsBundle.messagePointer("action.EditSource.description"), AllIcons.Actions.EditSource) {
+        final DumbAwareAction scroll = new EdtAction("_Jump to Source", "Open an editor for the selected item and give focus to it", AllIcons.Actions.EditSource) {
             public void update(@NotNull AnActionEvent e) {
                 final Presentation presentation = e.getPresentation();
                 presentation.setEnabled(isExecutableSelected());
