@@ -1,6 +1,6 @@
 # KdbInsideBrains Changelog
 
-## 7.0.0
+## 7.0.1
 
 ### Added
 
