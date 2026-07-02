@@ -12,7 +12,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.actions.AbstractToggleUseSoftWrapsAction;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -209,7 +209,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
         final LanguageConsoleBuilder b = new LanguageConsoleBuilder();
         b.gutterContentProvider(gutterProvider);
 
-        final LanguageConsoleView console = ReadAction.compute(() -> b.build(project, QLanguage.INSTANCE));
+        final LanguageConsoleView console = WriteAction.compute(() -> b.build(project, QLanguage.INSTANCE));
         LanguageConsoleBuilder.registerExecuteAction(console,
                 text -> {
                     if (!showHistory) {
