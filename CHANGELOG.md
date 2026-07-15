@@ -1,5 +1,15 @@
 # KdbInsideBrains Changelog
 
+## 999.701.0
+
+### Added
+
+- Private fork based on upstream 7.0.1: dead-connection detection and auto-reconnect
+- Tuned TCP keepalive on the kdb socket (first probe after 30s idle, then every 10s, dead after 3 missed probes)
+- Connection health check: idle-time heartbeat probe with stalled-read watchdog (options `Health check is enabled`, `Health-check interval, s`, `Health-check timeout, ms`)
+- Optional automatic reconnect with backoff (option `Reconnect automatically`, default off)
+- The version is deliberately high (999.x) so the Marketplace release can never auto-update over this fork
+
 ## 7.0.1
 
 ### Added
