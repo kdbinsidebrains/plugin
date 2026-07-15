@@ -55,6 +55,11 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
     private final ScheduledExecutorService connectionProgressExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "KdbConnectionManager-ProgressUpdater"));
 
+    private final ConnectionHealthMonitor healthMonitor = new ConnectionHealthMonitor(
+            (connection, reason) -> ((TheInstanceConnection) connection).close(reason),
+            command -> ApplicationManager.getApplication().invokeLater(command)
+    );
+
     public KdbConnectionManager(Project project) {
         this.project = project;
         this.queryLogger = project.getService(KdbQueryLogger.class);
@@ -112,6 +117,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         final TheInstanceConnection conn = connections.remove(instance);
         if (conn != null) {
             conn.disconnect();
+            healthMonitor.connectionRemoved(conn);
             processConnectionRemoved(conn);
         }
         return conn;
@@ -148,6 +154,8 @@ public class KdbConnectionManager implements Disposable, DumbAware {
     @Override
     public void dispose() {
         connectionListeners.clear();
+
+        healthMonitor.dispose();
 
         connections.values().forEach(TheInstanceConnection::disconnect);
         connections.clear();
@@ -413,7 +421,8 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         private long stateChangeTime;
 
         private KxConnection myConnection;
-        private QueryProgressive queryProgressive;
+        // volatile: read by the heartbeat thread to skip probing while a user query is in flight
+        private volatile QueryProgressive queryProgressive;
 
         private final KdbInstance instance;
 
@@ -493,6 +502,10 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
         @Override
         public void disconnect() {
+            // cancels pending auto-reconnect attempts even when the connection is already
+            // DISCONNECTED and just waiting for the next retry
+            healthMonitor.reconnectAborted(this);
+
             if (!state.isDisconnectable()) {
                 return;
             }
@@ -526,6 +539,11 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         void connected(KxConnection connection) {
             this.myConnection = connection;
             updateState(InstanceState.CONNECTED);
+
+            // Monitor only registered connections - test() connections are throw-away
+            if (connections.get(instance) == this) {
+                healthMonitor.connectionOpened(this, connection, InstanceOptions.resolveOptions(instance));
+            }
         }
 
 
@@ -537,6 +555,12 @@ public class KdbConnectionManager implements Disposable, DumbAware {
 
             if (state != InstanceState.DISCONNECTED) {
                 updateState(InstanceState.DISCONNECTED, exception);
+
+                // Only on a real transition: a late close(ex) on an already disconnected instance
+                // must not schedule reconnect attempts
+                if (connections.get(instance) == this) {
+                    healthMonitor.connectionClosed(this, exception, InstanceOptions.resolveOptions(instance));
+                }
             }
         }
 

@@ -35,6 +35,20 @@ public class InstanceOptionsPanel extends JPanel {
     private final JBIntSpinner timeoutSpinner = new JBIntSpinner(1000, 1000, Integer.MAX_VALUE, 10);
     private final JBCheckBox timeoutSpinnerOverride = new JBCheckBox();
 
+    private final JBCheckBox heartbeatCheckbox = new JBCheckBox("Health check is enabled");
+    private final JBCheckBox heartbeatCheckboxOverride = new JBCheckBox();
+
+    private final JBLabel heartbeatIntervalLabel = new JBLabel("Health-check interval, s: ");
+    private final JBIntSpinner heartbeatIntervalSpinner = new JBIntSpinner(InstanceOptions.DEFAULT_HEARTBEAT_INTERVAL_SEC, InstanceOptions.MIN_HEARTBEAT_INTERVAL_SEC, Integer.MAX_VALUE, 5);
+    private final JBCheckBox heartbeatIntervalOverride = new JBCheckBox();
+
+    private final JBLabel heartbeatTimeoutLabel = new JBLabel("Health-check timeout, ms: ");
+    private final JBIntSpinner heartbeatTimeoutSpinner = new JBIntSpinner(InstanceOptions.DEFAULT_HEARTBEAT_TIMEOUT_MS, InstanceOptions.MIN_HEARTBEAT_TIMEOUT_MS, Integer.MAX_VALUE, 100);
+    private final JBCheckBox heartbeatTimeoutOverride = new JBCheckBox();
+
+    private final JBCheckBox autoReconnectCheckbox = new JBCheckBox("Reconnect automatically");
+    private final JBCheckBox autoReconnectCheckboxOverride = new JBCheckBox();
+
     private final boolean inherited;
     private final InstanceOptions parentOptions;
 
@@ -95,20 +109,56 @@ public class InstanceOptionsPanel extends JPanel {
         });
         final JPanel encodingPanel = createLabeledPanel(encodingLabel, encodingCombobox);
 
+        heartbeatCheckbox.addItemListener(e -> notifyOptionsChanged());
+        heartbeatCheckboxOverride.addItemListener(e -> {
+            heartbeatCheckbox.setEnabled(heartbeatCheckboxOverride.isSelected());
+            notifyOptionsChanged();
+        });
+
+        heartbeatIntervalSpinner.addChangeListener(e -> notifyOptionsChanged());
+        heartbeatIntervalOverride.addChangeListener(e -> {
+            heartbeatIntervalLabel.setEnabled(heartbeatIntervalOverride.isSelected());
+            heartbeatIntervalSpinner.setEnabled(heartbeatIntervalOverride.isSelected());
+            notifyOptionsChanged();
+        });
+        final JPanel heartbeatIntervalPanel = createLabeledPanel(heartbeatIntervalLabel, heartbeatIntervalSpinner);
+
+        heartbeatTimeoutSpinner.addChangeListener(e -> notifyOptionsChanged());
+        heartbeatTimeoutOverride.addChangeListener(e -> {
+            heartbeatTimeoutLabel.setEnabled(heartbeatTimeoutOverride.isSelected());
+            heartbeatTimeoutSpinner.setEnabled(heartbeatTimeoutOverride.isSelected());
+            notifyOptionsChanged();
+        });
+        final JPanel heartbeatTimeoutPanel = createLabeledPanel(heartbeatTimeoutLabel, heartbeatTimeoutSpinner);
+
+        autoReconnectCheckbox.addItemListener(e -> notifyOptionsChanged());
+        autoReconnectCheckboxOverride.addItemListener(e -> {
+            autoReconnectCheckbox.setEnabled(autoReconnectCheckboxOverride.isSelected());
+            notifyOptionsChanged();
+        });
+
         if (inherited) {
             form
                     .addLabeledComponent(tlsCheckboxOverride, tlsCheckbox)
                     .addLabeledComponent(zipCheckboxOverride, zipCheckbox)
                     .addLabeledComponent(asyncCheckboxOverride, asyncCheckbox)
                     .addLabeledComponent(encodingCheckboxOverride, encodingPanel)
-                    .addLabeledComponent(timeoutSpinnerOverride, timeoutPanel);
+                    .addLabeledComponent(timeoutSpinnerOverride, timeoutPanel)
+                    .addLabeledComponent(heartbeatCheckboxOverride, heartbeatCheckbox)
+                    .addLabeledComponent(heartbeatIntervalOverride, heartbeatIntervalPanel)
+                    .addLabeledComponent(heartbeatTimeoutOverride, heartbeatTimeoutPanel)
+                    .addLabeledComponent(autoReconnectCheckboxOverride, autoReconnectCheckbox);
         } else {
             form
                     .addComponent(tlsCheckbox)
                     .addComponent(zipCheckbox)
                     .addComponent(asyncCheckbox)
                     .addComponent(encodingPanel)
-                    .addComponent(timeoutPanel);
+                    .addComponent(timeoutPanel)
+                    .addComponent(heartbeatCheckbox)
+                    .addComponent(heartbeatIntervalPanel)
+                    .addComponent(heartbeatTimeoutPanel)
+                    .addComponent(autoReconnectCheckbox);
         }
 
         form.addComponentFillVertically(new JPanel(), 0);
@@ -173,6 +223,22 @@ public class InstanceOptionsPanel extends JPanel {
         if (!inherited || encodingCheckboxOverride.isSelected()) {
             b.encoding(encodingCombobox.getItem());
         }
+
+        if (!inherited || heartbeatCheckboxOverride.isSelected()) {
+            b.heartbeat(heartbeatCheckbox.isSelected());
+        }
+
+        if (!inherited || heartbeatIntervalOverride.isSelected()) {
+            b.heartbeatInterval(heartbeatIntervalSpinner.getNumber());
+        }
+
+        if (!inherited || heartbeatTimeoutOverride.isSelected()) {
+            b.heartbeatTimeout(heartbeatTimeoutSpinner.getNumber());
+        }
+
+        if (!inherited || autoReconnectCheckboxOverride.isSelected()) {
+            b.autoReconnect(autoReconnectCheckbox.isSelected());
+        }
         return b.create();
     }
 
@@ -203,6 +269,28 @@ public class InstanceOptionsPanel extends JPanel {
         encodingLabel.setEnabled(!inherited || hasEncoding);
         encodingCombobox.setEnabled(!inherited || hasEncoding);
         encodingCombobox.setItem(hasEncoding ? options.getSafeEncoding() : parentOptions.getSafeEncoding());
+
+        final boolean hasHeartbeat = options != null && options.hasHeartbeat();
+        heartbeatCheckboxOverride.setSelected(hasHeartbeat);
+        heartbeatCheckbox.setEnabled(!inherited || hasHeartbeat);
+        heartbeatCheckbox.setSelected(hasHeartbeat ? options.isSafeHeartbeatEnabled() : parentOptions.isSafeHeartbeatEnabled());
+
+        final boolean hasHeartbeatInterval = options != null && options.hasHeartbeatInterval();
+        heartbeatIntervalOverride.setSelected(hasHeartbeatInterval);
+        heartbeatIntervalLabel.setEnabled(!inherited || hasHeartbeatInterval);
+        heartbeatIntervalSpinner.setEnabled(!inherited || hasHeartbeatInterval);
+        heartbeatIntervalSpinner.setValue(hasHeartbeatInterval ? options.getSafeHeartbeatIntervalSec() : parentOptions.getSafeHeartbeatIntervalSec());
+
+        final boolean hasHeartbeatTimeout = options != null && options.hasHeartbeatTimeout();
+        heartbeatTimeoutOverride.setSelected(hasHeartbeatTimeout);
+        heartbeatTimeoutLabel.setEnabled(!inherited || hasHeartbeatTimeout);
+        heartbeatTimeoutSpinner.setEnabled(!inherited || hasHeartbeatTimeout);
+        heartbeatTimeoutSpinner.setValue(hasHeartbeatTimeout ? options.getSafeHeartbeatTimeoutMs() : parentOptions.getSafeHeartbeatTimeoutMs());
+
+        final boolean hasAutoReconnect = options != null && options.hasAutoReconnect();
+        autoReconnectCheckboxOverride.setSelected(hasAutoReconnect);
+        autoReconnectCheckbox.setEnabled(!inherited || hasAutoReconnect);
+        autoReconnectCheckbox.setSelected(hasAutoReconnect ? options.isSafeAutoReconnect() : parentOptions.isSafeAutoReconnect());
     }
 
     protected void notifyOptionsChanged() {
