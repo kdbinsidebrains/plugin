@@ -1,0 +1,289 @@
+package org.kdb.inside.brains.core;
+
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
+import kx.KxConnection;
+import kx.c;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * Application-level connection health monitoring owned by {@link KdbConnectionManager}:
+ * <ul>
+ * <li><b>Heartbeat + watchdog:</b> while a connection is idle (no user query in flight), a
+ * side-effect-free sync probe ({@code "::"}) is sent periodically. A watchdog force-closes the
+ * socket if the probe does not complete within the configured timeout, which unblocks the parked
+ * read with an IOException and flows into the normal disconnect handling. This catches connections
+ * silently orphaned by network path changes (VPN/ZTNA re-assert after sleep/wake) that the remote
+ * never terminates with FIN/RST.</li>
+ * <li><b>Auto-reconnect:</b> when a previously established connection dies with an error (heartbeat-,
+ * keepalive- or IOException-detected) and the {@code autoReconnect} option is enabled, reconnection
+ * is retried with backoff until it succeeds, the attempts cap is reached, the instance is removed,
+ * or the user disconnects manually.</li>
+ * </ul>
+ * Asynchronous connections ({@code async} option) are never actively probed: a sync probe response
+ * could be mistaken for the reply a pending async round-trip is waiting for. They still benefit from
+ * the tuned TCP keepalive in {@code kx.c#io(Socket)}.
+ * <p>
+ * Heartbeats are disabled per connection via the {@code heartbeat} instance option; with the option
+ * off no task is ever scheduled for the connection and the code paths are identical to upstream.
+ */
+public class ConnectionHealthMonitor implements Disposable {
+    private static final Logger log = Logger.getInstance(ConnectionHealthMonitor.class);
+
+    static final int[] RECONNECT_DELAYS_SEC = {2, 5, 10, 30};
+    static final int MAX_RECONNECT_ATTEMPTS = 20;
+
+    private final DeadConnectionHandler deadConnectionHandler;
+    private final Executor connectExecutor;
+
+    private final Map<InstanceConnection, MonitoredConnection> monitored = new ConcurrentHashMap<>();
+
+    /**
+     * Runs heartbeat ticks; a tick blocks for up to the heartbeat timeout when the connection is
+     * dead, so watchdogs run on their own thread ({@link #watchdogScheduler}) and can never be
+     * starved by parked probes.
+     */
+    private final ScheduledExecutorService heartbeatScheduler;
+    private final ScheduledExecutorService watchdogScheduler;
+
+    private volatile boolean disposed = false;
+
+    /**
+     * @param deadConnectionHandler invoked (from a heartbeat thread) when a probe declared the connection dead
+     * @param connectExecutor       executes reconnect attempts; the production wiring hops to the EDT
+     */
+    public ConnectionHealthMonitor(DeadConnectionHandler deadConnectionHandler, Executor connectExecutor) {
+        this.deadConnectionHandler = deadConnectionHandler;
+        this.connectExecutor = connectExecutor;
+
+        final AtomicInteger counter = new AtomicInteger();
+        heartbeatScheduler = Executors.newScheduledThreadPool(2, r -> {
+            final Thread t = new Thread(r, "kdb-heartbeat-" + counter.getAndIncrement());
+            t.setDaemon(true);
+            return t;
+        });
+        watchdogScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            final Thread t = new Thread(r, "kdb-heartbeat-watchdog");
+            t.setDaemon(true);
+            return t;
+        });
+    }
+
+    /**
+     * A connection has been (re-)established. Resets any reconnect bookkeeping and starts the
+     * heartbeat when enabled for a synchronous connection.
+     */
+    public void connectionOpened(InstanceConnection connection, KxConnection kx, InstanceOptions options) {
+        if (disposed) {
+            return;
+        }
+        final MonitoredConnection mc = monitored.computeIfAbsent(connection, MonitoredConnection::new);
+        synchronized (mc) {
+            mc.cancelHeartbeat();
+            mc.cancelReconnect();
+            mc.reconnectAttempts.set(0);
+            mc.kx = kx;
+            mc.options = options;
+
+            if (options.isSafeHeartbeatEnabled() && !options.isSafeAsync()) {
+                final int interval = options.getSafeHeartbeatIntervalSec();
+                mc.heartbeatTask = heartbeatScheduler.scheduleWithFixedDelay(() -> heartbeat(mc), interval, interval, TimeUnit.SECONDS);
+                log.debug("Heartbeat started for " + connection.getName() + ": interval " + interval + "s, timeout " + options.getSafeHeartbeatTimeoutMs() + "ms");
+            }
+        }
+    }
+
+    /**
+     * A connection has been closed. A {@code null} error means an intentional disconnect and stops
+     * all monitoring; an error schedules a reconnect attempt when the option is enabled and the
+     * connection had been successfully established before.
+     */
+    public void connectionClosed(InstanceConnection connection, Exception error, InstanceOptions options) {
+        final MonitoredConnection mc = monitored.get(connection);
+        if (mc == null) {
+            return;
+        }
+        synchronized (mc) {
+            mc.cancelHeartbeat();
+            mc.kx = null;
+
+            if (error == null || disposed) { // intentional disconnect - stop everything
+                mc.cancelReconnect();
+                mc.reconnectAttempts.set(0);
+            } else if (options.isSafeAutoReconnect()) {
+                scheduleReconnect(mc);
+            }
+        }
+    }
+
+    /**
+     * The user asked for a disconnect: cancels pending reconnect attempts even if the connection is
+     * already in the DISCONNECTED state (waiting for the next retry).
+     */
+    public void reconnectAborted(InstanceConnection connection) {
+        final MonitoredConnection mc = monitored.get(connection);
+        if (mc == null) {
+            return;
+        }
+        synchronized (mc) {
+            if (mc.reconnectTask != null) {
+                log.info("Auto-reconnect of " + connection.getName() + " cancelled by manual disconnect");
+            }
+            mc.cancelReconnect();
+            mc.reconnectAttempts.set(0);
+        }
+    }
+
+    /**
+     * The instance has been removed: stop and forget everything about it.
+     */
+    public void connectionRemoved(InstanceConnection connection) {
+        final MonitoredConnection mc = monitored.remove(connection);
+        if (mc != null) {
+            synchronized (mc) {
+                mc.cancelHeartbeat();
+                mc.cancelReconnect();
+                mc.kx = null;
+            }
+        }
+    }
+
+    @Override
+    public void dispose() {
+        disposed = true;
+        heartbeatScheduler.shutdownNow();
+        watchdogScheduler.shutdownNow();
+        monitored.clear();
+    }
+
+    /**
+     * Test hook: runs one heartbeat tick synchronously.
+     *
+     * @return false if the connection is not monitored
+     */
+    boolean runHeartbeatNow(InstanceConnection connection) {
+        final MonitoredConnection mc = monitored.get(connection);
+        if (mc == null) {
+            return false;
+        }
+        heartbeat(mc);
+        return true;
+    }
+
+    private void heartbeat(MonitoredConnection mc) {
+        final InstanceConnection connection = mc.connection;
+        final KxConnection kx = mc.kx;
+        if (disposed || kx == null || !kx.isConnected() || connection.getState() != InstanceState.CONNECTED) {
+            return;
+        }
+        if (connection.getQuery() != null) { // user query in flight - skip this tick
+            log.debug("Heartbeat tick skipped, query in flight: " + connection.getName());
+            return;
+        }
+
+        final long timeoutMs = mc.options.getSafeHeartbeatTimeoutMs();
+        // Armed inside probe(...) right before the write, when the probe is committed: an armed
+        // watchdog can therefore never kill a connection whose probe was skipped over a user query.
+        final CompletableFuture<ScheduledFuture<?>> watchdog = new CompletableFuture<>();
+        try {
+            final boolean probed = kx.probe(
+                    () -> connection.getQuery() != null,
+                    () -> watchdog.complete(watchdogScheduler.schedule(() -> {
+                        log.warn("Heartbeat probe of " + connection.getName() + " got no response in " + timeoutMs + "ms - force-closing the socket");
+                        kx.close();
+                    }, timeoutMs, TimeUnit.MILLISECONDS)));
+            cancelWatchdog(watchdog);
+            if (probed) {
+                log.debug("Heartbeat probe ok: " + connection.getName());
+            } else {
+                log.debug("Heartbeat probe skipped, query in flight: " + connection.getName());
+            }
+        } catch (c.KException ex) {
+            // the remote evaluated the probe and responded, even if with an error - the path is alive
+            cancelWatchdog(watchdog);
+            log.debug("Heartbeat probe of " + connection.getName() + " got error response: " + ex.getMessage());
+        } catch (Throwable ex) {
+            final boolean stalled = !cancelWatchdog(watchdog);
+            final String reason = stalled ?
+                    "Heartbeat probe got no response in " + timeoutMs + "ms" :
+                    "Heartbeat probe failed: " + ex.getMessage();
+            log.warn(reason + " - closing connection " + connection.getName(), ex);
+            deadConnectionHandler.connectionDead(connection, new IOException(reason, ex));
+        }
+    }
+
+    /**
+     * @return false if the watchdog was armed and already fired (the probe timed out)
+     */
+    private static boolean cancelWatchdog(CompletableFuture<ScheduledFuture<?>> watchdog) {
+        if (!watchdog.complete(null)) { // was armed
+            final ScheduledFuture<?> task = watchdog.getNow(null);
+            if (task != null) {
+                return task.cancel(false) || !task.isDone();
+            }
+        }
+        return true;
+    }
+
+    private void scheduleReconnect(MonitoredConnection mc) {
+        final int attempt = mc.reconnectAttempts.getAndIncrement();
+        if (attempt >= MAX_RECONNECT_ATTEMPTS) {
+            log.warn("Auto-reconnect of " + mc.connection.getName() + " gave up after " + MAX_RECONNECT_ATTEMPTS + " failed attempts");
+            return;
+        }
+        final int delay = RECONNECT_DELAYS_SEC[Math.min(attempt, RECONNECT_DELAYS_SEC.length - 1)];
+        log.info("Auto-reconnect attempt " + (attempt + 1) + "/" + MAX_RECONNECT_ATTEMPTS + " of " + mc.connection.getName() + " in " + delay + "s");
+
+        mc.cancelReconnect();
+        mc.reconnectTask = heartbeatScheduler.schedule(() -> {
+            synchronized (mc) {
+                mc.reconnectTask = null;
+            }
+            if (!disposed && monitored.containsKey(mc.connection) && mc.connection.getState() == InstanceState.DISCONNECTED) {
+                connectExecutor.execute(mc.connection::connect);
+            }
+        }, delay, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Invoked when a heartbeat declared a connection dead; the implementation is expected to close
+     * the connection with the given reason through the usual state/listener mechanism.
+     */
+    @FunctionalInterface
+    public interface DeadConnectionHandler {
+        void connectionDead(InstanceConnection connection, IOException reason);
+    }
+
+    private static class MonitoredConnection {
+        final InstanceConnection connection;
+        final AtomicInteger reconnectAttempts = new AtomicInteger();
+
+        volatile KxConnection kx;
+        volatile InstanceOptions options;
+
+        ScheduledFuture<?> heartbeatTask;
+        ScheduledFuture<?> reconnectTask;
+
+        MonitoredConnection(InstanceConnection connection) {
+            this.connection = connection;
+        }
+
+        void cancelHeartbeat() {
+            if (heartbeatTask != null) {
+                heartbeatTask.cancel(false);
+                heartbeatTask = null;
+            }
+        }
+
+        void cancelReconnect() {
+            if (reconnectTask != null) {
+                reconnectTask.cancel(false);
+                reconnectTask = null;
+            }
+        }
+    }
+}

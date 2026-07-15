@@ -88,6 +88,72 @@ class InstanceOptionsTest {
     }
 
     @Test
+    void builderHealthOptions() {
+        final InstanceOptions.Builder b = new InstanceOptions.Builder();
+        InstanceOptions o = b.create();
+        assertFalse(o.hasHeartbeat());
+        assertTrue(o.isSafeHeartbeatEnabled());
+        assertFalse(o.hasHeartbeatInterval());
+        assertEquals(InstanceOptions.DEFAULT_HEARTBEAT_INTERVAL_SEC, o.getSafeHeartbeatIntervalSec());
+        assertFalse(o.hasHeartbeatTimeout());
+        assertEquals(InstanceOptions.DEFAULT_HEARTBEAT_TIMEOUT_MS, o.getSafeHeartbeatTimeoutMs());
+        assertFalse(o.hasAutoReconnect());
+        assertFalse(o.isSafeAutoReconnect());
+
+        b.heartbeat(false).heartbeatInterval(10).heartbeatTimeout(2000).autoReconnect(true);
+        o = b.create();
+        assertTrue(o.hasHeartbeat());
+        assertFalse(o.isSafeHeartbeatEnabled());
+        assertTrue(o.hasHeartbeatInterval());
+        assertEquals(10, o.getSafeHeartbeatIntervalSec());
+        assertTrue(o.hasHeartbeatTimeout());
+        assertEquals(2000, o.getSafeHeartbeatTimeoutMs());
+        assertTrue(o.hasAutoReconnect());
+        assertTrue(o.isSafeAutoReconnect());
+
+        assertThrows(IllegalArgumentException.class, () -> new InstanceOptions.Builder().heartbeatInterval(InstanceOptions.MIN_HEARTBEAT_INTERVAL_SEC - 1));
+        assertThrows(IllegalArgumentException.class, () -> new InstanceOptions.Builder().heartbeatTimeout(InstanceOptions.MIN_HEARTBEAT_TIMEOUT_MS - 1));
+    }
+
+    @Test
+    void parametersHealthOptions() {
+        final InstanceOptions o = InstanceOptions.fromParameters("heartbeat=false&heartbeatInterval=15&heartbeatTimeout=3000&autoReconnect=true");
+        assertTrue(o.hasHeartbeat());
+        assertFalse(o.isSafeHeartbeatEnabled());
+        assertEquals(15, o.getSafeHeartbeatIntervalSec());
+        assertEquals(3000, o.getSafeHeartbeatTimeoutMs());
+        assertTrue(o.isSafeAutoReconnect());
+        assertEquals("heartbeat=false&heartbeatInterval=15&heartbeatTimeout=3000&autoReconnect=true", o.toParameters());
+    }
+
+    @Test
+    void xmlHealthOptions() {
+        final Element e = new Element("mock");
+
+        final InstanceOptions.Builder b = new InstanceOptions.Builder();
+        b.heartbeat(true).heartbeatInterval(20).heartbeatTimeout(1500).autoReconnect(true);
+        b.create().store(e);
+        assertEquals("true", e.getAttributeValue("heartbeat"));
+        assertEquals("20", e.getAttributeValue("heartbeatInterval"));
+        assertEquals("1500", e.getAttributeValue("heartbeatTimeout"));
+        assertEquals("true", e.getAttributeValue("autoReconnect"));
+        assertEquals(b.create(), InstanceOptions.restore(e));
+    }
+
+    @Test
+    void safeHealthOptions() {
+        final InstanceOptions o = new InstanceOptions.Builder().safe().create();
+        assertTrue(o.hasHeartbeat());
+        assertTrue(o.isSafeHeartbeatEnabled());
+        assertTrue(o.hasHeartbeatInterval());
+        assertEquals(InstanceOptions.DEFAULT_HEARTBEAT_INTERVAL_SEC, o.getSafeHeartbeatIntervalSec());
+        assertTrue(o.hasHeartbeatTimeout());
+        assertEquals(InstanceOptions.DEFAULT_HEARTBEAT_TIMEOUT_MS, o.getSafeHeartbeatTimeoutMs());
+        assertTrue(o.hasAutoReconnect());
+        assertFalse(o.isSafeAutoReconnect());
+    }
+
+    @Test
     void parameters() {
         final InstanceOptions o1 = InstanceOptions.INHERITED;
         assertSame(o1, InstanceOptions.fromParameters(null));
