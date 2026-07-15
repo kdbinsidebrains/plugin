@@ -127,6 +127,42 @@ public class c {
         i = new DataInputStream(s.getInputStream());
         o = s.getOutputStream();
         s.setKeepAlive(true);
+        tuneKeepAlive(s);
+    }
+
+    /**
+     * How long (seconds) the connection may stay idle before the first TCP keepalive probe is sent.
+     * OS defaults (2 hours on macOS/Linux) are far above typical gateway idle timeouts, which leaves
+     * orphaned connections undetected; see {@link #tuneKeepAlive(Socket)}.
+     */
+    public static final int TCP_KEEP_IDLE_SEC = 30;
+    /**
+     * Seconds between subsequent keepalive probes when the previous one got no answer.
+     */
+    public static final int TCP_KEEP_INTERVAL_SEC = 10;
+    /**
+     * Number of unanswered probes after which the kernel declares the connection dead and any
+     * blocked read fails with an IOException.
+     */
+    public static final int TCP_KEEP_COUNT = 3;
+
+    /**
+     * Best effort: supported on macOS/Linux since JDK 11; never fail the connection over this.
+     * <p>
+     * {@code setKeepAlive(true)} alone uses OS default timings (first probe after 2 hours on macOS),
+     * so a connection silently orphaned by a network path change (VPN/ZTNA re-assert after sleep)
+     * keeps a read parked forever. With the tuned values a dead connection is declared within
+     * {@code TCP_KEEP_IDLE_SEC + TCP_KEEP_INTERVAL_SEC * TCP_KEEP_COUNT} seconds and the blocked
+     * read fails over to the normal disconnect handling.
+     */
+    private static void tuneKeepAlive(Socket s) {
+        try {
+            s.setOption(jdk.net.ExtendedSocketOptions.TCP_KEEPIDLE, TCP_KEEP_IDLE_SEC);
+            s.setOption(jdk.net.ExtendedSocketOptions.TCP_KEEPINTERVAL, TCP_KEEP_INTERVAL_SEC);
+            s.setOption(jdk.net.ExtendedSocketOptions.TCP_KEEPCOUNT, TCP_KEEP_COUNT);
+        } catch (IOException | RuntimeException e) {
+            System.getLogger("kx.c").log(System.Logger.Level.DEBUG, "TCP keepalive tuning is not supported: " + e);
+        }
     }
 
     /**
