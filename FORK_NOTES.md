@@ -80,6 +80,46 @@ and in the scope/instance editors:
 
 Keepalive tuning values (layer 1) are hardcoded constants in `kx.c` for now.
 
+### Concurrency hardening (from adversarial review)
+
+The heartbeat introduces cross-thread interactions that upstream never had (watchdog thread,
+heartbeat thread and user threads touching one socket), so the following were hardened:
+
+- **Death arbitration** — the watchdog and the probe-failure path race to claim a death via a
+  single `AtomicBoolean` CAS; whoever wins closes the socket and reports it. Plain
+  `ScheduledFuture.cancel()` cannot arbitrate this (it may report success while the task body is
+  already running), which previously allowed a probe completing right at the deadline to leave a
+  force-closed socket in a CONNECTED "zombie" state.
+- **No NPEs from concurrent close** — `KxConnection.close()` is `synchronized` and nulls the
+  fields before closing (double-close safe); `query()` captures the streams into locals;
+  `c.serialize()/c.deserialize()` capture their lock object so a connection closed mid-operation
+  surfaces as `IOException("Connection lost")` (flowing into the existing reconnect/retry
+  handling) instead of a `NullPointerException` that would bypass it.
+- **Single DISCONNECTED transition** — `TheInstanceConnection` state transitions run under a
+  dedicated `stateLock` (never held across listener or monitor callbacks), so a user disconnect,
+  a failed query and a heartbeat death arriving together produce exactly one transition, one
+  monitor notification and no double-scheduled reconnects.
+- **Stale-death protection** — the dead-connection callback carries the probed `KxConnection`;
+  a report for a transport that has since been replaced by a fresh reconnect is ignored.
+- **Abortable retries** — reconnect tasks carry a generation number re-validated after the timer
+  fires and again on the EDT before `connect()`; a manual disconnect bumps the generation, so
+  even a retry already out of the scheduler queue aborts. A monitored entry is removed on any
+  intentional disconnect, so a *failed manual* connect never starts the background retry loop.
+- **Probe payload** — sent as char-vector `"::"` (`cs("::")`, type 10) so the remote evaluates
+  it to identity; a plain Java `String` would serialise as a symbol atom and error on eval.
+
+Known, accepted limitations (v1):
+
+- Deleting an instance from the tree does not go through `unregister()` upstream, so a pending
+  retry loop for a deleted instance only stops at the attempts cap (~10 min, 20 attempts) or on
+  plugin shutdown. `autoReconnect` is off by default.
+- During a backoff wait the tree's Disconnect action is disabled (state is DISCONNECTED); stop a
+  retry loop by disconnecting during an attempt, removing the instance, or letting it hit the cap.
+- On a *sync* connection that receives unsolicited async pushes (e.g. `.u.sub` typed into the
+  console), the probe's discard loop consumes buffered pushes. Upstream would instead have
+  returned them as the (wrong) result of the next user query; neither surfaces them properly.
+  Async connections are unaffected (never probed).
+
 ### Build
 
 - `settings.gradle`: added the foojay toolchain resolver so Gradle can auto-provision the JDK 21

@@ -56,7 +56,13 @@ public class KdbConnectionManager implements Disposable, DumbAware {
     private final ScheduledExecutorService connectionProgressExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "KdbConnectionManager-ProgressUpdater"));
 
     private final ConnectionHealthMonitor healthMonitor = new ConnectionHealthMonitor(
-            (connection, reason) -> ((TheInstanceConnection) connection).close(reason),
+            (connection, kx, reason) -> ((TheInstanceConnection) connection).closeIfCurrent(kx, reason),
+            connection -> {
+                // reconnect only connections this manager still tracks
+                if (connections.get(connection.getInstance()) == connection) {
+                    connection.connect();
+                }
+            },
             command -> ApplicationManager.getApplication().invokeLater(command)
     );
 
@@ -416,15 +422,21 @@ public class KdbConnectionManager implements Disposable, DumbAware {
     }
 
     private class TheInstanceConnection implements InstanceConnection {
-        private Exception error;
-        private InstanceState state;
-        private long stateChangeTime;
+        // volatile: read from heartbeat/watchdog/reconnect threads, mutated under stateLock
+        private volatile Exception error;
+        private volatile InstanceState state;
+        private volatile long stateChangeTime;
 
-        private KxConnection myConnection;
+        private volatile KxConnection myConnection;
         // volatile: read by the heartbeat thread to skip probing while a user query is in flight
         private volatile QueryProgressive queryProgressive;
 
         private final KdbInstance instance;
+
+        // guards state/error/stateChangeTime/myConnection transitions so that concurrent closes
+        // (user disconnect, failed query, heartbeat death) produce exactly one DISCONNECTED
+        // transition; never held while notifying listeners or the health monitor
+        private final Object stateLock = new Object();
 
         TheInstanceConnection(KdbInstance instance) {
             this.instance = instance;
@@ -533,51 +545,84 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         }
 
         void connecting() {
-            updateState(InstanceState.CONNECTING);
+            final InstanceState oldState;
+            synchronized (stateLock) {
+                oldState = state;
+                state = InstanceState.CONNECTING;
+                error = null;
+                stateChangeTime = System.currentTimeMillis();
+            }
+            fireStateChanged(oldState, InstanceState.CONNECTING);
         }
 
         void connected(KxConnection connection) {
-            this.myConnection = connection;
-            updateState(InstanceState.CONNECTED);
+            final InstanceState oldState;
+            synchronized (stateLock) {
+                this.myConnection = connection;
+                oldState = state;
+                state = InstanceState.CONNECTED;
+                error = null;
+                stateChangeTime = System.currentTimeMillis();
+            }
 
-            // Monitor only registered connections - test() connections are throw-away
+            // Monitor only registered connections - test() connections are throw-away. Registered
+            // before the (potentially blocking) listener broadcast so that a concurrent error close
+            // always finds the monitored entry and can schedule an auto-reconnect.
             if (connections.get(instance) == this) {
                 healthMonitor.connectionOpened(this, connection, InstanceOptions.resolveOptions(instance));
             }
+            fireStateChanged(oldState, InstanceState.CONNECTED);
         }
 
 
         void close(Exception exception) {
-            if (myConnection != null) {
-                myConnection.close();
+            close(null, exception);
+        }
+
+        /**
+         * Closes the connection only when {@code expected} is still its current transport: a stale
+         * death report from a heartbeat that probed an old, already replaced KxConnection must not
+         * kill a freshly re-established connection.
+         */
+        void closeIfCurrent(KxConnection expected, Exception exception) {
+            close(expected, exception);
+        }
+
+        private void close(KxConnection expected, Exception exception) {
+            final KxConnection connection;
+            final InstanceState oldState;
+            synchronized (stateLock) {
+                if (expected != null && myConnection != expected) {
+                    return; // stale death report - the transport was already replaced or closed
+                }
+                connection = myConnection;
                 myConnection = null;
+                oldState = state;
+                if (oldState != InstanceState.DISCONNECTED) {
+                    state = InstanceState.DISCONNECTED;
+                    error = exception;
+                    stateChangeTime = System.currentTimeMillis();
+                }
             }
 
-            if (state != InstanceState.DISCONNECTED) {
-                updateState(InstanceState.DISCONNECTED, exception);
+            if (connection != null) {
+                connection.close();
+            }
 
-                // Only on a real transition: a late close(ex) on an already disconnected instance
-                // must not schedule reconnect attempts
+            // Only on a real transition: a late close(ex) on an already disconnected instance must
+            // neither re-notify listeners nor schedule reconnect attempts
+            if (oldState != InstanceState.DISCONNECTED) {
                 if (connections.get(instance) == this) {
                     healthMonitor.connectionClosed(this, exception, InstanceOptions.resolveOptions(instance));
                 }
+                fireStateChanged(oldState, InstanceState.DISCONNECTED);
             }
         }
 
-        private void updateState(InstanceState newState) {
-            updateState(newState, null);
-        }
-
-        private void updateState(InstanceState newState, Exception exception) {
-            InstanceState oldState = state;
-
-            state = newState;
-            error = exception;
-            stateChangeTime = System.currentTimeMillis();
-
+        private void fireStateChanged(InstanceState oldState, InstanceState newState) {
             // Notify only if contains - test is not in the scope, for example
             if (connections.containsKey(instance)) {
-                processConnectionState(this, oldState, state);
+                processConnectionState(this, oldState, newState);
             }
         }
 

@@ -41,22 +41,26 @@ public class KxConnection extends c implements Closeable {
     }
 
     public Object query(Object x, CancellationValidator cancellation, ResponseValidator responseValidator, Consumer<QueryPhase> phaseConsumer) throws IOException, KException, CancellationException {
-        if (o == null || i == null) {
+        // capture the streams: a concurrent close() (user disconnect, health-monitor watchdog)
+        // nulls the fields, which must surface as an IOException, never a NullPointerException
+        final OutputStream out = o;
+        final DataInputStream in = i;
+        if (out == null || in == null) {
             throw new IOException("Connection lost");
         }
-        synchronized (o) {
+        synchronized (out) {
             cancellation.checkCancelled();
             phaseConsumer.accept(QueryPhase.ENCODING);
             byte[] buffer = serialize(msgType, x, zip);
 
             cancellation.checkCancelled();
             phaseConsumer.accept(QueryPhase.SENDING);
-            o.write(buffer, 0, buffer.length);
+            out.write(buffer, 0, buffer.length);
         }
 
         phaseConsumer.accept(QueryPhase.WAITING);
-        synchronized (i) {
-            i.readFully(b = new byte[8]); // read the msg header
+        synchronized (in) {
+            in.readFully(b = new byte[8]); // read the msg header
             a = b[0] == 1;  // endianness of the msg
             if (b[1] == 1) { // msg types are 0 - async, 1 - sync, 2 - response
                 sync++;   // an incoming sync message means the remote will expect a response message
@@ -71,12 +75,12 @@ public class KxConnection extends c implements Closeable {
                 cancellation.checkCancelled();
                 responseValidator.checkMessageSize(size);
             } catch (CancellationException ex) {
-                i.skipBytes(readCount);
+                in.skipBytes(readCount);
                 throw ex;
             }
 
             b = Arrays.copyOf(b, size);
-            i.readFully(b, 8, readCount); // read the incoming message in full
+            in.readFully(b, 8, readCount); // read the incoming message in full
 
             cancellation.checkCancelled();
             phaseConsumer.accept(QueryPhase.DECODING);
@@ -124,7 +128,9 @@ public class KxConnection extends c implements Closeable {
             synchronized (in) {
                 watchdogArm.run();
 
-                final byte[] buffer = serialize(1, "::", false);
+                // cs(...): the probe must go out as a char-vector expression (type 10), which the
+                // remote evaluates to identity; a plain Java String would serialise as a symbol atom
+                final byte[] buffer = serialize(1, cs("::"), false);
                 out.write(buffer, 0, buffer.length);
 
                 while (true) {
@@ -162,30 +168,37 @@ public class KxConnection extends c implements Closeable {
     }
 
     @Override
-    public void close() {
-        if (null != s) {
+    public synchronized void close() {
+        // synchronized + null-first: close() is called concurrently (user disconnect, health-monitor
+        // watchdog, dead-connection handling) and an interleaved double close must neither NPE nor
+        // leave streams half-closed. Never takes the o/i stream locks, so it always proceeds even
+        // when a reader is parked - closing the socket is what unblocks that reader.
+        final Socket socket = s;
+        final DataInputStream in = i;
+        final OutputStream out = o;
+        s = null;
+        i = null;
+        o = null;
+        if (socket != null) {
             try {
-                s.close();
-            } catch (IOException ignore) {
+                socket.close();
+            } catch (Exception ignore) {
                 //
             }
-            s = null;
         }
-        if (null != i) {
+        if (in != null) {
             try {
-                i.close();
-            } catch (IOException ignore) {
+                in.close();
+            } catch (Exception ignore) {
                 //
             }
-            i = null;
         }
-        if (null != o) {
+        if (out != null) {
             try {
-                o.close();
-            } catch (IOException ignore) {
+                out.close();
+            } catch (Exception ignore) {
                 //
             }
-            o = null;
         }
     }
 

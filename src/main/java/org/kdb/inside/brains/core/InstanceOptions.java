@@ -134,14 +134,16 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
                 b.heartbeat(Boolean.valueOf(heartbeat));
             }
 
+            // out-of-range values are clamped, not rejected: one bad heartbeat number in a
+            // hand-edited or older file must not silently discard all the other options
             final String heartbeatInterval = el.getAttributeValue("heartbeatInterval");
             if (heartbeatInterval != null) {
-                b.heartbeatInterval(Integer.decode(heartbeatInterval.trim()));
+                b.heartbeatInterval(Math.max(MIN_HEARTBEAT_INTERVAL_SEC, Integer.decode(heartbeatInterval.trim())));
             }
 
             final String heartbeatTimeout = el.getAttributeValue("heartbeatTimeout");
             if (heartbeatTimeout != null) {
-                b.heartbeatTimeout(Integer.decode(heartbeatTimeout.trim()));
+                b.heartbeatTimeout(Math.max(MIN_HEARTBEAT_TIMEOUT_MS, Integer.decode(heartbeatTimeout.trim())));
             }
 
             final String autoReconnect = el.getAttributeValue("autoReconnect");
@@ -283,6 +285,42 @@ public final class InstanceOptions implements SettingsBean<InstanceOptions> {
     @Transient
     public boolean isSafeAutoReconnect() {
         return hasAutoReconnect() ? autoReconnect : DEFAULT_AUTO_RECONNECT;
+    }
+
+    /**
+     * Fills every absent (null) option with its default. The application-level options are the root
+     * of the scope/instance inheritance chain and must stay fully populated: a configuration written
+     * by an older plugin version lacks the newer attributes and would otherwise resurface as null
+     * after XML deserialization.
+     */
+    public void fillAbsentWithDefaults() {
+        if (tls == null) {
+            tls = DEFAULT_TLS;
+        }
+        if (zip == null) {
+            zip = DEFAULT_ZIP;
+        }
+        if (async == null) {
+            async = DEFAULT_ASYNC;
+        }
+        if (timeout == null) {
+            timeout = DEFAULT_TIMEOUT;
+        }
+        if (encoding == null) {
+            encoding = DEFAULT_ENCODING;
+        }
+        if (heartbeat == null) {
+            heartbeat = DEFAULT_HEARTBEAT;
+        }
+        if (heartbeatInterval == null) {
+            heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL_SEC;
+        }
+        if (heartbeatTimeout == null) {
+            heartbeatTimeout = DEFAULT_HEARTBEAT_TIMEOUT_MS;
+        }
+        if (autoReconnect == null) {
+            autoReconnect = DEFAULT_AUTO_RECONNECT;
+        }
     }
 
     @Override
