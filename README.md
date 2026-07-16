@@ -11,3 +11,7 @@ as grammar.
 
 We have created special site where tried to describe all features of the plugin and how to set up your first
 project: https://www.kdbinsidebrains.dev 
+
+## Comntribution to the project
+
+Due to high volume of AI generated commits, changing all aspects of the prokect, new PRs allowed for collaborators only.
