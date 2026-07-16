@@ -34,7 +34,7 @@ class ConnectionHealthMonitorTest {
     @BeforeEach
     void setUp() {
         deadHandler = mock(ConnectionHealthMonitor.DeadConnectionHandler.class);
-        monitor = new ConnectionHealthMonitor(deadHandler, Runnable::run);
+        monitor = new ConnectionHealthMonitor(deadHandler, InstanceConnection::connect, Runnable::run);
     }
 
     @AfterEach
@@ -78,6 +78,7 @@ class ConnectionHealthMonitorTest {
         assertTrue(monitor.runHeartbeatNow(connection));
 
         assertTrue(server.awaitMessages(1, 2000), "the server never received the probe");
+        assertEquals(10, server.lastPayloadType(), "the probe must be a char-vector expression (type 10), not a symbol");
         verifyNoInteractions(deadHandler);
         assertTrue(kx.isConnected());
     }
@@ -104,7 +105,7 @@ class ConnectionHealthMonitorTest {
         assertTrue(monitor.runHeartbeatNow(connection)); // blocks until the watchdog closes the socket
         final long elapsed = System.currentTimeMillis() - start;
 
-        verify(deadHandler, times(1)).connectionDead(same(connection), any(IOException.class));
+        verify(deadHandler, timeout(2000).times(1)).connectionDead(same(connection), same(kx), any(IOException.class));
         assertTrue(elapsed >= InstanceOptions.MIN_HEARTBEAT_TIMEOUT_MS / 2, "died suspiciously fast: " + elapsed + "ms");
         assertTrue(elapsed < InstanceOptions.MIN_HEARTBEAT_TIMEOUT_MS * 20L, "watchdog did not fire in time: " + elapsed + "ms");
     }
@@ -173,6 +174,21 @@ class ConnectionHealthMonitorTest {
     }
 
     @Test
+    void errorCloseAfterAbortDoesNotReconnect() throws Exception {
+        final InstanceConnection connection = mockConnection();
+        when(connection.getState()).thenReturn(InstanceState.DISCONNECTED);
+
+        final InstanceOptions options = healthOptions().heartbeat(false).autoReconnect(true).create();
+        monitor.connectionOpened(connection, mock(KxConnection.class), options);
+        monitor.reconnectAborted(connection); // user disconnected: the entry is gone
+
+        // a later failed manual connect attempt must not start the retry loop
+        monitor.connectionClosed(connection, new IOException("boom"), options);
+        Thread.sleep(3000);
+        verify(connection, never()).connect();
+    }
+
+    @Test
     void intentionalCloseDoesNotReconnect() throws Exception {
         final InstanceConnection connection = mockConnection();
         when(connection.getState()).thenReturn(InstanceState.DISCONNECTED);
@@ -222,6 +238,7 @@ class ConnectionHealthMonitorTest {
         private final ServerSocket serverSocket;
         private final Thread thread;
         private final AtomicInteger messages = new AtomicInteger();
+        private final AtomicInteger lastPayloadType = new AtomicInteger(Integer.MIN_VALUE);
         private final CopyOnWriteArrayList<CountDownLatch> waiters = new CopyOnWriteArrayList<>();
 
         FakeKdbServer(Behaviour behaviour) throws IOException {
@@ -233,6 +250,10 @@ class ConnectionHealthMonitorTest {
 
         int port() {
             return serverSocket.getLocalPort();
+        }
+
+        int lastPayloadType() {
+            return lastPayloadType.get();
         }
 
         boolean awaitMessages(int count, long timeoutMs) throws InterruptedException {
@@ -270,7 +291,11 @@ class ConnectionHealthMonitorTest {
                     final int size = header[0] == 1
                             ? (header[4] & 0xFF) | (header[5] & 0xFF) << 8 | (header[6] & 0xFF) << 16 | (header[7] & 0xFF) << 24
                             : (header[7] & 0xFF) | (header[6] & 0xFF) << 8 | (header[5] & 0xFF) << 16 | (header[4] & 0xFF) << 24;
-                    readFully(in, new byte[size - 8]);
+                    final byte[] body = new byte[size - 8];
+                    readFully(in, body);
+                    if (body.length > 0) {
+                        lastPayloadType.set(body[0]);
+                    }
 
                     messages.incrementAndGet();
                     waiters.forEach(CountDownLatch::countDown);

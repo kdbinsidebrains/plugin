@@ -211,6 +211,9 @@ public class KdbSettingsService implements PersistentStateComponent<KdbSettingsS
 
         public void setInstanceOptions(InstanceOptions instanceOptions) {
             this.instanceOptions.copyFrom(instanceOptions);
+            // the application-level options are the inheritance root and must stay fully populated;
+            // settings persisted by an older plugin version lack the newer attributes
+            this.instanceOptions.fillAbsentWithDefaults();
         }
 
         public EditorOptions getEditorOptions() {

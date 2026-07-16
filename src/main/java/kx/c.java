@@ -1480,7 +1480,14 @@ public class c {
      * @throws UnsupportedEncodingException If the named charset is not supported
      */
     public Object deserialize(byte[] buffer) throws KException, UnsupportedEncodingException {
-        synchronized (i) {
+        // capture the lock: the field may be nulled by a concurrent close(). The buffer is already
+        // fully read at this point, so when the connection is gone decoding proceeds under a
+        // fallback lock instead of dying with a NullPointerException at monitorenter.
+        Object lock = this.i;
+        if (lock == null) {
+            lock = this;
+        }
+        synchronized (lock) {
             b = buffer;
             a = b[0] == 1;  // endianness of the msg
             boolean compressed = b[2] == 1;
@@ -1514,6 +1521,12 @@ public class c {
      */
     public byte[] serialize(int msgType, Object x, boolean zip) throws IOException {
         int length = 8 + nx(x);
+        // capture the lock: the field may be nulled by a concurrent close(), which must surface as
+        // a connection loss, not a NullPointerException at monitorenter
+        final OutputStream o = this.o;
+        if (o == null) {
+            throw new IOException("Connection lost");
+        }
         synchronized (o) {
             B = new byte[length];
             B[0] = 0;
