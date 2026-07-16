@@ -14,4 +14,4 @@ project: https://www.kdbinsidebrains.dev
 
 ## Comntribution to the project
 
-Due to high volume of AI generated commits, changing all aspects of the prokect, new PRs allowed for collaborators only.
+Due to high volume of AI generated commits changing all aspects of the prokect, new PRs allowed for collaborators only.
