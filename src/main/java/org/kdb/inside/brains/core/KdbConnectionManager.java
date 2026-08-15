@@ -20,6 +20,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.KdbIcons;
 import kx.KxConnection;
+import kx.QueryResult;
 import kx.c;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -318,12 +319,12 @@ public class KdbConnectionManager implements Disposable, DumbAware {
         private void performQuery(@NotNull Object query, @NotNull ProgressIndicator indicator) throws IOException, c.KException {
             final KxConnection c = myConnection.safeConnection();
 
-            final Object object = c.query(query,
+            final QueryResult res = c.query(query,
                     () -> checkCancelled(indicator),
                     this::validateMessageSize,
                     phase -> indicator.setText(phase.getDescription())
             );
-            complete(object);
+            complete(res);
         }
 
         private void checkCancelled(ProgressIndicator indicator) throws CancellationException {
@@ -358,8 +359,12 @@ public class KdbConnectionManager implements Disposable, DumbAware {
             }
         }
 
-        private void complete(Object res) {
-            result.complete(res);
+        private void complete(Throwable exception) {
+            result.complete(exception, 0);
+        }
+
+        private void complete(QueryResult queryResult) {
+            result.complete(queryResult.res(), queryResult.size());
         }
 
         public void cancel() {
@@ -571,7 +576,7 @@ public class KdbConnectionManager implements Disposable, DumbAware {
             } catch (ConcurrentQueryException ex) {
                 throw ex;
             } catch (Exception ex) {
-                return new KdbResult().complete(ex);
+                return new KdbResult().complete(ex, 0);
             }
         }
 

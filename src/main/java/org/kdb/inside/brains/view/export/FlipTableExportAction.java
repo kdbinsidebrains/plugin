@@ -76,7 +76,8 @@ public class FlipTableExportAction extends AnExportAction<Boolean> {
         }
 
         final c.Flip data = new c.Flip(new c.Dict(columns, values));
-        final TableResult result = TableResult.from(new KdbQuery(""), KdbResult.with(data));
+        // TODO: Size is not correct!
+        final TableResult result = TableResult.from(new KdbQuery(""), KdbResult.with(data, 0));
         ApplicationManager.getApplication().invokeLater(() -> {
             final TabsTableResult tabs = TabsTableResult.findParentTabs(table);
             if (tabs == null) {

@@ -43,24 +43,22 @@ public class ExecuteAction extends BgtAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
         final Presentation presentation = e.getPresentation();
-        if (org.kdb.inside.brains.action.ActionPlaces.KEYBOARD_SHORTCUT.equals(e.getPlace())) {
-            presentation.setEnabled(true);
-            presentation.setVisible(false);
-        } else {
-            final boolean allowed = isExecutedAllowed(e);
-            if (ActionPlaces.MAIN_TOOLBAR.equals(e.getPlace()) || "popup".equals(e.getPlace())) {
-                presentation.setVisible(true);
-            } else {
-                presentation.setVisible(allowed);
-            }
 
-            final Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
-            if (allowed && editor != null) {
-                final InstanceConnection activeInstance = getConnection(e.getProject());
-                presentation.setEnabled(activeInstance != null && activeInstance.isConnected());
-            } else {
-                presentation.setEnabled(false);
-            }
+        final boolean allowed = isExecutedAllowed(e);
+        if (ActionPlaces.KEYBOARD_SHORTCUT.equals(e.getPlace())) {
+            presentation.setVisible(false);
+        } else if (ActionPlaces.MAIN_TOOLBAR.equals(e.getPlace()) || "popup".equals(e.getPlace())) {
+            presentation.setVisible(true);
+        } else {
+            presentation.setVisible(allowed);
+        }
+
+        final Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
+        if (allowed && editor != null) {
+            final InstanceConnection activeInstance = getConnection(e.getProject());
+            presentation.setEnabled(activeInstance != null && activeInstance.isConnected());
+        } else {
+            presentation.setEnabled(false);
         }
     }
 

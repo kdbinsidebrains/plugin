@@ -1,1 +1,1 @@
-{@[{(1b;value x)}; ; {(0b;x)}] each x}
+{@[{v:value x;(v;1b;-22!v)}; ; {(x;0b;0)}] each x}

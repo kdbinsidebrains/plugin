@@ -39,7 +39,7 @@ class InspectorToolWindowTest {
                                 }
                         }
                 },
-        });
+        }, 0);
 
         final InstanceElement ie = new InstanceElement(mock(InstanceConnection.class), result);
         // Functions
