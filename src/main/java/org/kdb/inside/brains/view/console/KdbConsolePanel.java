@@ -479,7 +479,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
                     final KdbQuery query = new KdbQuery("Loaded from file: " + virtualFile.getCanonicalPath());
                     final KdbResult result = new KdbResult();
 
-                    final KdbResult complete = result.complete(deserialize);
+                    final KdbResult complete = result.complete(deserialize, bytes.length);
                     final TableResult tr = TableResult.from(query, complete);
                     if (tr == null) {
                         throw new IllegalStateException("Incorrect object type: " + deserialize.getClass().getSimpleName());
@@ -596,7 +596,7 @@ public class KdbConsolePanel extends KdbToolWindowPanel implements DataProvider,
     }
 
     private void printRoundtrip(KdbResult result) {
-        printToConsole("(" + result.getTime() + ", roundtrip: " + result.getRoundtripMillis() + "ms / " + result.getRoundtripNanos() + "ns)\n", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        printToConsole("(" + result.getTime() + ", size: " + result.getHumanSize() + ", roundtrip: " + result.getRoundtripMillis() + "ms / " + result.getRoundtripNanos() + "ns)\n", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
     }
 
     @Override

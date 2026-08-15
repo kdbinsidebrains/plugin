@@ -360,7 +360,7 @@ public class TableResultView extends NonOpaquePanel implements DataProvider, Exp
         }
 
         final ExpandedTabDetails tabDetails = getExpandedTabDetails(r, c);
-        final TableResult from = TableResult.from(new KdbQuery(tabDetails.description), KdbResult.with(v));
+        final TableResult from = TableResult.from(new KdbQuery(tabDetails.description), KdbResult.with(v, 0)); //TODO: not sure about that. Should it be serialized to get the size? Can take forewer.
         owner.showTabAfter(tabDetails.name, from);
         return true;
     }

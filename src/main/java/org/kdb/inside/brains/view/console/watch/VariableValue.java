@@ -4,12 +4,19 @@ import kx.c;
 
 import java.util.Arrays;
 
-public record VariableValue(boolean valid, Object value) {
+public record VariableValue(Object value, boolean valid, long size) {
+    public VariableValue(Throwable throwable) {
+        this(throwable.getMessage(), false, 0);
+    }
+
     public static boolean changed(VariableValue a, VariableValue b) {
         if (a == b) {
             return false;
         }
         if (a == null || b == null || a.valid != b.valid) {
+            return true;
+        }
+        if (a.size() != b.size()) {
             return true;
         }
         return !deepEquals(a.value, b.value);

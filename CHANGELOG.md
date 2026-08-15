@@ -1,5 +1,15 @@
 # KdbInsideBrains Changelog
 
+## 7.0.2
+
+### Added
+
+- TableResult View and console shows the response size
+
+### Fixed
+
+- Ctrl+Enter processing doesn't block Copilot Chat
+
 ## 7.0.1
 
 ### Added

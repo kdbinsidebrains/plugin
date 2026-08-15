@@ -180,7 +180,7 @@ public class WatchesView extends JPanel implements DnDNativeTarget, DataProvider
         if (value == null) {
             return false;
         }
-        final KdbResult result = KdbResult.with(value.value());
+        final KdbResult result = KdbResult.with(value.value(), value.size());
         return TableResult.from(null, result) != null;
     }
 
@@ -193,7 +193,7 @@ public class WatchesView extends JPanel implements DnDNativeTarget, DataProvider
             final VariableValue value = node.getValue();
             if (value != null) {
                 final KdbQuery query = new KdbQuery("Watch: " + node.getExpression());
-                final KdbResult result = KdbResult.with(value.value());
+                final KdbResult result = KdbResult.with(value.value(), value.size());
                 final TableResult tableResult = TableResult.from(query, result);
                 if (tableResult != null) {
                     console.showTableResult(query.getExpression(), tableResult);
@@ -248,7 +248,7 @@ public class WatchesView extends JPanel implements DnDNativeTarget, DataProvider
             }
         });
 
-        final AnAction addToWatchesAction = new BgtAction("Add To Watches", null, AllIcons.Debugger.AddToWatch) {
+        final AnAction addToWatchesAction = new BgtAction("Add to Watches", null, AllIcons.Debugger.AddToWatch) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 insertVariable.run();
@@ -288,24 +288,25 @@ public class WatchesView extends JPanel implements DnDNativeTarget, DataProvider
             final char[][] expressions = variables.stream().map(VariableNode::getExpression).map(String::toCharArray).toArray(char[][]::new);
             connection.query(new KdbQuery(query, new Object[]{expressions}), (r) -> {
                 updating = false;
+
                 updateResult(variables, r);
             });
         } catch (Exception ex) {
             updating = false;
-            final VariableValue errMessage = new VariableValue(false, ex.getMessage());
+            final VariableValue errMessage = new VariableValue(ex);
             variables.forEach(v -> v.updated(errMessage));
         }
     }
 
     private void updateResult(List<VariableNode> variables, KdbResult result) {
         if (result.isError()) {
-            final VariableValue errMessage = new VariableValue(false, ((Exception) result.getObject()).getMessage());
+            final VariableValue errMessage = new VariableValue((Exception) result.getObject());
             variables.forEach(v -> v.updated(errMessage));
         } else {
             final Object[] res = (Object[]) result.getObject();
             for (int i = 0; i < res.length; i++) {
                 final Object[] re = (Object[]) res[i];
-                variables.get(i).updated(new VariableValue((Boolean) re[0], re[1]));
+                variables.get(i).updated(new VariableValue(re[0], (Boolean) re[1], (long) re[2]));
             }
         }
     }

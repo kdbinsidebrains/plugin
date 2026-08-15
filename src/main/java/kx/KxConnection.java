@@ -37,7 +37,7 @@ public class KxConnection extends c implements Closeable {
         io(s);
     }
 
-    public Object query(Object x, CancellationValidator cancellation, ResponseValidator responseValidator, Consumer<QueryPhase> phaseConsumer) throws IOException, KException, CancellationException {
+    public QueryResult query(Object x, CancellationValidator cancellation, ResponseValidator responseValidator, Consumer<QueryPhase> phaseConsumer) throws IOException, KException, CancellationException {
         if (o == null || i == null) {
             throw new IOException("Connection lost");
         }
@@ -77,7 +77,7 @@ public class KxConnection extends c implements Closeable {
 
             cancellation.checkCancelled();
             phaseConsumer.accept(QueryPhase.DECODING);
-            return deserialize(b);
+            return new QueryResult(deserialize(b), size);
         }
     }
 
